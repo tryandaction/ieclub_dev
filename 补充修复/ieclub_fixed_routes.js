@@ -1,16 +1,16 @@
 // src/routes/index.js
-// 主路由配置（修复后的完整版本）
+// 主路由配置（修复后的版本）
 
 const express = require('express');
 const router = express.Router();
 
-// 导入控制器
+// 导入控制器（修复导入错误）
 const AuthController = require('../controllers/authController');
 const TopicController = require('../controllers/topicController');
 const CommentController = require('../controllers/commentController');
 const UploadController = require('../controllers/uploadController');
-const NotificationController = require('../controllers/notificationController');
-const UserController = require('../controllers/userController');
+const NotificationController = require('../controllers/notificationController'); // ✅ 独立导入
+const UserController = require('../controllers/userController'); // ✅ 独立导入
 
 // 导入中间件
 const { authenticate, optionalAuth, refreshToken } = require('../middleware/auth');
@@ -149,7 +149,7 @@ router.get('/', (req, res) => {
     success: true,
     message: 'IEclub API',
     version: '2.0.0',
-    documentation: 'https://docs.ieclub.online',
+    documentation: '/api-docs',
     endpoints: {
       auth: '/api/v1/auth',
       topics: '/api/v1/topics',
@@ -157,6 +157,7 @@ router.get('/', (req, res) => {
       upload: '/api/v1/upload',
       notifications: '/api/v1/notifications',
       users: '/api/v1/users',
+      health: '/api/v1/health',
     },
   });
 });

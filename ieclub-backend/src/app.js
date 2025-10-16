@@ -8,6 +8,8 @@ const compression = require('compression');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 const config = require('./config');
 const logger = require('./utils/logger');
@@ -56,8 +58,34 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
-// 应用限流（除健康检查外）
+// 应用限流（除健康检查和 API 文档外）
 app.use('/api/', limiter);
+
+// ==================== Swagger API 文档 ====================
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'IEclub API',
+      version: '2.0.0',
+      description: 'IEclub 后端 API 文档',
+    },
+    servers: [
+      {
+        url: 'http://localhost:3000/api/v1',
+        description: '开发环境',
+      },
+      {
+        url: 'https://api.ieclub.online/api/v1',
+        description: '生产环境',
+      },
+    ],
+  },
+  apis: ['./src/routes/*.js', './src/controllers/*.js'],
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // ==================== API 路由 ====================
 app.use('/api/v1', routes);
