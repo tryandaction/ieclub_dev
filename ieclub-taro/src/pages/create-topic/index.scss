@@ -1,0 +1,163 @@
+// ==================== 创建话题页面样式 ====================
+
+.create-topic-page {
+  min-height: 100vh;
+  background: #fff;
+  padding: 16px;
+
+  .form-item {
+    margin-bottom: 24px;
+    position: relative;
+
+    .label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 12px;
+    }
+
+    .title-input {
+      width: 100%;
+      font-size: 18px;
+      font-weight: 500;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .content-input {
+      width: 100%;
+      min-height: 200px;
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 12px 0;
+    }
+
+    .char-count {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      font-size: 12px;
+      color: #999;
+    }
+
+    .category-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+
+      .category-item {
+        padding: 8px 16px;
+        border: 1px solid #e0e0e0;
+        border-radius: 16px;
+        font-size: 14px;
+        color: #666;
+        transition: all 0.3s;
+
+        &.active {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border-color: #667eea;
+          color: #fff;
+        }
+      }
+    }
+
+    .image-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+
+      .image-item {
+        width: 100px;
+        height: 100px;
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+
+        .image {
+          width: 100%;
+          height: 100%;
+        }
+
+        .remove-btn {
+          position: absolute;
+          top: 4px;
+          right: 4px;
+          width: 24px;
+          height: 24px;
+          border-radius: 12px;
+          background: rgba(0, 0, 0, 0.6);
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+        }
+      }
+
+      .add-image-btn {
+        width: 100px;
+        height: 100px;
+        border: 2px dashed #e0e0e0;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        color: #ccc;
+      }
+    }
+
+    .tags-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+
+      .tag-item {
+        padding: 6px 12px;
+        background: #f0f0f0;
+        border-radius: 12px;
+        font-size: 14px;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .remove-tag {
+          font-size: 18px;
+          color: #999;
+        }
+      }
+
+      .add-tag-btn {
+        padding: 6px 12px;
+        border: 1px dashed #e0e0e0;
+        border-radius: 12px;
+        font-size: 14px;
+        color: #999;
+      }
+    }
+  }
+
+  .submit-section {
+    margin-top: 32px;
+
+    .submit-btn {
+      width: 100%;
+      height: 48px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+
+      &.disabled {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+    }
+  }
+}

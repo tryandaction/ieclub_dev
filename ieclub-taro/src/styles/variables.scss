@@ -1,0 +1,54 @@
+// ==================== 样式变量（增强版） ====================
+
+// 颜色变量
+$primary-color: #667eea;
+$primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+$success-color: #10b981;
+$warning-color: #f59e0b;
+$error-color: #ef4444;
+$info-color: #3b82f6;
+
+$text-primary: #333;
+$text-secondary: #666;
+$text-tertiary: #999;
+$text-white: #fff;
+
+$bg-primary: #fff;
+$bg-secondary: #f5f5f5;
+$bg-tertiary: #f0f0f0;
+
+$border-color: #e5e7eb;
+$border-light: #f0f0f0;
+
+// 间距
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 12px;
+$spacing-lg: 16px;
+$spacing-xl: 20px;
+$spacing-xxl: 24px;
+
+// 字体大小
+$font-xs: 12px;
+$font-sm: 13px;
+$font-md: 14px;
+$font-lg: 16px;
+$font-xl: 18px;
+$font-xxl: 20px;
+
+// 圆角
+$radius-sm: 4px;
+$radius-md: 8px;
+$radius-lg: 12px;
+$radius-xl: 16px;
+$radius-circle: 50%;
+
+// 阴影
+$shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+$shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+// 过渡
+$transition-fast: 0.2s ease;
+$transition-base: 0.3s ease;
+$transition-slow: 0.5s ease;

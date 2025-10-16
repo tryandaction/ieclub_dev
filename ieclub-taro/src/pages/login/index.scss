@@ -1,0 +1,63 @@
+// ==================== 登录页面样式 ====================
+
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 60px 40px;
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 60px;
+
+    .logo {
+      font-size: 80px;
+      margin-bottom: 20px;
+    }
+
+    .title {
+      font-size: 32px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+
+  .login-form {
+    .form-item {
+      margin-bottom: 20px;
+
+      .input {
+        width: 100%;
+        height: 50px;
+        padding: 0 20px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 25px;
+        font-size: 16px;
+      }
+    }
+
+    .submit-btn {
+      width: 100%;
+      height: 50px;
+      border-radius: 25px;
+      background: #fff;
+      color: #667eea;
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 30px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .switch-mode {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+  }
+}

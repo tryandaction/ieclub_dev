@@ -1,0 +1,644 @@
+# 🏗️ IEClub 后端架构方案（专为 Taro 设计）
+
+## 📊 技术选型
+
+### 核心技术栈
+```
+- 运行环境: Node.js 18+
+- Web 框架: Express.js 4.x
+- 数据库: MySQL 8.0 (更适合小程序场景)
+- ORM: Prisma (类型安全、易维护)
+- 缓存: Redis 7+
+- 文件存储: 阿里云 OSS / 腾讯云 COS
+- 实时通信: Socket.IO (可选)
+```
+
+### 为什么不用 PostgreSQL + Sequelize？
+1. **MySQL 更轻量**：适合小程序的快速响应需求
+2. **Prisma 更现代**：TypeScript 原生支持，自动类型推导
+3. **云服务友好**：腾讯云、阿里云对 MySQL 支持更好
+
+---
+
+## 🗂️ 数据库设计（核心表）
+
+### 1. 用户表（users）
+```prisma
+model User {
+  id            String   @id @default(uuid())
+  openid        String   @unique  // 微信 openid
+  unionid       String?  @unique  // 微信 unionid
+  nickname      String
+  avatar        String?
+  email         String?  @unique
+  phone         String?  @unique
+  bio           String?
+  skills        Json?    // 技能标签数组
+  interests     Json?    // 兴趣标签数组
+  credits       Int      @default(0)  // 积分
+  level         Int      @default(1)  // 等级
+  
+  // 统计字段
+  topicsCount   Int      @default(0)
+  commentsCount Int      @default(0)
+  likesCount    Int      @default(0)
+  viewsCount    Int      @default(0)
+  
+  // 时间字段
+  lastActiveAt  DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // 关联关系
+  topics        Topic[]
+  comments      Comment[]
+  likes         Like[]
+  bookmarks     Bookmark[]
+  notifications Notification[]
+}
+```
+
+### 2. 话题表（topics）- 核心！
+```prisma
+model Topic {
+  id            String   @id @default(uuid())
+  authorId      String
+  
+  // 基础内容
+  title         String
+  content       String   @db.Text
+  contentType   String   @default("text")  // text, markdown, html
+  summary       String?  // 自动生成的摘要
+  
+  // 分类与标签
+  category      String   // 学术、技术、兴趣、活动等
+  tags          Json     // 标签数组
+  
+  // 需求类型 - 关键！
+  topicType     String   @default("discussion")  
+  // discussion: 讨论话题
+  // demand: 需求发布（我需要...）
+  // supply: 供给分享（我可以...）
+  // question: 问题求助
+  // activity: 活动组织
+  // collaboration: 项目合作
+  
+  // 需求匹配字段
+  demandType    String?  // 技术、资源、人员、场地等
+  skillsNeeded  Json?    // 所需技能标签
+  skillsProvided Json?   // 可提供技能标签
+  deadline      DateTime? // 截止时间
+  budget        String?   // 预算范围
+  location      String?   // 地点
+  contactInfo   Json?     // 联系方式
+  
+  // 媒体内容
+  images        Json?    // 图片数组
+  documents     Json?    // 文档数组（PDF、Word、PPT）
+  videos        Json?    // 视频数组
+  links         Json?    // 外部链接数组（含预览卡片数据）
+  
+  // 快速操作按钮数据
+  quickActions  Json?    
+  // 例如: [
+  //   { type: "interested", label: "想听", count: 10 },
+  //   { type: "can_help", label: "我来分享", count: 5 },
+  //   { type: "want_collab", label: "想合作", count: 3 }
+  // ]
+  
+  // 状态与权限
+  status        String   @default("published")  // draft, published, closed, deleted
+  isTop         Boolean  @default(false)  // 置顶
+  isPinned      Boolean  @default(false)  // 精华
+  isHot         Boolean  @default(false)  // 热门（自动计算）
+  visibility    String   @default("public")  // public, private, friends
+  
+  // 互动统计
+  viewsCount    Int      @default(0)
+  likesCount    Int      @default(0)
+  commentsCount Int      @default(0)
+  bookmarksCount Int     @default(0)
+  sharesCount   Int      @default(0)
+  
+  // 算法相关
+  hotScore      Float    @default(0)  // 热度分数
+  qualityScore  Float    @default(0)  // 质量分数
+  
+  // 时间字段
+  publishedAt   DateTime?
+  lastActiveAt  DateTime @default(now())  // 最后活跃时间
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // 关联关系
+  author        User     @relation(fields: [authorId], references: [id])
+  comments      Comment[]
+  likes         Like[]
+  bookmarks     Bookmark[]
+  
+  @@index([authorId])
+  @@index([category])
+  @@index([topicType])
+  @@index([status])
+  @@index([hotScore])
+  @@index([createdAt])
+}
+```
+
+### 3. 评论表（comments）
+```prisma
+model Comment {
+  id            String   @id @default(uuid())
+  topicId       String
+  authorId      String
+  parentId      String?  // 父评论 ID（用于回复）
+  
+  content       String   @db.Text
+  contentType   String   @default("text")
+  images        Json?
+  
+  // 互动统计
+  likesCount    Int      @default(0)
+  repliesCount  Int      @default(0)
+  
+  // 状态
+  isPinned      Boolean  @default(false)  // 精华评论
+  status        String   @default("published")
+  
+  // 时间字段
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // 关联关系
+  topic         Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  author        User     @relation(fields: [authorId], references: [id])
+  parent        Comment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies       Comment[] @relation("CommentReplies")
+  likes         Like[]
+  
+  @@index([topicId])
+  @@index([authorId])
+  @@index([parentId])
+}
+```
+
+### 4. 点赞表（likes）
+```prisma
+model Like {
+  id          String   @id @default(uuid())
+  userId      String
+  targetType  String   // topic, comment
+  targetId    String
+  
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id])
+  topic       Topic?   @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  comment     Comment? @relation(fields: [targetId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, targetType, targetId])
+  @@index([userId])
+  @@index([targetId])
+}
+```
+
+### 5. 收藏表（bookmarks）
+```prisma
+model Bookmark {
+  id          String   @id @default(uuid())
+  userId      String
+  topicId     String
+  folderId    String?  // 收藏夹 ID（可选）
+  
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id])
+  topic       Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, topicId])
+  @@index([userId])
+  @@index([topicId])
+}
+```
+
+### 6. 通知表（notifications）
+```prisma
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String
+  
+  type        String   // like, comment, reply, system, match, reminder
+  title       String
+  content     String
+  
+  // 关联数据
+  actorId     String?  // 触发者 ID
+  targetType  String?  // topic, comment, user
+  targetId    String?
+  
+  // 状态
+  isRead      Boolean  @default(false)
+  readAt      DateTime?
+  
+  // 时间字段
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+```
+
+### 7. 用户行为表（user_actions）- 用于推荐算法
+```prisma
+model UserAction {
+  id          String   @id @default(uuid())
+  userId      String
+  
+  actionType  String   // view, like, comment, bookmark, share, search
+  targetType  String   // topic, user, tag
+  targetId    String
+  
+  metadata    Json?    // 额外数据（如停留时长、搜索词等）
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([actionType])
+  @@index([createdAt])
+}
+```
+
+### 8. 推送任务表（push_tasks）- 运营推送
+```prisma
+model PushTask {
+  id          String   @id @default(uuid())
+  
+  type        String   // hot_topic, new_match, daily_digest, event_reminder
+  title       String
+  content     String
+  targetUsers Json     // 目标用户 ID 数组
+  
+  // 推送策略
+  strategy    String   // immediate, scheduled, smart
+  scheduledAt DateTime?
+  
+  // 状态
+  status      String   @default("pending")  // pending, sent, failed
+  sentAt      DateTime?
+  
+  // 效果统计
+  sentCount   Int      @default(0)
+  openCount   Int      @default(0)
+  clickCount  Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([status])
+  @@index([scheduledAt])
+}
+```
+
+---
+
+## 🔌 核心 API 接口设计
+
+### 1. 话题相关 API
+
+#### 获取话题列表
+```
+GET /api/topics
+Query参数:
+  - page: 页码
+  - limit: 每页数量
+  - category: 分类
+  - topicType: 话题类型（讨论/需求/供给等）
+  - sortBy: 排序方式（hot/new/trending）
+  - tags: 标签筛选
+  - demandType: 需求类型筛选
+
+返回:
+{
+  "success": true,
+  "data": {
+    "topics": [...],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 100,
+      "hasMore": true
+    }
+  }
+}
+```
+
+#### 创建话题（支持多种内容）
+```
+POST /api/topics
+Body:
+{
+  "title": "寻找前端开发合作伙伴",
+  "content": "我有一个AI项目想做...",
+  "contentType": "markdown",
+  "category": "技术",
+  "tags": ["AI", "前端", "React"],
+  "topicType": "demand",
+  "demandType": "人员",
+  "skillsNeeded": ["React", "TypeScript"],
+  "deadline": "2025-12-31",
+  "images": [
+    { "url": "https://...", "thumbnail": "https://..." }
+  ],
+  "documents": [
+    { "name": "项目计划.pdf", "url": "https://...", "size": 1024000 }
+  ],
+  "links": [
+    {
+      "url": "https://mp.weixin.qq.com/s/xxx",
+      "title": "相关公众号文章",
+      "description": "...",
+      "image": "https://..."
+    }
+  ],
+  "quickActions": [
+    { "type": "interested", "label": "想合作" },
+    { "type": "can_help", "label": "我有资源" }
+  ]
+}
+```
+
+#### 快速操作按钮交互
+```
+POST /api/topics/:id/quick-action
+Body:
+{
+  "actionType": "interested"  // interested, can_help, want_collab
+}
+
+返回:
+{
+  "success": true,
+  "data": {
+    "actionType": "interested",
+    "count": 11,  // 更新后的数量
+    "userAction": true  // 用户是否已操作
+  }
+}
+```
+
+### 2. 文件上传 API
+
+#### 上传图片
+```
+POST /api/upload/images
+Form-data:
+  - files: 文件数组（最多 9 张）
+
+返回:
+{
+  "success": true,
+  "data": [
+    {
+      "url": "https://cdn.ieclub.com/xxx.jpg",
+      "thumbnail": "https://cdn.ieclub.com/xxx_thumb.jpg",
+      "width": 1920,
+      "height": 1080,
+      "size": 512000
+    }
+  ]
+}
+```
+
+#### 上传文档
+```
+POST /api/upload/documents
+Form-data:
+  - file: 文件（PDF/Word/PPT，最大 20MB）
+
+返回:
+{
+  "success": true,
+  "data": {
+    "name": "项目计划.pdf",
+    "url": "https://cdn.ieclub.com/docs/xxx.pdf",
+    "size": 2048000,
+    "type": "pdf",
+    "pages": 10  // PDF 页数（如果可获取）
+  }
+}
+```
+
+### 3. 链接预览 API
+
+#### 获取链接元数据（用于公众号链接等）
+```
+POST /api/links/preview
+Body:
+{
+  "url": "https://mp.weixin.qq.com/s/xxx"
+}
+
+返回:
+{
+  "success": true,
+  "data": {
+    "title": "公众号文章标题",
+    "description": "文章简介",
+    "image": "https://...",
+    "siteName": "公众号名称",
+    "url": "https://..."
+  }
+}
+```
+
+### 4. 智能推荐 API
+
+#### 获取个性化推荐
+```
+GET /api/recommendations/topics
+Query:
+  - userId: 用户 ID
+  - page: 页码
+  - limit: 数量
+
+返回:
+{
+  "success": true,
+  "data": {
+    "topics": [...],
+    "reason": "基于你的兴趣：React, AI"  // 推荐原因
+  }
+}
+```
+
+#### 供需匹配推荐
+```
+GET /api/recommendations/matches
+返回:
+{
+  "success": true,
+  "data": [
+    {
+      "topic": {...},
+      "matchScore": 0.85,
+      "matchReasons": [
+        "你擅长的技能：React",
+        "对方需要的技能：React",
+        "兴趣匹配度：80%"
+      ]
+    }
+  ]
+}
+```
+
+### 5. 运营推送 API
+
+#### 创建推送任务（管理员）
+```
+POST /api/admin/push-tasks
+Body:
+{
+  "type": "hot_topic",
+  "title": "🔥 大家都在讨论：AI 项目合作",
+  "content": "快来参与热烈讨论吧！",
+  "targetUsers": ["user1", "user2"],  // 或 "all"
+  "strategy": "smart",  // 智能推送时间
+  "scheduledAt": "2025-10-17T09:00:00Z"
+}
+```
+
+#### 用户端接收推送
+```
+GET /api/push/pending
+返回:
+{
+  "success": true,
+  "data": [
+    {
+      "id": "xxx",
+      "type": "hot_topic",
+      "title": "...",
+      "content": "...",
+      "link": "/pages/topic-detail/index?id=xxx",
+      "createdAt": "2025-10-16T10:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+## 🧠 核心算法实现
+
+### 1. 热度算法（Hot Score）
+```javascript
+function calculateHotScore(topic) {
+  const now = Date.now();
+  const ageInHours = (now - topic.createdAt.getTime()) / (1000 * 60 * 60);
+  
+  const votes = topic.likesCount * 2 + topic.commentsCount * 3;
+  const gravity = 1.8;  // 重力系数
+  
+  return votes / Math.pow(ageInHours + 2, gravity);
+}
+```
+
+### 2. 供需匹配算法
+```javascript
+function matchDemandSupply(demand, supply) {
+  const skillsMatch = calculateSkillsMatch(
+    demand.skillsNeeded,
+    supply.skillsProvided
+  );
+  
+  const interestsMatch = calculateInterestsMatch(
+    demand.tags,
+    supply.tags
+  );
+  
+  const locationMatch = demand.location === supply.location ? 1 : 0.5;
+  
+  return skillsMatch * 0.5 + interestsMatch * 0.3 + locationMatch * 0.2;
+}
+```
+
+### 3. 智能推送策略
+```javascript
+function getOptimalPushTime(userId) {
+  // 分析用户活跃时间
+  const userActiveHours = await getUserActiveHours(userId);
+  
+  // 避开高峰时段（防止信息过载）
+  const peakHours = [12, 18, 20];
+  
+  // 选择用户活跃且非高峰的时间
+  const optimalHour = userActiveHours
+    .filter(hour => !peakHours.includes(hour))
+    [0] || 9;  // 默认早上9点
+  
+  return getNextOccurrence(optimalHour);
+}
+```
+
+---
+
+## 📦 部署架构
+
+```
+前端（Taro）
+    ↓ HTTPS
+CDN / Nginx
+    ↓
+后端 API（Node.js + Express）
+    ↓
+MySQL（主数据库）
+    ↓
+Redis（缓存 + 任务队列）
+    ↓
+阿里云 OSS（文件存储）
+```
+
+---
+
+## 🚀 开发优先级
+
+### Phase 1 - 核心功能（2周）
+- [ ] 用户认证（微信登录）
+- [ ] 话题 CRUD（支持文本、图片）
+- [ ] 评论系统
+- [ ] 点赞、收藏
+
+### Phase 2 - 增强功能（2周）
+- [ ] 文档上传（PDF、Word、PPT）
+- [ ] Markdown 渲染
+- [ ] 链接预览
+- [ ] 快速操作按钮
+
+### Phase 3 - 智能化（2周）
+- [ ] 热度算法
+- [ ] 推荐系统
+- [ ] 供需匹配
+- [ ] 用户行为分析
+
+### Phase 4 - 运营增长（2周）
+- [ ] 智能推送
+- [ ] 弹窗策略
+- [ ] 数据看板
+- [ ] A/B 测试
+
+---
+
+## 🎯 总结
+
+这套后端方案：
+✅ **专为 Taro 小程序设计**
+✅ **支持所有你提出的新功能**
+✅ **包含供需匹配核心逻辑**
+✅ **内置运营增长策略**
+✅ **使用现代技术栈（Prisma + MySQL）**
+✅ **性能优化（Redis 缓存）**
+✅ **易于扩展和维护**
+
+**准备好了吗？我现在就可以开始生成完整的后端代码！** 🚀

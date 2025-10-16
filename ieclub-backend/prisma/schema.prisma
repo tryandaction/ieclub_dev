@@ -1,0 +1,287 @@
+// prisma/schema.prisma
+// 数据库模型定义
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  openid      String   @unique
+  unionid     String?
+  sessionKey  String?
+
+  // 基本信息
+  nickname    String   @db.VarChar(50)
+  avatar      String   @db.Text
+  gender      Int      @default(0) @db.TinyInt
+  email       String?  @unique @db.VarChar(100)
+  phone       String?  @unique @db.VarChar(20)
+  bio         String?  @db.Text
+
+  // 技能和兴趣
+  skills      String?  @db.JSON // 技能标签数组
+  interests   String?  @db.JSON // 兴趣标签数组
+
+  // 统计数据
+  credits     Int      @default(0)
+  level       Int      @default(1)
+  exp         Int      @default(0)
+
+  // 计数器
+  topicsCount     Int @default(0)
+  commentsCount   Int @default(0)
+  likesCount      Int @default(0)
+  fansCount       Int @default(0)
+  followsCount    Int @default(0)
+
+  // 状态
+  status      String   @default("active") @db.VarChar(20) // active, banned, deleted
+  isCertified Boolean  @default(false)
+  isVip       Boolean  @default(false)
+
+  // 时间戳
+  lastLoginAt     DateTime?
+  lastActiveAt    DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // 关联关系
+  topics          Topic[]
+  comments        Comment[]
+  likes           Like[]
+  bookmarks       Bookmark[]
+  follows         Follow[] @relation("UserFollows")
+  followers       Follow[] @relation("UserFollowers")
+  sentNotifications     Notification[] @relation("NotificationSender")
+  receivedNotifications Notification[] @relation("NotificationReceiver")
+  userActions     UserAction[]
+  topicQuickActions TopicQuickAction[]
+
+  @@map("users")
+}
+
+model Topic {
+  id          String   @id @default(cuid())
+
+  // 基本信息
+  title       String   @db.VarChar(200)
+  content     String   @db.LongText
+  contentType String   @default("text") @db.VarChar(20)
+  summary     String?  @db.Text
+  category    String   @db.VarChar(50)
+  tags        String?  @db.JSON
+
+  // 话题类型
+  topicType   String   @default("discussion") @db.VarChar(20) // discussion, demand, supply, collaboration
+  demandType  String?  @db.VarChar(20) // 人员, 项目, 资金, 资源
+  skillsNeeded     String? @db.JSON
+  skillsProvided   String? @db.JSON
+  deadline    DateTime?
+  budget      String?  @db.VarChar(100)
+  location    String?  @db.VarChar(100)
+  contactInfo String?  @db.Text
+
+  // 媒体文件
+  images      String?  @db.JSON
+  documents   String?  @db.JSON
+  videos      String?  @db.JSON
+  links       String?  @db.JSON
+
+  // 快速操作
+  quickActions String? @db.JSON
+
+  // 可见性
+  visibility  String   @default("public") @db.VarChar(20) // public, private, followers
+
+  // 统计数据
+  viewsCount      Int @default(0)
+  likesCount      Int @default(0)
+  commentsCount   Int @default(0)
+  bookmarksCount  Int @default(0)
+  hotScore        Float @default(0)
+  trendingScore   Float @default(0)
+  isHot           Boolean @default(false)
+
+  // 状态
+  status      String   @default("draft") @db.VarChar(20) // draft, published, deleted
+  publishedAt DateTime?
+
+  // 时间戳
+  lastActiveAt DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // 关联关系
+  author       User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId     String
+  comments     Comment[]
+  likes        Like[]
+  bookmarks    Bookmark[]
+  notifications Notification[]
+  userActions  UserAction[]
+  quickActionsList TopicQuickAction[]
+
+  @@map("topics")
+}
+
+model Comment {
+  id          String   @id @default(cuid())
+
+  // 评论内容
+  content     String   @db.Text
+  images      String?  @db.JSON
+
+  // 评论层级
+  parentId    String?  // 父评论ID
+  rootId      String?  // 根评论ID（如果是回复）
+  repliesCount Int     @default(0)
+
+  // 统计数据
+  likesCount  Int      @default(0)
+
+  // 状态
+  status      String   @default("published") @db.VarChar(20) // published, deleted
+
+  // 时间戳
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 关联关系
+  topic       Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId     String
+  author      User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId    String
+  parent      Comment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies     Comment[] @relation("CommentReplies")
+  likes       Like[]
+  notifications Notification[]
+
+  @@map("comments")
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  targetType String  @db.VarChar(20) // topic, comment
+  targetId   String
+
+  createdAt DateTime @default(now())
+
+  // 关联关系
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  topic     Topic? @relation(fields: [targetId], references: [id])
+  comment   Comment? @relation(fields: [targetId], references: [id])
+
+  @@unique([userId, targetType, targetId])
+  @@map("likes")
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // 关联关系
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  topic     Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId   String
+
+  @@unique([userId, topicId])
+  @@map("bookmarks")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+
+  // 关联关系
+  follower    User @relation("UserFollows", fields: [followerId], references: [id], onDelete: Cascade)
+  followerId  String
+  following   User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+  followingId String
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+
+  // 通知类型
+  type        String   @db.VarChar(20) // like, comment, reply, follow, match, system
+
+  // 通知内容
+  title       String   @db.VarChar(100)
+  content     String   @db.Text
+
+  // 状态
+  isRead      Boolean  @default(false)
+  readAt      DateTime?
+
+  // 跳转链接
+  link        String?  @db.Text
+
+  // 时间戳
+  createdAt   DateTime @default(now())
+
+  // 关联关系
+  user        User @relation("NotificationReceiver", fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  actor       User? @relation("NotificationSender", fields: [actorId], references: [id])
+  actorId     String?
+  topic       Topic? @relation(fields: [targetId], references: [id])
+  comment     Comment? @relation(fields: [targetId], references: [id])
+  targetType  String   @db.VarChar(20) // topic, comment, user
+  targetId    String
+
+  @@map("notifications")
+}
+
+model UserAction {
+  id          String   @id @default(cuid())
+
+  // 行为类型
+  actionType  String   @db.VarChar(20) // view, like, comment, bookmark, click, share
+
+  // 目标
+  targetType  String   @db.VarChar(20) // topic, comment, user
+  targetId    String
+
+  // 元数据
+  metadata    String?  @db.JSON
+
+  // 时间戳
+  createdAt   DateTime @default(now())
+
+  // 关联关系
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  topic       Topic? @relation(fields: [targetId], references: [id])
+
+  @@map("user_actions")
+}
+
+model TopicQuickAction {
+  id          String   @id @default(cuid())
+
+  // 操作类型
+  actionType  String   @db.VarChar(20) // interested, can_help, want_collab
+
+  // 时间戳
+  createdAt   DateTime @default(now())
+
+  // 关联关系
+  topic       Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId     String
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+
+  @@unique([topicId, userId, actionType])
+  @@map("topic_quick_actions")
+}

@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "c:\\universe\\GitHub_try\\IEclub_dev\\ieclub-backend\\logs\\.7e368ca8db1eec0e5e1aa78fc650dd864b722977-audit.json",
+    "files": [
+        {
+            "date": 1760600138331,
+            "name": "c:\\universe\\GitHub_try\\IEclub_dev\\ieclub-backend\\logs\\ieclub-2025-10-16.log",
+            "hash": "fa9b5b79653ee1850e39334d28cecb763b80380f1caf48a18eb237cdd6d7c4d1"
+        }
+    ],
+    "hashType": "sha256"
+}

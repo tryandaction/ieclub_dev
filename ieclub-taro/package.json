@@ -1,0 +1,71 @@
+{
+  "name": "ieclub-taro",
+  "version": "2.0.0",
+  "description": "IEClub跨平台应用 - 智能话题广场（增强版）",
+  "templateInfo": {
+    "name": "react",
+    "typescript": true,
+    "css": "Sass"
+  },
+  "scripts": {
+    "dev:weapp": "npm run build:weapp -- --watch",
+    "dev:h5": "npm run build:h5 -- --watch",
+    "dev:rn": "npm run build:rn -- --watch",
+    "build:weapp": "taro build --type weapp",
+    "build:h5": "taro build --type h5",
+    "build:rn": "taro build --type rn",
+    "build:weapp:prod": "cross-env NODE_ENV=production TARO_APP_BUILD_ENV=production taro build --type weapp",
+    "build:h5:prod": "cross-env NODE_ENV=production TARO_APP_BUILD_ENV=production taro build --type h5",
+    "build:weapp:beta": "cross-env NODE_ENV=production TARO_APP_BUILD_ENV=beta taro build --type weapp",
+    "build:h5:beta": "cross-env NODE_ENV=production TARO_APP_BUILD_ENV=beta taro build --type h5",
+    "lint": "eslint --ext .js,.jsx,.ts,.tsx src",
+    "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx src --fix",
+    "type-check": "tsc --noEmit",
+    "clean": "rimraf dist node_modules/.cache",
+    "analyze": "cross-env ANALYZE=true npm run build:h5:prod"
+  },
+  "dependencies": {
+    "@tarojs/components": "3.6.23",
+    "@tarojs/helper": "3.6.23",
+    "@tarojs/plugin-framework-react": "3.6.23",
+    "@tarojs/plugin-html": "3.6.23",
+    "@tarojs/plugin-platform-h5": "3.6.23",
+    "@tarojs/plugin-platform-weapp": "3.6.23",
+    "@tarojs/react": "3.6.23",
+    "@tarojs/runtime": "3.6.23",
+    "@tarojs/taro": "3.6.23",
+    "dayjs": "^1.11.10",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "zustand": "^4.4.7"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.5",
+    "@babel/preset-react": "^7.23.3",
+    "@tarojs/cli": "3.6.23",
+    "@tarojs/webpack5-runner": "3.6.23",
+    "@types/react": "^18.2.45",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "babel-preset-taro": "3.6.23",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.55.0",
+    "eslint-config-taro": "3.6.23",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "rimraf": "^5.0.5",
+    "sass": "^1.69.5",
+    "typescript": "^5.3.3",
+    "webpack": "^5.89.0",
+    "webpack-bundle-analyzer": "^4.9.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "browserslist": [
+    "last 3 versions",
+    "Android >= 4.1",
+    "ios >= 8"
+  ]
+}
