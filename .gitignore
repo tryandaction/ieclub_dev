@@ -1,8 +1,5 @@
 # Project-wide configuration files
-.env.example
-docker-compose.yml
-README.md
-*.md
+# README.md
 
 # GitHub workflows and configurations (保留workflows)
 !.github/
@@ -63,12 +60,32 @@ out/
 # Node modules (if any at root level)
 node_modules/
 
-# Environment files (project-wide)
+# Environment files (project-wide) - 这些文件包含敏感信息，必须忽略
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*.local
+
+# 子目录下的环境文件也要忽略
+**/ieclub-backend/.env
+**/ieclub-taro/.env
+**/ieclub-taro/.env.beta
+**/ieclub-taro/.env.production
+
+# 敏感的配置文件
+*.key
+*.pem
+*.crt
+secrets.json
+config/production.json
+config/secrets.json
+
+# 临时敏感文件
+.env.backup
+.env.old
+.env.save
 
 # SSL certificates (project-wide)
 *.pem

@@ -29,7 +29,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - DATABASE_URL=mysql://ieclub_user:kE7pCg$r@W9nZ!sV2@db:3306/ieclub
+      - DATABASE_URL=mysql://ieclub_user:${DB_PASSWORD:-kE7pCg$r@W9nZ!sV2}@db:3306/ieclub
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       db:
@@ -55,15 +55,15 @@ services:
     ports:
       - "3306:3306"
     environment:
-      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root_password}
       - MYSQL_DATABASE=ieclub
       - MYSQL_USER=ieclub_user
-      - MYSQL_PASSWORD=kE7pCg$r@W9nZ!sV2
+      - MYSQL_PASSWORD=${DB_PASSWORD:-kE7pCg$r@W9nZ!sV2}
       - MYSQL_CHARSET=utf8mb4
       - MYSQL_COLLATION=utf8mb4_unicode_ci
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./ieclub-backend/docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./ieclub-backend/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     command: --default-authentication-plugin=mysql_native_password
     restart: unless-stopped
     healthcheck:
