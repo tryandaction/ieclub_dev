@@ -107,6 +107,7 @@ Thumbs.db
 
 # WeChat Mini Program specific
 project.private.config.json
+project.config.json
 project.config.json.backup
 project.private.config.json.backup
 
