@@ -1,16 +1,16 @@
 // src/routes/index.js
-// 主路由配置（修复后的完整版本）
+// 主路由配置（修复后的版本）
 
 const express = require('express');
 const router = express.Router();
 
-// 导入控制器
+// 导入控制器（修复导入错误）
 const AuthController = require('../controllers/authController');
 const TopicController = require('../controllers/topicController');
 const CommentController = require('../controllers/commentController');
 const UploadController = require('../controllers/uploadController');
-const NotificationController = require('../controllers/notificationController');
-const UserController = require('../controllers/userController');
+const NotificationController = require('../controllers/notificationController'); // ✅ 独立导入
+const UserController = require('../controllers/userController'); // ✅ 独立导入
 
 // 导入中间件
 const { authenticate, optionalAuth, refreshToken } = require('../middleware/auth');
@@ -115,12 +115,13 @@ router.get('/notifications/unread-count', authenticate, NotificationController.g
 router.put('/notifications/:id/read', authenticate, validateUUID('id'), NotificationController.markAsRead);
 router.put('/notifications/read-all', authenticate, NotificationController.markAllAsRead);
 router.delete('/notifications/:id', authenticate, validateUUID('id'), NotificationController.deleteNotification);
+router.post('/notifications/system', authenticate, NotificationController.createSystemNotification);
 
 // ==================== 用户路由 ====================
 router.get('/users/:id', optionalAuth, validateUUID('id'), UserController.getUserProfile);
 router.get('/users/:id/topics', optionalAuth, validateUUID('id'), validatePagination, UserController.getUserTopics);
 router.get('/users/:id/comments', optionalAuth, validateUUID('id'), validatePagination, UserController.getUserComments);
-router.post('/users/:id/follow', authenticate, validateUUID('id'), UserController.toggleFollow);
+router.post('/users/:id/follow', authenticate, validateUUID('id'), UserController.followUser);
 router.get('/users/:id/followers', validateUUID('id'), validatePagination, UserController.getFollowers);
 router.get('/users/:id/following', validateUUID('id'), validatePagination, UserController.getFollowing);
 

@@ -25,8 +25,8 @@ model User {
   bio         String?  @db.Text
 
   // 技能和兴趣
-  skills      String?  @db.JSON // 技能标签数组
-  interests   String?  @db.JSON // 兴趣标签数组
+  skills      String?  @db.Text // 技能标签数组 (JSON字符串)
+  interests   String?  @db.Text // 兴趣标签数组 (JSON字符串)
 
   // 统计数据
   credits     Int      @default(0)
@@ -75,26 +75,26 @@ model Topic {
   contentType String   @default("text") @db.VarChar(20)
   summary     String?  @db.Text
   category    String   @db.VarChar(50)
-  tags        String?  @db.JSON
+  tags        String?  @db.Text // 标签数组 (JSON字符串)
 
   // 话题类型
   topicType   String   @default("discussion") @db.VarChar(20) // discussion, demand, supply, collaboration
   demandType  String?  @db.VarChar(20) // 人员, 项目, 资金, 资源
-  skillsNeeded     String? @db.JSON
-  skillsProvided   String? @db.JSON
+  skillsNeeded     String? @db.Text // 需要的技能 (JSON字符串)
+  skillsProvided   String? @db.Text // 提供的技能 (JSON字符串)
   deadline    DateTime?
   budget      String?  @db.VarChar(100)
   location    String?  @db.VarChar(100)
   contactInfo String?  @db.Text
 
   // 媒体文件
-  images      String?  @db.JSON
-  documents   String?  @db.JSON
-  videos      String?  @db.JSON
-  links       String?  @db.JSON
+  images      String?  @db.Text // 图片数组 (JSON字符串)
+  documents   String?  @db.Text // 文档数组 (JSON字符串)
+  videos      String?  @db.Text // 视频数组 (JSON字符串)
+  links       String?  @db.Text // 链接数组 (JSON字符串)
 
   // 快速操作
-  quickActions String? @db.JSON
+  quickActions String? @db.Text // 快速操作配置 (JSON字符串)
 
   // 可见性
   visibility  String   @default("public") @db.VarChar(20) // public, private, followers
@@ -121,10 +121,10 @@ model Topic {
   author       User @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId     String
   comments     Comment[]
-  likes        Like[]
+  likes        Like[] @relation("LikeTopic")
   bookmarks    Bookmark[]
-  notifications Notification[]
-  userActions  UserAction[]
+  notifications Notification[] @relation("NotificationTopic")
+  userActions  UserAction[] @relation("UserActionTopic")
   quickActionsList TopicQuickAction[]
 
   @@map("topics")
@@ -135,7 +135,7 @@ model Comment {
 
   // 评论内容
   content     String   @db.Text
-  images      String?  @db.JSON
+  images      String?  @db.Text // 图片数组 (JSON字符串)
 
   // 评论层级
   parentId    String?  // 父评论ID
@@ -159,8 +159,8 @@ model Comment {
   authorId    String
   parent      Comment? @relation("CommentReplies", fields: [parentId], references: [id])
   replies     Comment[] @relation("CommentReplies")
-  likes       Like[]
-  notifications Notification[]
+  likes       Like[] @relation("LikeComment")
+  notifications Notification[] @relation("NotificationComment")
 
   @@map("comments")
 }
@@ -175,8 +175,8 @@ model Like {
   // 关联关系
   user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
-  topic     Topic? @relation(fields: [targetId], references: [id])
-  comment   Comment? @relation(fields: [targetId], references: [id])
+  topic     Topic? @relation("LikeTopic", fields: [targetId], references: [id], map: "likes_topic_targetId_fkey")
+  comment   Comment? @relation("LikeComment", fields: [targetId], references: [id], map: "likes_comment_targetId_fkey")
 
   @@unique([userId, targetType, targetId])
   @@map("likes")
@@ -235,8 +235,8 @@ model Notification {
   userId      String
   actor       User? @relation("NotificationSender", fields: [actorId], references: [id])
   actorId     String?
-  topic       Topic? @relation(fields: [targetId], references: [id])
-  comment     Comment? @relation(fields: [targetId], references: [id])
+  topic       Topic? @relation("NotificationTopic", fields: [targetId], references: [id], map: "notifications_topic_targetId_fkey")
+  comment     Comment? @relation("NotificationComment", fields: [targetId], references: [id], map: "notifications_comment_targetId_fkey")
   targetType  String   @db.VarChar(20) // topic, comment, user
   targetId    String
 
@@ -254,7 +254,7 @@ model UserAction {
   targetId    String
 
   // 元数据
-  metadata    String?  @db.JSON
+  metadata    String?  @db.Text // 元数据 (JSON字符串)
 
   // 时间戳
   createdAt   DateTime @default(now())
@@ -262,7 +262,7 @@ model UserAction {
   // 关联关系
   user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      String
-  topic       Topic? @relation(fields: [targetId], references: [id])
+  topic       Topic? @relation("UserActionTopic", fields: [targetId], references: [id], map: "user_actions_topic_targetId_fkey")
 
   @@map("user_actions")
 }

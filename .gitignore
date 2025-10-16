@@ -1,101 +1,26 @@
-# Dependencies
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-package-lock.json.backup
+# Project-wide configuration files
+.env.example
+docker-compose.yml
+README.md
+*.md
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# GitHub workflows and configurations (保留workflows)
+!.github/
+!.github/workflows/
+!.github/workflows/*.yml
 
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
+# Docker related files
+.dockerignore
+docker-compose*.yml
 
-# Runtime data
-pids/
-*.pid
-*.seed
-*.pid.lock
+# Documentation and project files
+*.md
+LICENSE
+remind.md
+版本控制.md
+部署方案.md
 
-# Coverage directory used by tools like istanbul
-coverage/
-*.lcov
-
-# nyc test coverage
-.nyc_output
-
-# Grunt intermediate storage
-.grunt/
-
-# Bower dependency directory
-bower_components/
-
-# node-waf configuration
-.lock-wscript
-
-# Compiled binary addons
-build/Release/
-
-# Dependency directories
-jspm_packages/
-
-# TypeScript cache
-*.tsbuildinfo
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Microbundle cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# Next.js build output
-.next
-
-# Nuxt.js build / generate output
-.nuxt
-dist
-
-# Gatsby files
-.cache/
-public
-
-# Storybook build outputs
-.out
-.storybook-out
-
-# Temporary folders
-tmp/
-temp/
-
-# Editor directories and files
+# IDE and editor files
 .vscode/
 .idea/
 *.swp
@@ -110,183 +35,99 @@ temp/
 .Trashes
 ehthumbs.db
 Thumbs.db
+Desktop.ini
 
-# Taro specific
-.taro/
-.taro-temp/
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
 
-# WeChat Mini Program specific
-project.private.config.json
+# Archive files
+*.tgz
+*.tar.gz
+*.zip
 
-# Backend specific
-ieclub-backend/uploads/
-ieclub-backend/logs/
+# Log files (project-wide)
+*.log
+
+# Coverage reports (project-wide)
+coverage-final.json
+coverage-report.html
+
+# Build outputs (project-wide)
+build/
+dist/
+out/
+
+# Node modules (if any at root level)
+node_modules/
+
+# Environment files (project-wide)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# SSL certificates (project-wide)
+*.pem
+*.key
+*.crt
+
+# Database files (project-wide)
+*.db
 *.sqlite
 *.sqlite3
 
-# Frontend specific
-ieclub-taro/dist/
+# Runtime data (project-wide)
+pids/
+*.pid
+*.seed
+*.pid.lock
 
-# Docker
-.dockerignore
+# Cache directories (project-wide)
+.cache/
+.npm/
+.yarn/
 
-# Testing
+# Testing (project-wide)
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
 
-# Miscellaneous
-.cache/
-*.tgz
-*.tar.gz
+# Backup files (project-wide)
+*.backup
 
-# IDE - VSCode
-.vscode/
-!.vscode/extensions.json
-
-# IDE - Cursor
-.cursor/
-
-# Local development
+# Local development (project-wide)
 .local
 .vercel
 
-# Sentry Config File
+# Sentry (project-wide)
 .sentryclirc
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Backup files
-*.bak
-*.backup
-
-# Application specific
-config/local.json
-config/production.json
-config/development.json
-
-# SSL certificates
-*.pem
-*.key
-*.crt
-
-# Runtime configuration
-runtime.json
-
-# Coverage reports
-coverage-final.json
-coverage-report.html
-
-# Build outputs
-build/
-dist/
-out/
-
-# Temporary files
-*.tmp
-*.temp
-
-# Debug files
-*.debug
-*.stackdump
-
-# Local environment files
-.env.local
-.env.development
-.env.test
-.env.production
-
-# PM2
+# PM2 (project-wide)
 .pm2/
-ecosystem.config.js
 
-# Serverless directories
+# Serverless (project-wide)
 .serverless/
 
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# TernJS port file
-.tern-port
-
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test
-
-# yarn v2
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-.pnp.*
-
-# ESLint cache
-.eslintcache
-
-# Optional stylelint cache
-.stylelintcache
-
-# Prettier cache
-.prettiercache
-
-# Jest cache
-.jest/
-
-# Microbundle cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
-
-# Rollup.js default build output
-dist/
-
-# Snowpack dependency directory (https://snowpack.dev/)
-web_modules/
-
-# Vite
-dist/
-dist-ssr/
-*.local
-
-# Server side
-server/
-
-# Client side
-client/
-
-# Shared
-shared/
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-
-# Redis dump
-dump.rdb
-
-# Elastic Beanstalk Files
+# Elastic Beanstalk (project-wide)
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
 
-# Cloud9
+# Cloud9 (project-wide)
 .c9/
 
-# Vim
+# Vim (project-wide)
 *.swp
 *.swo
 Session.vim
 .netrwhist
 
-# Emacs
+# Emacs (project-wide)
 *~
 \#*\#
 /.emacs.desktop
@@ -296,23 +137,12 @@ auto-save-list
 tramp
 .\#*
 
-# SublimeText
+# SublimeText (project-wide)
 *.tmlanguage.cache
 *.tmPreferences.cache
 *.stTheme.cache
 *.sublime-workspace
 *.sublime-project
-
-# Vim
-[._]*.s[a-v][a-z]
-!*.svg
-[._]*.sw[a-p]
-[._]s[a-rt-v][a-z]
-[._]ss[a-gi-z]
-[._]sw[a-p]
-
-# IntelliJ based IDEs
-.idea/
 
 # Finder (MacOS)
 .DS_Store
@@ -320,7 +150,6 @@ tramp
 # Windows
 Thumbs.db
 ehthumbs.db
-Desktop.ini
 
 # VS Code
 .vscode/
@@ -329,68 +158,6 @@ Desktop.ini
 tmp/
 temp/
 
-# API keys and secrets
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Logs
-logs/
-*.log
-
-# Runtime data
-pids/
-*.pid
-*.seed
-
-# Coverage directory used by tools like istanbul
-coverage/
-
-# Dependency directories
-node_modules/
-jspm_packages/
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# dotenv environment variables file
-.env
-
-# next.js build output
-.next
-
-# nuxt.js build output
-.nuxt
-
-# vuepress build output
-.vuepress/dist
-
-# Serverless directories
-.serverless
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Project specific
-ieclub-backend/uploads/
-ieclub-backend/logs/
-ieclub-taro/dist/
-.taro/
+# Project specific - delegate to subdirectories
+# Frontend specific files are ignored in ieclub-taro/.gitignore
+# Backend specific files are ignored in ieclub-backend/.gitignore

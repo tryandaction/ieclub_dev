@@ -1,10 +1,4 @@
-// ==================== userController.js ====================
-const { PrismaClient } = require('@prisma/client');
-const response = require('../utils/response');
-const logger = require('../utils/logger');
-
-const prisma = new PrismaClient();
-
+// ==================== ieclub-backend/src/controllers/userController.js ====================
 class UserController {
   /**
    * 获取用户信息
@@ -13,28 +7,19 @@ class UserController {
   static async getUserProfile(req, res) {
     try {
       const { id } = req.params;
-      const currentUserId = req.userId; // 可能为空
+      const currentUserId = req.userId;
 
       const user = await prisma.user.findUnique({
         where: { id },
-        select: {
-          id: true,
-          nickname: true,
-          avatar: true,
-          gender: true,
-          bio: true,
-          skills: true,
-          interests: true,
-          level: true,
-          credits: true,
-          topicsCount: true,
-          commentsCount: true,
-          likesCount: true,
-          fansCount: true,
-          followsCount: true,
-          isCertified: true,
-          isVip: true,
-          createdAt: true,
+        include: {
+          _count: {
+            select: {
+              topics: true,
+              comments: true,
+              followers: true,
+              following: true,
+            },
+          },
         },
       });
 
@@ -42,18 +27,33 @@ class UserController {
         return response.notFound(res, '用户不存在');
       }
 
-      // 如果已登录，检查是否关注了该用户
-      if (currentUserId) {
-        const isFollowing = await prisma.follow.findFirst({
+      // 检查是否关注
+      let isFollowing = false;
+      if (currentUserId && currentUserId !== id) {
+        const follow = await prisma.follow.findUnique({
           where: {
-            followerId: currentUserId,
-            followingId: id,
+            followerId_followingId: {
+              followerId: currentUserId,
+              followingId: id,
+            },
           },
         });
-        user.isFollowing = !!isFollowing;
+        isFollowing = !!follow;
       }
 
-      return response.success(res, user);
+      // 不返回敏感信息
+      const { openid, phone, email, ...safeUser } = user;
+
+      return response.success(res, {
+        ...safeUser,
+        isFollowing,
+        stats: {
+          topics: user._count.topics,
+          comments: user._count.comments,
+          followers: user._count.followers,
+          following: user._count.following,
+        },
+      });
     } catch (error) {
       logger.error('获取用户信息失败:', error);
       return response.serverError(res);
@@ -61,7 +61,7 @@ class UserController {
   }
 
   /**
-   * 获取用户话题列表
+   * 获取用户发布的话题
    * GET /api/v1/users/:id/topics
    */
   static async getUserTopics(req, res) {
@@ -69,33 +69,42 @@ class UserController {
       const { id } = req.params;
       const { page = 1, limit = 20 } = req.query;
 
-      const skip = (parseInt(page) - 1) * parseInt(limit);
-      const take = parseInt(limit);
+      const skip = (page - 1) * limit;
 
       const [topics, total] = await Promise.all([
         prisma.topic.findMany({
-          where: {
-            authorId: id,
-            status: 'published',
+          where: { authorId: id },
+          include: {
+            author: {
+              select: {
+                id: true,
+                nickname: true,
+                avatar: true,
+              },
+            },
+            _count: {
+              select: {
+                likes: true,
+                comments: true,
+                bookmarks: true,
+              },
+            },
           },
           orderBy: { createdAt: 'desc' },
           skip,
-          take,
-          include: {
-            author: {
-              select: { id: true, nickname: true, avatar: true },
-            },
-          },
+          take: parseInt(limit),
         }),
-        prisma.topic.count({
-          where: { authorId: id, status: 'published' },
-        }),
+        prisma.topic.count({ where: { authorId: id } }),
       ]);
 
-      return response.paginated(res, topics, {
-        page: parseInt(page),
-        limit: take,
-        total,
+      return response.success(res, {
+        topics,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
       });
     } catch (error) {
       logger.error('获取用户话题失败:', error);
@@ -150,91 +159,71 @@ class UserController {
   }
 
   /**
-   * 关注/取消关注用户
+   * 关注用户
    * POST /api/v1/users/:id/follow
    */
-  static async toggleFollow(req, res) {
+  static async followUser(req, res) {
     try {
-      const { id } = req.params;
-      const userId = req.userId;
+      const { id } = req.params; // 被关注者ID
+      const followerId = req.userId; // 关注者ID
 
-      if (id === userId) {
+      if (followerId === id) {
         return response.error(res, '不能关注自己');
       }
 
+      // 检查被关注用户是否存在
       const targetUser = await prisma.user.findUnique({
         where: { id },
-        select: { id: true },
       });
 
       if (!targetUser) {
         return response.notFound(res, '用户不存在');
       }
 
-      const existingFollow = await prisma.follow.findFirst({
+      // 检查是否已关注
+      const existingFollow = await prisma.follow.findUnique({
         where: {
-          followerId: userId,
-          followingId: id,
+          followerId_followingId: {
+            followerId,
+            followingId: id,
+          },
         },
       });
 
-      let isFollowing = false;
-
       if (existingFollow) {
-        // 取消关注
-        await prisma.$transaction([
-          prisma.follow.delete({ where: { id: existingFollow.id } }),
-          prisma.user.update({
-            where: { id: userId },
-            data: { followsCount: { decrement: 1 } },
-          }),
-          prisma.user.update({
-            where: { id },
-            data: { fansCount: { decrement: 1 } },
-          }),
-        ]);
-      } else {
-        // 关注
-        await prisma.$transaction([
-          prisma.follow.create({
-            data: {
-              followerId: userId,
+        // 已关注，执行取消关注
+        await prisma.follow.delete({
+          where: {
+            followerId_followingId: {
+              followerId,
               followingId: id,
             },
-          }),
-          prisma.user.update({
-            where: { id: userId },
-            data: { followsCount: { increment: 1 } },
-          }),
-          prisma.user.update({
-            where: { id },
-            data: { fansCount: { increment: 1 } },
-          }),
-        ]);
-        isFollowing = true;
+          },
+        });
 
-        // 发送通知
-        await prisma.notification
-          .create({
-            data: {
-              userId: id,
-              type: 'follow',
-              title: '新粉丝',
-              content: '有人关注了你',
-              actorId: userId,
-              targetType: 'user',
-              targetId: userId,
-              link: `/pages/user-profile/index?id=${userId}`,
-            },
-          })
-          .catch(() => {});
+        return response.success(res, { isFollowing: false }, '已取消关注');
+      } else {
+        // 未关注，执行关注
+        await prisma.follow.create({
+          data: {
+            followerId,
+            followingId: id,
+          },
+        });
+
+        // 创建通知
+        await prisma.notification.create({
+          data: {
+            type: 'follow',
+            senderId: followerId,
+            receiverId: id,
+            content: '关注了你',
+            status: 'pending',
+          },
+        });
+
+        return response.success(res, { isFollowing: true }, '关注成功');
       }
-
-      return response.success(
-        res,
-        { isFollowing },
-        isFollowing ? '关注成功' : '已取消关注'
-      );
     } catch (error) {
       logger.error('关注操作失败:', error);
       return response.serverError(res);
@@ -250,15 +239,11 @@ class UserController {
       const { id } = req.params;
       const { page = 1, limit = 20 } = req.query;
 
-      const skip = (parseInt(page) - 1) * parseInt(limit);
-      const take = parseInt(limit);
+      const skip = (page - 1) * limit;
 
-      const [follows, total] = await Promise.all([
+      const [followers, total] = await Promise.all([
         prisma.follow.findMany({
           where: { followingId: id },
-          orderBy: { createdAt: 'desc' },
-          skip,
-          take,
           include: {
             follower: {
               select: {
@@ -266,21 +251,26 @@ class UserController {
                 nickname: true,
                 avatar: true,
                 bio: true,
-                level: true,
-                isCertified: true,
               },
             },
           },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: parseInt(limit),
         }),
         prisma.follow.count({ where: { followingId: id } }),
       ]);
 
-      const followers = follows.map((f) => f.follower);
+      const followerList = followers.map((f) => f.follower);
 
-      return response.paginated(res, followers, {
-        page: parseInt(page),
-        limit: take,
-        total,
+      return response.success(res, {
+        followers: followerList,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
       });
     } catch (error) {
       logger.error('获取粉丝列表失败:', error);
@@ -297,15 +287,11 @@ class UserController {
       const { id } = req.params;
       const { page = 1, limit = 20 } = req.query;
 
-      const skip = (parseInt(page) - 1) * parseInt(limit);
-      const take = parseInt(limit);
+      const skip = (page - 1) * limit;
 
-      const [follows, total] = await Promise.all([
+      const [following, total] = await Promise.all([
         prisma.follow.findMany({
           where: { followerId: id },
-          orderBy: { createdAt: 'desc' },
-          skip,
-          take,
           include: {
             following: {
               select: {
@@ -313,21 +299,26 @@ class UserController {
                 nickname: true,
                 avatar: true,
                 bio: true,
-                level: true,
-                isCertified: true,
               },
             },
           },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: parseInt(limit),
         }),
         prisma.follow.count({ where: { followerId: id } }),
       ]);
 
-      const following = follows.map((f) => f.following);
+      const followingList = following.map((f) => f.following);
 
-      return response.paginated(res, following, {
-        page: parseInt(page),
-        limit: take,
-        total,
+      return response.success(res, {
+        following: followingList,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
       });
     } catch (error) {
       logger.error('获取关注列表失败:', error);

@@ -1,41 +1,8 @@
 module.exports = {
-  extends: [
-    'taro/react',
-    'eslint:recommended',
-  ],
-  env: {
-    browser: true,
-    node: true,
-    es6: true,
-  },
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    ecmaFeatures: {
-      jsx: true,
-    },
-  },
+  extends: ['taro/react'],
   rules: {
     'react/jsx-uses-react': 'off',
     'react/react-in-jsx-scope': 'off',
-    'no-console': 'warn',
-    'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-    'no-var': 'error',
-    'prefer-const': 'error',
-    'prefer-arrow-callback': 'error',
-    'arrow-spacing': 'error',
-    'object-shorthand': 'error',
-    'no-trailing-spaces': 'error',
-    'comma-dangle': ['error', 'always-multiline'],
-    'quotes': ['error', 'single'],
-    'semi': ['error', 'never'],
-    'indent': ['error', 2],
-    'eol-last': ['error', 'always'],
-  },
-  settings: {
-    react: {
-      version: 'detect',
-    },
   },
   ignorePatterns: [
     'node_modules/',
