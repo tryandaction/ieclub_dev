@@ -9,34 +9,24 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  error?: Error;
-  errorInfo?: ErrorInfo;
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
-  }
+  state: State = { hasError: false };
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return { hasError: true };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
-
-    this.setState({
-      error,
-      errorInfo,
-    });
 
     // 可以发送到错误追踪服务
     // sendToErrorTrackingService(error, errorInfo);
   }
 
   handleRetry = () => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+    this.setState({ hasError: false });
   };
 
   render() {
@@ -46,15 +36,15 @@ class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <View className="error-boundary">
-          <View className="error-boundary__content">
-            <View className="error-boundary__icon">⚠️</View>
-            <Text className="error-boundary__title">出错了</Text>
-            <Text className="error-boundary__message">
+        <View className='error-boundary'>
+          <View className='error-boundary__content'>
+            <View className='error-boundary__icon'>⚠️</View>
+            <Text className='error-boundary__title'>出错了</Text>
+            <Text className='error-boundary__message'>
               应用遇到了意外错误，请刷新重试
             </Text>
             <View
-              className="error-boundary__retry"
+              className='error-boundary__retry'
               onClick={this.handleRetry}
             >
               重试

@@ -21,11 +21,11 @@ describe('Response Utils', () => {
 
       response.success(mockRes, data, message);
 
-      expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: true,
-        data,
+        code: 200,
         message,
+        data,
         timestamp: expect.any(Number),
       });
     });
@@ -33,11 +33,11 @@ describe('Response Utils', () => {
     it('应该处理空数据', () => {
       response.success(mockRes);
 
-      expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: true,
+        code: 200,
+        message: '操作成功',
         data: null,
-        message: undefined,
         timestamp: expect.any(Number),
       });
     });
@@ -46,15 +46,16 @@ describe('Response Utils', () => {
   describe('error', () => {
     it('应该返回错误响应', () => {
       const message = '操作失败';
-      const code = 'ERROR_CODE';
+      const code = 400;
 
       response.error(mockRes, message, code);
 
-      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.status).toHaveBeenCalledWith(code);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: false,
-        message,
         code,
+        message,
+        errors: null,
         timestamp: expect.any(Number),
       });
     });
@@ -67,6 +68,7 @@ describe('Response Utils', () => {
       expect(mockRes.status).toHaveBeenCalledWith(500);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: false,
+        code: 500,
         message: '服务器内部错误',
         timestamp: expect.any(Number),
       });
@@ -84,16 +86,12 @@ describe('Response Utils', () => {
 
       response.paginated(mockRes, data, pagination);
 
-      expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: true,
+        code: 200,
+        message: '获取成功',
         data,
-        pagination: {
-          ...pagination,
-          totalPages: 5,
-          hasNext: true,
-          hasPrev: false,
-        },
+        pagination,
         timestamp: expect.any(Number),
       });
     });

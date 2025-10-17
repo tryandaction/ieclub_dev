@@ -99,13 +99,13 @@ export default function SearchPage() {
   };
 
   return (
-    <View className="search-page">
+    <View className='search-page'>
       {/* 搜索栏 */}
-      <View className="search-bar">
-        <View className="search-input-wrapper">
-          <Text className="search-icon">🔍</Text>
+      <View className='search-bar'>
+        <View className='search-input-wrapper'>
+          <Text className='search-icon'>🔍</Text>
           <Input
-            className="search-input"
+            className='search-input'
             placeholder={searchType === 'topic' ? '搜索话题' : '搜索用户'}
             value={keyword}
             onInput={(e) => setKeyword(e.detail.value)}
@@ -114,7 +114,7 @@ export default function SearchPage() {
           />
           {keyword && (
             <Text
-              className="clear-icon"
+              className='clear-icon'
               onClick={() => {
                 setKeyword('');
                 setShowHistory(true);
@@ -125,13 +125,13 @@ export default function SearchPage() {
             </Text>
           )}
         </View>
-        <View className="search-btn" onClick={handleSearch}>
+        <View className='search-btn' onClick={handleSearch}>
           搜索
         </View>
       </View>
 
       {/* 搜索类型切换 */}
-      <View className="search-type-tabs">
+      <View className='search-type-tabs'>
         <View
           className={`tab ${searchType === 'topic' ? 'active' : ''}`}
           onClick={() => setSearchType('topic')}
@@ -150,24 +150,24 @@ export default function SearchPage() {
 
       {/* 搜索历史和热门搜索 */}
       {showHistory && (
-        <ScrollView scrollY className="history-section">
+        <ScrollView scrollY className='history-section'>
           {/* 搜索历史 */}
           {searchHistory.length > 0 && (
-            <View className="history-block">
-              <View className="block-header">
-                <View className="header-left">
+            <View className='history-block'>
+              <View className='block-header'>
+                <View className='header-left'>
                   <Text>🕐</Text>
                   <Text>搜索历史</Text>
                 </View>
-                <Text className="clear-btn" onClick={handleClearHistory}>
+                <Text className='clear-btn' onClick={handleClearHistory}>
                   清除
                 </Text>
               </View>
-              <View className="keyword-list">
+              <View className='keyword-list'>
                 {searchHistory.map((item, index) => (
                   <View
                     key={index}
-                    className="keyword-item"
+                    className='keyword-item'
                     onClick={() => handleHistoryClick(item)}
                   >
                     {item.keyword}
@@ -179,24 +179,24 @@ export default function SearchPage() {
 
           {/* 热门搜索 */}
           {hotKeywords.length > 0 && (
-            <View className="history-block">
-              <View className="block-header">
-                <View className="header-left">
+            <View className='history-block'>
+              <View className='block-header'>
+                <View className='header-left'>
                   <Text>🔥</Text>
                   <Text>热门搜索</Text>
                 </View>
               </View>
-              <View className="keyword-list">
+              <View className='keyword-list'>
                 {hotKeywords.map((item, index) => (
                   <View
                     key={index}
                     className={`keyword-item hot ${index < 3 ? 'top3' : ''}`}
                     onClick={() => handleHotKeywordClick(item.keyword)}
                   >
-                    <Text className="rank">{index + 1}</Text>
-                    <Text className="keyword">{item.keyword}</Text>
+                    <Text className='rank'>{index + 1}</Text>
+                    <Text className='keyword'>{item.keyword}</Text>
                     {item.count > 10 && (
-                      <Text className="count">{item.count}</Text>
+                      <Text className='count'>{item.count}</Text>
                     )}
                   </View>
                 ))}
@@ -208,9 +208,9 @@ export default function SearchPage() {
 
       {/* 搜索结果 */}
       {!showHistory && (
-        <ScrollView scrollY className="search-results">
+        <ScrollView scrollY className='search-results'>
           {loading ? (
-            <View className="loading">搜索中...</View>
+            <View className='loading'>搜索中...</View>
           ) : searchResults.length > 0 ? (
             <View>
               {searchType === 'topic' ? (
@@ -218,26 +218,26 @@ export default function SearchPage() {
                   <TopicCard key={topic.id} topic={topic} />
                 ))
               ) : (
-                <View className="user-list">
+                <View className='user-list'>
                   {searchResults.map((user) => (
                     <View
                       key={user.id}
-                      className="user-item"
+                      className='user-item'
                       onClick={() =>
                         Taro.navigateTo({ url: `/pages/profile/index?id=${user.id}` })
                       }
                     >
-                      <Image className="avatar" src={user.avatar} />
-                      <View className="user-info">
-                        <Text className="nickname">{user.nickname}</Text>
-                        <Text className="bio">{user.bio || '暂无简介'}</Text>
-                        <View className="stats">
+                      <Image className='avatar' src={user.avatar} />
+                      <View className='user-info'>
+                        <Text className='nickname'>{user.nickname}</Text>
+                        <Text className='bio'>{user.bio || '暂无简介'}</Text>
+                        <View className='stats'>
                           <Text>话题 {user._count.topics}</Text>
                           <Text>粉丝 {user._count.followers}</Text>
                         </View>
                       </View>
                       {!user.isFollowing && (
-                        <View className="follow-btn">关注</View>
+                        <View className='follow-btn'>关注</View>
                       )}
                     </View>
                   ))}
@@ -245,7 +245,7 @@ export default function SearchPage() {
               )}
             </View>
           ) : (
-            <View className="empty">
+            <View className='empty'>
               <Text>没有找到相关内容</Text>
             </View>
           )}
