@@ -69,10 +69,10 @@ node_modules/
 .env.*.local
 
 # 子目录下的环境文件也要忽略
-**/ieclub-backend/.env
-**/ieclub-taro/.env
-**/ieclub-taro/.env.beta
-**/ieclub-taro/.env.production
+ieclub-backend/.env
+ieclub-taro/.env
+ieclub-taro/.env.beta
+ieclub-taro/.env.production
 
 # 敏感的配置文件
 *.key
