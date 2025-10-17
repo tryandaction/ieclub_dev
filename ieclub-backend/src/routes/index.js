@@ -11,6 +11,7 @@ const CommentController = require('../controllers/commentController');
 const UploadController = require('../controllers/uploadController');
 const NotificationController = require('../controllers/notificationController'); // ✅ 独立导入
 const UserController = require('../controllers/userController'); // ✅ 独立导入
+const SearchController = require('../controllers/searchController'); // ✅ 搜索控制器
 
 // 导入中间件
 const { authenticate, optionalAuth, refreshToken } = require('../middleware/auth');
@@ -131,7 +132,12 @@ router.get('/me/bookmarks', authenticate, validatePagination, UserController.get
 router.get('/me/likes', authenticate, validatePagination, UserController.getMyLikes);
 
 // ==================== 搜索路由 ====================
-router.get('/search', optionalAuth, validatePagination, TopicController.getTopics);
+router.get('/search/topics', optionalAuth, SearchController.searchTopics);
+router.get('/search/users', optionalAuth, SearchController.searchUsers);
+router.get('/search/hot-keywords', SearchController.getHotKeywords);
+router.get('/search/history', authenticate, SearchController.getSearchHistory);
+router.delete('/search/history', authenticate, SearchController.clearSearchHistory);
+router.get('/search/suggest', SearchController.getSuggestions);
 
 // ==================== 健康检查 ====================
 router.get('/health', (req, res) => {
@@ -158,6 +164,7 @@ router.get('/', (req, res) => {
       upload: '/api/v1/upload',
       notifications: '/api/v1/notifications',
       users: '/api/v1/users',
+      search: '/api/v1/search',
     },
   });
 });

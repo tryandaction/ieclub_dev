@@ -1,4 +1,11 @@
 // ==================== ieclub-backend/src/controllers/userController.js ====================
+
+const { PrismaClient } = require('@prisma/client');
+const response = require('../utils/response');
+const logger = require('../utils/logger');
+
+const prisma = new PrismaClient();
+
 class UserController {
   /**
    * 获取用户信息

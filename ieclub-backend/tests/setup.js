@@ -1,33 +1,42 @@
 // 测试环境设置
-require('dotenv').config({ path: '.env.test' });
 
-// 设置测试数据库
-process.env.NODE_ENV = 'test';
-process.env.DATABASE_URL = process.env.TEST_DATABASE_URL || 'mysql://test:test@localhost:3306/ieclub_test';
+const { PrismaClient } = require('@prisma/client');
 
-// Mock console methods to reduce noise in tests
-global.console = {
-  ...console,
-  log: jest.fn(),
-  info: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn(),
-};
+const prisma = new PrismaClient();
 
-// 清理数据库工具函数
-global.testUtils = {
-  async clearDatabase() {
-    // 这里可以添加清理数据库的逻辑
-    // 例如：await prisma.$executeRaw`TRUNCATE TABLE ...`
-  },
+// 测试前清理数据库
+beforeAll(async () => {
+  console.log('🧪 Setting up test environment...');
 
-  async createTestUser(overrides = {}) {
-    // 创建测试用户的逻辑
-    return {};
-  },
+  // 清理测试数据
+  await prisma.$transaction([
+    prisma.notification.deleteMany(),
+    prisma.comment.deleteMany(),
+    prisma.like.deleteMany(),
+    prisma.bookmark.deleteMany(),
+    prisma.follow.deleteMany(),
+    prisma.topicView.deleteMany(),
+    prisma.match.deleteMany(),
+    prisma.topic.deleteMany(),
+    prisma.user.deleteMany(),
+  ]);
 
-  async createTestTopic(overrides = {}) {
-    // 创建测试话题的逻辑
-    return {};
-  },
-};
+  console.log('✅ Test database cleaned');
+});
+
+// 测试后清理
+afterAll(async () => {
+  await prisma.$disconnect();
+  console.log('🏁 Test environment cleaned up');
+});
+
+// Mock微信API
+jest.mock('../src/services/wechatService', () => ({
+  getAccessToken: jest.fn().mockResolvedValue('mock_access_token'),
+  code2Session: jest.fn().mockResolvedValue({
+    openid: 'mock_openid',
+    session_key: 'mock_session_key',
+  }),
+  checkContent: jest.fn().mockResolvedValue({ safe: true }),
+  imgSecCheck: jest.fn().mockResolvedValue({ pass: true }),
+}));

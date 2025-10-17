@@ -1,22 +1,24 @@
+// Jest配置文件
+
 module.exports = {
   testEnvironment: 'node',
   coverageDirectory: 'coverage',
   collectCoverageFrom: [
     'src/**/*.js',
-    '!src/**/*.test.js',
-    '!src/**/*.spec.js',
     '!src/server.js',
-    '!src/app.js',
+    '!src/**/index.js',
   ],
   testMatch: [
     '**/tests/**/*.test.js',
-    '**/tests/**/*.spec.js',
   ],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+  coverageThreshold: {
+    global: {
+      branches: 70,
+      functions: 75,
+      lines: 80,
+      statements: 80,
+    },
+  },
   testTimeout: 10000,
-  verbose: true,
-  forceExit: true,
-  clearMocks: true,
-  resetMocks: true,
-  restoreMocks: true,
 };
