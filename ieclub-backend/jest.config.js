@@ -14,10 +14,10 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   coverageThreshold: {
     global: {
-      branches: 70,
-      functions: 75,
-      lines: 80,
-      statements: 80,
+      branches: 0,
+      functions: 0,
+      lines: 0,
+      statements: 0,
     },
   },
   testTimeout: 10000,

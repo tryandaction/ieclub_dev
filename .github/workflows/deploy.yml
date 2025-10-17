@@ -43,7 +43,7 @@ jobs:
             git pull origin main
 
             # 进入后端目录
-            cd backend
+            cd ieclub-backend
 
             # 安装依赖
             npm install --production
