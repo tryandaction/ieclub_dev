@@ -1,4 +1,4 @@
-// ==================== HTTP请求封装（增强版） ====================
+// ==================== ieclub-taro/src/services/request.ts：HTTP请求封装（增强版） ====================
 
 import Taro from '@tarojs/taro'
 
