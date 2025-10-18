@@ -49,7 +49,10 @@ class UserController {
       }
 
       // 不返回敏感信息
-      const { openid, phone, email, ...safeUser } = user;
+      const safeUser = { ...user };
+      delete safeUser.openid;
+      delete safeUser.phone;
+      delete safeUser.email;
 
       return response.success(res, {
         ...safeUser,

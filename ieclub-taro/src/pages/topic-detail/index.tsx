@@ -1,7 +1,7 @@
 // ==================== 话题详情页面（增强版） ====================
 
 import { View, ScrollView, Image, Text } from '@tarojs/components'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Taro, { useRouter } from '@tarojs/taro'
 import { useTopicStore } from '../../store/topic'
 import { useCommentStore } from '../../store/comment'
@@ -20,7 +20,7 @@ export default function TopicDetailPage() {
 
   const [loading, setLoading] = useState(true)
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true)
     try {
       await Promise.all([
@@ -32,7 +32,7 @@ export default function TopicDetailPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [topicId, fetchTopicDetail, fetchComments])
 
   useEffect(() => {
     loadData()

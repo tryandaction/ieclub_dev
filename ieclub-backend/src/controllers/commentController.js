@@ -119,7 +119,6 @@ class CommentController {
           comment.isLiked = likedSet.has(comment.id);
           // 回复也需要检查
           if (comment.replies) {
-            const replyIds = comment.replies.map((r) => r.id);
             comment.replies.forEach((reply) => {
               reply.isLiked = likedSet.has(reply.id);
             });

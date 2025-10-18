@@ -1,7 +1,7 @@
 // ==================== 个人中心页面（增强版） ====================
 
 import { View, Image, Text, Button } from '@tarojs/components'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Taro from '@tarojs/taro'
 import { useUserStore } from '../../store/user'
 import { getUserStats } from '../../services/user'
@@ -17,7 +17,7 @@ export default function ProfilePage() {
     followingCount: 0
   })
 
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     if (!userInfo) return
 
     try {
@@ -26,7 +26,7 @@ export default function ProfilePage() {
     } catch (error) {
       console.error('加载统计数据失败:', error)
     }
-  }
+  }, [userInfo])
 
   useEffect(() => {
     if (isLogin && userInfo) {

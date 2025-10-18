@@ -2,9 +2,7 @@
 // 文件上传中间件
 
 const multer = require('multer');
-const path = require('path');
 const config = require('../config');
-const logger = require('../utils/logger');
 
 // 内存存储配置
 const storage = multer.memoryStorage();

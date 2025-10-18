@@ -8,7 +8,7 @@ const { Prisma } = require('@prisma/client');
 /**
  * 全局错误处理中间件
  */
-module.exports = (err, req, res, next) => {
+module.exports = (err, req, res, _next) => {
   // 记录错误日志
   logger.error('全局错误处理:', {
     message: err.message,

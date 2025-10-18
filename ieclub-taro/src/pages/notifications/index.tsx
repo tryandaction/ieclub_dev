@@ -1,7 +1,7 @@
 // ==================== 通知页面（增强版） ====================
 
 import { View, ScrollView, Text } from '@tarojs/components'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Taro from '@tarojs/taro'
 import { useNotificationStore } from '../../store/notification'
 import EmptyState from '../../components/EmptyState'
@@ -21,13 +21,13 @@ export default function NotificationsPage() {
 
   const [refreshing, setRefreshing] = useState(false)
 
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     try {
       await fetchNotifications(1)
     } catch (error) {
       console.error('加载通知失败:', error)
     }
-  }
+  }, [fetchNotifications])
 
   useEffect(() => {
     loadNotifications()
