@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>IEclub - 跨学科交流平台</title>
+  
+  <!-- Taro 会自动注入这些标签 -->
+  <!-- <link rel="stylesheet" href="..."> -->
+  <!-- <script src="..."></script> -->
+</head>
+<body>
+  <!-- Taro 应用挂载点 -->
+  <div id="app"></div>
+  
+  <!-- 加载提示 -->
+  <div id="loading" style="display: flex; justify-content: center; align-items: center; height: 100vh; font-size: 14px; color: #999;">
+    加载中...
+  </div>
+  
+  <script>
+    // 应用加载后隐藏 loading
+    window.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        var loading = document.getElementById('loading');
+        if (loading) {
+          loading.style.display = 'none';
+        }
+      }, 500);
+    });
+  </script>
+</body>

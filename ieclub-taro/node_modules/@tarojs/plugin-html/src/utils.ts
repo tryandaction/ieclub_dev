@@ -28,6 +28,8 @@ export function getMappedType (nodeName: string, rawProps: Record<string, any>, 
     const { mapName } = mapping
     return isFunction(mapName) ? mapName(rawProps) : mapName
   } else {
+    // fix #15326
+    if (process.env.TARO_ENV === 'swan') return 'view'
     if (node) {
       const { props } = node
       for (const prop in props) {
@@ -37,7 +39,12 @@ export function getMappedType (nodeName: string, rawProps: Record<string, any>, 
         }
       }
     }
-    if (!node || node.isAnyEventBinded()) {
+    if (!node) {
+      return 'view'
+    }
+    if (node.isOnlyClickBinded() && !isHasExtractProp(node)) {
+      return 'click-view'
+    } else if (node.isAnyEventBinded()) {
       return 'view'
     } else if (isHasExtractProp(node)) {
       return 'static-view'

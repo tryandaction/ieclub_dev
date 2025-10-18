@@ -30,12 +30,12 @@ function download (repo, dest, opts, fn) {
   var url = repo.url || getUrl(repo, clone)
 
   if (clone) {
-    var options = {
-      checkout: repo.checkout, 
+    var cloneOptions = {
+      checkout: repo.checkout,
       shallow: repo.checkout === 'master',
-      ...opts 
+      ...opts
     }
-    gitclone(url, dest, options, function (err) {
+    gitclone(url, dest, cloneOptions, function (err) {
       if (err === undefined) {
         rm(dest + '/.git')
         fn()
@@ -44,17 +44,17 @@ function download (repo, dest, opts, fn) {
       }
     })
   } else {
-    var options = {
-      extract: true, 
-      strip: 1, 
-      mode: '666', 
+    var downloadOptions = {
+      extract: true,
+      strip: 1,
+      mode: '666',
       ...opts,
       headers: {
         accept: 'application/zip',
         ...(opts.headers || {})
       }
     }
-    downloadUrl(url, dest, options)
+    downloadUrl(url, dest, downloadOptions)
       .then(function (data) {
         fn()
       })
@@ -77,15 +77,15 @@ function normalize (repo) {
 
   if (match) {
     var url = match[2]
-    var checkout = match[3] || 'master'
+    var directCheckout = match[3] || 'master'
 
     return {
       type: 'direct',
       url: url,
-      checkout: checkout
+      checkout: directCheckout
     }
   } else {
-    regex = /^(?:(github|gitlab|bitbucket):)?(?:(.+):)?([^\/]+)\/([^#]+)(?:#(.+))?$/
+    regex = /^(?:(github|gitlab|bitbucket):)?(?:(.+):)?([^/]+)\/([^#]+)(?:#(.+))?$/
     match = regex.exec(repo)
     var type = match[1] || 'github'
     var origin = match[2] || null
@@ -144,7 +144,7 @@ function getUrl (repo, clone) {
 
   // Get origin with protocol and add trailing slash or colon (for ssh)
   var origin = addProtocol(repo.origin, clone)
-  if (/^git\@/i.test(origin)) {
+  if (/^git@/i.test(origin)) {
     origin = origin + ':'
   } else {
     origin = origin + '/'

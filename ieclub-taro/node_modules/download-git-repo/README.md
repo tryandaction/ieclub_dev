@@ -50,21 +50,21 @@ The callback function as `function (err)`.
 ### Shorthand
 Using http download from Github repository at master.
 ```javascript
-download('flipxfx/download-git-repo-fixture', 'test/tmp', function (err) {
+download('flippidippi/download-git-repo-fixture', 'test/tmp', function (err) {
   console.log(err ? 'Error' : 'Success')
 })
 ```
 
 Using git clone from Bitbucket repository at my-branch.
 ```javascript
-download('bitbucket:flipxfx/download-git-repo-fixture#my-branch', 'test/tmp', { clone: true }, function (err) {
+download('bitbucket:flippidippi/download-git-repo-fixture#my-branch', 'test/tmp', { clone: true }, function (err) {
   console.log(err ? 'Error' : 'Success')
 })
 ```
 
 Using http download from GitLab repository with custom origin and token.
 ```javascript
-download('gitlab:mygitlab.com:flipxfx/download-git-repo-fixture#my-branch', 'test/tmp', { headers: { 'PRIVATE-TOKEN': '1234' } } function (err) {
+download('gitlab:mygitlab.com:flippidippi/download-git-repo-fixture#my-branch', 'test/tmp', { headers: { 'PRIVATE-TOKEN': '1234' } } function (err) {
   console.log(err ? 'Error' : 'Success')
 })
 ```
@@ -72,7 +72,7 @@ download('gitlab:mygitlab.com:flipxfx/download-git-repo-fixture#my-branch', 'tes
 Using git clone from GitLab repository with custom origin and protocol.
 Note that the repository type (`github`, `gitlab` etc.) is not required if cloning from a custom origin.
 ```javascript
-download('https://mygitlab.com:flipxfx/download-git-repo-fixture#my-branch', 'test/tmp', { clone: true }, function (err) {
+download('https://mygitlab.com:flippidippi/download-git-repo-fixture#my-branch', 'test/tmp', { clone: true }, function (err) {
   console.log(err ? 'Error' : 'Success')
 })
 ```
@@ -80,21 +80,21 @@ download('https://mygitlab.com:flipxfx/download-git-repo-fixture#my-branch', 'te
 ### Direct
 Using http download from direct url.
 ```javascript
-download('direct:https://gitlab.com/flipxfx/download-git-repo-fixture/repository/archive.zip', 'test/tmp', function (err) {
+download('direct:https://gitlab.com/flippidippi/download-git-repo-fixture/repository/archive.zip', 'test/tmp', function (err) {
   console.log(err ? 'Error' : 'Success')
 })
 ```
 
 Using git clone from direct url at master.
 ```javascript
-download('direct:https://gitlab.com/flipxfx/download-git-repo-fixture.git', 'test/tmp', { clone: true }, function (err) {
+download('direct:https://gitlab.com/flippidippi/download-git-repo-fixture.git', 'test/tmp', { clone: true }, function (err) {
   console.log(err ? 'Error' : 'Success')
 })
 ```
 
 Using git clone from direct url at my-branch.
 ```javascript
-download('direct:https://gitlab.com/flipxfx/download-git-repo-fixture.git#my-branch', 'test/tmp', { clone: true }, function (err) {
+download('direct:https://gitlab.com/flippidippi/download-git-repo-fixture.git#my-branch', 'test/tmp', { clone: true }, function (err) {
   console.log(err ? 'Error' : 'Success')
 })
 ```
