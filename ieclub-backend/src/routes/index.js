@@ -9,17 +9,22 @@ const AuthController = require('../controllers/authController');
 const TopicController = require('../controllers/topicController');
 const CommentController = require('../controllers/commentController');
 const UploadController = require('../controllers/uploadController');
-const NotificationController = require('../controllers/notificationController'); // ✅ 独立导入
-const UserController = require('../controllers/userController'); // ✅ 独立导入
-const SearchController = require('../controllers/searchController'); // ✅ 搜索控制器
+const NotificationController = require('../controllers/notificationController');
+const UserController = require('../controllers/userController');
+const SearchController = require('../controllers/searchController');
 
 // 导入中间件
-const { authenticate, optionalAuth, refreshToken } = require('../middleware/auth');
+const authMiddleware = require('../middleware/auth');
+const uploadMiddleware = require('../middleware/upload');
+const validationMiddleware = require('../middleware/validation');
+
+// 解构中间件函数
+const { authenticate, optionalAuth, refreshToken } = authMiddleware;
 const {
   uploadMultipleImages,
   uploadMultipleDocuments,
   handleUploadError,
-} = require('../middleware/upload');
+} = uploadMiddleware;
 const {
   validateWechatLogin,
   validateCreateTopic,
@@ -30,7 +35,7 @@ const {
   validateLinkPreview,
   validatePagination,
   validateUUID,
-} = require('../middleware/validation');
+} = validationMiddleware;
 
 // ==================== 认证路由 ====================
 router.post('/auth/wechat-login', validateWechatLogin, AuthController.wechatLogin);
