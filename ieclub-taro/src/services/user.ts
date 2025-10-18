@@ -7,79 +7,83 @@ import type { User, UserProfile, LoginParams, RegisterParams } from '../types'
  * 用户登录
  */
 export function login(params: LoginParams) {
-   return request<{ token: string; user: User }>({
-     url: '/auth/login',
-     method: 'POST',
-     data: params,
-     needAuth: false
-   })
- }
+    return request<{ token: string; user: User }>({
+      url: '/api/auth/login',
+      method: 'POST',
+      data: params,
+      needAuth: false
+    })
+  }
 
 /**
  * 用户注册
  */
 export function register(params: RegisterParams) {
-   return request<{ token: string; user: User }>({
-     url: '/auth/register',
-     method: 'POST',
-     data: params,
-     needAuth: false
-   })
- }
+    return request<{ token: string; user: User }>({
+      url: '/api/auth/register',
+      method: 'POST',
+      data: params,
+      needAuth: false
+    })
+  }
 
 /**
- * 获取当前用户信息
+ * 获取当前用户信息 - 需要认证
  */
 export function getUserProfile() {
-   return request<{ user: User }>({
-     url: '/user/profile',
-     method: 'GET'
-   })
- }
+    return request<{ user: User }>({
+      url: '/api/auth/me',
+      method: 'GET',
+      needAuth: true
+    })
+  }
 
 /**
- * 更新用户信息
+ * 更新用户信息 - 需要认证
  */
 export function updateUserProfile(data: Partial<UserProfile>) {
-   return request<{ user: User }>({
-     url: '/user/profile',
-     method: 'PUT',
-     data
-   })
- }
+    return request<{ user: User }>({
+      url: '/api/auth/profile',
+      method: 'PUT',
+      data,
+      needAuth: true
+    })
+  }
 
 /**
  * 获取用户统计信息
  */
 export function getUserStats(userId: string) {
-   return request<{
-     topicsCount: number
-     commentsCount: number
-     likesCount: number
-     followersCount: number
-     followingCount: number
-   }>({
-     url: `/user/${userId}/stats`,
-     method: 'GET'
-   })
- }
+    return request<{
+      topicsCount: number
+      commentsCount: number
+      likesCount: number
+      followersCount: number
+      followingCount: number
+    }>({
+      url: `/api/users/${userId}/stats`,
+      method: 'GET'
+    })
+  }
 
 /**
- * 关注用户
+ * 关注用户 - 需要认证
  */
 export function followUser(userId: string) {
-   return request({
-     url: `/user/${userId}/follow`,
-     method: 'POST'
-   })
- }
+    return request({
+      url: `/api/users/${userId}/follow`,
+      method: 'POST',
+      needAuth: true
+    })
+  }
 
 /**
- * 取消关注用户
+ * 取消关注用户 - 需要认证
  */
 export function unfollowUser(userId: string) {
-   return request({
-     url: `/user/${userId}/unfollow`,
-     method: 'POST'
-   })
- }
+    return request({
+      url: `/api/users/${userId}/follow`,
+      method: 'DELETE',
+      needAuth: true
+    })
+  }

@@ -66,22 +66,19 @@ exports.validateCreateTopic = [
   body('content')
     .notEmpty()
     .withMessage('内容不能为空')
-    .isLength({ min: 10 })
-    .withMessage('内容不能少于10个字符'),
+    .isLength({ min: 10, max: 10000 })
+    .withMessage('内容长度必须在10-10000字符之间'),
 
-  body('category')
+  body('type')
     .notEmpty()
-    .withMessage('分类不能为空'),
+    .withMessage('话题类型不能为空')
+    .isIn(['supply', 'demand', 'discussion'])
+    .withMessage('话题类型必须是 supply、demand 或 discussion'),
 
   body('tags')
     .optional()
     .isArray({ max: 5 })
     .withMessage('标签不能超过5个'),
-
-  body('topicType')
-    .optional()
-    .isIn(['discussion', 'demand', 'supply', 'collaboration'])
-    .withMessage('话题类型无效'),
 
   exports.handleValidationErrors,
 ];

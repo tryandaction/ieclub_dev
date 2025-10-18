@@ -11,10 +11,17 @@ const app = express();
 // 安全中间件
 app.use(helmet());
 
-// CORS 配置
+// CORS 配置 - 整合开发代码中的改进
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
-  credentials: true
+  origin: [
+    'http://localhost:10086',
+    'http://localhost:3000',
+    'https://ieclub.online',
+    'https://api.ieclub.online'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // 请求日志

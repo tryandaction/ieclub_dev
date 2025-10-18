@@ -1,8 +1,9 @@
-// ==================== ieclub-taro/src/services/request.ts：HTTP请求封装（增强版） ====================
-
+// ieclub-taro/src/services/request.ts
 import Taro from '@tarojs/taro'
 
-const BASE_URL = process.env.TARO_APP_API_URL || 'https://api.ieclub.online'
+const BASE_URL = process.env.NODE_ENV === 'development'
+  ? 'http://localhost:3001'
+  : process.env.TARO_APP_API_URL || 'https://api.ieclub.online'
 
 interface RequestOptions {
   url: string
@@ -13,17 +14,14 @@ interface RequestOptions {
 }
 
 interface ApiResponse<T = any> {
+  success: boolean
   code: number
   message: string
   data: T
 }
 
-/**
- * 清理请求参数，过滤掉undefined值
- */
 function cleanParams(params: any): any {
   if (!params || typeof params !== 'object') return params
-
   const cleaned: any = {}
   Object.keys(params).forEach(key => {
     if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
@@ -33,69 +31,65 @@ function cleanParams(params: any): any {
   return cleaned
 }
 
-/**
- * 统一请求封装
- */
 export async function request<T = any>(options: RequestOptions): Promise<T> {
   const { url, method = 'GET', data, header = {}, needAuth = true } = options
 
-  // 添加认证头
-  if (needAuth) {
-    const token = Taro.getStorageSync('token')
-    if (token) {
-      header['Authorization'] = `Bearer ${token}`
-    }
+  // 获取token
+  const token = Taro.getStorageSync('token')
+
+  // 构建请求头
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...header
   }
 
-  // 添加平台标识
-  header['X-Platform'] = process.env.TARO_ENV || 'unknown'
+  // 如果需要认证，添加token
+  if (needAuth && token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  header['X-Platform'] = process.env.TARO_ENV || 'h5'
 
   try {
+    // 发起请求 - 注意这里不要重复添加 /api
     const response = await Taro.request({
-      url: `${BASE_URL}${url}`,
+      url: `${BASE_URL}${url}`, // url 参数应该已经包含 /api
       method,
-      data: cleanParams(data), // 清理请求参数
-      header: {
-        'Content-Type': 'application/json',
-        ...header
-      },
+      data: cleanParams(data),
+      header: headers,
       timeout: 10000
     })
 
-    const result = response.data as ApiResponse<T>
+    // 处理响应
+    if (response.statusCode === 200) {
+      const result = response.data as any
 
-    // 统一处理响应
-    if (result.code === 200) {
-      return result.data
-    } else if (result.code === 401) {
-      // Token 过期，清除登录状态
+      if (result.success) {
+        return result.data
+      } else {
+        throw new Error(result.message || '请求失败')
+      }
+    } else if (response.statusCode === 401) {
+      // 未授权，清除token并跳转登录
       Taro.removeStorageSync('token')
       Taro.removeStorageSync('userInfo')
       Taro.showToast({
         title: '请先登录',
         icon: 'none'
       })
-      Taro.navigateTo({ url: '/pages/login/index' })
+      setTimeout(() => {
+        Taro.navigateTo({ url: '/pages/login/index' })
+      }, 1500)
       throw new Error('未授权')
     } else {
-      throw new Error(result.message || '请求失败')
+      throw new Error(`请求失败: ${response.statusCode}`)
     }
   } catch (error: any) {
     console.error('请求错误:', error)
-
-    // 网络错误处理
-    if (error.errMsg?.includes('timeout')) {
-      Taro.showToast({
-        title: '请求超时，请检查网络',
-        icon: 'none'
-      })
-    } else if (error.errMsg?.includes('fail')) {
-      Taro.showToast({
-        title: '网络异常，请稍后重试',
-        icon: 'none'
-      })
-    }
-
+    Taro.showToast({
+      title: error.message || '网络请求失败',
+      icon: 'none'
+    })
     throw error
   }
 }
