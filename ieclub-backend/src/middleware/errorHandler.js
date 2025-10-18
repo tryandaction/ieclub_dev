@@ -8,7 +8,7 @@ const { Prisma } = require('@prisma/client');
 /**
  * 全局错误处理中间件
  */
-module.exports = (err, req, res, _next) => {
+const errorHandler = (err, req, res, _next) => {
   // 记录错误日志
   logger.error('全局错误处理:', {
     message: err.message,
@@ -102,7 +102,7 @@ module.exports = (err, req, res, _next) => {
 /**
  * 404 错误处理
  */
-exports.notFound = (req, res) => {
+errorHandler.notFound = (req, res) => {
   return response.notFound(res, `路由 ${req.method} ${req.url} 不存在`);
 };
 
@@ -118,4 +118,7 @@ class BusinessError extends Error {
   }
 }
 
-exports.BusinessError = BusinessError;
+errorHandler.BusinessError = BusinessError;
+
+// 导出错误处理中间件（默认导出）
+module.exports = errorHandler;

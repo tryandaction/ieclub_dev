@@ -102,7 +102,7 @@ app.get('/health', (req, res) => {
 });
 
 // ==================== 404 处理 ====================
-app.use('*', errorHandler.notFound);
+app.use('*', (req, res) => errorHandler.notFound(req, res));
 
 // ==================== 全局错误处理 ====================
 app.use(errorHandler);
