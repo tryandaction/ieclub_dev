@@ -1,54 +1,102 @@
-// ==================== 样式变量（增强版） ====================
+/* ==================== 1. 全局配置文件 src/styles/variables.scss ==================== */
 
-// 颜色变量
+/* 🎨 颜色系统 */
 $primary-color: #667eea;
 $primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-$success-color: #10b981;
-$warning-color: #f59e0b;
-$error-color: #ef4444;
-$info-color: #3b82f6;
+$success-color: #48bb78;
+$warning-color: #f6ad55;
+$danger-color: #f56565;
+$text-primary: #2d3748;
+$text-secondary: #718096;
+$text-tertiary: #a0aec0;
+$bg-primary: #ffffff;
+$bg-secondary: #f7fafc;
+$border-color: #e2e8f0;
 
-$text-primary: #333;
-$text-secondary: #666;
-$text-tertiary: #999;
-$text-white: #fff;
+/* 🔢 响应式断点 - 关键！H5和小程序通用 */
+$breakpoint-xs: 375px;   /* 小手机 */
+$breakpoint-sm: 414px;   /* 大手机 */
+$breakpoint-md: 768px;   /* 平板 */
+$breakpoint-lg: 1024px;  /* 小桌面 */
+$breakpoint-xl: 1440px;  /* 大桌面 */
 
-$bg-primary: #fff;
-$bg-secondary: #f5f5f5;
-$bg-tertiary: #f0f0f0;
+/* 📏 基础单位（Taro使用px，会自动转rpx） */
+/* 小程序: 1px = 2rpx (iPhone 6为基准，宽度750rpx) */
+/* H5: 1px = 实际1px */
 
-$border-color: #e5e7eb;
-$border-light: #f0f0f0;
+/* 💫 间距系统 - 放大30% */
+$spacing-xs: 12px;   /* 原8px -> 12px */
+$spacing-sm: 18px;   /* 原12px -> 18px */
+$spacing-md: 24px;   /* 原16px -> 24px */
+$spacing-lg: 36px;   /* 原24px -> 36px */
+$spacing-xl: 48px;   /* 原32px -> 48px */
+$spacing-xxl: 64px;  /* 原48px -> 64px */
 
-// 间距
-$spacing-xs: 4px;
-$spacing-sm: 8px;
-$spacing-md: 12px;
-$spacing-lg: 16px;
-$spacing-xl: 20px;
-$spacing-xxl: 24px;
+/* 📝 字体大小 - 放大40% */
+$font-xs: 20px;      /* 原14px -> 20px (小程序40rpx) */
+$font-sm: 24px;      /* 原16px -> 24px (小程序48rpx) */
+$font-md: 28px;      /* 原18px -> 28px (小程序56rpx) */
+$font-lg: 32px;      /* 原20px -> 32px (小程序64rpx) */
+$font-xl: 36px;      /* 原24px -> 36px (小程序72rpx) */
+$font-xxl: 44px;     /* 原32px -> 44px (小程序88rpx) */
+$font-xxxl: 52px;    /* 原40px -> 52px (小程序104rpx) */
 
-// 字体大小
-$font-xs: 12px;
-$font-sm: 13px;
-$font-md: 14px;
-$font-lg: 16px;
-$font-xl: 18px;
-$font-xxl: 20px;
+/* 🔘 圆角 */
+$radius-sm: 12px;
+$radius-md: 16px;
+$radius-lg: 24px;
+$radius-xl: 32px;
+$radius-round: 999px;
 
-// 圆角
-$radius-sm: 4px;
-$radius-md: 8px;
-$radius-lg: 12px;
-$radius-xl: 16px;
-$radius-circle: 50%;
+/* 🎭 阴影 */
+$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+$shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+$shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
+$shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.2);
 
-// 阴影
-$shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-$shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
-$shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+/* 🎬 动画时长 */
+$transition-fast: 0.2s;
+$transition-base: 0.3s;
+$transition-slow: 0.5s;
 
-// 过渡
-$transition-fast: 0.2s ease;
-$transition-base: 0.3s ease;
-$transition-slow: 0.5s ease;
+/* 📱 响应式Mixins */
+@mixin phone-only {
+  @media (max-width: #{$breakpoint-md - 1px}) {
+    @content;
+  }
+}
+
+@mixin tablet-up {
+  @media (min-width: $breakpoint-md) {
+    @content;
+  }
+}
+
+@mixin desktop-up {
+  @media (min-width: $breakpoint-lg) {
+    @content;
+  }
+}
+
+@mixin large-desktop-up {
+  @media (min-width: $breakpoint-xl) {
+    @content;
+  }
+}
+
+/* 📦 容器Mixin */
+@mixin container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+
+  @include tablet-up {
+    max-width: 750px;
+    padding: 0 $spacing-lg;
+  }
+
+  @include desktop-up {
+    max-width: 1200px;
+    padding: 0 $spacing-xl;
+  }
+}

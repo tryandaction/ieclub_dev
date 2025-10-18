@@ -1,0 +1,42 @@
+/* ==================== 6. 输入框优化 src/components/Input/index.scss ==================== */
+
+@import '../../styles/variables.scss';
+
+.input {
+  width: 100%;
+  padding: 20px 24px;  /* 放大 */
+  border: 2px solid $border-color;
+  border-radius: $radius-lg;
+  font-size: $font-lg;  /* 放大 */
+  color: $text-primary;
+  background: $bg-primary;
+  transition: all $transition-fast;
+
+  /* 小程序最小高度 */
+  min-height: 88px;
+
+  @include desktop-up {
+    padding: 16px 20px;
+    min-height: auto;
+  }
+
+  &::placeholder {
+    color: $text-tertiary;
+  }
+
+  &:focus {
+    border-color: $primary-color;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  }
+
+  &--error {
+    border-color: $danger-color;
+  }
+}
+
+.textarea {
+  @extend .input;
+  min-height: 200px;
+  resize: vertical;
+  line-height: 1.8;
+}

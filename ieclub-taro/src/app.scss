@@ -1,56 +1,29 @@
-// ==================== 全局样式（增强版） ====================
+/* ==================== 2. 全局样式 src/app.scss ==================== */
 
 @import './styles/variables.scss';
-@import './styles/mixins.scss';
 
-/*
- * 将全局的 box-sizing 和内外边距重置应用到 page 组件上，
- * 因为小程序不支持 '*' 全局选择器。
- */
+/* 🌍 全局重置 */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
 page {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background: #f5f5f5;
-  color: #333;
-  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+               'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-size: $font-sm;
   line-height: 1.6;
+  color: $text-primary;
+  background-color: $bg-secondary;
+  
+  /* 小程序环境特殊处理 */
+  @include phone-only {
+    font-size: $font-md; /* 移动端默认更大字体 */
+  }
 }
 
-/*
- * 为小程序常用的核心组件也统一设置 box-sizing，
- * 确保盒模型的表现与 Web 端一致。
- */
-view,
-text,
-image,
-button,
-input,
-textarea {
-  box-sizing: border-box;
-}
-
-/*
- * 按钮样式重置
- */
-button {
-  border: none;
-  outline: none;
-  background: none;
-  font-family: inherit;
-  /* 增加 padding 和 margin 的重置，确保一致性 */
-  padding: 0;
-  margin: 0;
-}
-
-/*
- * 移除小程序 button 组件默认的边框
- */
-button::after {
-  border: none;
+/* 📱 安全区域适配 */
+.safe-area-bottom {
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
 }
