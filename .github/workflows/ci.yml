@@ -1,7 +1,8 @@
-# .github/workflows/ci.yml
-# GitHub Actions持续集成配置
-
-name: CI
+# =================================================================
+#  CI & CD Workflow (All-in-One)
+#  File: .github/workflows/ci.yml
+# =================================================================
+name: CI/CD Pipeline
 
 on:
   push:
@@ -10,190 +11,115 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  # 后端测试
-  backend-test:
-    name: Backend Tests
+  # ==================================
+  # Job 1: Backend Checks
+  # ==================================
+  backend-checks:
+    name: "CI / Backend"
     runs-on: ubuntu-latest
-
+    
     services:
       mysql:
         image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: test_password
-          MYSQL_DATABASE: ieclub_test
-        ports:
-          - 3306:3306
+        env: { MYSQL_ROOT_PASSWORD: root_password, MYSQL_DATABASE: ieclub_test }
+        ports: ['3306:3306']
         options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-
+          --health-cmd="mysqladmin ping --silent" --health-interval=10s --health-timeout=5s --health-retries=5
       redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd="redis-cli ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
+        image: redis:7
+        ports: ['6379:6379']
+        options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=5
 
     steps:
-      - name: 检出代码
+      - name: Checkout Code
         uses: actions/checkout@v3
-
-      - name: 设置 Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: ieclub-backend/package-lock.json
-
-      - name: 安装依赖
+        with: { node-version: '18', cache: 'npm', cache-dependency-path: 'ieclub-backend/package-lock.json' }
+      - name: Install Backend Dependencies
         working-directory: ./ieclub-backend
         run: npm ci
-
-      - name: 代码检查
+      - name: Run Backend Lint
         working-directory: ./ieclub-backend
-        run: npm run lint
-
-      - name: 生成 Prisma Client
-        working-directory: ./ieclub-backend
-        run: npm run prisma:generate
-
-      - name: 运行数据库迁移
+        run: npm run lint -- --max-warnings=0
+      - name: Run Backend Tests
         working-directory: ./ieclub-backend
         env:
-          DATABASE_URL: mysql://root:test_password@localhost:3306/ieclub_test
-        run: npm run prisma:migrate
-
-      - name: 运行单元测试
-        working-directory: ./ieclub-backend
-        env:
-          NODE_ENV: test
-          DATABASE_URL: mysql://root:test_password@localhost:3306/ieclub_test
-          REDIS_HOST: localhost
+          DATABASE_URL: "mysql://root:root_password@127.0.0.1:3306/ieclub_test" # 在 job 内部，可以用 127.0.0.1
+          REDIS_HOST: 127.0.0.1
           REDIS_PORT: 6379
-          JWT_SECRET: test_secret_key
-        run: npm run test:unit
+          JWT_SECRET: a-dummy-jwt-secret-for-ci-testing-only
+        run: |
+          npx prisma migrate deploy
+          npm test
 
-      - name: 运行集成测试
-        working-directory: ./ieclub-backend
-        env:
-          NODE_ENV: test
-          DATABASE_URL: mysql://root:test_password@localhost:3306/ieclub_test
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          JWT_SECRET: test_secret_key
-        run: npm run test:integration
-
-      - name: 上传测试覆盖率报告
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./ieclub-backend/coverage/coverage-final.json
-          flags: backend
-          name: backend-coverage
-
-  # 前端构建
-  frontend-build:
-    name: Frontend Build
+  # ==================================
+  # Job 2: Frontend Checks
+  # ==================================
+  frontend-checks:
+    name: "CI / Frontend"
     runs-on: ubuntu-latest
 
     steps:
-      - name: 检出代码
+      - name: Checkout Code
         uses: actions/checkout@v3
-
-      - name: 设置 Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: ieclub-taro/package-lock.json
-
-      - name: 安装依赖
+        with: { node-version: '18', cache: 'npm', cache-dependency-path: 'ieclub-taro/package-lock.json' }
+      - name: Install Frontend Dependencies
         working-directory: ./ieclub-taro
         run: npm ci
-
-      - name: 代码检查
+      - name: Run Frontend Lint & Type Check
         working-directory: ./ieclub-taro
-        run: npm run lint
-
-      - name: 构建微信小程序
+        run: |
+          npm run lint -- --max-warnings=0
+          npm run type-check
+      - name: Build Frontend (H5 & WeApp)
         working-directory: ./ieclub-taro
-        run: npm run build:weapp
+        run: |
+          npm run build:h5
+          npm run build:weapp
 
-      - name: 构建H5版本
-        working-directory: ./ieclub-taro
-        run: npm run build:h5
-
-      - name: 上传构建产物
-        uses: actions/upload-artifact@v3
-        with:
-          name: frontend-dist
-          path: |
-            ieclub-taro/dist
-          retention-days: 7
-
-  # Docker镜像构建
-  docker-build:
-    name: Docker Build
+  # ==================================
+  # Job 3: Deploy to Production (新增的部署任务)
+  # ==================================
+  deploy:
+    name: "Deploy / Production"
     runs-on: ubuntu-latest
-    needs: [backend-test]
-
+    
+    # --- 关键的触发条件 ---
+    # 1. 依赖于 backend-checks 和 frontend-checks 都成功
+    needs: [backend-checks, frontend-checks]
+    # 2. 只有当事件是推送到 main 分支时，才执行这个 job
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
     steps:
-      - name: 检出代码
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: 设置 Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: 登录 Docker Hub
-        if: github.event_name != 'pull_request'
-        id: docker-login
-        uses: docker/login-action@v2
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@master
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-        continue-on-error: true
-
-      - name: 提取 metadata
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: ieclub/backend
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha
-
-      - name: 构建并推送 Docker 镜像
-        if: github.event_name != 'pull_request' && steps.docker-login.outcome == 'success'
-        uses: docker/build-push-action@v4
-        with:
-          context: ./ieclub-backend
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  # 代码质量检查
-  code-quality:
-    name: Code Quality
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: 检出代码
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # SonarQube需要完整历史
-
-      - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN || '' }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL || '' }}
-        continue-on-error: true
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/ieclub_dev || exit 1
+            echo "🚚 1/5 Pulling latest code..."
+            git pull origin main
+            echo "🚀 2/5 Deploying backend..."
+            cd ieclub-backend
+            npm install --production
+            npx prisma migrate deploy
+            pm2 reload ieclub-api
+            cd ..
+            echo "🚀 3/5 Deploying frontend..."
+            cd ieclub-taro
+            npm install
+            npm run build:h5
+            cd ..
+            echo "🔐 4/5 Setting permissions..."
+            sudo chown -R xingduo:xingduo /var/www/ieclub_dev
+            echo "🔄 5/5 Reloading Nginx..."
+            sudo systemctl reload nginx
+            echo "🎉 Deployment completed!"
