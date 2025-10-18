@@ -22,7 +22,8 @@
     "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx src --fix",
     "type-check": "tsc --noEmit",
     "clean": "rimraf dist node_modules/.cache",
-    "analyze": "cross-env ANALYZE=true npm run build:h5:prod"
+    "analyze": "cross-env ANALYZE=true npm run build:h5:prod",
+    "build:analyze": "npm run analyze"
   },
   "dependencies": {
     "@tarojs/components": "3.6.23",

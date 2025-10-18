@@ -68,7 +68,7 @@ jobs:
           DATABASE_URL: mysql://root:test_password@localhost:3306/ieclub_test
         run: npm run prisma:migrate
 
-      - name: 运行测试
+      - name: 运行单元测试
         working-directory: ./ieclub-backend
         env:
           NODE_ENV: test
@@ -76,7 +76,17 @@ jobs:
           REDIS_HOST: localhost
           REDIS_PORT: 6379
           JWT_SECRET: test_secret_key
-        run: npm run test:ci
+        run: npm run test:unit
+
+      - name: 运行集成测试
+        working-directory: ./ieclub-backend
+        env:
+          NODE_ENV: test
+          DATABASE_URL: mysql://root:test_password@localhost:3306/ieclub_test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: test_secret_key
+        run: npm run test:integration
 
       - name: 上传测试覆盖率报告
         uses: codecov/codecov-action@v3

@@ -8,6 +8,7 @@
     "start": "node src/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:prod": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "prisma:seed": "node prisma/seed.js",
     "test": "jest --coverage",
@@ -15,10 +16,13 @@
     "test:unit": "jest tests/unit",
     "test:integration": "jest tests/integration",
     "test:ci": "jest --ci --coverage --maxWorkers=2",
+    "test:integration:ci": "docker-compose -f docker-compose.test.yml up -d mysql-test redis-test && sleep 30 && jest tests/integration --ci --maxWorkers=2 && docker-compose -f docker-compose.test.yml down",
     "lint": "eslint src/**/*.js",
     "format": "prettier --write \"src/**/*.js\"",
     "docker:build": "docker build -t ieclub-backend .",
-    "docker:run": "docker-compose up -d"
+    "docker:run": "docker-compose up -d",
+    "docker:stop": "docker-compose down",
+    "docker:logs": "docker-compose logs -f backend"
   },
   "keywords": [
     "ieclub",
