@@ -44,6 +44,7 @@ const config = {
   h5: {
     publicPath: '/',
     staticDirectory: 'static',
+    template: 'config/index.html', // <--- 加上这一行！
     postcss: {
       autoprefixer: {
         enable: true,
