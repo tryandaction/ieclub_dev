@@ -57,7 +57,7 @@ module.exports = {
 
   // CORS 配置
   cors: {
-    origin: (process.env.CORS_ORIGIN || 'http://localhost:3000').split(','),
+    origin: (process.env.CORS_ORIGIN || 'http://localhost:3000,https://ieclub.online').split(','),
     credentials: true,
   },
 

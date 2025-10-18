@@ -44,3 +44,47 @@
     }
   }
 }
+
+// 响应式设计 - 桌面端优化
+@media (min-width: 768px) {
+  .topics-page {
+    .topics-list {
+      padding: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .create-btn {
+      right: 40px;
+      bottom: 100px;
+      width: 64px;
+      height: 64px;
+      border-radius: 32px;
+
+      .create-icon {
+        font-size: 36px;
+      }
+    }
+  }
+}
+
+// 移动端优化
+@media (max-width: 480px) {
+  .topics-page {
+    .topics-list {
+      padding: 12px;
+    }
+
+    .create-btn {
+      right: 16px;
+      bottom: 60px;
+      width: 48px;
+      height: 48px;
+      border-radius: 24px;
+
+      .create-icon {
+        font-size: 28px;
+      }
+    }
+  }
+}

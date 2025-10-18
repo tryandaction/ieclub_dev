@@ -19,6 +19,21 @@ interface ApiResponse<T = any> {
 }
 
 /**
+ * 清理请求参数，过滤掉undefined值
+ */
+function cleanParams(params: any): any {
+  if (!params || typeof params !== 'object') return params
+
+  const cleaned: any = {}
+  Object.keys(params).forEach(key => {
+    if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+      cleaned[key] = params[key]
+    }
+  })
+  return cleaned
+}
+
+/**
  * 统一请求封装
  */
 export async function request<T = any>(options: RequestOptions): Promise<T> {
@@ -39,7 +54,7 @@ export async function request<T = any>(options: RequestOptions): Promise<T> {
     const response = await Taro.request({
       url: `${BASE_URL}${url}`,
       method,
-      data,
+      data: cleanParams(data), // 清理请求参数
       header: {
         'Content-Type': 'application/json',
         ...header
