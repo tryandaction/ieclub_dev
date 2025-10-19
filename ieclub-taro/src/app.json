@@ -1,48 +1,37 @@
 {
   "pages": [
-    "pages/topics/index",
-    "pages/topic-detail/index",
-    "pages/create-topic/index",
+    "pages/plaza/index",
+    "pages/detail/index",
+    "pages/create/index",
     "pages/login/index",
     "pages/profile/index",
-    "pages/notifications/index"
+    "pages/notification/index"
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "IEClub",
-    "navigationBarTextStyle": "black",
-    "backgroundColor": "#f5f5f5"
+    "navigationBarBackgroundColor": "#667eea",
+    "navigationBarTitleText": "IEclub",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f8f9fa"
   },
   "tabBar": {
-    "color": "#999",
+    "color": "#999999",
     "selectedColor": "#667eea",
-    "backgroundColor": "#fff",
-    "borderStyle": "white",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
     "list": [
       {
-        "pagePath": "pages/topics/index",
-        "text": "广场",
-        "iconPath": "assets/icons/home.png",
-        "selectedIconPath": "assets/icons/home-active.png"
+        "pagePath": "pages/plaza/index",
+        "text": "🏠 广场"
       },
       {
-        "pagePath": "pages/notifications/index",
-        "text": "通知",
-        "iconPath": "assets/icons/notification.png",
-        "selectedIconPath": "assets/icons/notification-active.png"
+        "pagePath": "pages/notification/index",
+        "text": "🔔 通知"
       },
       {
         "pagePath": "pages/profile/index",
-        "text": "我的",
-        "iconPath": "assets/icons/profile.png",
-        "selectedIconPath": "assets/icons/profile-active.png"
+        "text": "👤 我的"
       }
     ]
-  },
-  "permission": {
-    "scope.userLocation": {
-      "desc": "你的位置信息将用于小程序位置接口的效果展示"
-    }
   }
 }

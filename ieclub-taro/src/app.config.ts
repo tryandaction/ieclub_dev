@@ -1,50 +1,50 @@
-// ==================== 应用配置 ====================
-
+// src/app.config.ts
 export default defineAppConfig({
+  // 页面路径配置
   pages: [
-    'pages/topics/index',
-    'pages/topic-detail/index',
-    'pages/create-topic/index',
-    'pages/login/index',
-    'pages/profile/index',
-    'pages/notifications/index'
+    'pages/plaza/index',      // 首页-话题广场
+    'pages/detail/index',     // 话题详情
+    'pages/create/index',     // 创建话题
+    'pages/login/index',      // 登录
+    'pages/profile/index',    // 个人中心
+    'pages/notification/index' // 通知
   ],
+
+  // 窗口配置
   window: {
     backgroundTextStyle: 'light',
-    navigationBarBackgroundColor: '#fff',
-    navigationBarTitleText: 'IEClub',
-    navigationBarTextStyle: 'black',
-    backgroundColor: '#f5f5f5'
+    navigationBarBackgroundColor: '#667eea',
+    navigationBarTitleText: 'IEclub',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#f8f9fa',
+    enablePullDownRefresh: true
   },
+
+  // TabBar配置（小程序用，H5会自动隐藏或转换）
   tabBar: {
-    color: '#999',
+    color: '#999999',
     selectedColor: '#667eea',
-    backgroundColor: '#fff',
-    borderStyle: 'white',
+    backgroundColor: '#ffffff',
+    borderStyle: 'black',
     list: [
       {
-        pagePath: 'pages/topics/index',
-        text: '广场',
-        iconPath: 'assets/icons/home.png',
-        selectedIconPath: 'assets/icons/home-active.png'
+        pagePath: 'pages/plaza/index',
+        text: '广场'
+        // 暂时移除图标，后续用CSS实现
       },
       {
-        pagePath: 'pages/notifications/index',
-        text: '通知',
-        iconPath: 'assets/icons/notification.png',
-        selectedIconPath: 'assets/icons/notification-active.png'
+        pagePath: 'pages/notification/index',
+        text: '通知'
       },
       {
         pagePath: 'pages/profile/index',
-        text: '我的',
-        iconPath: 'assets/icons/profile.png',
-        selectedIconPath: 'assets/icons/profile-active.png'
+        text: '我的'
       }
     ]
-  },
-  permission: {
-    'scope.userLocation': {
-      desc: '你的位置信息将用于小程序位置接口的效果展示'
-    }
   }
 })
+
+// 导出配置函数
+function defineAppConfig(config: any) {
+  return config
+}
