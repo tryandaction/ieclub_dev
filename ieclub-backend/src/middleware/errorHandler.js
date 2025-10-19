@@ -1,16 +1,23 @@
 const logger = require('../utils/logger');
 const response = require('../utils/response');
+const AppError = require('../utils/AppError');
 const { Prisma } = require('@prisma/client');
 
 const errorHandler = (err, req, res, _next) => {
-  logger.error('全局错误处理:', {
+  // 记录错误日志
+  logger.error('Error occurred:', {
     message: err.message,
     stack: err.stack,
-    url: req.url,
+    url: req.originalUrl,
     method: req.method,
     ip: req.ip,
-    userId: req.userId,
+    userId: req.user?.id
   });
+
+  // 如果是自定义AppError
+  if (err instanceof AppError) {
+    return res.status(err.statusCode).json(err.toJSON());
+  }
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     if (err.code === 'P2002') {

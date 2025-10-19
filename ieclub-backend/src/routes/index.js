@@ -163,13 +163,13 @@ router.get('/', (req, res) => {
     version: '2.0.0',
     documentation: 'https://docs.ieclub.online',
     endpoints: {
-      auth: '/api/v1/auth',
-      topics: '/api/v1/topics',
-      comments: '/api/v1/comments',
-      upload: '/api/v1/upload',
-      notifications: '/api/v1/notifications',
-      users: '/api/v1/users',
-      search: '/api/v1/search',
+      auth: '/auth',
+      topics: '/topics',
+      comments: '/comments',
+      upload: '/upload',
+      notifications: '/notifications',
+      users: '/users',
+      search: '/search',
     },
   });
 });

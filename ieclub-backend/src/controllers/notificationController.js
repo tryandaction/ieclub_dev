@@ -1,6 +1,7 @@
 // ==================== ieclub-backend/src/controllers/notificationController.js ====================
 const { PrismaClient } = require('@prisma/client');
 const response = require('../utils/response');
+const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
 
 const prisma = new PrismaClient();
@@ -104,7 +105,7 @@ class NotificationController {
       });
 
       if (!notification) {
-        return response.notFound(res, '通知不存在');
+        throw new AppError('RESOURCE_NOT_FOUND', '通知不存在');
       }
 
       await prisma.notification.update({

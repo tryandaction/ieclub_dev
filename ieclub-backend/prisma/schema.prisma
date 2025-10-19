@@ -54,6 +54,7 @@ model User {
 
   // 关联关系
   topics          Topic[]
+  projects        Project[]
   comments        Comment[]
   likes           Like[]
   bookmarks       Bookmark[]
@@ -63,6 +64,8 @@ model User {
   receivedNotifications Notification[] @relation("NotificationReceiver")
   userActions     UserAction[]
   topicQuickActions TopicQuickAction[]
+  topicActions    TopicAction[]
+  projectActions  ProjectAction[]
 
   @@map("users")
 }
@@ -73,19 +76,37 @@ model Topic {
   // 基本信息
   title       String   @db.VarChar(200)
   content     String   @db.LongText
-  contentType String   @default("text") @db.VarChar(20)
+  contentType String   @default("topic_offer") @db.VarChar(20) // topic_offer（我来讲）, topic_demand（想听）, project（项目宣传）
   summary     String?  @db.Text
   category    String   @db.VarChar(50)
   tags        String?  @db.Text // 标签数组 (JSON字符串)
 
-  // 话题类型
+  // 话题类型 - 融入开发代码的核心创新
   topicType   String   @default("discussion") @db.VarChar(20) // discussion, demand, supply, collaboration
-  demandType  String?  @db.VarChar(20) // 人员, 项目, 资金, 资源
-  skillsNeeded     String? @db.Text // 需要的技能 (JSON字符串)
-  skillsProvided   String? @db.Text // 提供的技能 (JSON字符串)
+  
+    // 供需匹配机制 - 来自开发代码的15人成团创新
+    demandType      String?  @db.VarChar(20) // 人员, 项目, 资金, 资源
+    skillsNeeded    String?  @db.Text // 需要的技能 (JSON字符串)
+    skillsProvided  String?  @db.Text // 提供的技能 (JSON字符串)
+    threshold       Int      @default(15) // 成团阈值（默认15人）
+    wantToHearCount Int      @default(0) // 想听人数
+    canTellCount    Int      @default(0) // 我能讲人数
+    status          String   @default("collecting") @db.VarChar(20) // collecting, scheduled, completed
+  
+    // 项目特有字段 - 项目宣传功能
+    teamSize        Int?     // 团队规模
+    lookingForRoles Json?    // 寻找的角色 (JSON数组)
+    projectStage    String?  @db.VarChar(50) // 项目阶段
+    website         String?  @db.VarChar(200)
+    github          String?  @db.VarChar(200)
+    interestedCount Int      @default(0) // 感兴趣人数
+  
+    // 时间安排 - 来自开发代码的功能
+    duration        String?  @db.VarChar(50) // 预计时长
+    targetAudience  String?  @db.Text // 目标听众
+    scheduledTime   DateTime? // 安排时间
   deadline    DateTime?
   budget      String?  @db.VarChar(100)
-  location    String?  @db.VarChar(100)
   contactInfo String?  @db.Text
 
   // 媒体文件
@@ -109,8 +130,7 @@ model Topic {
   trendingScore   Float @default(0)
   isHot           Boolean @default(false)
 
-  // 状态
-  status      String   @default("draft") @db.VarChar(20) // draft, published, deleted
+  // 状态 - 融入开发代码的状态管理
   publishedAt DateTime?
 
   // 时间戳
@@ -127,6 +147,7 @@ model Topic {
   notifications Notification[] @relation("NotificationTopic")
   userActions  UserAction[] @relation("UserActionTopic")
   quickActionsList TopicQuickAction[]
+  actions      TopicAction[]
 
   @@map("topics")
 }
@@ -154,8 +175,10 @@ model Comment {
   updatedAt   DateTime @updatedAt
 
   // 关联关系
-  topic       Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  topicId     String
+  topic       Topic? @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId     String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String?
   author      User @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId    String
   parent      Comment? @relation("CommentReplies", fields: [parentId], references: [id])
@@ -285,4 +308,81 @@ model TopicQuickAction {
 
   @@unique([topicId, userId, actionType])
   @@map("topic_quick_actions")
+}
+
+// ==================== 新增：话题互动表（来自开发代码） ====================
+model TopicAction {
+  id          String   @id @default(cuid())
+  type        String   @db.VarChar(20) // like, want_hear, can_tell
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  topicId     String
+  topic       Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, topicId, type])
+  @@index([userId])
+  @@index([topicId])
+  @@map("topic_actions")
+}
+
+// ==================== 新增：项目互动表（来自开发代码） ====================
+model ProjectAction {
+  id          String   @id @default(cuid())
+  type        String   @db.VarChar(20) // like, interested
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, projectId, type])
+  @@index([userId])
+  @@index([projectId])
+  @@map("project_actions")
+}
+
+// ==================== 新增：项目表（来自开发代码） ====================
+model Project {
+  id              String      @id @default(cuid())
+  category        String      @db.VarChar(50)
+  title           String      @db.VarChar(200)
+  description     String      @db.LongText
+  tags            String?     @db.Text // JSON数组
+
+  // 项目特有字段（来自开发代码）
+  teamSize        Int?
+  lookingForRoles Json?       // JSON数组
+  projectStage    String?     @db.VarChar(50)
+  website         String?     @db.VarChar(200)
+  github          String?     @db.VarChar(200)
+
+  // 统计数据
+  viewCount       Int         @default(0)
+  likeCount       Int         @default(0)
+  commentCount    Int         @default(0)
+  interestedCount Int         @default(0)
+
+  // 媒体文件
+  images          String?     @db.Text // JSON数组
+
+  authorId        String
+  author          User        @relation(fields: [authorId], references: [id])
+
+  comments        Comment[]
+  actions         ProjectAction[]
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([authorId])
+  @@index([category])
+  @@index([createdAt])
+  @@map("projects")
 }

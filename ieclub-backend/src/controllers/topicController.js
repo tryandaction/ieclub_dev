@@ -3,6 +3,7 @@
 
 const { PrismaClient } = require('@prisma/client');
 const response = require('../utils/response');
+const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
 const AlgorithmService = require('../services/algorithmService');
 const WechatService = require('../services/wechatService');
@@ -139,13 +140,13 @@ class TopicController {
       });
 
       if (!topic) {
-        return response.notFound(res, '话题不存在');
+        throw new AppError('RESOURCE_NOT_FOUND', '话题不存在');
       }
 
       if (topic.status !== 'published') {
         // 只有作者可以查看未发布的话题
         if (!userId || userId !== topic.authorId) {
-          return response.forbidden(res, '该话题暂不可访问');
+          throw new AppError('RESOURCE_FORBIDDEN', '该话题暂不可访问');
         }
       }
 
@@ -250,31 +251,31 @@ class TopicController {
 
       // 验证必填字段
       if (!title || !content || !category) {
-        return response.error(res, '标题、内容和分类为必填项');
+        throw new AppError('VALIDATION_REQUIRED_FIELD', '标题、内容和分类为必填项');
       }
 
       // 验证字段长度
       if (title.length < config.business.topic.titleMinLength) {
-        return response.error(res, `标题至少 ${config.business.topic.titleMinLength} 个字符`);
+        throw new AppError('VALIDATION_INVALID_FORMAT', `标题至少 ${config.business.topic.titleMinLength} 个字符`);
       }
 
       if (title.length > config.business.topic.titleMaxLength) {
-        return response.error(res, `标题最多 ${config.business.topic.titleMaxLength} 个字符`);
+        throw new AppError('VALIDATION_INVALID_FORMAT', `标题最多 ${config.business.topic.titleMaxLength} 个字符`);
       }
 
       if (content.length < config.business.topic.contentMinLength) {
-        return response.error(res, `内容至少 ${config.business.topic.contentMinLength} 个字符`);
+        throw new AppError('VALIDATION_INVALID_FORMAT', `内容至少 ${config.business.topic.contentMinLength} 个字符`);
       }
 
       // 内容安全检测
       const titleCheck = await WechatService.msgSecCheck(title);
       if (!titleCheck.pass) {
-        return response.error(res, '标题包含敏感内容，请修改后重试', 400);
+        throw new AppError('VALIDATION_INVALID_FORMAT', '标题包含敏感内容，请修改后重试');
       }
 
       const contentCheck = await WechatService.msgSecCheck(content);
       if (!contentCheck.pass) {
-        return response.error(res, '内容包含敏感内容，请修改后重试', 400);
+        throw new AppError('VALIDATION_INVALID_FORMAT', '内容包含敏感内容，请修改后重试');
       }
 
       // 生成摘要

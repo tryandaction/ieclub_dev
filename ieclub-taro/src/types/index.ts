@@ -1,5 +1,31 @@
 // ==================== 全局类型定义 ====================
 
+// ==================== 来自开发代码的核心类型定义 ====================
+
+// 内容类型枚举 - 来自开发代码的创新设计
+export enum ContentType {
+  TOPIC_OFFER = 'topic_offer',     // 话题发起（我来讲）
+  TOPIC_DEMAND = 'topic_demand',   // 话题需求（想听）
+  PROJECT = 'project'              // 项目宣传
+}
+
+// 话题状态枚举 - 来自开发代码的15人成团机制
+export enum TopicStatus {
+  COLLECTING = 'collecting',   // 收集中
+  SCHEDULED = 'scheduled',     // 已安排
+  COMPLETED = 'completed'      // 已完成
+}
+
+// 分类枚举 - 来自开发代码的设计
+export enum Category {
+  TECH = 'tech',           // 技术
+  BUSINESS = 'business',   // 商业
+  DESIGN = 'design',       // 设计
+  LIFE = 'life',          // 生活
+  STUDY = 'study',        // 学习
+  OTHER = 'other'         // 其他
+}
+
 // 用户相关类型
 export interface User {
   id: string
@@ -12,6 +38,99 @@ export interface User {
   year?: string
   createdAt: string
   updatedAt: string
+}
+
+// ==================== 来自开发代码的核心业务类型 ====================
+
+// 话题接口 - 融入开发代码的供需匹配机制
+export interface ITopic {
+  id: string
+  type: ContentType
+  category: Category
+  author: IUser
+  title: string
+  description: string
+  tags: string[]
+  images?: string[]
+
+  // 话题特有字段 - 来自开发代码的创新
+  duration?: string           // 分享时长
+  targetAudience?: string     // 目标听众
+  wantToHearCount?: number    // 想听人数
+  canTellCount?: number       // 我能讲人数
+  threshold?: number          // 成团阈值
+  status?: TopicStatus
+  scheduledTime?: string      // 安排时间
+  location?: string           // 地点
+
+  // 统计
+  viewCount: number
+  likeCount: number
+  commentCount: number
+  shareCount: number
+
+  // 用户交互状态
+  isLiked?: boolean
+  hasWantToHear?: boolean
+  hasCanTell?: boolean
+
+  createdAt: string
+  updatedAt: string
+}
+
+// 项目接口 - 来自开发代码的项目宣传功能
+export interface IProject {
+  id: string
+  type: ContentType.PROJECT
+  category: Category
+  author: IUser
+  title: string
+  description: string
+  tags: string[]
+  images?: string[]
+
+  // 项目特有字段 - 来自开发代码的设计
+  teamSize?: number
+  lookingForRoles?: string[]  // 寻找的角色
+  projectStage?: string       // 项目阶段
+  website?: string
+  github?: string
+
+  // 统计
+  viewCount: number
+  likeCount: number
+  commentCount: number
+  interestedCount: number     // 感兴趣人数
+
+  isLiked?: boolean
+  hasInterested?: boolean
+
+  createdAt: string
+  updatedAt: string
+}
+
+// 精简用户接口 - 来自开发代码的设计
+export interface IUser {
+  id: string
+  nickname: string
+  avatar: string
+  major?: string
+  year?: string
+  bio?: string
+  tags?: string[]
+}
+
+// 评论接口 - 来自开发代码的设计
+export interface IComment {
+  id: string
+  contentId: string
+  user: IUser
+  content: string
+  images?: string[]
+  likeCount: number
+  isLiked?: boolean
+  createdAt: string
+  replies?: IComment[]
 }
 
 export interface UserProfile {

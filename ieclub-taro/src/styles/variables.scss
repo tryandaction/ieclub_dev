@@ -1,8 +1,21 @@
 /* ==================== 1. 全局配置文件 src/styles/variables.scss ==================== */
 
-/* 🎨 颜色系统 */
-$primary-color: #667eea;
-$primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+// 🎨 颜色系统 - 融入开发代码的IEClub蓝紫渐变主题，同时保留原有色彩
+$primary-color: #667eea;     // 保留原有主色调
+$primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  // 保留原有渐变
+
+// 新增：IEClub 蓝紫渐变主题系统 - 来自开发代码的标志性设计
+$ieclub-blue: #3b82f6;       // IEClub 蓝色
+$ieclub-purple: #9333ea;     // IEClub 紫色
+$ieclub-indigo: #6366f1;     // 靛蓝色
+
+$ieclub-gradient: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);  // IEClub 经典蓝紫渐变
+$ieclub-blue-gradient: linear-gradient(to right, #3b82f6, #6366f1);    // 蓝色渐变
+$ieclub-purple-gradient: linear-gradient(to right, #9333ea, #a855f7);  // 紫色渐变
+
+// 亮色系 - 来自开发代码的设计
+$ieclub-blue-light: #dbeafe;   // 浅蓝色背景
+$ieclub-purple-light: #f3e8ff; // 浅紫色背景
 $success-color: #48bb78;
 $warning-color: #f6ad55;
 $danger-color: #f56565;

@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
 const config = require('../config');
 const response = require('../utils/response');
+const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
 
 const prisma = new PrismaClient();
@@ -18,7 +19,7 @@ exports.authenticate = async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return response.unauthorized(res, '请提供有效的认证令牌');
+      throw new AppError('AUTH_TOKEN_MISSING');
     }
 
     const token = authHeader.substring(7); // 移除 'Bearer ' 前缀
@@ -29,9 +30,9 @@ exports.authenticate = async (req, res, next) => {
       decoded = jwt.verify(token, config.jwt.secret);
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
-        return response.unauthorized(res, '登录已过期，请重新登录');
+        throw new AppError('AUTH_TOKEN_EXPIRED');
       }
-      return response.unauthorized(res, '无效的认证令牌');
+      throw new AppError('AUTH_TOKEN_INVALID');
     }
 
     // 查询用户信息
@@ -52,11 +53,11 @@ exports.authenticate = async (req, res, next) => {
     });
 
     if (!user) {
-      return response.unauthorized(res, '用户不存在');
+      throw new AppError('AUTH_USER_NOT_FOUND');
     }
 
     if (user.status !== 'active') {
-      return response.forbidden(res, '账号已被禁用');
+      throw new AppError('AUTH_USER_BANNED');
     }
 
     // 将用户信息挂载到 req 对象
@@ -65,8 +66,7 @@ exports.authenticate = async (req, res, next) => {
 
     next();
   } catch (error) {
-    logger.error('认证中间件错误:', error);
-    return response.serverError(res, '认证失败');
+    next(error);
   }
 };
 
@@ -103,6 +103,7 @@ exports.optionalAuth = async (req, res, next) => {
       }
     } catch (error) {
       // Token 无效，继续执行但不设置用户信息
+      logger.warn('可选认证Token无效:', error.message);
     }
 
     next();

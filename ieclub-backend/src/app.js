@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const hpp = require('hpp');
+const compression = require('compression');
 const morgan = require('morgan');
 const path = require('path');
 const logger = require('./utils/logger');
@@ -9,29 +11,50 @@ const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const app = express();
 
 // 安全中间件
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+}));
 
-// CORS 配置 - 整合开发代码中的改进
+// HTTP参数污染保护
+app.use(hpp());
+
+// CORS配置
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:10086', 'http://localhost:3000', 'https://ieclub.online'];
+
 app.use(cors({
-  origin: [
-    'http://localhost:10086',
-    'http://localhost:3000',
-    'https://ieclub.online',
-    'https://api.ieclub.online'
-  ],
+  origin: function(origin, callback) {
+    // 允许没有origin的请求（如移动应用、Postman）
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS policy violation'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// 请求日志
-app.use(morgan('combined', {
-  stream: {
-    write: (message) => logger.info(message.trim())
-  }
-}));
+// 压缩响应
+app.use(compression());
 
-// Body 解析
+// 请求日志
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+// 请求体解析
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
