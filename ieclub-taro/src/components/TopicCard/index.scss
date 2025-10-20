@@ -205,3 +205,67 @@
     }
   }
 }
+
+/* ==================== 来自开发代码的设计元素集成 ==================== */
+
+/* 分类标签颜色配置（来自开发代码） */
+.topic-card {
+ .category-tag {
+   &.tech { background: #1890ff; }
+   &.project { background: #52c41a; }
+   &.life { background: #fa8c16; }
+   &.event { background: #eb2f96; }
+   &.resource { background: #722ed1; }
+ }
+
+ /* 话题类型标签样式（来自开发代码） */
+ .type-tag {
+   padding: 4px 12px;
+   background: #f0f0f0;
+   border-radius: 12px;
+   font-size: 12px;
+   color: #666;
+ }
+
+ /* 热门标签样式（来自开发代码） */
+ .hot-tag {
+   padding: 4px 12px;
+   background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+   border-radius: 12px;
+   font-size: 12px;
+   color: #fff;
+   font-weight: 500;
+ }
+
+ /* 快速操作统计样式（来自开发代码） */
+ .quick-stats {
+   display: flex;
+   gap: 16px;
+   margin-bottom: $spacing-md;
+   padding: 10px;
+   background: linear-gradient(135deg, #f5f7fa 0%, #e3eaf2 100%);
+   border-radius: 8px;
+
+   .stat-item {
+     display: flex;
+     align-items: center;
+     gap: 4px;
+
+     .stat-icon {
+       font-size: 14px;
+     }
+
+     .stat-count {
+       font-size: $font-sm;
+       color: $text-secondary;
+     }
+   }
+ }
+
+ /* 认证图标样式（来自开发代码） */
+ .certified-icon {
+   color: #1890ff;
+   font-size: 14px;
+   margin-left: 4px;
+ }
+}

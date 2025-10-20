@@ -175,6 +175,10 @@ export interface Topic {
   images?: string[]
   tags?: string[]
   category: string
+  topicType?: string // 来自开发代码的话题类型
+  isHot?: boolean // 来自开发代码的热门标识
+  wantToHearCount?: number // 来自开发代码的想听人数
+  canHelpCount?: number // 来自开发代码的能讲人数
   author: User
   viewsCount: number
   likesCount: number

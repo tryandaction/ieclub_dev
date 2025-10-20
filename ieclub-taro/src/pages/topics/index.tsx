@@ -68,12 +68,12 @@ export default function TopicsPage() {
 
   // 跳转到创建页面
   const goToCreate = () => {
-    Taro.navigateTo({ url: '/pages/create-topic/index' })
+    Taro.navigateTo({ url: '/pages/topics/create/index' })
   }
 
   // 跳转到话题详情
   const goToDetail = (topicId: string) => {
-    Taro.navigateTo({ url: `/pages/topic-detail/index?id=${topicId}` })
+    Taro.navigateTo({ url: `/pages/topics/detail/index?id=${topicId}` })
   }
 
   return (
