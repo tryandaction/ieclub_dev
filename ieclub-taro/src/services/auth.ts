@@ -23,12 +23,10 @@ export async function register(params: RegisterParams): Promise<User> {
   })
 }
 
-// 退出登录
+// 退出登录（前端直接清除token即可）
 export async function logout(): Promise<void> {
-  return request<void>({
-    url: '/api/auth/logout',
-    method: 'POST'
-  })
+  // 前端清除本地存储的token
+  return Promise.resolve()
 }
 
 // 获取当前用户信息
@@ -68,24 +66,8 @@ export async function verifyCode(email: string, code: string): Promise<void> {
   })
 }
 
-// 重置密码
-export async function resetPassword(email: string, code: string, newPassword: string): Promise<void> {
-  return request<void>({
-    url: '/api/auth/reset-password',
-    method: 'POST',
-    data: { email, code, newPassword },
-    needAuth: false
-  })
-}
-
-// 修改密码
-export async function changePassword(oldPassword: string, newPassword: string): Promise<void> {
-  return request<void>({
-    url: '/api/auth/change-password',
-    method: 'POST',
-    data: { oldPassword, newPassword }
-  })
-}
+// 注意：重置密码和修改密码功能暂未实现
+// 如需要，请在后端添加相应接口
 
 // 更新用户信息
 export async function updateProfile(userData: Partial<User>): Promise<User> {
