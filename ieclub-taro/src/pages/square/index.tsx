@@ -1,4 +1,4 @@
-// src/pages/index/index.tsx - 首页（话题广场）
+// src/pages/square/index.tsx - 话题广场页面（新版首页）
 
 import { View, Text, ScrollView, Image } from '@tarojs/components'
 import { useState, useEffect } from 'react'
@@ -10,7 +10,7 @@ const MOCK_TOPICS = [
   {
     id: '1',
     title: 'GPT-4 与教育变革：AI如何重塑个性化学习',
-    content: '最近在开发一个 AI 学习助手，发现大模型在教育领域有巨大潜力...',
+    content: '最近在开发一个 AI 学习助手，发现大模型在教育领域有巨大潜力。特别是GPT-4的上下文理解能力和生成式回答，让个性化教育成为可能。我们正在探索如何将这些技术应用到实际的教学场景中...',
     author: {
       id: 'u1',
       nickname: '张三',
@@ -26,7 +26,7 @@ const MOCK_TOPICS = [
   {
     id: '2',
     title: '寻找懂 React Native 的小伙伴，一起做个校园社交App',
-    content: '有个想法想做个校园社交App，需要前端和后端开发...',
+    content: '有个想法想做个校园社交App，需要前端和后端开发。主要是想解决校园内信息交流不便捷的问题，比如课程讨论、活动组织、资源共享等。有兴趣的小伙伴可以一起交流！',
     author: {
       id: 'u2',
       nickname: '李四',
@@ -42,7 +42,7 @@ const MOCK_TOPICS = [
   {
     id: '3',
     title: '分享一个前端性能优化的实战经验',
-    content: '上周帮公司网站做性能优化，首屏加载时间从 5s 降到 1.2s...',
+    content: '上周帮公司网站做性能优化，首屏加载时间从 5s 降到 1.2s。主要采用了以下几个策略：1. 代码分割 2. 图片懒加载 3. CDN加速 4. 缓存策略优化。效果很明显，用户体验提升了很多。',
     author: {
       id: 'u3',
       nickname: '王五',
@@ -60,7 +60,7 @@ const MOCK_TOPICS = [
 // 分类选项
 const CATEGORIES = ['全部', '技术', '项目', '生活', '活动', '资源']
 
-export default function IndexPage() {
+export default function SquarePage() {
   const [topics, setTopics] = useState(MOCK_TOPICS)
   const [activeCategory, setActiveCategory] = useState('全部')
   const [refreshing, setRefreshing] = useState(false)
@@ -105,7 +105,7 @@ export default function IndexPage() {
   }
 
   return (
-    <View className='index-page'>
+    <View className='square-page'>
       {/* 分类筛选栏 */}
       <View className='category-tabs'>
         <ScrollView className='tabs-scroll' scrollX>

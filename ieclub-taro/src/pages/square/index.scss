@@ -1,6 +1,6 @@
-// src/pages/index/index.scss - 首页样式
+// src/pages/square/index.scss - 话题广场页面样式
 
-.index-page {
+.square-page {
   min-height: 100vh;
   background: #f5f5f5;
   padding-bottom: 80px;
@@ -55,6 +55,97 @@
     &:active {
       transform: scale(0.98);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    // 话题头部
+    .topic-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+
+      .author-info {
+        display: flex;
+        align-items: center;
+
+        .avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          margin-right: 10px;
+        }
+
+        .author-detail {
+          .nickname {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 2px;
+          }
+
+          .time {
+            display: block;
+            font-size: 12px;
+            color: #999;
+          }
+        }
+      }
+
+      .category-tag {
+        padding: 4px 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        border-radius: 12px;
+        font-size: 12px;
+      }
+    }
+
+    // 话题内容
+    .topic-content {
+      .title {
+        display: block;
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        line-height: 1.4;
+        margin-bottom: 8px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+
+      .content {
+        display: block;
+        font-size: 14px;
+        color: #666;
+        line-height: 1.6;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+      }
+    }
+
+    // 话题标签
+    .topic-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #f0f0f0;
+
+      .tag-item {
+        padding: 4px 10px;
+        background: #f0f0f0;
+        color: #667eea;
+        border-radius: 12px;
+        font-size: 12px;
+      }
     }
 
     // 话题底部统计
@@ -136,97 +227,6 @@
       color: #fff;
       font-weight: 300;
       line-height: 1;
-    }
-  }
-
-  // ===== 话题头部 =====
-  .topic-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-
-    .author-info {
-      display: flex;
-      align-items: center;
-
-      .avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        margin-right: 10px;
-      }
-
-      .author-detail {
-        .nickname {
-          display: block;
-          font-size: 14px;
-          font-weight: 500;
-          color: #333;
-          margin-bottom: 2px;
-        }
-
-        .time {
-          display: block;
-          font-size: 12px;
-          color: #999;
-        }
-      }
-    }
-
-    .category-tag {
-      padding: 4px 12px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: #fff;
-      border-radius: 12px;
-      font-size: 12px;
-    }
-  }
-
-  // ===== 话题内容 =====
-  .topic-content {
-    .title {
-      display: block;
-      font-size: 16px;
-      font-weight: 600;
-      color: #333;
-      line-height: 1.4;
-      margin-bottom: 8px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-
-    .content {
-      display: block;
-      font-size: 14px;
-      color: #666;
-      line-height: 1.6;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-    }
-  }
-
-  // ===== 话题标签 =====
-  .topic-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid #f0f0f0;
-
-    .tag-item {
-      padding: 4px 10px;
-      background: #f0f0f0;
-      color: #667eea;
-      border-radius: 12px;
-      font-size: 12px;
     }
   }
 }
