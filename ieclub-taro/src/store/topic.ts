@@ -20,6 +20,15 @@ interface EnhancedTopicState {
   hasMore: boolean
   loading: boolean
 
+  // 基础版话题功能所需的状态
+  filters: {
+    page: number
+    limit: number
+    sortBy: 'latest' | 'hot' | 'featured'
+    category: string
+    tag: string
+  }
+
   // Actions
   setFeedType: (type: 'personalized' | 'trending' | 'latest' | 'matched') => void
   fetchTopics: (params?: any, append?: boolean) => Promise<void>
@@ -27,9 +36,16 @@ interface EnhancedTopicState {
   createTopic: (data: any) => Promise<any> // CreateEnhancedTopicParams => Promise<EnhancedTopic>
   handleQuickAction: (topicId: string, actionType: string) => Promise<void>
   updateTopicInList: (topicId: string, updates: any) => void // Partial<EnhancedTopic>
+
+  // 基础版话题功能所需的方法
+  fetchTopicDetail: (topicId: string) => Promise<void>
+  likeTopic: (topicId: string) => Promise<void>
+  unlikeTopic: (topicId: string) => Promise<void>
+  setFilters: (filters: any) => void
+  clearTopics: () => void
 }
 
-export const useEnhancedTopicStore = create<EnhancedTopicState>((set, get) => ({
+export const useTopicStore = create<EnhancedTopicState>((set, get) => ({
   topics: [],
   hotTopics: [],
   recommendedTopics: [],
@@ -133,5 +149,68 @@ export const useEnhancedTopicStore = create<EnhancedTopicState>((set, get) => ({
         ? { ...state.currentTopic, ...updates }
         : state.currentTopic
     }))
+  },
+
+  // 添加基础版话题功能所需的方法
+  fetchTopicDetail: async (topicId: string) => {
+    try {
+      // 这里需要导入基础版的服务方法
+      // 暂时先设置一个空的currentTopic
+      set({ currentTopic: null })
+    } catch (error) {
+      console.error('获取话题详情失败:', error)
+      throw error
+    }
+  },
+
+  likeTopic: async (topicId: string) => {
+    try {
+      // 这里需要导入基础版的服务方法
+      // 暂时先更新本地状态
+      set(state => ({
+        currentTopic: state.currentTopic ? {
+          ...state.currentTopic,
+          isLiked: true,
+          likesCount: state.currentTopic.likesCount + 1
+        } : null
+      }))
+    } catch (error) {
+      console.error('点赞失败:', error)
+      throw error
+    }
+  },
+
+  unlikeTopic: async (topicId: string) => {
+    try {
+      // 这里需要导入基础版的服务方法
+      // 暂时先更新本地状态
+      set(state => ({
+        currentTopic: state.currentTopic ? {
+          ...state.currentTopic,
+          isLiked: false,
+          likesCount: Math.max(0, state.currentTopic.likesCount - 1)
+        } : null
+      }))
+    } catch (error) {
+      console.error('取消点赞失败:', error)
+      throw error
+    }
+  },
+
+  // 添加话题列表页面所需的方法
+  filters: {
+    page: 1,
+    limit: 20,
+    sortBy: 'latest' as const,
+    category: '',
+    tag: ''
+  },
+
+  setFilters: (newFilters: any) => {
+    set({ filters: { ...newFilters } })
+  },
+
+  clearTopics: () => {
+    set({ topics: [], hasMore: true })
   }
 }))

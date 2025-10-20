@@ -2,7 +2,7 @@
 
 import { View, Image, Text } from '@tarojs/components'
 import { formatRelativeTime } from '../../utils/format'
-import { useEnhancedTopicStore } from '../../store/enhanced-topic'
+import { useTopicStore } from '../../store/topic'
 import { useActionTracking } from '../../hooks/useAnalytics'
 import SmartQuickActions from '../SmartQuickActions'
 import type { EnhancedTopic } from '../../types'
@@ -14,7 +14,7 @@ interface EnhancedTopicCardProps {
 }
 
 export default function EnhancedTopicCard({ topic, onClick }: EnhancedTopicCardProps) {
-  const { handleQuickAction: storeHandleQuickAction } = useEnhancedTopicStore()
+  const { handleQuickAction: storeHandleQuickAction } = useTopicStore()
   const { track } = useActionTracking()
 
   const handleQuickAction = async (actionId: string) => {

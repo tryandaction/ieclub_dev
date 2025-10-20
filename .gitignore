@@ -59,6 +59,8 @@ out/
 
 # Node modules (if any at root level)
 node_modules/
+ieclub-backend/node_modules/
+ieclub-taro/node_modules/
 
 # Environment files (project-wide) - 这些文件包含敏感信息，必须忽略
 .env

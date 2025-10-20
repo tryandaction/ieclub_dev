@@ -105,7 +105,7 @@ export default function TopicsPage() {
           />
         ) : (
           <View className='topics-list'>
-            {topics.map(topic => (
+            {topics.map((topic: any) => (
               <TopicCard
                 key={topic.id}
                 topic={topic}

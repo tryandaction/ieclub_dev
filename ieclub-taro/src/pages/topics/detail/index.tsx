@@ -126,7 +126,7 @@ export default function TopicDetailPage() {
         {/* 图片列表 */}
         {currentTopic.images && currentTopic.images.length > 0 && (
           <View className='images-section'>
-            {currentTopic.images.map((img, index) => (
+            {currentTopic.images.map((img: string, index: number) => (
               <Image
                 key={index}
                 className='image-item'
@@ -141,7 +141,7 @@ export default function TopicDetailPage() {
         {/* 标签 */}
         {currentTopic.tags && currentTopic.tags.length > 0 && (
           <View className='tags-section'>
-            {currentTopic.tags.map(tag => (
+            {currentTopic.tags.map((tag: string) => (
               <View key={tag} className='tag'>#{tag}</View>
             ))}
           </View>
