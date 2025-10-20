@@ -14,17 +14,26 @@ async function main() {
     const hashedPassword = await bcrypt.hash('123456', 10);
 
     const testUser = await prisma.user.upsert({
-      where: { email: 'test@example.com' },
+      where: { openid: 'test_openid_123' },
       update: {},
       create: {
-        email: 'test@example.com',
-        username: 'testuser',
+        openid: 'test_openid_123',
         nickname: '测试用户',
-        password: hashedPassword,
         avatar: 'https://via.placeholder.com/100',
+        email: 'test@example.com',
         bio: '这是测试用户账号',
-        major: '计算机科学',
-        year: '大三'
+        gender: 0,
+        credits: 100,
+        level: 1,
+        exp: 0,
+        topicsCount: 0,
+        commentsCount: 0,
+        likesCount: 0,
+        fansCount: 0,
+        followsCount: 0,
+        status: 'active',
+        isCertified: false,
+        isVip: false
       }
     });
 
@@ -35,26 +44,62 @@ async function main() {
       {
         title: '欢迎来到 IEClub 话题广场！',
         content: '这是我们的第一个测试话题。IEClub 是一个专注于技术交流和项目合作的平台，在这里你可以分享你的想法、寻找合作伙伴、参与有趣的项目。',
+        contentType: 'topic_offer',
+        summary: '欢迎来到 IEClub，这是一个专注于技术交流和项目合作的平台',
         category: 'tech',
-        tags: ['欢迎', '社区', '介绍'],
+        tags: JSON.stringify(['欢迎', '社区', '介绍']),
+        topicType: 'discussion',
         authorId: testUser.id,
-        images: []
+        images: JSON.stringify([]),
+        visibility: 'public',
+        viewsCount: 0,
+        likesCount: 0,
+        commentsCount: 0,
+        bookmarksCount: 0,
+        hotScore: 0,
+        trendingScore: 0,
+        isHot: false,
+        publishedAt: new Date()
       },
       {
         title: '分享一个前端性能优化的经验',
         content: '最近在优化一个 React 应用，从 5s 加载时间优化到 1.2s。主要采用了代码分割、图片懒加载、CDN 加速等技术。有什么经验想要分享吗？',
+        contentType: 'topic_offer',
+        summary: '前端性能优化经验分享，从 5s 到 1.2s 的加载时间优化',
         category: 'tech',
-        tags: ['前端', '性能优化', 'React'],
+        tags: JSON.stringify(['前端', '性能优化', 'React']),
+        topicType: 'discussion',
         authorId: testUser.id,
-        images: []
+        images: JSON.stringify([]),
+        visibility: 'public',
+        viewsCount: 0,
+        likesCount: 0,
+        commentsCount: 0,
+        bookmarksCount: 0,
+        hotScore: 0,
+        trendingScore: 0,
+        isHot: false,
+        publishedAt: new Date()
       },
       {
         title: '寻找 AI 项目合作伙伴',
         content: '有一个基于 GPT 的教育助手项目想法，需要前端、后端和 UI 设计师。有兴趣的一起交流吧！',
+        contentType: 'project',
+        summary: '寻找 AI 教育助手项目合作伙伴',
         category: 'project',
-        tags: ['AI', '教育', '创业'],
+        tags: JSON.stringify(['AI', '教育', '创业']),
+        topicType: 'collaboration',
         authorId: testUser.id,
-        images: []
+        images: JSON.stringify([]),
+        visibility: 'public',
+        viewsCount: 0,
+        likesCount: 0,
+        commentsCount: 0,
+        bookmarksCount: 0,
+        hotScore: 0,
+        trendingScore: 0,
+        isHot: false,
+        publishedAt: new Date()
       }
     ];
 
@@ -71,6 +116,12 @@ async function main() {
       await prisma.comment.create({
         data: {
           content: '欢迎！看起来是个很棒的平台！',
+          images: JSON.stringify([]),
+          parentId: null,
+          rootId: null,
+          repliesCount: 0,
+          likesCount: 0,
+          status: 'published',
           authorId: testUser.id,
           topicId: firstTopic.id
         }
