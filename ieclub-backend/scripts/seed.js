@@ -39,69 +39,54 @@ async function main() {
 
     logger.info(`创建测试用户: ${testUser.nickname} (ID: ${testUser.id})`);
 
-    // 创建测试话题（使用数据库实际存在的字段）
+    // 创建测试话题（只使用数据库中最基本的字段）
     const testTopics = [
       {
         title: '欢迎来到 IEClub 话题广场！',
         content: '这是我们的第一个测试话题。IEClub 是一个专注于技术交流和项目合作的平台，在这里你可以分享你的想法、寻找合作伙伴、参与有趣的项目。',
         contentType: 'topic_offer',
-        summary: '欢迎来到 IEClub，这是一个专注于技术交流和项目合作的平台',
         category: 'tech',
-        tags: JSON.stringify(['欢迎', '社区', '介绍']),
         topicType: 'discussion',
         authorId: testUser.id,
         images: JSON.stringify([]),
-        visibility: 'public',
         viewsCount: 0,
         likesCount: 0,
         commentsCount: 0,
         bookmarksCount: 0,
-        hotScore: 0,
-        trendingScore: 0,
-        isHot: false,
-        publishedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
         lastActiveAt: new Date()
       },
       {
         title: '分享一个前端性能优化的经验',
         content: '最近在优化一个 React 应用，从 5s 加载时间优化到 1.2s。主要采用了代码分割、图片懒加载、CDN 加速等技术。有什么经验想要分享吗？',
         contentType: 'topic_offer',
-        summary: '前端性能优化经验分享，从 5s 到 1.2s 的加载时间优化',
         category: 'tech',
-        tags: JSON.stringify(['前端', '性能优化', 'React']),
         topicType: 'discussion',
         authorId: testUser.id,
         images: JSON.stringify([]),
-        visibility: 'public',
         viewsCount: 0,
         likesCount: 0,
         commentsCount: 0,
         bookmarksCount: 0,
-        hotScore: 0,
-        trendingScore: 0,
-        isHot: false,
-        publishedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
         lastActiveAt: new Date()
       },
       {
         title: '寻找 AI 项目合作伙伴',
         content: '有一个基于 GPT 的教育助手项目想法，需要前端、后端和 UI 设计师。有兴趣的一起交流吧！',
         contentType: 'project',
-        summary: '寻找 AI 教育助手项目合作伙伴',
         category: 'project',
-        tags: JSON.stringify(['AI', '教育', '创业']),
         topicType: 'collaboration',
         authorId: testUser.id,
         images: JSON.stringify([]),
-        visibility: 'public',
         viewsCount: 0,
         likesCount: 0,
         commentsCount: 0,
         bookmarksCount: 0,
-        hotScore: 0,
-        trendingScore: 0,
-        isHot: false,
-        publishedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
         lastActiveAt: new Date()
       }
     ];
@@ -113,7 +98,7 @@ async function main() {
       logger.info(`创建测试话题: ${topic.title} (ID: ${topic.id})`);
     }
 
-    // 创建测试评论
+    // 创建测试评论（只使用数据库存在的字段）
     const firstTopic = await prisma.topic.findFirst();
     if (firstTopic) {
       await prisma.comment.create({
@@ -126,7 +111,9 @@ async function main() {
           likesCount: 0,
           status: 'published',
           authorId: testUser.id,
-          topicId: firstTopic.id
+          topicId: firstTopic.id,
+          createdAt: new Date(),
+          updatedAt: new Date()
         }
       });
       logger.info('创建测试评论');

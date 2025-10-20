@@ -33,10 +33,8 @@ class TopicController {
       const skip = (parseInt(page) - 1) * parseInt(limit);
       const take = parseInt(limit);
 
-      // 构建查询条件（只使用数据库中实际存在的字段）
-      const where = {
-        status: 'published',
-      };
+      // 构建查询条件（只使用数据库中最基本的字段）
+      const where = {};
 
       if (category) {
         where.category = category;
@@ -45,11 +43,6 @@ class TopicController {
       if (topicType) {
         where.topicType = topicType;
       }
-
-      // 注意：demandType, threshold 等字段在当前数据库中不存在，先注释掉
-      // if (demandType) {
-      //   where.demandType = demandType;
-      // }
 
       if (tags) {
         const tagArray = tags.split(',');
@@ -65,20 +58,20 @@ class TopicController {
         ];
       }
 
-      // 构建排序（只使用数据库中实际存在的字段）
+      // 构建排序（只使用数据库中最基本的字段）
       let orderBy = {};
       switch (sortBy) {
         case 'hot':
-          orderBy = { likesCount: 'desc' }; // 用点赞数代替热度分数
+          orderBy = { likesCount: 'desc' };
           break;
         case 'new':
           orderBy = { createdAt: 'desc' };
           break;
         case 'trending':
-          orderBy = { viewsCount: 'desc' }; // 用浏览量代替趋势分数
+          orderBy = { viewsCount: 'desc' };
           break;
         default:
-          orderBy = { createdAt: 'desc' }; // 默认按时间排序
+          orderBy = { createdAt: 'desc' };
       }
 
       // 查询话题
@@ -282,51 +275,22 @@ class TopicController {
       // 生成摘要
       const summary = content.substring(0, 200);
 
-      // 创建话题（只使用数据库中实际存在的字段）
+      // 创建话题（只使用数据库中最基本的字段）
       const topic = await prisma.topic.create({
         data: {
           authorId: req.userId,
           title,
           content,
           contentType,
-          summary,
           category,
-          tags,
           topicType,
-          // 注意：以下字段在当前数据库中不存在，先注释掉
-          // demandType,
-          // skillsNeeded,
-          // skillsProvided,
-          // threshold: 15,
-          // wantToHearCount: 0,
-          // canTellCount: 0,
-          // status: 'collecting',
-          // teamSize,
-          // lookingForRoles,
-          // projectStage,
-          // website,
-          // github,
-          // interestedCount: 0,
-          // duration,
-          // targetAudience,
-          // scheduledTime,
-          // deadline: deadline ? new Date(deadline) : null,
-          // budget,
-          // contactInfo,
           images,
-          documents,
-          videos,
-          links,
-          // quickActions,
-          visibility,
           viewsCount: 0,
           likesCount: 0,
           commentsCount: 0,
           bookmarksCount: 0,
-          hotScore: 0,
-          trendingScore: 0,
-          isHot: false,
-          publishedAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
           lastActiveAt: new Date(),
         },
         include: {
