@@ -39,7 +39,7 @@ async function main() {
 
     logger.info(`创建测试用户: ${testUser.nickname} (ID: ${testUser.id})`);
 
-    // 创建测试话题
+    // 创建测试话题（使用数据库实际存在的字段）
     const testTopics = [
       {
         title: '欢迎来到 IEClub 话题广场！',
@@ -59,7 +59,8 @@ async function main() {
         hotScore: 0,
         trendingScore: 0,
         isHot: false,
-        publishedAt: new Date()
+        publishedAt: new Date(),
+        lastActiveAt: new Date()
       },
       {
         title: '分享一个前端性能优化的经验',
@@ -79,7 +80,8 @@ async function main() {
         hotScore: 0,
         trendingScore: 0,
         isHot: false,
-        publishedAt: new Date()
+        publishedAt: new Date(),
+        lastActiveAt: new Date()
       },
       {
         title: '寻找 AI 项目合作伙伴',
@@ -99,7 +101,8 @@ async function main() {
         hotScore: 0,
         trendingScore: 0,
         isHot: false,
-        publishedAt: new Date()
+        publishedAt: new Date(),
+        lastActiveAt: new Date()
       }
     ];
 

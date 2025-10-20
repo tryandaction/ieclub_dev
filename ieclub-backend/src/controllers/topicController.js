@@ -33,7 +33,7 @@ class TopicController {
       const skip = (parseInt(page) - 1) * parseInt(limit);
       const take = parseInt(limit);
 
-      // 构建查询条件
+      // 构建查询条件（只使用数据库中实际存在的字段）
       const where = {
         status: 'published',
       };
@@ -46,14 +46,15 @@ class TopicController {
         where.topicType = topicType;
       }
 
-      if (demandType) {
-        where.demandType = demandType;
-      }
+      // 注意：demandType, threshold 等字段在当前数据库中不存在，先注释掉
+      // if (demandType) {
+      //   where.demandType = demandType;
+      // }
 
       if (tags) {
         const tagArray = tags.split(',');
         where.OR = tagArray.map((tag) => ({
-          tags: { array_contains: tag },
+          tags: { contains: tag },
         }));
       }
 
@@ -64,20 +65,20 @@ class TopicController {
         ];
       }
 
-      // 构建排序
+      // 构建排序（只使用数据库中实际存在的字段）
       let orderBy = {};
       switch (sortBy) {
         case 'hot':
-          orderBy = { hotScore: 'desc' };
+          orderBy = { likesCount: 'desc' }; // 用点赞数代替热度分数
           break;
         case 'new':
           orderBy = { createdAt: 'desc' };
           break;
         case 'trending':
-          orderBy = { trendingScore: 'desc' };
+          orderBy = { viewsCount: 'desc' }; // 用浏览量代替趋势分数
           break;
         default:
-          orderBy = { hotScore: 'desc' };
+          orderBy = { createdAt: 'desc' }; // 默认按时间排序
       }
 
       // 查询话题
@@ -281,7 +282,7 @@ class TopicController {
       // 生成摘要
       const summary = content.substring(0, 200);
 
-      // 创建话题
+      // 创建话题（只使用数据库中实际存在的字段）
       const topic = await prisma.topic.create({
         data: {
           authorId: req.userId,
@@ -292,20 +293,41 @@ class TopicController {
           category,
           tags,
           topicType,
-          demandType,
-          skillsNeeded,
-          skillsProvided,
-          deadline: deadline ? new Date(deadline) : null,
-          budget,
-          location,
-          contactInfo,
+          // 注意：以下字段在当前数据库中不存在，先注释掉
+          // demandType,
+          // skillsNeeded,
+          // skillsProvided,
+          // threshold: 15,
+          // wantToHearCount: 0,
+          // canTellCount: 0,
+          // status: 'collecting',
+          // teamSize,
+          // lookingForRoles,
+          // projectStage,
+          // website,
+          // github,
+          // interestedCount: 0,
+          // duration,
+          // targetAudience,
+          // scheduledTime,
+          // deadline: deadline ? new Date(deadline) : null,
+          // budget,
+          // contactInfo,
           images,
           documents,
           videos,
           links,
-          quickActions,
+          // quickActions,
           visibility,
+          viewsCount: 0,
+          likesCount: 0,
+          commentsCount: 0,
+          bookmarksCount: 0,
+          hotScore: 0,
+          trendingScore: 0,
+          isHot: false,
           publishedAt: new Date(),
+          lastActiveAt: new Date(),
         },
         include: {
           author: {
