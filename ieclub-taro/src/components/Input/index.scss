@@ -1,6 +1,6 @@
 /* ==================== 6. 输入框优化 src/components/Input/index.scss ==================== */
 
-@import '../../styles/variables.scss';
+@use '../../styles/variables.scss' as *;
 
 .input {
   width: 100%;

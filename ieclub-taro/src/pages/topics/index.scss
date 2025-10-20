@@ -1,6 +1,6 @@
 /* ==================== 4. 广场页面优化 src/pages/plaza/index.scss ==================== */
 
-@import '../../styles/variables.scss';
+@use '../../styles/variables.scss' as *;
 
 .plaza-page {
   min-height: 100vh;

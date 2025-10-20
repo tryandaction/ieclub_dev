@@ -1,0 +1,292 @@
+// Prisma Schema for IEClub
+// Database: MySQL 8.0
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ========== 用户表 ==========
+model User {
+  id        String   @id @default(uuid())
+  openid    String   @unique // 微信 openid
+  unionid   String?  @unique // 微信 unionid
+  
+  // 基本信息
+  nickname  String   @db.VarChar(50)
+  avatar    String   @db.VarChar(500)
+  bio       String?  @db.Text
+  phone     String?  @db.VarChar(20)
+  email     String?  @db.VarChar(100)
+  
+  // 身份与标签
+  role      String   @default("user") // user, admin, vip
+  skills    Json?    // ["编程", "设计", ...]
+  interests Json?    // ["AI", "创业", ...]
+  
+  // 积分与等级
+  credits   Int      @default(0)
+  level     Int      @default(1)
+  exp       Int      @default(0)
+  
+  // 统计数据
+  topicsCount    Int @default(0)
+  commentsCount  Int @default(0)
+  likesCount     Int @default(0)
+  followersCount Int @default(0)
+  followingCount Int @default(0)
+  
+  // 状态
+  isCertified Boolean @default(false) // 是否认证
+  isVip       Boolean @default(false)
+  status      String  @default("active") // active, banned, deleted
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastLoginAt DateTime?
+  
+  // 关系
+  topics          Topic[]
+  comments        Comment[]
+  likes           Like[]
+  projects        Project[]
+  quickActions    TopicQuickAction[]
+  userActions     UserAction[]
+  notifications   Notification[] @relation("NotificationReceiver")
+  
+  @@index([openid])
+  @@index([createdAt])
+  @@map("users")
+}
+
+// ========== 话题表 (核心) ==========
+model Topic {
+  id        String   @id @default(uuid())
+  authorId  String
+  
+  // 基本信息
+  title     String   @db.VarChar(200)
+  content   String   @db.Text
+  contentType String @default("text") // text, markdown, richtext
+  
+  // 分类与标签
+  category  String   @db.VarChar(50) // tech, business, life, education
+  tags      Json?    // ["AI", "创业", ...]
+  
+  // 话题类型
+  topicType String   @db.VarChar(50) // discussion(讨论), demand(我想听), supply(我来讲), question(提问)
+  
+  // 供需匹配字段
+  demandType       String? @db.VarChar(50) // speaker(找分享者), helper(找帮手), resource(找资源)
+  skillsNeeded     Json?   // 需要的技能
+  skillsProvided   Json?   // 提供的技能
+  targetAudience   String? @db.Text // 目标受众
+  duration         String? @db.VarChar(50) // 预期时长
+  threshold        Int?    // 触发阈值(多少人感兴趣就执行)
+  
+  // 多媒体内容
+  images    Json?    // [{url, width, height}]
+  documents Json?    // [{name, url, size}]
+  videos    Json?    // [{url, cover, duration}]
+  links     Json?    // [{title, url, description}]
+  
+  // 快速操作配置
+  quickActions Json? // [{type: "interested", label: "想听", count: 0}]
+  
+  // 统计数据
+  viewsCount      Int @default(0)
+  likesCount      Int @default(0)
+  commentsCount   Int @default(0)
+  sharesCount     Int @default(0)
+  bookmarksCount  Int @default(0)
+  wantToHearCount Int @default(0) // 想听的人数
+  canHelpCount    Int @default(0) // 我来分享的人数
+  
+  // 算法分数
+  hotScore     Float @default(0.0) // 热度分数
+  qualityScore Float @default(0.0) // 质量分数
+  
+  // 状态标记
+  isTop    Boolean @default(false) // 是否置顶
+  isPinned Boolean @default(false) // 是否精华
+  isHot    Boolean @default(false) // 是否热门
+  status   String  @default("published") // draft, published, deleted, banned
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  publishedAt DateTime?
+  
+  // 关系
+  author       User      @relation(fields: [authorId], references: [id])
+  comments     Comment[]
+  likes        Like[]
+  quickActions TopicQuickAction[]
+  
+  @@index([authorId])
+  @@index([category])
+  @@index([topicType])
+  @@index([hotScore])
+  @@index([createdAt])
+  @@index([status])
+  @@map("topics")
+}
+
+// ========== 评论表 ==========
+model Comment {
+  id       String  @id @default(uuid())
+  topicId  String
+  authorId String
+  
+  // 评论内容
+  content  String  @db.Text
+  images   Json?   // 评论图片
+  
+  // 嵌套评论
+  parentId String? // 父评论 ID
+  rootId   String? // 根评论 ID (用于快速查询一级评论)
+  replyToUserId String? // @的用户ID
+  
+  // 统计
+  likesCount   Int @default(0)
+  repliesCount Int @default(0)
+  
+  // 状态
+  status String @default("published") // published, deleted, banned
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // 关系
+  topic    Topic   @relation(fields: [topicId], references: [id])
+  author   User    @relation(fields: [authorId], references: [id])
+  likes    Like[]
+  
+  @@index([topicId])
+  @@index([authorId])
+  @@index([rootId])
+  @@index([createdAt])
+  @@map("comments")
+}
+
+// ========== 点赞表 ==========
+model Like {
+  id         String   @id @default(uuid())
+  userId     String
+  targetType String   @db.VarChar(50) // topic, comment, project
+  targetId   String
+  
+  createdAt DateTime @default(now())
+  
+  // 关系
+  user    User     @relation(fields: [userId], references: [id])
+  topic   Topic?   @relation(fields: [targetId], references: [id])
+  comment Comment? @relation(fields: [targetId], references: [id])
+  
+  @@unique([userId, targetType, targetId])
+  @@index([targetType, targetId])
+  @@map("likes")
+}
+
+// ========== 话题快速操作记录 ==========
+model TopicQuickAction {
+  id         String   @id @default(uuid())
+  topicId    String
+  userId     String
+  actionType String   @db.VarChar(50) // interested(想听), can_help(我来分享), bookmark(收藏)
+  
+  metadata Json? // 额外信息,如: {note: "我有相关经验"}
+  
+  createdAt DateTime @default(now())
+  
+  // 关系
+  topic Topic @relation(fields: [topicId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+  
+  @@unique([topicId, userId, actionType])
+  @@index([topicId])
+  @@index([userId])
+  @@map("topic_quick_actions")
+}
+
+// ========== 项目表 ==========
+model Project {
+  id        String @id @default(uuid())
+  authorId  String
+  
+  title       String @db.VarChar(200)
+  description String @db.Text
+  category    String @db.VarChar(50)
+  tags        Json?
+  
+  teamSize    Int?
+  skillsNeeded Json?
+  images      Json?
+  links       Json?
+  
+  status String @default("recruiting") // recruiting, in_progress, completed
+  
+  viewsCount     Int @default(0)
+  likesCount     Int @default(0)
+  applicantsCount Int @default(0)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // 关系
+  author User @relation(fields: [authorId], references: [id])
+  
+  @@index([authorId])
+  @@index([category])
+  @@index([status])
+  @@map("projects")
+}
+
+// ========== 用户行为表 (用于推荐算法) ==========
+model UserAction {
+  id         String   @id @default(uuid())
+  userId     String
+  actionType String   @db.VarChar(50) // view, like, comment, share, bookmark
+  targetType String   @db.VarChar(50) // topic, project, user
+  targetId   String
+  
+  metadata Json? // {duration: 30, scrollDepth: 80}
+  
+  createdAt DateTime @default(now())
+  
+  // 关系
+  user User @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+  @@map("user_actions")
+}
+
+// ========== 通知表 ==========
+model Notification {
+  id       String @id @default(uuid())
+  userId   String
+  
+  type     String @db.VarChar(50) // comment, like, system, match
+  title    String @db.VarChar(200)
+  content  String @db.Text
+  
+  linkType String? @db.VarChar(50) // topic, project, user
+  linkId   String?
+  
+  isRead Boolean @default(false)
+  
+  createdAt DateTime @default(now())
+  
+  // 关系
+  user User @relation("NotificationReceiver", fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}

@@ -3,8 +3,8 @@
 import { View, Input, Textarea, Image } from '@tarojs/components'
 import { useState } from 'react'
 import Taro from '@tarojs/taro'
-import { useTopicStore } from '../../store/topic'
-import { uploadImages } from '../../services/upload'
+import { useTopicStore } from '../../../store/topic'
+import { uploadImages } from '../../../services/upload'
 import './index.scss'
 
 export default function CreateTopicPage() {

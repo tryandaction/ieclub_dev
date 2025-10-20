@@ -3,12 +3,12 @@
 import { View, ScrollView, Image, Text } from '@tarojs/components'
 import { useState, useEffect, useCallback } from 'react'
 import Taro, { useRouter } from '@tarojs/taro'
-import { useTopicStore } from '../../store/topic'
-import { useCommentStore } from '../../store/comment'
-import CommentList from '../../components/CommentList'
-import CommentInput from '../../components/CommentInput'
-import LoadingSpinner from '../../components/LoadingSpinner'
-import { formatRelativeTime } from '../../utils/format'
+import { useTopicStore } from '../../../store/topic'
+import { useCommentStore } from '../../../store/comment'
+import CommentList from '../../../components/CommentList'
+import CommentInput from '../../../components/CommentInput'
+import LoadingSpinner from '../../../components/LoadingSpinner'
+import { formatRelativeTime } from '../../../utils/format'
 import './index.scss'
 
 export default function TopicDetailPage() {

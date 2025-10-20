@@ -1,6 +1,6 @@
 /* ==================== 5. 按钮组件优化 src/components/Button/index.scss ==================== */
 
-@import '../../styles/variables.scss';
+@use '../../styles/variables.scss' as *;
 
 .btn {
   display: inline-flex;
