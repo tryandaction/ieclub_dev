@@ -1,140 +1,112 @@
-// ==================== 话题API服务（增强版） ====================
+// ==================== 增强话题API服务 ====================
 
 import { request } from './request'
-import type { Topic, CreateTopicParams, TopicListParams } from '../types'
-
-// 整合开发代码中的类型定义改进
-export interface CreateTopicData {
-  title: string
-  content: string
-  type: 'supply' | 'demand' | 'discussion'
-  tags: string[]
-}
+import type {
+  EnhancedTopic,
+  CreateEnhancedTopicParams,
+  QuickActionRequest,
+  DocumentAttachment,
+  LinkCard
+} from '../types'
 
 /**
- * 获取话题列表
+ * 获取增强话题列表（含推荐）
  */
-export async function getTopicList(params: any) {
-  const response = await request({
-    url: '/api/topics', // 路径包含 /api
+export function getEnhancedTopics(params: {
+  page?: number
+  limit?: number
+  type?: 'personalized' | 'trending' | 'latest' | 'matched'
+  category?: string
+  demandType?: string
+}) {
+  return request<{
+    topics: EnhancedTopic[]
+    total: number
+    hasMore: boolean
+  }>({
+    url: '/api/v2/topics',
     method: 'GET',
-    data: params,
-    needAuth: false
+    data: params
   })
-
-  return {
-    topics: response.data || [],
-    pagination: response.pagination || { page: 1, limit: 20, total: 0 }
-  }
 }
 
 /**
- * 获取话题详情
+ * 创建增强话题
  */
-export function getTopicDetail(topicId: string) {
-    return request<{ topic: Topic }>({
-      url: `/api/topics/${topicId}`,
-      method: 'GET'
-    })
-  }
+export function createEnhancedTopic(data: CreateEnhancedTopicParams) {
+  return request<{ topic: EnhancedTopic }>({
+    url: '/api/v2/topics',
+    method: 'POST',
+    data
+  })
+}
 
 /**
- * 创建话题 - 需要认证
+ * 快速操作（想听、我来分享等）
  */
-export function createTopic(data: CreateTopicParams) {
-    return request<{ topic: Topic }>({
-      url: '/api/topics',
-      method: 'POST',
-      data,
-      needAuth: true // 标记需要认证
-    })
-  }
+export function performQuickAction(data: QuickActionRequest) {
+  return request({
+    url: '/api/v2/topics/quick-action',
+    method: 'POST',
+    data
+  })
+}
 
 /**
- * 更新话题
+ * 上传文档
  */
-export function updateTopic(topicId: string, data: Partial<CreateTopicParams>) {
-   return request<{ topic: Topic }>({
-     url: `/topics/${topicId}`,
-     method: 'PUT',
-     data
-   })
- }
+export async function uploadDocument(file: File): Promise<DocumentAttachment> {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  // 这里需要使用原生上传，不能用 Taro.uploadFile
+  // 因为需要返回完整的文档信息
+  return request({
+    url: '/api/v2/upload/document',
+    method: 'POST',
+    data: formData
+  })
+}
 
 /**
- * 删除话题
+ * 解析链接卡片
  */
-export function deleteTopic(topicId: string) {
-   return request({
-     url: `/topics/${topicId}`,
-     method: 'DELETE'
-   })
- }
-
-/**
- * 点赞话题 - 需要认证
- */
-export function likeTopic(topicId: string) {
-    return request({
-      url: `/api/topics/${topicId}/like`,
-      method: 'POST',
-      needAuth: true
-    })
-  }
-
-/**
- * 取消点赞 - 需要认证
- */
-export function unlikeTopic(topicId: string) {
-    return request({
-      url: `/api/topics/${topicId}/like`,
-      method: 'DELETE',
-      needAuth: true
-    })
-  }
-
-/**
- * 收藏话题
- */
-export function favoriteTopic(topicId: string) {
-   return request({
-     url: `/topics/${topicId}/favorite`,
-     method: 'POST'
-   })
- }
-
-/**
- * 取消收藏
- */
-export function unfavoriteTopic(topicId: string) {
-   return request({
-     url: `/topics/${topicId}/unfavorite`,
-     method: 'POST'
-   })
- }
+export function parseLinkCard(url: string) {
+  return request<LinkCard>({
+    url: '/api/v2/parse-link',
+    method: 'POST',
+    data: { url }
+  })
+}
 
 /**
  * 获取热门话题
  */
-export function getHotTopics(limit = 10) {
-   return request<{ topics: Topic[] }>({
-     url: '/topics/hot',
-     method: 'GET',
-     data: { limit }
-   })
- }
+export function getHotTopicsEnhanced(limit = 10) {
+  return request<{
+    hotTopics: Array<{
+      topic: EnhancedTopic
+      hotScore: number
+      rank: number
+      trendingKeywords: string[]
+    }>
+  }>({
+    url: '/api/v2/topics/hot',
+    method: 'GET',
+    data: { limit }
+  })
+}
 
 /**
- * 搜索话题
+ * 获取个性化推荐
  */
-export function searchTopics(keyword: string, page = 1, limit = 20) {
-   return request<{
-     topics: Topic[]
-     total: number
-     hasMore: boolean
-   }>({
-     url: '/topics/search',
-     method: 'GET',
-     data: { keyword, page, limit }
-   })
- }
+export function getPersonalizedRecommendations(count = 20) {
+  return request<{
+    topics: EnhancedTopic[]
+    reasons: Record<string, string>  // topicId -> reason
+  }>({
+    url: '/api/v2/recommendations',
+    method: 'GET',
+    data: { count }
+  })
+}

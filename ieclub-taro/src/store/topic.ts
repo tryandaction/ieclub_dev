@@ -1,77 +1,65 @@
-// ==================== 话题状态管理（增强版） ====================
+// ==================== 增强话题状态管理 ====================
 
 import { create } from 'zustand'
 import Taro from '@tarojs/taro'
 import {
-  getTopicList,
-  getTopicDetail,
-  createTopic as createTopicApi,
-  likeTopic as likeTopicApi,
-  unlikeTopic as unlikeTopicApi,
-  favoriteTopic as favoriteTopicApi,
-  unfavoriteTopic as unfavoriteTopicApi
+  getEnhancedTopics,
+  createEnhancedTopic,
+  performQuickAction,
+  getPersonalizedRecommendations
 } from '../services/topic'
-import type { Topic, TopicListParams, CreateTopicParams } from '../types'
+// import type { EnhancedTopic, CreateEnhancedTopicParams } from '../types'
 
-interface TopicState {
-  // 话题列表
-  topics: Topic[]
-  total: number
+interface EnhancedTopicState {
+  topics: any[] // EnhancedTopic[]
+  hotTopics: any[] // EnhancedTopic[]
+  recommendedTopics: any[] // EnhancedTopic[]
+  currentTopic: any | null // EnhancedTopic | null
+
+  feedType: 'personalized' | 'trending' | 'latest' | 'matched'
   hasMore: boolean
   loading: boolean
 
-  // 当前话题详情
-  currentTopic: Topic | null
-
-  // 筛选条件
-  filters: TopicListParams
-
   // Actions
-  fetchTopics: (params?: Partial<TopicListParams>, append?: boolean) => Promise<void>
-  fetchTopicDetail: (topicId: string) => Promise<void>
-  createTopic: (data: CreateTopicParams) => Promise<Topic>
-  updateTopicInList: (topicId: string, updates: Partial<Topic>) => void
-  likeTopic: (topicId: string) => Promise<void>
-  unlikeTopic: (topicId: string) => Promise<void>
-  favoriteTopic: (topicId: string) => Promise<void>
-  unfavoriteTopic: (topicId: string) => Promise<void>
-  setFilters: (filters: Partial<TopicListParams>) => void
-  resetFilters: () => void
-  clearTopics: () => void
+  setFeedType: (type: 'personalized' | 'trending' | 'latest' | 'matched') => void
+  fetchTopics: (params?: any, append?: boolean) => Promise<void>
+  fetchRecommendations: () => Promise<void>
+  createTopic: (data: any) => Promise<any> // CreateEnhancedTopicParams => Promise<EnhancedTopic>
+  handleQuickAction: (topicId: string, actionType: string) => Promise<void>
+  updateTopicInList: (topicId: string, updates: any) => void // Partial<EnhancedTopic>
 }
 
-const defaultFilters: TopicListParams = {
-  page: 1,
-  limit: 20,
-  sortBy: 'latest',
-  category: undefined,
-  tag: undefined
-}
-
-export const useTopicStore = create<TopicState>((set, get) => ({
+export const useEnhancedTopicStore = create<EnhancedTopicState>((set, get) => ({
   topics: [],
-  total: 0,
+  hotTopics: [],
+  recommendedTopics: [],
+  currentTopic: null,
+  feedType: 'personalized',
   hasMore: true,
   loading: false,
-  currentTopic: null,
-  filters: { ...defaultFilters },
+
+  setFeedType: (type) => {
+    set({ feedType: type, topics: [] })
+    get().fetchTopics({ type })
+  },
 
   fetchTopics: async (params = {}, append = false) => {
-    const { filters } = get()
-    const finalParams = { ...filters, ...params }
-
+    const { feedType, topics } = get()
     set({ loading: true })
 
     try {
-      const res = await getTopicList(finalParams)
+      const res = await getEnhancedTopics({
+        page: append ? Math.ceil(topics.length / 20) + 1 : 1,
+        limit: 20,
+        type: feedType,
+        ...params
+      })
 
-      set(state => ({
-        topics: append ? [...state.topics, ...res.topics] : res.topics,
-        total: res.total,
+      set({
+        topics: append ? [...topics, ...res.topics] : res.topics,
         hasMore: res.hasMore,
-        loading: false,
-        filters: finalParams
-      }))
+        loading: false
+      })
     } catch (error: any) {
       set({ loading: false })
       Taro.showToast({ title: error.message || '加载失败', icon: 'none' })
@@ -79,24 +67,21 @@ export const useTopicStore = create<TopicState>((set, get) => ({
     }
   },
 
-  fetchTopicDetail: async (topicId: string) => {
+  fetchRecommendations: async () => {
     try {
-      const res = await getTopicDetail(topicId)
-      set({ currentTopic: res.topic })
-    } catch (error: any) {
-      Taro.showToast({ title: error.message || '加载失败', icon: 'none' })
-      throw error
+      const res = await getPersonalizedRecommendations(10)
+      set({ recommendedTopics: res.topics })
+    } catch (error) {
+      console.error('获取推荐失败:', error)
     }
   },
 
-  createTopic: async (data: CreateTopicParams) => {
+  createTopic: async (data) => {
     try {
-      const res = await createTopicApi(data)
+      const res = await createEnhancedTopic(data)
 
-      // 将新话题添加到列表开头
       set(state => ({
-        topics: [res.topic, ...state.topics],
-        total: state.total + 1
+        topics: [res.topic, ...state.topics]
       }))
 
       Taro.showToast({ title: '发布成功', icon: 'success' })
@@ -107,7 +92,39 @@ export const useTopicStore = create<TopicState>((set, get) => ({
     }
   },
 
-  updateTopicInList: (topicId: string, updates: Partial<Topic>) => {
+  handleQuickAction: async (topicId, actionType) => {
+    try {
+      await performQuickAction({ topicId, actionType: actionType as any })
+
+      // 更新本地状态
+      const topic = get().topics.find(t => t.id === topicId)
+      if (topic) {
+        const userId = Taro.getStorageSync('userInfo')?.id
+        if (userId) {
+          const actionKey = `${actionType}` as keyof typeof topic.quickActions
+          const currentUsers = topic.quickActions[actionKey] || []
+
+          get().updateTopicInList(topicId, {
+            quickActions: {
+              ...topic.quickActions,
+              [actionKey]: [...currentUsers, userId]
+            },
+            stats: {
+              ...topic.stats,
+              [`${actionType}Count`]: (topic.stats as any)[`${actionType}Count`] + 1
+            }
+          })
+        }
+      }
+
+      Taro.showToast({ title: '操作成功', icon: 'success' })
+    } catch (error: any) {
+      Taro.showToast({ title: error.message || '操作失败', icon: 'none' })
+      throw error
+    }
+  },
+
+  updateTopicInList: (topicId, updates) => {
     set(state => ({
       topics: state.topics.map(topic =>
         topic.id === topicId ? { ...topic, ...updates } : topic
@@ -116,69 +133,5 @@ export const useTopicStore = create<TopicState>((set, get) => ({
         ? { ...state.currentTopic, ...updates }
         : state.currentTopic
     }))
-  },
-
-  likeTopic: async (topicId: string) => {
-    try {
-      await likeTopicApi(topicId)
-
-      get().updateTopicInList(topicId, {
-        isLiked: true,
-        likesCount: (get().topics.find(t => t.id === topicId)?.likesCount || 0) + 1
-      })
-    } catch (error: any) {
-      Taro.showToast({ title: error.message || '操作失败', icon: 'none' })
-      throw error
-    }
-  },
-
-  unlikeTopic: async (topicId: string) => {
-    try {
-      await unlikeTopicApi(topicId)
-
-      get().updateTopicInList(topicId, {
-        isLiked: false,
-        likesCount: Math.max(0, (get().topics.find(t => t.id === topicId)?.likesCount || 0) - 1)
-      })
-    } catch (error: any) {
-      Taro.showToast({ title: error.message || '操作失败', icon: 'none' })
-      throw error
-    }
-  },
-
-  favoriteTopic: async (topicId: string) => {
-    try {
-      await favoriteTopicApi(topicId)
-      get().updateTopicInList(topicId, { isFavorited: true })
-      Taro.showToast({ title: '收藏成功', icon: 'success' })
-    } catch (error: any) {
-      Taro.showToast({ title: error.message || '操作失败', icon: 'none' })
-      throw error
-    }
-  },
-
-  unfavoriteTopic: async (topicId: string) => {
-    try {
-      await unfavoriteTopicApi(topicId)
-      get().updateTopicInList(topicId, { isFavorited: false })
-      Taro.showToast({ title: '已取消收藏', icon: 'success' })
-    } catch (error: any) {
-      Taro.showToast({ title: error.message || '操作失败', icon: 'none' })
-      throw error
-    }
-  },
-
-  setFilters: (filters: Partial<TopicListParams>) => {
-    set(state => ({
-      filters: { ...state.filters, ...filters }
-    }))
-  },
-
-  resetFilters: () => {
-    set({ filters: { ...defaultFilters } })
-  },
-
-  clearTopics: () => {
-    set({ topics: [], total: 0, hasMore: true })
   }
 }))
