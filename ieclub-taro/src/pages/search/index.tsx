@@ -1,256 +1,415 @@
-// 搜索页面 - 支持话题、用户搜索，搜索历史，热门搜索
+// src/pages/search/index.tsx - 高级搜索页面
 
-import Taro from '@tarojs/taro';
-import { View, Input, ScrollView, Image, Text } from '@tarojs/components';
-import { useState, useEffect } from 'react';
-import { searchTopics, searchUsers, getHotKeywords, getSearchHistory, clearSearchHistory } from '../../services/api/search';
-import TopicCard from '../../components/TopicCard';
-import './index.scss';
+import { View, Text, Input, Image, ScrollView } from '@tarojs/components'
+import { useState, useEffect } from 'react'
+import Taro from '@tarojs/taro'
+import './index.scss'
+
+// 搜索类型
+const SEARCH_TYPES = [
+  { key: 'all', label: '全部', icon: '🔍' },
+  { key: 'topics', label: '话题', icon: '📝' },
+  { key: 'users', label: '用户', icon: '👤' },
+  { key: 'projects', label: '项目', icon: '🚀' },
+  { key: 'tags', label: '标签', icon: '🏷️' }
+]
+
+// 热门搜索
+const HOT_SEARCHES = [
+  'GPT-4', 'React', 'AI教育', '前端开发', 'Python',
+  '创业', '机器学习', 'UI设计', 'Node.js', '数据分析'
+]
 
 export default function SearchPage() {
-  const [searchType, setSearchType] = useState<'topic' | 'user'>('topic');
-  const [keyword, setKeyword] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [hotKeywords, setHotKeywords] = useState<any[]>([]);
-  const [searchHistory, setSearchHistory] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [showHistory, setShowHistory] = useState(true);
+  const [searchType, setSearchType] = useState('all')
+  const [keyword, setKeyword] = useState('')
+  const [searchHistory, setSearchHistory] = useState<string[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [results, setResults] = useState<any>(null)
+  const [activeFilter, setActiveFilter] = useState('relevant') // relevant, latest, hot
 
   useEffect(() => {
-    loadInitialData();
-  }, []);
-
-  // 加载初始数据
-  const loadInitialData = async () => {
-    try {
-      const [hotRes, historyRes] = await Promise.all([
-        getHotKeywords(),
-        getSearchHistory(),
-      ]);
-      setHotKeywords(hotRes.keywords || []);
-      setSearchHistory(historyRes.history || []);
-    } catch (error) {
-      console.error('加载初始数据失败:', error);
-    }
-  };
+    Taro.setNavigationBarTitle({ title: '搜索' })
+    // 加载搜索历史
+    const history = Taro.getStorageSync('searchHistory') || []
+    setSearchHistory(history)
+  }, [])
 
   // 执行搜索
-  const handleSearch = async () => {
-    if (!keyword.trim()) {
-      Taro.showToast({ title: '请输入搜索关键词', icon: 'none' });
-      return;
+  const handleSearch = async (searchKeyword?: string) => {
+    const kw = searchKeyword || keyword
+    if (!kw.trim()) {
+      Taro.showToast({ title: '请输入搜索内容', icon: 'none' })
+      return
     }
 
-    setLoading(true);
-    setShowHistory(false);
+    setIsSearching(true)
 
     try {
-      if (searchType === 'topic') {
-        const res = await searchTopics({ q: keyword });
-        setSearchResults(res.topics || []);
-      } else {
-        const res = await searchUsers({ q: keyword });
-        setSearchResults(res.users || []);
-      }
+      // TODO: 调用搜索API
+      // const res = await searchAPI({
+      //   keyword: kw,
+      //   type: searchType,
+      //   filter: activeFilter
+      // })
 
-      // 刷新搜索历史
-      const historyRes = await getSearchHistory();
-      setSearchHistory(historyRes.history || []);
+      // 模拟搜索
+      await new Promise(resolve => setTimeout(resolve, 500))
+      setResults({
+        topics: [
+          {
+            id: 't1',
+            type: 'supply',
+            title: 'GPT-4教育应用实战：从零到一开发AI学习助手',
+            content: '历时3个月，我开发了一个基于GPT-4的个性化学习助手...',
+            author: {
+              id: 'u1',
+              nickname: '张三',
+              avatar: 'https://via.placeholder.com/40/667eea/ffffff?text=Z'
+            },
+            cover: 'https://via.placeholder.com/100x75/667eea/ffffff?text=AI',
+            category: '技术',
+            tags: ['AI', 'GPT-4', '教育'],
+            likesCount: 42,
+            commentsCount: 15,
+            createdAt: '2小时前'
+          }
+        ],
+        users: [
+          {
+            id: 'u1',
+            nickname: '张三',
+            avatar: 'https://via.placeholder.com/60/667eea/ffffff?text=Z',
+            bio: 'AI工程师 | 教育科技爱好者',
+            tags: ['AI', '前端开发', 'React'],
+            followersCount: 128,
+            topicsCount: 23
+          }
+        ],
+        projects: [
+          {
+            id: 'p1',
+            title: 'AI学习助手平台',
+            description: '基于GPT-4的个性化学习系统',
+            author: {
+              id: 'u1',
+              nickname: '张三',
+              avatar: 'https://via.placeholder.com/40/667eea/ffffff?text=Z'
+            },
+            cover: 'https://via.placeholder.com/100x75/667eea/ffffff?text=Project',
+            tags: ['AI', 'GPT-4', '教育'],
+            status: 'completed'
+          }
+        ],
+        tags: [
+          { name: 'AI', count: 156, trend: 'up' },
+          { name: 'GPT-4', count: 89, trend: 'up' }
+        ]
+      })
+
+      // 保存搜索历史
+      saveSearchHistory(kw)
+
     } catch (error) {
-      Taro.showToast({ title: '搜索失败', icon: 'none' });
+      Taro.showToast({ title: '搜索失败', icon: 'none' })
     } finally {
-      setLoading(false);
+      setIsSearching(false)
     }
-  };
+  }
 
-  // 点击热门搜索词
-  const handleHotKeywordClick = (kw: string) => {
-    setKeyword(kw);
-    setShowHistory(false);
-    // 自动搜索
-    setTimeout(() => handleSearch(), 100);
-  };
+  // 保存搜索历史
+  const saveSearchHistory = (kw: string) => {
+    const newHistory = [kw, ...searchHistory.filter(h => h !== kw)].slice(0, 10)
+    setSearchHistory(newHistory)
+    Taro.setStorageSync('searchHistory', newHistory)
+  }
 
-  // 点击搜索历史
-  const handleHistoryClick = (item: any) => {
-    setKeyword(item.keyword);
-    setSearchType(item.type);
-    setShowHistory(false);
-    setTimeout(() => handleSearch(), 100);
-  };
-
-  // 清除搜索历史
-  const handleClearHistory = async () => {
+  // 清空搜索历史
+  const clearHistory = () => {
     Taro.showModal({
       title: '提示',
-      content: '确定要清除所有搜索历史吗？',
-      success: async (res) => {
+      content: '确定清空搜索历史？',
+      success: (res) => {
         if (res.confirm) {
-          try {
-            await clearSearchHistory();
-            setSearchHistory([]);
-            Taro.showToast({ title: '已清除', icon: 'success' });
-          } catch (error) {
-            Taro.showToast({ title: '清除失败', icon: 'none' });
-          }
+          setSearchHistory([])
+          Taro.removeStorageSync('searchHistory')
         }
-      },
-    });
-  };
+      }
+    })
+  }
+
+  // 点击热门搜索
+  const handleHotSearch = (word: string) => {
+    setKeyword(word)
+    handleSearch(word)
+  }
+
+  // 点击搜索历史
+  const handleHistoryClick = (word: string) => {
+    setKeyword(word)
+    handleSearch(word)
+  }
+
+  // 跳转到详情页
+  const goToDetail = (type: string, id: string) => {
+    if (type === 'topic') {
+      Taro.navigateTo({ url: `/pages/topics/detail/index?id=${id}` })
+    } else if (type === 'user') {
+      Taro.navigateTo({ url: `/pages/user-profile/index?id=${id}` })
+    }
+  }
 
   return (
     <View className='search-page'>
-      {/* 搜索栏 */}
+      {/* ===== 搜索栏 ===== */}
       <View className='search-bar'>
-        <View className='search-input-wrapper'>
+        <View className='search-input-box'>
           <Text className='search-icon'>🔍</Text>
           <Input
             className='search-input'
-            placeholder={searchType === 'topic' ? '搜索话题' : '搜索用户'}
+            placeholder='搜索话题、用户、项目...'
             value={keyword}
             onInput={(e) => setKeyword(e.detail.value)}
-            onConfirm={handleSearch}
+            onConfirm={() => handleSearch()}
             focus
           />
           {keyword && (
-            <Text
-              className='clear-icon'
-              onClick={() => {
-                setKeyword('');
-                setShowHistory(true);
-                setSearchResults([]);
-              }}
+            <Text className='clear-btn' onClick={() => setKeyword('')}>✕</Text>
+          )}
+        </View>
+        <Text className='search-btn' onClick={() => handleSearch()}>搜索</Text>
+      </View>
+
+      {/* ===== 搜索类型切换 ===== */}
+      <View className='type-tabs'>
+        <ScrollView className='tabs-scroll' scrollX>
+          {SEARCH_TYPES.map(type => (
+            <View
+              key={type.key}
+              className={`type-tab ${searchType === type.key ? 'active' : ''}`}
+              onClick={() => setSearchType(type.key)}
             >
-              ✕
-            </Text>
-          )}
-        </View>
-        <View className='search-btn' onClick={handleSearch}>
-          搜索
-        </View>
-      </View>
-
-      {/* 搜索类型切换 */}
-      <View className='search-type-tabs'>
-        <View
-          className={`tab ${searchType === 'topic' ? 'active' : ''}`}
-          onClick={() => setSearchType('topic')}
-        >
-          <Text>💬</Text>
-          <Text>话题</Text>
-        </View>
-        <View
-          className={`tab ${searchType === 'user' ? 'active' : ''}`}
-          onClick={() => setSearchType('user')}
-        >
-          <Text>👤</Text>
-          <Text>用户</Text>
-        </View>
-      </View>
-
-      {/* 搜索历史和热门搜索 */}
-      {showHistory && (
-        <ScrollView scrollY className='history-section'>
-          {/* 搜索历史 */}
-          {searchHistory.length > 0 && (
-            <View className='history-block'>
-              <View className='block-header'>
-                <View className='header-left'>
-                  <Text>🕐</Text>
-                  <Text>搜索历史</Text>
-                </View>
-                <Text className='clear-btn' onClick={handleClearHistory}>
-                  清除
-                </Text>
-              </View>
-              <View className='keyword-list'>
-                {searchHistory.map((item, index) => (
-                  <View
-                    key={index}
-                    className='keyword-item'
-                    onClick={() => handleHistoryClick(item)}
-                  >
-                    {item.keyword}
-                  </View>
-                ))}
-              </View>
+              <Text className='type-icon'>{type.icon}</Text>
+              <Text className='type-label'>{type.label}</Text>
             </View>
-          )}
-
-          {/* 热门搜索 */}
-          {hotKeywords.length > 0 && (
-            <View className='history-block'>
-              <View className='block-header'>
-                <View className='header-left'>
-                  <Text>🔥</Text>
-                  <Text>热门搜索</Text>
-                </View>
-              </View>
-              <View className='keyword-list'>
-                {hotKeywords.map((item, index) => (
-                  <View
-                    key={index}
-                    className={`keyword-item hot ${index < 3 ? 'top3' : ''}`}
-                    onClick={() => handleHotKeywordClick(item.keyword)}
-                  >
-                    <Text className='rank'>{index + 1}</Text>
-                    <Text className='keyword'>{item.keyword}</Text>
-                    {item.count > 10 && (
-                      <Text className='count'>{item.count}</Text>
-                    )}
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
+          ))}
         </ScrollView>
-      )}
+      </View>
 
-      {/* 搜索结果 */}
-      {!showHistory && (
-        <ScrollView scrollY className='search-results'>
-          {loading ? (
-            <View className='loading'>搜索中...</View>
-          ) : searchResults.length > 0 ? (
-            <View>
-              {searchType === 'topic' ? (
-                searchResults.map((topic) => (
-                  <TopicCard key={topic.id} topic={topic} />
-                ))
-              ) : (
-                <View className='user-list'>
-                  {searchResults.map((user) => (
+      <ScrollView className='content-area' scrollY>
+        {/* ===== 搜索前：历史和热门 ===== */}
+        {!results && (
+          <View className='search-suggestions'>
+            {/* 搜索历史 */}
+            {searchHistory.length > 0 && (
+              <View className='history-section'>
+                <View className='section-header'>
+                  <Text className='section-title'>🕐 搜索历史</Text>
+                  <Text className='clear-text' onClick={clearHistory}>清空</Text>
+                </View>
+                <View className='history-list'>
+                  {searchHistory.map((word, index) => (
                     <View
-                      key={user.id}
-                      className='user-item'
-                      onClick={() =>
-                        Taro.navigateTo({ url: `/pages/profile/index?id=${user.id}` })
-                      }
+                      key={index}
+                      className='history-item'
+                      onClick={() => handleHistoryClick(word)}
                     >
-                      <Image className='avatar' src={user.avatar} />
-                      <View className='user-info'>
-                        <Text className='nickname'>{user.nickname}</Text>
-                        <Text className='bio'>{user.bio || '暂无简介'}</Text>
-                        <View className='stats'>
-                          <Text>话题 {user._count.topics}</Text>
-                          <Text>粉丝 {user._count.followers}</Text>
-                        </View>
-                      </View>
-                      {!user.isFollowing && (
-                        <View className='follow-btn'>关注</View>
-                      )}
+                      {word}
                     </View>
                   ))}
                 </View>
-              )}
+              </View>
+            )}
+
+            {/* 热门搜索 */}
+            <View className='hot-section'>
+              <View className='section-header'>
+                <Text className='section-title'>🔥 热门搜索</Text>
+              </View>
+              <View className='hot-list'>
+                {HOT_SEARCHES.map((word, index) => (
+                  <View
+                    key={index}
+                    className='hot-item'
+                    onClick={() => handleHotSearch(word)}
+                  >
+                    <Text className={`hot-rank ${index < 3 ? 'top' : ''}`}>
+                      {index + 1}
+                    </Text>
+                    <Text className='hot-text'>{word}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
-          ) : (
-            <View className='empty'>
-              <Text>没有找到相关内容</Text>
+          </View>
+        )}
+
+        {/* ===== 搜索结果 ===== */}
+        {results && (
+          <View className='search-results'>
+            {/* 筛选栏 */}
+            <View className='filter-bar'>
+              <View
+                className={`filter-item ${activeFilter === 'relevant' ? 'active' : ''}`}
+                onClick={() => setActiveFilter('relevant')}
+              >
+                综合
+              </View>
+              <View
+                className={`filter-item ${activeFilter === 'latest' ? 'active' : ''}`}
+                onClick={() => setActiveFilter('latest')}
+              >
+                最新
+              </View>
+              <View
+                className={`filter-item ${activeFilter === 'hot' ? 'active' : ''}`}
+                onClick={() => setActiveFilter('hot')}
+              >
+                最热
+              </View>
             </View>
-          )}
-        </ScrollView>
-      )}
+
+            {/* 话题结果 */}
+            {(searchType === 'all' || searchType === 'topics') && results.topics && (
+              <View className='results-section'>
+                <Text className='section-title'>📝 话题 ({results.topics.length})</Text>
+                {results.topics.map((topic: any) => (
+                  <View
+                    key={topic.id}
+                    className='topic-result-item'
+                    onClick={() => goToDetail('topic', topic.id)}
+                  >
+                    {topic.cover && (
+                      <Image className='topic-cover' src={topic.cover} mode='aspectFill' />
+                    )}
+                    <View className='topic-info'>
+                      <View className='topic-type-badge'>
+                        {topic.type === 'supply' ? '💬 我来讲' : '🎯 想听'}
+                      </View>
+                      <Text className='topic-title'>
+                        {highlightKeyword(topic.title, keyword)}
+                      </Text>
+                      <Text className='topic-content'>
+                        {highlightKeyword(topic.content, keyword)}
+                      </Text>
+                      <View className='topic-footer'>
+                        <Image
+                          className='author-avatar'
+                          src={topic.author.avatar}
+                          mode='aspectFill'
+                        />
+                        <Text className='author-name'>{topic.author.nickname}</Text>
+                        <Text className='topic-meta'>
+                          ❤️ {topic.likesCount} · 💬 {topic.commentsCount}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* 用户结果 */}
+            {(searchType === 'all' || searchType === 'users') && results.users && (
+              <View className='results-section'>
+                <Text className='section-title'>👤 用户 ({results.users.length})</Text>
+                {results.users.map((user: any) => (
+                  <View
+                    key={user.id}
+                    className='user-result-item'
+                    onClick={() => goToDetail('user', user.id)}
+                  >
+                    <Image className='user-avatar' src={user.avatar} mode='aspectFill' />
+                    <View className='user-info'>
+                      <Text className='user-nickname'>
+                        {highlightKeyword(user.nickname, keyword)}
+                      </Text>
+                      <Text className='user-bio'>{user.bio}</Text>
+                      <View className='user-tags'>
+                        {user.tags.map((tag: string, index: number) => (
+                          <Text key={index} className='tag'>#{tag}</Text>
+                        ))}
+                      </View>
+                      <View className='user-stats'>
+                        <Text className='stat-item'>{user.topicsCount} 话题</Text>
+                        <Text className='stat-item'>{user.followersCount} 粉丝</Text>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* 项目结果 */}
+            {(searchType === 'all' || searchType === 'projects') && results.projects && (
+              <View className='results-section'>
+                <Text className='section-title'>🚀 项目 ({results.projects.length})</Text>
+                {results.projects.map((project: any) => (
+                  <View key={project.id} className='project-result-item'>
+                    <Image
+                      className='project-cover'
+                      src={project.cover}
+                      mode='aspectFill'
+                    />
+                    <View className='project-info'>
+                      <Text className='project-title'>
+                        {highlightKeyword(project.title, keyword)}
+                      </Text>
+                      <Text className='project-desc'>{project.description}</Text>
+                      <View className='project-tags'>
+                        {project.tags.map((tag: string, index: number) => (
+                          <Text key={index} className='tag'>#{tag}</Text>
+                        ))}
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* 标签结果 */}
+            {(searchType === 'all' || searchType === 'tags') && results.tags && (
+              <View className='results-section'>
+                <Text className='section-title'>🏷️ 标签 ({results.tags.length})</Text>
+                <View className='tags-grid'>
+                  {results.tags.map((tag: any, index: number) => (
+                    <View key={index} className='tag-result-item'>
+                      <Text className='tag-name'>#{tag.name}</Text>
+                      <Text className='tag-count'>{tag.count} 个话题</Text>
+                      {tag.trend === 'up' && <Text className='tag-trend'>📈</Text>}
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* 空结果 */}
+            {(!results.topics?.length && !results.users?.length &&
+              !results.projects?.length && !results.tags?.length) && (
+              <View className='empty-result'>
+                <Text className='empty-icon'>🔍</Text>
+                <Text className='empty-text'>未找到相关结果</Text>
+                <Text className='empty-tip'>试试其他关键词吧</Text>
+              </View>
+            )}
+          </View>
+        )}
+      </ScrollView>
     </View>
-  );
+  )
+}
+
+// 高亮关键词
+function highlightKeyword(text: string, keyword: string) {
+  if (!keyword) return text
+
+  const regex = new RegExp(`(${keyword})`, 'gi')
+  const parts = text.split(regex)
+
+  return parts.map((part, index) => {
+    if (part.toLowerCase() === keyword.toLowerCase()) {
+      return `[${part}]` // 简化版高亮，实际应使用rich-text或自定义组件
+    }
+    return part
+  }).join('')
 }

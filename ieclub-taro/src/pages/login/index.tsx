@@ -157,7 +157,7 @@ export default function LoginPage() {
       await new Promise(resolve => setTimeout(resolve, 1000))
 
       Taro.showToast({ title: '登录成功', icon: 'success' })
-      
+
       // 保存token
       // Taro.setStorageSync('token', res.data.token)
       // Taro.setStorageSync('userInfo', res.data.user)

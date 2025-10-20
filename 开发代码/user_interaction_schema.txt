@@ -1,0 +1,98 @@
+// backend/prisma/schema.prisma - 用户互动模型补充
+
+// 完整的 User 模型（包含新增字段）
+model User {
+  id                  String               @id @default(cuid())
+  username            String               @unique
+  email               String               @unique
+  password            String
+  nickname            String?
+  avatar              String?
+  bio                 String?              @db.Text
+  verified            Boolean              @default(false)
+  
+  // 新增：个人信息字段
+  major               String?              // 专业
+  grade               String?              // 年级
+  skills              String[]             // 技能标签
+  interests           String[]             // 兴趣标签
+  website             String?              // 个人网站
+  github              String?              // GitHub
+  
+  // 认证相关
+  verificationCode    String?
+  verificationExpires DateTime?
+  resetToken          String?
+  resetTokenExpires   DateTime?
+  lastLogin           DateTime?
+  
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  // 内容关联
+  topics              Topic[]              @relation("TopicAuthor")
+  comments            Comment[]
+  likes               TopicLike[]
+  bookmarks           TopicBookmark[]
+  participants        TopicParticipant[]
+  
+  // 社交关联
+  followers           Follow[]             @relation("Following")
+  following           Follow[]             @relation("Follower")
+  
+  // 用户互动（新增）
+  userLikes           UserLike[]           @relation("UserLiker")      // 我点赞的用户
+  likedByUsers        UserLike[]           @relation("LikedUser")      // 点赞我的用户
+  userHearts          UserHeart[]          @relation("UserHearter")    // 我收藏的用户
+  heartedByUsers      UserHeart[]          @relation("HeartedUser")    // 收藏我的用户
+  
+  // 通知和日志
+  notifications       Notification[]
+  loginLogs           LoginLog[]
+  securityLogs        SecurityLog[]
+  searchHistories     SearchHistory[]
+  
+  // 项目关联
+  ownedProjects       Project[]            @relation("ProjectOwner")
+  projectMemberships  ProjectMember[]
+  projectLikes        ProjectLike[]
+  projectApplications ProjectApplication[]
+
+  @@index([email])
+  @@index([username])
+  @@index([major])
+  @@index([grade])
+  @@map("users")
+}
+
+// 用户点赞用户（大拇指）
+model UserLike {
+  id          String   @id @default(cuid())
+  userId      String   // 点赞者
+  user        User     @relation("UserLiker", fields: [userId], references: [id], onDelete: Cascade)
+  likedUserId String   // 被点赞者
+  likedUser   User     @relation("LikedUser", fields: [likedUserId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, likedUserId])
+  @@index([userId])
+  @@index([likedUserId])
+  @@index([createdAt])
+  @@map("user_likes")
+}
+
+// 用户收藏用户（红心）
+model UserHeart {
+  id             String   @id @default(cuid())
+  userId         String   // 收藏者
+  user           User     @relation("UserHearter", fields: [userId], references: [id], onDelete: Cascade)
+  heartedUserId  String   // 被收藏者
+  heartedUser    User     @relation("HeartedUser", fields: [heartedUserId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+
+  @@unique([userId, heartedUserId])
+  @@index([userId])
+  @@index([heartedUserId])
+  @@index([createdAt])
+  @@map("user_hearts")
+}

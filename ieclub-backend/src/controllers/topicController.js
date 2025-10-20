@@ -26,7 +26,6 @@ class TopicController {
         topicType,
         sortBy = 'hot', // hot, new, trending
         tags,
-        demandType,
         search,
       } = req.query;
 
@@ -226,21 +225,8 @@ class TopicController {
         content,
         contentType = 'text',
         category,
-        tags = [],
         topicType = 'discussion',
-        demandType,
-        skillsNeeded,
-        skillsProvided,
-        deadline,
-        budget,
-        location,
-        contactInfo,
         images,
-        documents,
-        videos,
-        links,
-        quickActions,
-        visibility = 'public',
       } = req.body;
 
       // 验证必填字段
@@ -272,8 +258,6 @@ class TopicController {
         throw new AppError('VALIDATION_INVALID_FORMAT', '内容包含敏感内容，请修改后重试');
       }
 
-      // 生成摘要
-      const summary = content.substring(0, 200);
 
       // 创建话题（只使用数据库中最基本的字段）
       const topic = await prisma.topic.create({

@@ -1,0 +1,53 @@
+// backend/prisma/schema.prisma - 认证和安全相关模型
+
+// 验证码表
+model VerificationCode {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  code      String
+  type      String   // register, reset
+  attempts  Int      @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([expiresAt])
+  @@map("verification_codes")
+}
+
+// 登录日志
+model LoginLog {
+  id        String    @id @default(cuid())
+  userId    String?
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ip        String
+  userAgent String    @db.Text
+  status    String    // success, failed
+  reason    String?   // wrong_password, user_not_found, etc.
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([status])
+  @@map("login_logs")
+}
+
+// 安全日志
+model SecurityLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String   // password_change, password_reset, email_change, etc.
+  ip        String
+  userAgent String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([action])
+  @@map("security_logs")
+}
+
+// 需要在 User 模型中添加这些关联：
+// loginLogs    LoginLog[]
+// securityLogs SecurityLog[]

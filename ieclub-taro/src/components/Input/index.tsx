@@ -56,8 +56,8 @@ export default function Input({
   )
 
   const handleInput = (e: any) => {
-    const value = e.detail?.value || ''
-    onChange?.(value)
+    const inputValue = e.detail?.value || ''
+    onChange?.(inputValue)
     onInput?.(e)
   }
 
@@ -101,8 +101,8 @@ export function TextareaInput({
   )
 
   const handleInput = (e: any) => {
-    const value = e.detail?.value || ''
-    onChange?.(value)
+    const inputValue = e.detail?.value || ''
+    onChange?.(inputValue)
     onInput?.(e)
   }
 

@@ -8,61 +8,172 @@ const prisma = new PrismaClient();
 
 class UserController {
   /**
-   * 获取用户信息
-   * GET /api/v1/users/:id
-   */
+    * 获取用户详细信息（增强版）
+    * GET /api/v1/users/:id
+    */
   static async getUserProfile(req, res) {
     try {
       const { id } = req.params;
-      const currentUserId = req.userId;
+      const {
+        sortBy = 'latest', // latest, likes, hearts, popular
+        filterType = 'all', // all, topics, projects, comments
+        major, // 专业筛选
+        skills, // 技能筛选
+        interests // 兴趣筛选
+      } = req.query;
 
+      // 获取用户基本信息
       const user = await prisma.user.findUnique({
         where: { id },
-        include: {
+        select: {
+          id: true,
+          username: true,
+          nickname: true,
+          avatar: true,
+          bio: true,
+          verified: true,
+          major: true,
+          grade: true,
+          skills: true,
+          interests: true,
+          website: true,
+          github: true,
+          createdAt: true,
           _count: {
             select: {
               topics: true,
-              comments: true,
               followers: true,
               following: true,
-            },
-          },
-        },
+              ownedProjects: true
+            }
+          }
+        }
       });
 
       if (!user) {
         return response.notFound(res, '用户不存在');
       }
 
-      // 检查是否关注
+      // 检查当前用户是否关注了该用户
       let isFollowing = false;
-      if (currentUserId && currentUserId !== id) {
+      if (req.userId && req.userId !== id) {
         const follow = await prisma.follow.findUnique({
           where: {
             followerId_followingId: {
-              followerId: currentUserId,
-              followingId: id,
-            },
-          },
+              followerId: req.userId,
+              followingId: id
+            }
+          }
         });
         isFollowing = !!follow;
       }
 
-      // 不返回敏感信息
-      const safeUser = { ...user };
-      delete safeUser.openid;
-      delete safeUser.phone;
-      delete safeUser.email;
+      // 构建内容查询条件
+      let contentData = {};
+
+      // 获取用户话题（支持排序和筛选）
+      if (filterType === 'all' || filterType === 'topics') {
+        const topicOrderBy =
+          sortBy === 'latest' ? { createdAt: 'desc' } :
+          sortBy === 'likes' ? [{ likes: { _count: 'desc' } }] :
+          sortBy === 'hearts' ? [{ bookmarks: { _count: 'desc' } }] :
+          sortBy === 'popular' ? { viewCount: 'desc' } :
+          { createdAt: 'desc' };
+
+        const topics = await prisma.topic.findMany({
+          where: {
+            authorId: id,
+            status: 'published'
+          },
+          include: {
+            _count: {
+              select: {
+                likes: true,
+                bookmarks: true,
+                comments: true,
+                participants: true
+              }
+            }
+          },
+          orderBy: topicOrderBy,
+          take: 20
+        });
+
+        contentData.topics = topics.map(topic => ({
+          ...topic,
+          likeCount: topic._count.likes,
+          heartCount: topic._count.bookmarks,
+          commentCount: topic._count.comments,
+          participantCount: topic._count.participants
+        }));
+      }
+
+      // 获取用户项目
+      if (filterType === 'all' || filterType === 'projects') {
+        const projectOrderBy =
+          sortBy === 'latest' ? { createdAt: 'desc' } :
+          sortBy === 'likes' ? [{ likes: { _count: 'desc' } }] :
+          { createdAt: 'desc' };
+
+        const projects = await prisma.project.findMany({
+          where: { ownerId: id },
+          include: {
+            _count: {
+              select: {
+                members: true,
+                likes: true
+              }
+            }
+          },
+          orderBy: projectOrderBy,
+          take: 20
+        });
+
+        contentData.projects = projects.map(project => ({
+          ...project,
+          memberCount: project._count.members,
+          likeCount: project._count.likes
+        }));
+      }
+
+      // 获取用户评论
+      if (filterType === 'all' || filterType === 'comments') {
+        const comments = await prisma.comment.findMany({
+          where: { authorId: id },
+          include: {
+            topic: {
+              select: {
+                id: true,
+                title: true,
+                cover: true
+              }
+            },
+            _count: {
+              select: {
+                likes: true
+              }
+            }
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 20
+        });
+
+        contentData.comments = comments.map(comment => ({
+          ...comment,
+          likeCount: comment._count.likes
+        }));
+      }
 
       return response.success(res, {
-        ...safeUser,
-        isFollowing,
-        stats: {
-          topics: user._count.topics,
-          comments: user._count.comments,
-          followers: user._count.followers,
-          following: user._count.following,
+        user: {
+          ...user,
+          topicCount: user._count.topics,
+          followerCount: user._count.followers,
+          followingCount: user._count.following,
+          projectCount: user._count.ownedProjects
         },
+        isFollowing,
+        content: contentData
       });
     } catch (error) {
       logger.error('获取用户信息失败:', error);
