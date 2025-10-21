@@ -47,7 +47,7 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
-
+    
     // 小程序和移动端
     @media (max-width: 767px) {
       grid-template-columns: repeat(2, 1fr);
@@ -86,7 +86,7 @@
     cursor: pointer;
     transition: all 0.3s;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-
+    
     &:active {
       transform: translateY(-4px);
       box-shadow: 0 8px 16px rgba(59, 130, 246, 0.2);
@@ -97,7 +97,7 @@
       width: 100%;
       display: block;
       object-fit: cover;
-
+      
       // 移动端和小程序
       @media (max-width: 767px) {
         height: 180px;
@@ -129,7 +129,6 @@
         margin-bottom: 10px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
-        line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
         line-height: 1.5;

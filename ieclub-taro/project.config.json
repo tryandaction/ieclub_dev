@@ -36,20 +36,24 @@
     "uploadWithSourceMap": true,
     "compileInclude": [],
     "compileExclude": [],
-    "ignoreUploadUnusedFiles": true
+    "ignoreUploadUnusedFiles": true,
+    "compileWorklet": false,
+    "localPlugins": false,
+    "useCompilerPlugins": false,
+    "condition": true,
+    "swc": false,
+    "disableSWC": true
   },
   "compileType": "miniprogram",
   "srcMiniprogramRoot": "dist/",
   "packOptions": {
-    "ignore": []
+    "ignore": [],
+    "include": []
   },
-  "debugOptions": {
-    "hidedInDevtools": []
+  "condition": {},
+  "simulatorPluginLibVersion": {
+    "wxext14566970e7e9f62": "2.27.3"
   },
-  "scripts": {},
-  "staticServerOptions": {
-    "baseURL": "",
-    "servePath": ""
-  },
-  "condition": {}
+  "editorSetting": {},
+  "projectArchitecture": "multiPlatform"
 }

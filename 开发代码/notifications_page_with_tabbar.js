@@ -10,15 +10,15 @@ const NotificationsPage = () => {
   const [loading, setLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // 设置当前 TabBar 选中项 - 暂时禁用以避免类型错误
-  // useEffect(() => {
-  //   const tabbar = Taro.getTabBar && Taro.getTabBar();
-  //   if (tabbar && tabbar.setData) {
-  //     tabbar.setData({
-  //       selected: 3
-  //     });
-  //   }
-  // }, []);
+  // 设置当前 TabBar 选中项
+  useEffect(() => {
+    const tabbar = Taro.getTabBar();
+    if (tabbar) {
+      tabbar.setData({
+        selected: 3
+      });
+    }
+  }, []);
 
   useEffect(() => {
     fetchNotifications();
@@ -64,7 +64,7 @@ const NotificationsPage = () => {
     }
   };
 
-  const markAsRead = async (notificationId: string) => {
+  const markAsRead = async (notificationId) => {
     try {
       const token = Taro.getStorageSync('token');
       await Taro.request({
@@ -74,7 +74,7 @@ const NotificationsPage = () => {
           Authorization: `Bearer ${token}`
         }
       });
-
+      
       // 刷新列表
       fetchNotifications();
     } catch (error) {
@@ -104,8 +104,8 @@ const NotificationsPage = () => {
     }
   };
 
-  const getNotificationIcon = (type: string) => {
-    const iconMap: Record<string, string> = {
+  const getNotificationIcon = (type) => {
+    const iconMap = {
       like: '👍',
       heart: '❤️',
       comment: '💬',
@@ -116,7 +116,7 @@ const NotificationsPage = () => {
     return iconMap[type] || '📢';
   };
 
-  const renderNotification = (notification: any) => (
+  const renderNotification = (notification) => (
     <View
       key={notification.id}
       className={`notification-item ${notification.isRead ? '' : 'unread'}`}

@@ -9,15 +9,15 @@ const SquarePage = () => {
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 设置当前 TabBar 选中项 - 暂时禁用以避免类型错误
-  // useEffect(() => {
-  //   const tabbar = Taro.getTabBar && Taro.getTabBar();
-  //   if (tabbar && tabbar.setData) {
-  //     tabbar.setData({
-  //       selected: 0
-  //     });
-  //   }
-  // }, []);
+  // 设置当前 TabBar 选中项
+  useEffect(() => {
+    const tabbar = Taro.getTabBar();
+    if (tabbar) {
+      tabbar.setData({
+        selected: 0
+      });
+    }
+  }, []);
 
   useEffect(() => {
     fetchTopics();
@@ -45,7 +45,7 @@ const SquarePage = () => {
     }
   };
 
-  const goToTopicDetail = (topicId: string) => {
+  const goToTopicDetail = (topicId) => {
     Taro.navigateTo({
       url: `/pages/topic-detail/index?id=${topicId}`
     });
@@ -57,7 +57,7 @@ const SquarePage = () => {
     });
   };
 
-  const renderTopicCard = (topic: any) => (
+  const renderTopicCard = (topic) => (
     <View
       key={topic.id}
       className="topic-card"
@@ -71,8 +71,8 @@ const SquarePage = () => {
       <View className="topic-info">
         <View className="topic-title">{topic.title}</View>
         <View className="topic-author">
-          <Image
-            src={topic.author?.avatar || '/default-avatar.png'}
+          <Image 
+            src={topic.author?.avatar || '/default-avatar.png'} 
             className="author-avatar"
             mode="aspectFill"
           />
