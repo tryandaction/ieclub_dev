@@ -93,7 +93,7 @@ export async function request<T = any>(options: {
 
       // 发送请求
       const response = await Taro.request({
-        url: `${process.env.TARO_APP_API_URL}${url}`,
+        url: `${process.env.TARO_APP_API}${url}`,
         method,
         data,
         header,

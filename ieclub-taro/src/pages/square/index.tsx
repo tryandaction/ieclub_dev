@@ -5,6 +5,15 @@ import Taro from '@tarojs/taro';
 import { DefaultCoverIcon } from '../../components/CustomIcons';
 import './index.scss';
 
+// API配置 - 可以根据需要修改服务器地址
+const API_CONFIG = {
+  // 开发环境服务器地址，请根据实际情况修改
+  // 如果你的后端服务器运行在不同端口，请修改这里
+  development: 'http://localhost:3000/api',
+  // 生产环境服务器地址
+  production: 'https://ieclub.online/api'
+};
+
 const SquarePage = () => {
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,20 +32,46 @@ const SquarePage = () => {
   const fetchTopics = async () => {
     setLoading(true);
     try {
+      // 根据环境选择API地址
+      const isDevelopment = process.env.NODE_ENV === 'development';
+      const apiBase = isDevelopment ? API_CONFIG.development : API_CONFIG.production;
+
+      console.log('尝试连接到服务器:', apiBase);
+
       const res = await Taro.request({
-        url: `${process.env.TARO_APP_API}/topics`,
+        url: `${apiBase}/topics`,
         method: 'GET',
         data: {
           page: 1,
           limit: 20
-        }
+        },
+        timeout: 10000 // 10秒超时
       });
 
-      if (res.data.code === 200) {
-        setTopics(res.data.data);
+      if (res.data && res.data.code === 200) {
+        setTopics(res.data.data || []);
+        console.log('成功获取话题数据:', res.data.data?.length || 0, '条');
+      } else {
+        console.warn('API返回格式异常:', res.data);
+        setTopics([]);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('获取话题列表失败:', error);
+
+      // 根据错误类型显示不同提示
+      let errorMessage = '服务器连接失败，请检查网络';
+      if (error.errMsg?.includes('timeout')) {
+        errorMessage = '请求超时，请检查服务器是否启动';
+      } else if (error.errMsg?.includes('refuse')) {
+        errorMessage = '无法连接到服务器，请启动后端服务';
+      }
+
+      Taro.showToast({
+        title: errorMessage,
+        icon: 'none',
+        duration: 3000
+      });
+      setTopics([]);
     } finally {
       setLoading(false);
     }
@@ -96,7 +131,7 @@ const SquarePage = () => {
       </View>
 
       {/* 话题列表 */}
-      <ScrollView className="content" scrollY>
+      <ScrollView className="content" scrollY style={{ height: 'calc(100vh - 140px)' }}>
         {loading ? (
           <View className="loading">
             <View className="loading-spinner"></View>

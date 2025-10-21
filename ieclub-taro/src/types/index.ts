@@ -1,5 +1,9 @@
 // ==================== 全局类型定义 ====================
 
+// ==================== 社区模块类型定义 ====================
+export type { CommunityUser, CommunityUserQuery, CommunityUserListResponse, UserProfile as CommunityUserProfile } from './community';
+export { UserSortType } from './community';
+
 // ==================== 来自开发代码的核心类型定义 ====================
 
 // 内容类型枚举 - 来自开发代码的创新设计

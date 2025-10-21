@@ -1,82 +1,279 @@
-// CustomIcons 组件样式
-.custom-icon {
+// CustomIcons 组件样式 - 纯CSS绘制的专业图标
+.icon-container {
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s;
-
-  svg {
-    width: 100%;
-    height: 100%;
-  }
+  position: relative;
 
   &.active {
-    color: #3b82f6;
-  }
+    .icon-svg {
+      .svg-content {
+        &::before,
+        &::after {
+          background-color: #3b82f6;
+        }
+      }
+    }
 
-  // 广场图标样式
-  &.square-icon {
-    &.active {
-      color: #3b82f6;
+    .avatar-content,
+    .cover-content {
+      &::before,
+      &::after {
+        background-color: #3b82f6;
+      }
     }
   }
 
-  // 社区图标样式
-  &.community-icon {
-    &.active {
-      color: #3b82f6;
+  // 广场图标 - 网格布局
+  .icon-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 2px;
+    width: 80%;
+    height: 80%;
+    margin: auto;
+
+    .grid-item {
+      background-color: currentColor;
+      border-radius: 2px;
     }
   }
 
-  // 通知图标样式
-  &.notification-icon {
+  // 社区图标 - 搜索形状
+  .icon-search {
     position: relative;
+    width: 70%;
+    height: 70%;
+    margin: auto;
 
-    .unread-dot {
-      position: absolute;
-      top: 2px;
-      right: 2px;
-      width: 8px;
-      height: 8px;
-      background: #ef4444;
+    .search-circle {
+      width: 100%;
+      height: 100%;
+      border: 2px solid currentColor;
       border-radius: 50%;
-      border: 2px solid white;
-      z-index: 1;
-    }
+      position: relative;
 
-    &.active {
-      color: #3b82f6;
+      &::after {
+        content: '';
+        position: absolute;
+        right: -8px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 12px;
+        height: 2px;
+        background-color: currentColor;
+        transform-origin: left center;
+        transform: translateY(-50%) rotate(45deg);
+      }
     }
   }
 
-  // 个人主页图标样式
-  &.profile-icon {
-    &.active {
-      color: #3b82f6;
-    }
-  }
-
-  // 加号图标样式
+  // 加号图标
   &.plus-icon {
-    cursor: pointer;
-    transition: transform 0.3s;
+    .plus-bg {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #3b82f6, #9333ea);
+      border-radius: 50%;
+      position: relative;
+    }
 
-    &:active {
-      transform: scale(0.9);
+    .plus-symbol {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      line-height: 1;
     }
   }
 
-  // 默认头像样式
+  // 通知图标 - 铃铛形状
+  .icon-bell {
+    position: relative;
+    width: 80%;
+    height: 80%;
+    margin: auto;
+
+    .bell-body {
+      width: 100%;
+      height: 75%;
+      background-color: currentColor;
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      position: relative;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20%;
+        height: 15%;
+        background-color: currentColor;
+        border-radius: 50% 50% 0 0;
+      }
+    }
+
+    .bell-handle {
+      position: absolute;
+      bottom: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 15%;
+      background-color: currentColor;
+    }
+  }
+
+  // 个人资料图标
+  .icon-profile {
+    position: relative;
+    width: 80%;
+    height: 80%;
+    margin: auto;
+
+    .profile-head {
+      width: 60%;
+      height: 60%;
+      background-color: currentColor;
+      border-radius: 50%;
+      margin: 0 auto 10%;
+    }
+
+    .profile-body {
+      width: 80%;
+      height: 30%;
+      background-color: currentColor;
+      border-radius: 50% 50% 0 0;
+      margin: 0 auto;
+    }
+  }
+
+  // 默认头像
   &.default-avatar {
+    background: #e5e7eb;
     border-radius: 50%;
     overflow: hidden;
-    flex-shrink: 0;
+
+    .avatar-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .avatar-icon {
+        .avatar-head {
+          width: 60%;
+          height: 60%;
+          background-color: #9ca3af;
+          border-radius: 50%;
+          margin: 0 auto 10%;
+        }
+
+        .avatar-body {
+          width: 80%;
+          height: 30%;
+          background-color: #9ca3af;
+          border-radius: 50% 50% 0 0;
+          margin: 0 auto;
+        }
+      }
+    }
   }
 
-  // 默认封面样式
+  // 默认封面
   &.default-cover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 8px;
     overflow: hidden;
-    flex-shrink: 0;
+
+    .cover-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .cover-icon {
+        position: relative;
+        width: 80px;
+        height: 60px;
+
+        .cover-bg {
+          width: 100%;
+          height: 100%;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 4px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .cover-image {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 20px;
+          height: 20px;
+          background: rgba(255, 255, 255, 0.5);
+          border-radius: 2px;
+
+          &::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 2px;
+            right: 2px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.7);
+          }
+
+          &::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            right: 2px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 0 0 2px 2px;
+          }
+        }
+      }
+    }
+  }
+
+  // 未读消息红点
+  .unread-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    z-index: 1;
+  }
+}
+
+// 图标SVG容器基础样式
+.icon-svg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .svg-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }

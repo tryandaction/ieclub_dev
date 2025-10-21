@@ -1,0 +1,76 @@
+// ieclub-backend/prisma/schema.prisma
+// 数据库Schema - 社区模块扩展（第一版本）
+
+// 在原有User模型基础上添加关注关系
+
+model User {
+  id        Int      @id @default(autoincrement())
+  openid    String   @unique
+  nickname  String
+  avatar    String
+  bio       String?  @db.Text
+  tags      Json?    // 用户标签数组
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 原有关系
+  topics    Topic[]
+  comments  Comment[]
+  likes     Like[]
+  favorites Favorite[]
+  notifications Notification[]
+
+  // 新增：关注关系
+  followers Following[] @relation("UserFollowers")  // 粉丝列表
+  following Following[] @relation("UserFollowing")  // 关注列表
+
+  @@map("users")
+}
+
+// 新增：关注关系表
+model Following {
+  id          Int      @id @default(autoincrement())
+  followerId  Int      // 关注者ID
+  followingId Int      // 被关注者ID
+  createdAt   DateTime @default(now())
+
+  // 关系
+  follower  User @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("followings")
+}
+
+// 现有模型保持不变...
+model Topic {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String   @db.Text
+  type        String   // 'demand' | 'supply'
+  category    String
+  tags        Json?
+  images      Json?
+  authorId    Int
+  status      String   @default("active")
+  viewsCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments  Comment[]
+  likes     Like[]
+  favorites Favorite[]
+  matches   Match[]    @relation("TopicMatches")
+  matchedBy Match[]    @relation("MatchedTopics")
+
+  @@index([authorId])
+  @@index([type])
+  @@index([category])
+  @@index([createdAt])
+  @@map("topics")
+}
+
+// 其他模型...

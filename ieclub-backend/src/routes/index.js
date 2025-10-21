@@ -8,6 +8,7 @@ const commentController = require('../controllers/commentController');
 const userController = require('../controllers/userController');
 const searchController = require('../controllers/searchController');
 const notificationController = require('../controllers/notificationController');
+const communityController = require('../controllers/communityController');
 
 const { authenticate } = require('../middleware/auth');
 
@@ -66,5 +67,8 @@ router.get('/notifications/unread-count', authenticate, notificationController.g
 router.put('/notifications/:id/read', authenticate, notificationController.markAsRead);
 router.put('/notifications/read-all', authenticate, notificationController.markAllAsRead);
 router.delete('/notifications/:id', authenticate, notificationController.deleteNotification);
+
+// ===== 社区路由 =====
+router.use('/community', require('./community'));
 
 module.exports = router;

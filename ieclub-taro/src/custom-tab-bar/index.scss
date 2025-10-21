@@ -1,174 +1,79 @@
 // ieclub-taro/src/custom-tab-bar/index.scss
+// 自定义 TabBar 样式 - IEClub 风格纯文字版本
+
 .custom-tab-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
+  height: 120rpx;
   background: #ffffff;
-  border-top: 1px solid #e5e7eb;
-  z-index: 999;
-
-  // 底部安全区域适配（刘海屏）
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
   padding-bottom: env(safe-area-inset-bottom);
+  z-index: 1000;
+}
 
-  .tab-bar-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    height: 60px;
-    padding: 0 20px;
-    position: relative;
+.tab-bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  position: relative;
+  transition: all 0.3s ease;
 
-    // 底部安全区域适配
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  &:active {
+    opacity: 0.7;
+  }
 
-    .tab-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      flex: 1;
-      height: 100%;
-      cursor: pointer;
-      transition: all 0.3s;
-      position: relative;
+  &__text {
+    font-size: 24rpx;
+    color: #999999;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
 
-      &.active {
-        .tab-icon {
-          .custom-icon {
-            color: #3b82f6;
-          }
-        }
-
-        .tab-title {
-          color: #3b82f6;
-          font-weight: 600;
-        }
-      }
-
-      &.disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      .tab-icon {
-        margin-bottom: 2px;
-
-        .custom-icon {
-          transition: color 0.3s;
-        }
-      }
-
-      .tab-title {
-        font-size: 10px;
-        color: #9ca3af;
-        transition: color 0.3s;
-      }
-
-      &.center-tab {
-        position: absolute;
-        top: -28px;
-        left: 50%;
-        transform: translateX(-50%);
-        flex: none;
-        width: 80px;
-        height: 80px;
-
-        .center-icon-wrapper {
-          width: 80px;
-          height: 80px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #ffffff;
-          border-radius: 50%;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-          border: 4px solid #ffffff;
-          transition: transform 0.3s;
-
-          &:active {
-            transform: scale(0.9);
-          }
-        }
-      }
+  &--active {
+    .tab-bar-item__text {
+      color: #667eea;
+      font-weight: 600;
+      font-size: 26rpx;
     }
+  }
+
+  // 中间按钮特殊样式
+  &--center {
+    flex: 0 0 auto;
+    margin: 0 32rpx;
   }
 }
 
-// 响应式适配
-@media (max-width: 375px) {
-  .custom-tab-bar {
-    .tab-bar-content {
-      height: 56px;
-      padding: 0 10px;
+// 中间加号按钮
+.center-button {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3);
+  margin-top: -32rpx; // 凸起效果
+  transition: all 0.3s ease;
 
-      .tab-item {
-        &.center-tab {
-          top: -24px;
-          width: 72px;
-          height: 72px;
-
-          .center-icon-wrapper {
-            width: 72px;
-            height: 72px;
-          }
-        }
-      }
-    }
+  &:active {
+    transform: scale(0.95);
+    box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.3);
   }
-}
 
-// 平板适配
-@media (min-width: 768px) {
-  .custom-tab-bar {
-    .tab-bar-content {
-      height: 64px;
-      padding: 0 40px;
-
-      .tab-item {
-        .tab-title {
-          font-size: 11px;
-        }
-
-        &.center-tab {
-          top: -32px;
-          width: 88px;
-          height: 88px;
-
-          .center-icon-wrapper {
-            width: 88px;
-            height: 88px;
-          }
-        }
-      }
-    }
-  }
-}
-
-// 电脑端适配
-@media (min-width: 1024px) {
-  .custom-tab-bar {
-    .tab-bar-content {
-      height: 70px;
-      max-width: 1200px;
-      margin: 0 auto;
-
-      .tab-item {
-        .tab-title {
-          font-size: 12px;
-        }
-
-        &.center-tab {
-          top: -35px;
-          width: 96px;
-          height: 96px;
-
-          .center-icon-wrapper {
-            width: 96px;
-            height: 96px;
-          }
-        }
-      }
-    }
+  &__icon {
+    font-size: 64rpx;
+    color: #ffffff;
+    font-weight: 300;
+    line-height: 1;
   }
 }

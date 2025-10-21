@@ -1,130 +1,99 @@
 // ieclub-taro/src/custom-tab-bar/index.tsx
-import { Component } from 'react';
+// 自定义 TabBar 组件 - 纯文字版本优化
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text } from '@tarojs/components';
 import Taro from '@tarojs/taro';
-import { View } from '@tarojs/components';
-import {
-  SquareIcon,
-  CommunityIcon,
-  PlusIcon,
-  NotificationIcon,
-  ProfileIcon
-} from '../components/CustomIcons';
 import './index.scss';
 
 interface TabItem {
   key: string;
   title: string;
-  iconComponent: any;
   pagePath: string;
   isCenter?: boolean;
-  disabled?: boolean;
 }
 
-interface CustomTabBarState {
-  selected: number;
-  tabList: TabItem[];
-}
+const CustomTabBar: React.FC = () => {
+  const [selected, setSelected] = useState(0);
 
-export default class CustomTabBar extends Component<{}, CustomTabBarState> {
-  state: CustomTabBarState = {
-    selected: 0,
-    tabList: [
-      {
-        key: 'square',
-        title: '广场',
-        iconComponent: SquareIcon,
-        pagePath: '/pages/square/index'
-      },
-      {
-        key: 'community',
-        title: '社区',
-        iconComponent: CommunityIcon,
-        pagePath: '',
-        disabled: true
-      },
-      {
-        key: 'publish',
-        title: '',
-        iconComponent: PlusIcon,
-        pagePath: '/pages/topics/create/index',
-        isCenter: true
-      },
-      {
-        key: 'notification',
-        title: '通知',
-        iconComponent: NotificationIcon,
-        pagePath: '/pages/notifications/index'
-      },
-      {
-        key: 'profile',
-        title: '我的',
-        iconComponent: ProfileIcon,
-        pagePath: '/pages/profile/index'
-      }
-    ]
-  };
+  const tabList: TabItem[] = useMemo(() => [
+    {
+      key: 'square',
+      title: '广场',
+      pagePath: '/pages/square/index'
+    },
+    {
+      key: 'community',
+      title: '社区',
+      pagePath: '/pages/community/index'
+    },
+    {
+      key: 'publish',
+      title: '', // 中间加号按钮占位
+      pagePath: 'center',
+      isCenter: true
+    },
+    {
+      key: 'notification',
+      title: '消息',
+      pagePath: '/pages/notifications/index'
+    },
+    {
+      key: 'profile',
+      title: '主页',
+      pagePath: '/pages/profile/index'
+    }
+  ], []);
 
-  switchTab = (index: number, tab: TabItem) => {
-    if (tab.disabled) {
-      Taro.showToast({
-        title: '开发中，敬请期待',
-        icon: 'none',
-        duration: 2000
+  useEffect(() => {
+    // 获取当前页面路径
+    const pages = Taro.getCurrentPages();
+    const currentPage = pages[pages.length - 1];
+    const currentPath = `/${currentPage.route}`;
+
+    // 找到对应的 tab index
+    const index = tabList.findIndex(item => item.pagePath === currentPath);
+    if (index !== -1) {
+      setSelected(index);
+    }
+  }, [tabList]);
+
+  const switchTab = (index: number, tab: TabItem) => {
+    if (tab.isCenter || tab.pagePath === 'center') {
+      // 中间加号：跳转到创建话题页面
+      Taro.navigateTo({
+        url: '/pages/topics/create/index'
       });
       return;
     }
 
-    if (tab.isCenter) {
-      // 发布按钮
-      Taro.navigateTo({
-        url: tab.pagePath
-      });
-    } else {
-      // 其他 Tab
-      const url = tab.pagePath;
-      Taro.switchTab({ url });
-    }
+    setSelected(index);
+    Taro.switchTab({ url: tab.pagePath });
   };
 
-  render() {
-    const { selected, tabList } = this.state;
+  return (
+    <View className='custom-tab-bar'>
+      {tabList.map((item, index) => {
+        const isCenter = item.isCenter || item.pagePath === 'center';
+        const isActive = selected === index;
 
-    return (
-      <View className="custom-tab-bar">
-        <View className="tab-bar-content">
-          {tabList.map((tab, index) => {
-            const IconComponent = tab.iconComponent;
-            const isActive = selected === index;
-
-            if (tab.isCenter) {
-              return (
-                <View
-                  key={tab.key}
-                  className="tab-item center-tab"
-                  onClick={() => this.switchTab(index, tab)}
-                >
-                  <View className="center-icon-wrapper">
-                    <IconComponent size={56} />
-                  </View>
-                </View>
-              );
-            }
-
-            return (
-              <View
-                key={tab.key}
-                className={`tab-item ${isActive ? 'active' : ''} ${tab.disabled ? 'disabled' : ''}`}
-                onClick={() => this.switchTab(index, tab)}
-              >
-                <View className="tab-icon">
-                  <IconComponent active={isActive} size={24} />
-                </View>
-                <View className="tab-title">{tab.title}</View>
+        return (
+          <View
+            key={item.key}
+            className={`tab-bar-item ${isActive ? 'tab-bar-item--active' : ''} ${isCenter ? 'tab-bar-item--center' : ''}`}
+            onClick={() => switchTab(index, item)}
+          >
+            {isCenter ? (
+              <View className='center-button'>
+                <Text className='center-button__icon'>+</Text>
               </View>
-            );
-          })}
-        </View>
-      </View>
-    );
-  }
-}
+            ) : (
+              <Text className='tab-bar-item__text'>{item.title}</Text>
+            )}
+          </View>
+        );
+      })}
+    </View>
+  );
+};
+
+export default CustomTabBar;

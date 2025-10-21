@@ -38,11 +38,11 @@ export default defineAppConfig({
     backgroundColorBottom: '#f8fafc'
   },
 
-  // 使用自定义 TabBar
+  // 使用自定义 TabBar - 纯文字版本优化
   tabBar: {
     custom: true,
-    color: '#9ca3af',
-    selectedColor: '#3b82f6',
+    color: '#999999',
+    selectedColor: '#667eea',
     backgroundColor: '#ffffff',
     borderStyle: 'white',
     list: [
@@ -51,20 +51,20 @@ export default defineAppConfig({
         text: '广场'
       },
       {
-        pagePath: 'pages/square/index', // 社区暂时指向广场
+        pagePath: 'pages/search/index',
         text: '社区'
       },
       {
         pagePath: 'pages/topics/create/index',
-        text: ''
+        text: '发布'
       },
       {
         pagePath: 'pages/notifications/index',
-        text: '通知'
+        text: '消息'
       },
       {
         pagePath: 'pages/profile/index',
-        text: '我的'
+        text: '主页'
       }
     ]
   }

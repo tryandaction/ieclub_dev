@@ -1,0 +1,102 @@
+// src/pages/community/index.scss
+// 社区列表页面样式 - 基于开发代码优化版本
+
+.community-page {
+  background: #f8f8f8;
+  min-height: 100vh;
+
+  &__search {
+    padding: 12px 16px;
+    background: #fff;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  &__sort {
+    display: flex;
+    background: #fff;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 8px;
+  }
+
+  &__list {
+    height: calc(100vh - 200px);
+  }
+
+  &__loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  &__no-more {
+    text-align: center;
+    padding: 16px;
+    color: #999;
+    font-size: 14px;
+  }
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: #f5f5f5;
+  border-radius: 20px;
+  padding: 8px 16px;
+
+  &__icon {
+    font-size: 16px;
+    margin-right: 8px;
+    color: #999;
+  }
+
+  &__input {
+    flex: 1;
+    font-size: 14px;
+    background: transparent;
+    border: none;
+    outline: none;
+
+    &::placeholder {
+      color: #999;
+    }
+  }
+
+  &__clear {
+    font-size: 16px;
+    color: #999;
+    padding: 4px;
+    margin-left: 8px;
+  }
+}
+
+.sort-tab {
+  flex: 1;
+  text-align: center;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #666;
+  position: relative;
+  transition: color 0.2s;
+
+  &:active {
+    background: #f5f5f5;
+  }
+
+  &--active {
+    color: #ff4757;
+    font-weight: 500;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 2px;
+      background: #ff4757;
+      border-radius: 1px;
+    }
+  }
+}
