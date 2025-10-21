@@ -1,9 +1,20 @@
 // CustomIcons 组件 - 自定义图标库
+import React from 'react';
 import { View } from '@tarojs/components';
 import './index.scss';
 
+interface IconProps {
+  active?: boolean;
+  size?: number;
+  className?: string;
+}
+
+interface NotificationIconProps extends IconProps {
+  hasUnread?: boolean;
+}
+
 // 广场图标
-export const SquareIcon = ({ active = false, size = 24 }: { active?: boolean; size?: number }) => (
+export const SquareIcon: React.FC<IconProps> = ({ active = false, size = 24, className = '' }) => (
   <View className={`custom-icon square-icon ${active ? 'active' : ''}`} style={{ width: `${size}px`, height: `${size}px` }}>
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect x="3" y="3" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="2" fill={active ? 'currentColor' : 'none'} />
@@ -15,7 +26,7 @@ export const SquareIcon = ({ active = false, size = 24 }: { active?: boolean; si
 );
 
 // 社区图标
-export const CommunityIcon = ({ active = false, size = 24 }: { active?: boolean; size?: number }) => (
+export const CommunityIcon: React.FC<IconProps> = ({ active = false, size = 24, className = '' }) => (
   <View className={`custom-icon community-icon ${active ? 'active' : ''}`} style={{ width: `${size}px`, height: `${size}px` }}>
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill={active ? 'currentColor' : 'none'} />
@@ -26,7 +37,7 @@ export const CommunityIcon = ({ active = false, size = 24 }: { active?: boolean;
 );
 
 // 发布加号图标（大号）
-export const PlusIcon = ({ size = 56 }: { size?: number }) => (
+export const PlusIcon: React.FC<{ size?: number; className?: string }> = ({ size = 56, className = '' }) => (
   <View className="custom-icon plus-icon" style={{ width: `${size}px`, height: `${size}px` }}>
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="12" cy="12" r="10" fill="url(#gradient)" />
@@ -42,7 +53,12 @@ export const PlusIcon = ({ size = 56 }: { size?: number }) => (
 );
 
 // 通知图标
-export const NotificationIcon = ({ active = false, size = 24, hasUnread = false }: { active?: boolean; size?: number; hasUnread?: boolean }) => (
+export const NotificationIcon: React.FC<NotificationIconProps> = ({
+  active = false,
+  size = 24,
+  hasUnread = false,
+  className = ''
+}) => (
   <View className={`custom-icon notification-icon ${active ? 'active' : ''}`} style={{ width: `${size}px`, height: `${size}px`, position: 'relative' }}>
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill={active ? 'currentColor' : 'none'} />
@@ -64,7 +80,7 @@ export const NotificationIcon = ({ active = false, size = 24, hasUnread = false 
 );
 
 // 个人主页/我的图标
-export const ProfileIcon = ({ active = false, size = 24 }: { active?: boolean; size?: number }) => (
+export const ProfileIcon: React.FC<IconProps> = ({ active = false, size = 24, className = '' }) => (
   <View className={`custom-icon profile-icon ${active ? 'active' : ''}`} style={{ width: `${size}px`, height: `${size}px` }}>
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" fill={active ? 'currentColor' : 'none'} />
@@ -74,7 +90,7 @@ export const ProfileIcon = ({ active = false, size = 24 }: { active?: boolean; s
 );
 
 // 默认头像图标
-export const DefaultAvatarIcon = ({ size = 40 }: { size?: number }) => (
+export const DefaultAvatarIcon: React.FC<{ size?: number; className?: string }> = ({ size = 40, className = '' }) => (
   <View className="custom-icon default-avatar" style={{ width: `${size}px`, height: `${size}px` }}>
     <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="20" cy="20" r="20" fill="#e5e7eb" />
@@ -84,13 +100,41 @@ export const DefaultAvatarIcon = ({ size = 40 }: { size?: number }) => (
   </View>
 );
 
-// 默认封面图标
-export const DefaultCoverIcon = ({ width = '100%', height = '160px' }: { width?: string; height?: string }) => (
-  <View className="custom-icon default-cover" style={{ width, height, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="3" y="3" width="18" height="18" rx="2" stroke="white" strokeWidth="1.5" opacity="0.5" />
-      <circle cx="8.5" cy="8.5" r="2.5" stroke="white" strokeWidth="1.5" opacity="0.5" />
-      <path d="M21 15l-5-5L5 21" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
-    </svg>
-  </View>
-);
+  // 默认封面图标
+  export const DefaultCoverIcon: React.FC<{
+    width?: string;
+    height?: string;
+    className?: string;
+  }> = ({
+    width = '100%',
+    height = '160px',
+    className = ''
+  }) => (
+    <View
+      className={`custom-icon default-cover ${className}`}
+      style={{
+        width,
+        height,
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}
+    >
+      <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="3" width="18" height="18" rx="2" stroke="white" strokeWidth="1.5" opacity="0.5" />
+        <circle cx="8.5" cy="8.5" r="2.5" stroke="white" strokeWidth="1.5" opacity="0.5" />
+        <path d="M21 15l-5-5L5 21" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
+      </svg>
+    </View>
+  );
+
+  export default {
+    SquareIcon,
+    CommunityIcon,
+    PlusIcon,
+    NotificationIcon,
+    ProfileIcon,
+    DefaultAvatarIcon,
+    DefaultCoverIcon
+  };

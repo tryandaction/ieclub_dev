@@ -34,6 +34,13 @@ export default function ProfilePage() {
     }
   }, [isLogin, userInfo, loadStats])
 
+  // 设置当前 TabBar 选中项 - 在小程序中通常自动管理
+  useEffect(() => {
+    // TabBar选中状态在小程序环境中由框架自动管理
+    // 这里可以添加其他页面初始化逻辑
+    console.log('个人中心页面加载完成');
+  }, [])
+
   const handleLogout = () => {
     Taro.showModal({
       title: '提示',

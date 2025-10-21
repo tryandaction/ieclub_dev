@@ -16,10 +16,7 @@ export default defineAppConfig({
     // 话题相关页面（通过导航访问）
     'pages/topics/create/index',      // 创建话题 - 发布入口
     'pages/topics/detail/index',      // 话题详情 - 内容查看
-    'pages/topics/index',             // 话题列表 - 分类浏览
-
-    // 首页保留（兼容旧版）
-    'pages/index/index'               // 首页（兼容性保留）
+    'pages/topics/index'              // 话题列表 - 分类浏览
   ],
 
   // ===== 窗口配置优化 =====
@@ -41,39 +38,35 @@ export default defineAppConfig({
     backgroundColorBottom: '#f8fafc'
   },
 
-  // ===== 底部导航栏优化 =====
+  // 使用自定义 TabBar
   tabBar: {
-    // 视觉设计优化
-    color: '#94a3b8',                    // 未选中颜色 - 更柔和
-    selectedColor: '#667eea',            // 选中颜色 - 品牌主色
-    backgroundColor: '#ffffff',          // 背景色
-    borderStyle: 'black',                // 边框样式 - 更清晰
-
-    // 交互体验优化
-    custom: false,                       // 使用系统tabBar
-    position: 'bottom',                  // 固定在底部
-
-    // TabBar 项目配置（按用户习惯排序）
+    custom: true,
+    color: '#9ca3af',
+    selectedColor: '#3b82f6',
+    backgroundColor: '#ffffff',
+    borderStyle: 'white',
     list: [
       {
         pagePath: 'pages/square/index',
-        text: '广场',
-        iconPath: 'assets/icons/square.png',
-        selectedIconPath: 'assets/icons/square-active.png'
+        text: '广场'
+      },
+      {
+        pagePath: 'pages/square/index', // 社区暂时指向广场
+        text: '社区'
+      },
+      {
+        pagePath: 'pages/topics/create/index',
+        text: ''
       },
       {
         pagePath: 'pages/notifications/index',
-        text: '通知',
-        iconPath: 'assets/icons/notification.png',
-        selectedIconPath: 'assets/icons/notification-active.png'
+        text: '通知'
       },
       {
         pagePath: 'pages/profile/index',
-        text: '我的',
-        iconPath: 'assets/icons/profile.png',
-        selectedIconPath: 'assets/icons/profile-active.png'
+        text: '我的'
       }
     ]
-  },
+  }
 
 })

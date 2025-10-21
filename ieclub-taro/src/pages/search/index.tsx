@@ -155,7 +155,7 @@ export default function SearchPage() {
     if (type === 'topic') {
       Taro.navigateTo({ url: `/pages/topics/detail/index?id=${id}` })
     } else if (type === 'user') {
-      Taro.navigateTo({ url: `/pages/user-profile/index?id=${id}` })
+      Taro.navigateTo({ url: `/pages/profile/index?id=${id}` })
     }
   }
 

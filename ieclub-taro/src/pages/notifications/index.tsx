@@ -10,15 +10,12 @@ const NotificationsPage = () => {
   const [loading, setLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // 设置当前 TabBar 选中项 - 暂时禁用以避免类型错误
-  // useEffect(() => {
-  //   const tabbar = Taro.getTabBar && Taro.getTabBar();
-  //   if (tabbar && tabbar.setData) {
-  //     tabbar.setData({
-  //       selected: 3
-  //     });
-  //   }
-  // }, []);
+  // 设置当前 TabBar 选中项 - 在小程序中通常自动管理
+  useEffect(() => {
+    // TabBar选中状态在小程序环境中由框架自动管理
+    // 这里可以添加其他页面初始化逻辑
+    console.log('通知页面加载完成');
+  }, []);
 
   useEffect(() => {
     fetchNotifications();
