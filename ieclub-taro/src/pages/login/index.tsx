@@ -224,6 +224,8 @@ export default function LoginPage() {
                 type='text'
                 placeholder='请输入南科大邮箱'
                 value={form.email}
+                id='login-email'
+                name='email'
                 onInput={(e) => setForm({ ...form, email: e.detail.value })}
               />
             </View>
@@ -237,6 +239,8 @@ export default function LoginPage() {
                 password
                 placeholder='请输入密码'
                 value={form.password}
+                id='login-password'
+                name='password'
                 onInput={(e) => setForm({ ...form, password: e.detail.value })}
               />
             </View>
@@ -280,6 +284,8 @@ export default function LoginPage() {
                 type='text'
                 placeholder='example@mail.sustech.edu.cn'
                 value={form.email}
+                id='register-email'
+                name='email'
                 onInput={(e) => setForm({ ...form, email: e.detail.value })}
               />
             </View>
@@ -295,6 +301,8 @@ export default function LoginPage() {
                   maxlength={6}
                   placeholder='6位验证码'
                   value={form.verifyCode}
+                  id='register-verify-code'
+                  name='verifyCode'
                   onInput={(e) => setForm({ ...form, verifyCode: e.detail.value })}
                 />
                 <Button
@@ -342,6 +350,8 @@ export default function LoginPage() {
                 password
                 placeholder='请设置登录密码'
                 value={form.password}
+                id='register-password'
+                name='password'
                 onInput={(e) => setForm({ ...form, password: e.detail.value })}
               />
             </View>
@@ -355,6 +365,8 @@ export default function LoginPage() {
                 password
                 placeholder='请再次输入密码'
                 value={form.confirmPassword}
+                id='register-confirm-password'
+                name='confirmPassword'
                 onInput={(e) => setForm({ ...form, confirmPassword: e.detail.value })}
               />
             </View>

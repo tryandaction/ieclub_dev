@@ -316,13 +316,17 @@ img {
 
 // ==================== 焦点样式优化 ====================
 @include respond-above('desktop') {
-  *:focus {
+  button:focus,
+  a:focus,
+  input:focus,
+  textarea:focus {
     outline: none;
   }
 
   button:focus-visible,
   a:focus-visible,
-  input:focus-visible {
+  input:focus-visible,
+  textarea:focus-visible {
     outline: 2px solid #667eea;
     outline-offset: 2px;
   }

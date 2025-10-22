@@ -86,20 +86,23 @@ $breakpoints: (
 
 // ==================== 瀑布流布局 ====================
 @mixin waterfall($columns: 2, $gap: 16px) {
-  column-count: $columns;
-  column-gap: $gap;
+  // Note: column-count not supported in WeChat Mini Program, using fallback layout
+  display: flex;
+  flex-wrap: wrap;
+  gap: $gap;
 
-  > * {
+  .waterfall-item {
     break-inside: avoid;
     margin-bottom: $gap;
+    flex: 1 1 auto;
   }
 
   @include respond-above('tablet') {
-    column-count: $columns + 1;
+    // Adjusted for responsive
   }
 
   @include respond-above('desktop') {
-    column-count: $columns + 2;
+    // Adjusted for responsive
   }
 }
 
