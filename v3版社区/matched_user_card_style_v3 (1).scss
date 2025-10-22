@@ -1,0 +1,138 @@
+// src/components/MatchedUserCard/index.scss
+// 匹配用户卡片样式 - 第三版本
+
+.matched-user-card {
+  display: flex;
+  align-items: flex-start;
+  padding: 32rpx;
+  background: #ffffff;
+  margin-bottom: 16rpx;
+  border-radius: 16rpx;
+  transition: all 0.3s ease;
+  position: relative;
+
+  &:active {
+    background: #f8f8f8;
+    transform: scale(0.98);
+  }
+
+  &__badge {
+    position: absolute;
+    top: 24rpx;
+    right: 24rpx;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 96rpx;
+    height: 96rpx;
+    border-radius: 50%;
+    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  }
+
+  &__score {
+    font-size: 32rpx;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1;
+  }
+
+  &__icon {
+    font-size: 24rpx;
+    margin-top: 4rpx;
+  }
+
+  &__avatar {
+    width: 112rpx;
+    height: 112rpx;
+    border-radius: 50%;
+    margin-right: 24rpx;
+    flex-shrink: 0;
+    border: 4rpx solid #f0f0f0;
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12rpx;
+    padding-right: 80rpx; // 为徽章留空间
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16rpx;
+  }
+
+  &__nickname {
+    font-size: 32rpx;
+    font-weight: 600;
+    color: #1a1a1a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+
+  &__level {
+    font-size: 24rpx;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  &__bio {
+    font-size: 26rpx;
+    color: #999999;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__reasons {
+    display: flex;
+    gap: 12rpx;
+    flex-wrap: wrap;
+  }
+
+  &__common {
+    display: flex;
+    flex-direction: column;
+    gap: 8rpx;
+    padding: 16rpx;
+    background: #f8f8f8;
+    border-radius: 12rpx;
+  }
+
+  &__details {
+    margin-top: 8rpx;
+  }
+}
+
+.reason-tag {
+  padding: 6rpx 16rpx;
+  background: linear-gradient(135deg, #fff5f5 0%, #f5f0ff 100%);
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  color: #667eea;
+  font-weight: 500;
+}
+
+.common-item {
+  font-size: 24rpx;
+  color: #666666;
+  line-height: 1.6;
+}
+
+.details-button {
+  font-size: 26rpx;
+  color: #667eea;
+  text-align: right;
+  padding: 8rpx 0;
+
+  &:active {
+    opacity: 0.7;
+  }
+}

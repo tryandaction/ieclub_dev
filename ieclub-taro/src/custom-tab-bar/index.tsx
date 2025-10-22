@@ -28,7 +28,7 @@ const CustomTabBar: React.FC = () => {
     },
     {
       key: 'publish',
-      title: '', // 中间加号按钮占位
+      title: '+', // 中间加号按钮
       pagePath: 'center',
       isCenter: true
     },

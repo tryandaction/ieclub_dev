@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { View, ScrollView, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
-import { DefaultCoverIcon } from '../../components/CustomIcons';
+import { DefaultCoverIcon, DefaultAvatarIcon } from '../../components/CustomIcons';
 import './index.scss';
 
 // API配置 - 可以根据需要修改服务器地址
@@ -145,11 +145,15 @@ const SquarePage = () => {
       <View className='topic-info'>
         <View className='topic-title'>{topic.title}</View>
         <View className='topic-author'>
-          <Image
-            src={topic.author?.avatar || '/default-avatar.png'}
-            className='author-avatar'
-            mode='aspectFill'
-          />
+          {topic.author?.avatar ? (
+            <Image
+              src={topic.author.avatar}
+              className='author-avatar'
+              mode='aspectFill'
+            />
+          ) : (
+            <DefaultAvatarIcon size={32} />
+          )}
           <View className='author-name'>
             {topic.author?.nickname || topic.author?.username}
           </View>

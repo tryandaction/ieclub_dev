@@ -1,0 +1,195 @@
+  &__arrow {
+    font-size: 48rpx;
+    color: #cccccc;
+  }
+}
+
+// 智能匹配入口
+.matching-entry {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #e8f5ff 0%, #fff0f5 100%);
+  border-radius: 16rpx;
+  transition: all 0.3s ease;
+
+  &:active {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+
+  &__icon {
+    font-size: 48rpx;
+  }
+
+  &__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4rpx;
+  }
+
+  &__title {
+    font-size: 30rpx;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  &__desc {
+    font-size: 24rpx;
+    color: #999999;
+  }
+
+  &__arrow {
+    font-size: 48rpx;
+    color: #cccccc;
+  }
+}// src/pages/community/index.scss
+// 社区列表页面样式 - 第一版本
+
+.community-page {
+  min-height: 100vh;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+
+  &__search {
+    padding: 24rpx 32rpx;
+    background: #ffffff;
+    border-bottom: 1rpx solid #f0f0f0;
+  }
+
+  &__ranking-entry {
+    padding: 24rpx 32rpx 12rpx;
+    background: #ffffff;
+    border-bottom: 1rpx solid #f0f0f0;
+  }
+
+  &__matching-entry {
+    padding: 12rpx 32rpx 24rpx;
+    background: #ffffff;
+    border-bottom: 1rpx solid #f0f0f0;
+  }
+
+  &__sort {
+    display: flex;
+    gap: 24rpx;
+    padding: 24rpx 32rpx;
+    background: #ffffff;
+    border-bottom: 1rpx solid #f0f0f0;
+  }
+
+  &__list {
+    flex: 1;
+    padding: 24rpx 32rpx;
+  }
+
+  &__loading {
+    display: flex;
+    justify-content: center;
+    padding: 64rpx 0;
+  }
+
+  &__no-more {
+    text-align: center;
+    padding: 48rpx 0;
+    font-size: 28rpx;
+    color: #999999;
+  }
+}
+
+// 搜索栏
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: #f8f8f8;
+  border-radius: 48rpx;
+  padding: 16rpx 32rpx;
+  gap: 16rpx;
+
+  &__icon {
+    font-size: 32rpx;
+    color: #999999;
+  }
+
+  &__input {
+    flex: 1;
+    font-size: 28rpx;
+    color: #1a1a1a;
+  }
+
+  &__clear {
+    font-size: 32rpx;
+    color: #999999;
+    cursor: pointer;
+    padding: 8rpx;
+
+    &:active {
+      opacity: 0.6;
+    }
+  }
+}
+
+// 排序标签
+.sort-tab {
+  padding: 12rpx 32rpx;
+  border-radius: 48rpx;
+  font-size: 28rpx;
+  color: #666666;
+  background: #f8f8f8;
+  transition: all 0.3s ease;
+
+  &:active {
+    opacity: 0.8;
+  }
+
+  &--active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    font-weight: 600;
+  }
+}
+
+// 排行榜入口
+.ranking-entry {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #fff5f5 0%, #f5f0ff 100%);
+  border-radius: 16rpx;
+  transition: all 0.3s ease;
+
+  &:active {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+
+  &__icon {
+    font-size: 48rpx;
+  }
+
+  &__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4rpx;
+  }
+
+  &__title {
+    font-size: 30rpx;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  &__desc {
+    font-size: 24rpx;
+    color: #999999;
+  }
+
+  &__arrow {
+    font-size: 48rpx;
+    color: #cccccc;
+  }
+}

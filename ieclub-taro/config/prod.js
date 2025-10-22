@@ -5,7 +5,7 @@ module.exports = {
     NODE_ENV: '"production"'
   },
   defineConstants: {
-    TARO_APP_API: '"https://ieclub.online/api"'
+    TARO_APP_API: '"https://api.ieclub.online/api"'
   },
   mini: {
     postcss: {

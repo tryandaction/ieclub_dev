@@ -9,10 +9,7 @@
     "pages/topics/detail/index",
     "pages/topics/index",
     "pages/community/index",
-    "pages/community/matching/index",
-    "pages/community/profile/index",
-    "pages/community/ranking/index",
-    "pages/index/index"
+    "pages/community/profile/index"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -35,7 +32,7 @@
         "text": "广场"
       },
       {
-        "pagePath": "pages/search/index",
+        "pagePath": "pages/community/index",
         "text": "社区"
       },
       {

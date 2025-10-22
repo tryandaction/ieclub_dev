@@ -1,0 +1,208 @@
+// src/pages/community/matching/index.scss
+// 智能匹配页面样式 - 第三版本
+
+.matching-page {
+  min-height: 100vh;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+
+// 头部信息
+.matching-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 32rpx;
+  margin-bottom: 16rpx;
+
+  &__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24rpx;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 8rpx;
+  }
+
+  &__title {
+    font-size: 40rpx;
+    font-weight: 600;
+    color: #ffffff;
+  }
+
+  &__subtitle {
+    font-size: 26rpx;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  &__actions {
+    display: flex;
+    gap: 16rpx;
+  }
+
+  &__score {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16rpx;
+    padding: 24rpx;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 16rpx;
+    backdrop-filter: blur(10rpx);
+  }
+}
+
+.action-button {
+  padding: 12rpx 24rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 24rpx;
+  backdrop-filter: blur(10rpx);
+
+  &:active {
+    opacity: 0.7;
+  }
+
+  &__text {
+    font-size: 26rpx;
+    color: #ffffff;
+  }
+
+  &--primary {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+.score-label {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.score-value {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+// 匹配建议
+.matching-suggestions {
+  background: #ffffff;
+  padding: 32rpx 0;
+  margin-bottom: 16rpx;
+
+  &__title {
+    font-size: 32rpx;
+    font-weight: 600;
+    color: #1a1a1a;
+    padding: 0 32rpx 24rpx;
+  }
+
+  &__scroll {
+    white-space: nowrap;
+    padding: 0 32rpx;
+  }
+}
+
+.suggestion-card {
+  display: inline-block;
+  width: 280rpx;
+  padding: 24rpx;
+  margin-right: 16rpx;
+  background: linear-gradient(135deg, #fff5f5 0%, #f5f0ff 100%);
+  border-radius: 16rpx;
+  vertical-align: top;
+  transition: all 0.3s ease;
+
+  &:active {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+
+  &__title {
+    font-size: 28rpx;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 12rpx;
+    display: block;
+  }
+
+  &__desc {
+    font-size: 24rpx;
+    color: #666666;
+    line-height: 1.5;
+    margin-bottom: 16rpx;
+    display: block;
+    white-space: normal;
+  }
+
+  &__count {
+    font-size: 24rpx;
+    color: #667eea;
+    font-weight: 600;
+    display: block;
+  }
+}
+
+// 匹配类型选项卡
+.matching-tabs {
+  display: flex;
+  gap: 24rpx;
+  padding: 24rpx 32rpx;
+  background: #ffffff;
+  margin-bottom: 16rpx;
+}
+
+.matching-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 20rpx 0;
+  border-radius: 16rpx;
+  background: #f8f8f8;
+  transition: all 0.3s ease;
+
+  &:active {
+    opacity: 0.8;
+  }
+
+  &__icon {
+    font-size: 40rpx;
+  }
+
+  &__label {
+    font-size: 26rpx;
+    color: #666666;
+  }
+
+  &--active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+    .matching-tab__label {
+      color: #ffffff;
+      font-weight: 600;
+    }
+  }
+}
+
+// 匹配列表
+.matching-list {
+  flex: 1;
+  padding: 0 32rpx 24rpx;
+
+  &__loading {
+    display: flex;
+    justify-content: center;
+    padding: 64rpx 0;
+  }
+
+  &__no-more {
+    text-align: center;
+    padding: 48rpx 0;
+    font-size: 28rpx;
+    color: #999999;
+  }
+}
