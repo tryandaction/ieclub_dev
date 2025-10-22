@@ -1,5 +1,6 @@
 // ==================== 增强话题API服务 ====================
 
+import Taro from '@tarojs/taro'
 import { request } from './request'
 import type {
   EnhancedTopic,
@@ -53,18 +54,37 @@ export function performQuickAction(data: QuickActionRequest) {
 }
 
 /**
- * 上传文档
+ * 上传文档（小程序环境）
  */
-export async function uploadDocument(file: File): Promise<DocumentAttachment> {
-  const formData = new FormData()
-  formData.append('file', file)
+export async function uploadDocument(filePath: string): Promise<DocumentAttachment> {
+  // 在小程序环境中，使用Taro.uploadFile
+  const token = Taro.getStorageSync('token')
 
-  // 这里需要使用原生上传，不能用 Taro.uploadFile
-  // 因为需要返回完整的文档信息
-  return request({
-    url: '/api/v2/upload/document',
-    method: 'POST',
-    data: formData
+  return new Promise((resolve, reject) => {
+    Taro.uploadFile({
+      url: `${process.env.TARO_APP_API}/api/v2/upload/document`,
+      filePath,
+      name: 'file',
+      header: {
+        'Authorization': `Bearer ${token}`,
+        'X-Platform': process.env.TARO_ENV || 'unknown'
+      },
+      success: (res) => {
+        try {
+          const data = JSON.parse(res.data)
+          if (data.code === 200) {
+            resolve(data.data)
+          } else {
+            reject(new Error(data.message || '上传失败'))
+          }
+        } catch (error) {
+          reject(new Error('解析响应失败'))
+        }
+      },
+      fail: (error) => {
+        reject(new Error(error.errMsg || '上传失败'))
+      }
+    })
   })
 }
 

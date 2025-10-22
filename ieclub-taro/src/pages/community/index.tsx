@@ -52,8 +52,12 @@ const CommunityPage: React.FC = () => {
   useEffect(() => {
     return () => {
       reset();
+      // 清理搜索防抖定时器
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
     };
-  }, []);
+  }, [reset, searchTimeout]);
 
   // 切换排序
   const handleSortChange = (sort: UserSortType) => {
@@ -73,7 +77,12 @@ const CommunityPage: React.FC = () => {
     }
 
     const timeout = setTimeout(() => {
-      searchUsers(keyword);
+      if (keyword.trim()) {
+        searchUsers(keyword.trim());
+      } else {
+        setSearchKeyword('');
+        loadUsers(true);
+      }
     }, 500);
 
     setSearchTimeout(timeout);

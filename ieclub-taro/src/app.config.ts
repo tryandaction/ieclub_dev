@@ -6,21 +6,21 @@ export default defineAppConfig({
   pages: [
     // TabBar 页面（高频访问）- 必须按 tabBar 顺序排列
     'pages/square/index',             // 话题广场 - 主入口
-    'pages/community/index',          // 社区主页
+    'pages/search/index',             // 搜索功能 - 内容查找（替代社区主页）
     'pages/topics/create/index',      // 创建话题 - 发布入口
     'pages/notifications/index',      // 通知中心 - 互动提醒
     'pages/profile/index',            // 个人中心 - 用户信息
 
     // 独立功能页面（按需访问）
     'pages/login/index',              // 登录注册 - 认证入口
-    'pages/search/index',             // 搜索功能 - 内容查找
 
     // 话题相关页面（通过导航访问）
     'pages/topics/detail/index',      // 话题详情 - 内容查看
     'pages/topics/index',             // 话题列表 - 分类浏览
 
     // 社区相关页面
-    'pages/community/profile/index'   // 社区个人资料
+    'pages/community/index',          // 社区主页 - 独立访问页面
+    'pages/community/profile/index'   // 社区个人资料页
   ],
 
   // ===== 窗口配置优化 =====

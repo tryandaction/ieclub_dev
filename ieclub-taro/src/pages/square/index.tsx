@@ -5,19 +5,10 @@ import Taro from '@tarojs/taro';
 import { DefaultCoverIcon, DefaultAvatarIcon } from '../../components/CustomIcons';
 import './index.scss';
 
-// API配置 - 可以根据需要修改服务器地址
-const API_CONFIG = {
-  // 开发环境服务器地址，请根据实际情况修改
-  // 如果你的后端服务器运行在不同端口，请修改这里
-  development: 'http://localhost:3000/api',
-  // 生产环境服务器地址
-  production: 'https://ieclub.online/api'
-};
-
-// 获取API基础URL
+// 使用统一的API配置
 const getApiBase = () => {
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  return isDevelopment ? API_CONFIG.development : API_CONFIG.production;
+  // 使用环境变量中的API地址，确保与config/prod.js一致
+  return process.env.TARO_APP_API || 'https://ieclub.online/api';
 };
 
 const SquarePage = () => {
