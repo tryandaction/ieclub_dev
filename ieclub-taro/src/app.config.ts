@@ -16,7 +16,16 @@ export default defineAppConfig({
     // 话题相关页面（通过导航访问）
     'pages/topics/create/index',      // 创建话题 - 发布入口
     'pages/topics/detail/index',      // 话题详情 - 内容查看
-    'pages/topics/index'              // 话题列表 - 分类浏览
+    'pages/topics/index',             // 话题列表 - 分类浏览
+
+    // 社区相关页面
+    'pages/community/index',          // 社区主页
+    'pages/community/matching/index', // 智能匹配
+    'pages/community/profile/index',  // 社区个人资料
+    'pages/community/ranking/index',  // 排行榜
+
+    // 首页（如果需要）
+    'pages/index/index'               // 首页
   ],
 
   // ===== 窗口配置优化 =====

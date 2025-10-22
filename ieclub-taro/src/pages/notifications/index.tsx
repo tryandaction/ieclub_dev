@@ -119,12 +119,12 @@ const NotificationsPage = () => {
       className={`notification-item ${notification.isRead ? '' : 'unread'}`}
       onClick={() => markAsRead(notification.id)}
     >
-      <View className="notification-icon">
+      <View className='notification-icon'>
         {getNotificationIcon(notification.type)}
       </View>
-      <View className="notification-content">
-        <View className="notification-text">{notification.content}</View>
-        <View className="notification-time">
+      <View className='notification-content'>
+        <View className='notification-text'>{notification.content}</View>
+        <View className='notification-time'>
           {new Date(notification.createdAt).toLocaleString('zh-CN', {
             month: '2-digit',
             day: '2-digit',
@@ -133,35 +133,35 @@ const NotificationsPage = () => {
           })}
         </View>
       </View>
-      {!notification.isRead && <View className="unread-dot"></View>}
+      {!notification.isRead && <View className='unread-dot'></View>}
     </View>
   );
 
   return (
-    <View className="notifications-page">
-      <View className="header">
-        <View className="header-title">通知</View>
+    <View className='notifications-page'>
+      <View className='header'>
+        <View className='header-title'>通知</View>
         {unreadCount > 0 && (
-          <View className="mark-all-btn" onClick={markAllAsRead}>
+          <View className='mark-all-btn' onClick={markAllAsRead}>
             全部已读
           </View>
         )}
       </View>
 
-      <ScrollView className="notifications-scroll" scrollY>
+      <ScrollView className='notifications-scroll' scrollY>
         {loading ? (
-          <View className="loading">
-            <View className="loading-spinner"></View>
-            <View className="loading-text">加载中...</View>
+          <View className='loading'>
+            <View className='loading-spinner'></View>
+            <View className='loading-text'>加载中...</View>
           </View>
         ) : notifications.length > 0 ? (
-          <View className="notifications-list">
+          <View className='notifications-list'>
             {notifications.map(renderNotification)}
           </View>
         ) : (
-          <View className="empty-state">
-            <View className="empty-icon">🔔</View>
-            <View className="empty-text">暂无通知</View>
+          <View className='empty-state'>
+            <View className='empty-icon'>🔔</View>
+            <View className='empty-text'>暂无通知</View>
           </View>
         )}
       </ScrollView>

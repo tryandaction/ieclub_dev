@@ -134,60 +134,60 @@ const SquarePage = () => {
   const renderTopicCard = (topic: any) => (
     <View
       key={topic.id}
-      className="topic-card"
+      className='topic-card'
       onClick={() => goToTopicDetail(topic.id)}
     >
       {topic.cover ? (
-        <Image src={topic.cover} className="topic-cover" mode="aspectFill" />
+        <Image src={topic.cover} className='topic-cover' mode='aspectFill' />
       ) : (
-        <DefaultCoverIcon height="180px" />
+        <DefaultCoverIcon height='180px' />
       )}
-      <View className="topic-info">
-        <View className="topic-title">{topic.title}</View>
-        <View className="topic-author">
+      <View className='topic-info'>
+        <View className='topic-title'>{topic.title}</View>
+        <View className='topic-author'>
           <Image
             src={topic.author?.avatar || '/default-avatar.png'}
-            className="author-avatar"
-            mode="aspectFill"
+            className='author-avatar'
+            mode='aspectFill'
           />
-          <View className="author-name">
+          <View className='author-name'>
             {topic.author?.nickname || topic.author?.username}
           </View>
         </View>
-        <View className="topic-stats">
-          <View className="stat-item">👍 {topic.likeCount || 0}</View>
-          <View className="stat-item">💬 {topic.commentCount || 0}</View>
+        <View className='topic-stats'>
+          <View className='stat-item'>👍 {topic.likeCount || 0}</View>
+          <View className='stat-item'>💬 {topic.commentCount || 0}</View>
         </View>
       </View>
     </View>
   );
 
   return (
-    <View className="square-page">
+    <View className='square-page'>
       {/* 顶部搜索栏 */}
-      <View className="header">
-        <View className="search-bar" onClick={goToSearch}>
-          <View className="search-icon">🔍</View>
-          <View className="search-placeholder">搜索话题、用户...</View>
+      <View className='header'>
+        <View className='search-bar' onClick={goToSearch}>
+          <View className='search-icon'>🔍</View>
+          <View className='search-placeholder'>搜索话题、用户...</View>
         </View>
       </View>
 
       {/* 话题列表 */}
-      <ScrollView className="content" scrollY style={{ height: 'calc(100vh - 140px)' }}>
+      <ScrollView className='content' scrollY style={{ height: 'calc(100vh - 140px)' }}>
         {loading ? (
-          <View className="loading">
-            <View className="loading-spinner"></View>
-            <View className="loading-text">加载中...</View>
+          <View className='loading'>
+            <View className='loading-spinner'></View>
+            <View className='loading-text'>加载中...</View>
           </View>
         ) : topics.length > 0 ? (
-          <View className="topic-waterfall">
+          <View className='topic-waterfall'>
             {topics.map(renderTopicCard)}
           </View>
         ) : (
-          <View className="empty-state">
-            <View className="empty-icon">📭</View>
-            <View className="empty-text">暂无话题</View>
-            <View className="empty-hint">快来发布第一个话题吧</View>
+          <View className='empty-state'>
+            <View className='empty-icon'>📭</View>
+            <View className='empty-text'>暂无话题</View>
+            <View className='empty-hint'>快来发布第一个话题吧</View>
           </View>
         )}
       </ScrollView>

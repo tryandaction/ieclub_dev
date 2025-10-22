@@ -87,7 +87,7 @@ const UserProfilePage: React.FC = () => {
 
   if (loading) {
     return (
-      <View className="profile-page">
+      <View className='profile-page'>
         <LoadingSpinner />
       </View>
     );
@@ -95,68 +95,68 @@ const UserProfilePage: React.FC = () => {
 
   if (!profile) {
     return (
-      <View className="profile-page">
-        <View className="profile-page__error">用户不存在</View>
+      <View className='profile-page'>
+        <View className='profile-page__error'>用户不存在</View>
       </View>
     );
   }
 
   return (
-    <View className="profile-page">
-      <ScrollView className="profile-page__scroll" scrollY>
+    <View className='profile-page'>
+      <ScrollView className='profile-page__scroll' scrollY>
         {/* 用户信息卡片 */}
-        <View className="profile-header">
-          <View className="profile-header__bg" />
+        <View className='profile-header'>
+          <View className='profile-header__bg' />
 
-          <View className="profile-header__content">
+          <View className='profile-header__content'>
             <Image
-              className="profile-header__avatar"
+              className='profile-header__avatar'
               src={profile.avatar}
-              mode="aspectFill"
+              mode='aspectFill'
             />
 
-            <Text className="profile-header__nickname">{profile.nickname}</Text>
+            <Text className='profile-header__nickname'>{profile.nickname}</Text>
 
-            <Text className="profile-header__bio">
+            <Text className='profile-header__bio'>
               {profile.bio || '这个人很懒,什么都没留下~'}
             </Text>
 
-            <View className="profile-header__tags">
+            <View className='profile-header__tags'>
               {profile.tags.map((tag, index) => (
-                <View key={index} className="tag">
+                <View key={index} className='tag'>
                   {tag}
                 </View>
               ))}
             </View>
 
-            <Text className="profile-header__time">
+            <Text className='profile-header__time'>
               {formatDate(profile.registerTime)}加入
             </Text>
           </View>
         </View>
 
         {/* 统计数据 */}
-        <View className="profile-stats">
-          <View className="profile-stats__item">
-            <Text className="profile-stats__value">{profile.topicsCount}</Text>
-            <Text className="profile-stats__label">话题</Text>
+        <View className='profile-stats'>
+          <View className='profile-stats__item'>
+            <Text className='profile-stats__value'>{profile.topicsCount}</Text>
+            <Text className='profile-stats__label'>话题</Text>
           </View>
-          <View className="profile-stats__item">
-            <Text className="profile-stats__value">{profile.followersCount}</Text>
-            <Text className="profile-stats__label">粉丝</Text>
+          <View className='profile-stats__item'>
+            <Text className='profile-stats__value'>{profile.followersCount}</Text>
+            <Text className='profile-stats__label'>粉丝</Text>
           </View>
-          <View className="profile-stats__item">
-            <Text className="profile-stats__value">{profile.followingCount}</Text>
-            <Text className="profile-stats__label">关注</Text>
+          <View className='profile-stats__item'>
+            <Text className='profile-stats__value'>{profile.followingCount}</Text>
+            <Text className='profile-stats__label'>关注</Text>
           </View>
-          <View className="profile-stats__item profile-stats__item--highlight">
-            <Text className="profile-stats__value">{profile.interactionCount}</Text>
-            <Text className="profile-stats__label">互动</Text>
+          <View className='profile-stats__item profile-stats__item--highlight'>
+            <Text className='profile-stats__value'>{profile.interactionCount}</Text>
+            <Text className='profile-stats__label'>互动</Text>
           </View>
         </View>
 
         {/* 关注按钮 */}
-        <View className="profile-actions">
+        <View className='profile-actions'>
           <Button
             variant={profile.isFollowing ? 'secondary' : 'primary'}
             onClick={handleFollow}
@@ -169,23 +169,23 @@ const UserProfilePage: React.FC = () => {
 
         {/* 最近话题 */}
         {profile.recentTopics.length > 0 && (
-          <View className="profile-topics">
-            <View className="profile-topics__header">
-              <Text className="profile-topics__title">最近话题</Text>
+          <View className='profile-topics'>
+            <View className='profile-topics__header'>
+              <Text className='profile-topics__title'>最近话题</Text>
             </View>
 
             {profile.recentTopics.map(topic => (
               <View
                 key={topic.id}
-                className="topic-item"
+                className='topic-item'
                 onClick={() => handleTopicClick(topic.id)}
               >
-                <Text className="topic-item__title">{topic.title}</Text>
-                <View className="topic-item__meta">
-                  <Text className="topic-item__time">
+                <Text className='topic-item__title'>{topic.title}</Text>
+                <View className='topic-item__meta'>
+                  <Text className='topic-item__time'>
                     {formatDate(topic.createdAt)}
                   </Text>
-                  <Text className="topic-item__likes">
+                  <Text className='topic-item__likes'>
                     ❤️ {topic.likesCount}
                   </Text>
                 </View>

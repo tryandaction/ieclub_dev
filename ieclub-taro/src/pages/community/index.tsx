@@ -87,19 +87,19 @@ const CommunityPage: React.FC = () => {
   };
 
   return (
-    <View className="community-page">
+    <View className='community-page'>
       {/* 搜索栏 */}
-      <View className="community-page__search">
-        <View className="search-bar">
-          <View className="search-bar__icon">🔍</View>
+      <View className='community-page__search'>
+        <View className='search-bar'>
+          <View className='search-bar__icon'>🔍</View>
           <Input
-            className="search-bar__input"
-            placeholder="搜索用户昵称..."
+            className='search-bar__input'
+            placeholder='搜索用户昵称...'
             value={localKeyword}
             onInput={handleSearchInput}
           />
           {localKeyword && (
-            <View className="search-bar__clear" onClick={handleClearSearch}>
+            <View className='search-bar__clear' onClick={handleClearSearch}>
               ✕
             </View>
           )}
@@ -107,7 +107,7 @@ const CommunityPage: React.FC = () => {
       </View>
 
       {/* 排序标签 */}
-      <View className="community-page__sort">
+      <View className='community-page__sort'>
         <View
           className={`sort-tab ${currentSort === UserSortType.REGISTER_TIME ? 'sort-tab--active' : ''}`}
           onClick={() => handleSortChange(UserSortType.REGISTER_TIME)}
@@ -124,7 +124,7 @@ const CommunityPage: React.FC = () => {
 
       {/* 用户列表 */}
       <ScrollView
-        className="community-page__list"
+        className='community-page__list'
         scrollY
         enableBackToTop
       >
@@ -140,19 +140,19 @@ const CommunityPage: React.FC = () => {
 
             {/* 加载更多提示 */}
             {loading && (
-              <View className="community-page__loading">
+              <View className='community-page__loading'>
                 <LoadingSpinner />
               </View>
             )}
 
             {!hasMore && (
-              <View className="community-page__no-more">
+              <View className='community-page__no-more'>
                 已经到底啦~
               </View>
             )}
           </>
         ) : loading ? (
-          <View className="community-page__loading">
+          <View className='community-page__loading'>
             <LoadingSpinner />
           </View>
         ) : (

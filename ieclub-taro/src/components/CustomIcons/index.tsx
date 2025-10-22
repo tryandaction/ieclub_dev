@@ -16,13 +16,13 @@ interface NotificationIconProps extends IconProps {
 // 广场图标 - 内联SVG实现
 export const SquareIcon: React.FC<IconProps> = ({ active = false, size = 24, className = '' }) => (
   <View className={`icon-container ${active ? 'active' : ''}`} style={{ width: `${size}px`, height: `${size}px` }}>
-    <View className="icon-svg" style={{ width: `${size}px`, height: `${size}px` }}>
-      <View className="svg-content">
-        <View className="icon-grid">
-          <View className="grid-item"></View>
-          <View className="grid-item"></View>
-          <View className="grid-item"></View>
-          <View className="grid-item"></View>
+    <View className='icon-svg' style={{ width: `${size}px`, height: `${size}px` }}>
+      <View className='svg-content'>
+        <View className='icon-grid'>
+          <View className='grid-item'></View>
+          <View className='grid-item'></View>
+          <View className='grid-item'></View>
+          <View className='grid-item'></View>
         </View>
       </View>
     </View>
@@ -32,11 +32,11 @@ export const SquareIcon: React.FC<IconProps> = ({ active = false, size = 24, cla
 // 社区图标 - 内联SVG实现
 export const CommunityIcon: React.FC<IconProps> = ({ active = false, size = 24, className = '' }) => (
   <View className={`icon-container ${active ? 'active' : ''}`} style={{ width: `${size}px`, height: `${size}px` }}>
-    <View className="icon-svg" style={{ width: `${size}px`, height: `${size}px` }}>
-      <View className="svg-content">
-        <View className="icon-search">
-          <View className="search-circle"></View>
-          <View className="search-handle"></View>
+    <View className='icon-svg' style={{ width: `${size}px`, height: `${size}px` }}>
+      <View className='svg-content'>
+        <View className='icon-search'>
+          <View className='search-circle'></View>
+          <View className='search-handle'></View>
         </View>
       </View>
     </View>
@@ -45,11 +45,11 @@ export const CommunityIcon: React.FC<IconProps> = ({ active = false, size = 24, 
 
 // 发布加号图标 - 内联SVG实现（大号）
 export const PlusIcon: React.FC<{ size?: number; className?: string }> = ({ size = 56, className = '' }) => (
-  <View className="icon-container plus-icon" style={{ width: `${size}px`, height: `${size}px` }}>
-    <View className="icon-svg" style={{ width: `${size}px`, height: `${size}px` }}>
-      <View className="svg-content">
-        <View className="plus-bg"></View>
-        <View className="plus-symbol">+</View>
+  <View className='icon-container plus-icon' style={{ width: `${size}px`, height: `${size}px` }}>
+    <View className='icon-svg' style={{ width: `${size}px`, height: `${size}px` }}>
+      <View className='svg-content'>
+        <View className='plus-bg'></View>
+        <View className='plus-symbol'>+</View>
       </View>
     </View>
   </View>
@@ -63,16 +63,16 @@ export const NotificationIcon: React.FC<NotificationIconProps> = ({
   className = ''
 }) => (
   <View className={`icon-container ${active ? 'active' : ''}`} style={{ width: `${size}px`, height: `${size}px`, position: 'relative' }}>
-    <View className="icon-svg" style={{ width: `${size}px`, height: `${size}px` }}>
-      <View className="svg-content">
-        <View className="icon-bell">
-          <View className="bell-body"></View>
-          <View className="bell-handle"></View>
+    <View className='icon-svg' style={{ width: `${size}px`, height: `${size}px` }}>
+      <View className='svg-content'>
+        <View className='icon-bell'>
+          <View className='bell-body'></View>
+          <View className='bell-handle'></View>
         </View>
       </View>
     </View>
     {hasUnread && (
-      <View className="unread-dot"></View>
+      <View className='unread-dot'></View>
     )}
   </View>
 );
@@ -80,11 +80,11 @@ export const NotificationIcon: React.FC<NotificationIconProps> = ({
 // 个人主页图标 - 内联SVG实现
 export const ProfileIcon: React.FC<IconProps> = ({ active = false, size = 24, className = '' }) => (
   <View className={`icon-container ${active ? 'active' : ''}`} style={{ width: `${size}px`, height: `${size}px` }}>
-    <View className="icon-svg" style={{ width: `${size}px`, height: `${size}px` }}>
-      <View className="svg-content">
-        <View className="icon-profile">
-          <View className="profile-head"></View>
-          <View className="profile-body"></View>
+    <View className='icon-svg' style={{ width: `${size}px`, height: `${size}px` }}>
+      <View className='svg-content'>
+        <View className='icon-profile'>
+          <View className='profile-head'></View>
+          <View className='profile-body'></View>
         </View>
       </View>
     </View>
@@ -96,11 +96,12 @@ export const DefaultAvatarIcon: React.FC<{ size?: number; className?: string }> 
   <View className={`icon-container default-avatar ${className}`} style={{
     width: `${size}px`,
     height: `${size}px`
-  }}>
-    <View className="avatar-content">
-      <View className="avatar-icon">
-        <View className="avatar-head"></View>
-        <View className="avatar-body"></View>
+  }}
+  >
+    <View className='avatar-content'>
+      <View className='avatar-icon'>
+        <View className='avatar-head'></View>
+        <View className='avatar-body'></View>
       </View>
     </View>
   </View>
@@ -123,10 +124,10 @@ export const DefaultCoverIcon: React.FC<{
       height
     }}
   >
-    <View className="cover-content">
-      <View className="cover-icon">
-        <View className="cover-bg"></View>
-        <View className="cover-image"></View>
+    <View className='cover-content'>
+      <View className='cover-icon'>
+        <View className='cover-bg'></View>
+        <View className='cover-image'></View>
       </View>
     </View>
   </View>

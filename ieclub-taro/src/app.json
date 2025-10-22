@@ -1,36 +1,54 @@
 {
   "pages": [
-    "pages/plaza/index",
-    "pages/detail/index",
-    "pages/create/index",
-    "pages/login/index",
+    "pages/square/index",
+    "pages/notifications/index",
     "pages/profile/index",
-    "pages/notification/index"
+    "pages/login/index",
+    "pages/search/index",
+    "pages/topics/create/index",
+    "pages/topics/detail/index",
+    "pages/topics/index",
+    "pages/community/index",
+    "pages/community/matching/index",
+    "pages/community/profile/index",
+    "pages/community/ranking/index",
+    "pages/index/index"
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#667eea",
-    "navigationBarTitleText": "IEclub",
-    "navigationBarTextStyle": "white",
-    "backgroundColor": "#f8f9fa"
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTitleText": "IEClub",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f8fafc",
+    "enablePullDownRefresh": true,
+    "onReachBottomDistance": 50
   },
   "tabBar": {
+    "custom": true,
     "color": "#999999",
     "selectedColor": "#667eea",
     "backgroundColor": "#ffffff",
-    "borderStyle": "black",
+    "borderStyle": "white",
     "list": [
       {
-        "pagePath": "pages/plaza/index",
-        "text": "🏠 广场"
+        "pagePath": "pages/square/index",
+        "text": "广场"
       },
       {
-        "pagePath": "pages/notification/index",
-        "text": "🔔 通知"
+        "pagePath": "pages/search/index",
+        "text": "社区"
+      },
+      {
+        "pagePath": "pages/topics/create/index",
+        "text": "发布"
+      },
+      {
+        "pagePath": "pages/notifications/index",
+        "text": "消息"
       },
       {
         "pagePath": "pages/profile/index",
-        "text": "👤 我的"
+        "text": "主页"
       }
     ]
   }

@@ -21,49 +21,49 @@ const UserCard: React.FC<UserCardProps> = ({ user, showInteraction = true }) => 
   };
 
   return (
-    <View className="user-card" onClick={handleClick}>
+    <View className='user-card' onClick={handleClick}>
       {/* 头像 */}
       <Image
-        className="user-card__avatar"
+        className='user-card__avatar'
         src={user.avatar}
-        mode="aspectFill"
+        mode='aspectFill'
       />
 
       {/* 用户信息 */}
-      <View className="user-card__content">
-        <View className="user-card__header">
-          <Text className="user-card__nickname">{user.nickname}</Text>
-          <Text className="user-card__register-time">
+      <View className='user-card__content'>
+        <View className='user-card__header'>
+          <Text className='user-card__nickname'>{user.nickname}</Text>
+          <Text className='user-card__register-time'>
             {formatDate(user.registerTime)}加入
           </Text>
         </View>
 
-        <Text className="user-card__bio" numberOfLines={2}>
+        <Text className='user-card__bio' numberOfLines={2}>
           {user.bio || '这个人很懒,什么都没留下~'}
         </Text>
 
         {/* 统计信息 */}
-        <View className="user-card__stats">
-          <View className="stat-item">
-            <Text className="stat-item__value">{user.topicsCount}</Text>
-            <Text className="stat-item__label">话题</Text>
+        <View className='user-card__stats'>
+          <View className='stat-item'>
+            <Text className='stat-item__value'>{user.topicsCount}</Text>
+            <Text className='stat-item__label'>话题</Text>
           </View>
-          <View className="stat-item">
-            <Text className="stat-item__value">{user.commentsCount}</Text>
-            <Text className="stat-item__label">评论</Text>
+          <View className='stat-item'>
+            <Text className='stat-item__value'>{user.commentsCount}</Text>
+            <Text className='stat-item__label'>评论</Text>
           </View>
           {showInteraction && (
-            <View className="stat-item stat-item--highlight">
-              <Text className="stat-item__value">{user.interactionCount}</Text>
-              <Text className="stat-item__label">互动</Text>
+            <View className='stat-item stat-item--highlight'>
+              <Text className='stat-item__value'>{user.interactionCount}</Text>
+              <Text className='stat-item__label'>互动</Text>
             </View>
           )}
         </View>
       </View>
 
       {/* 箭头图标 - 使用汉字图标方案 */}
-      <View className="user-card__arrow">
-        <Text className="iconfont">→</Text>
+      <View className='user-card__arrow'>
+        <Text className='iconfont'>→</Text>
       </View>
     </View>
   );
