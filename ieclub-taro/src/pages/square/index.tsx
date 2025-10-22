@@ -14,8 +14,14 @@ const API_CONFIG = {
   production: 'https://ieclub.online/api'
 };
 
+// 获取API基础URL
+const getApiBase = () => {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  return isDevelopment ? API_CONFIG.development : API_CONFIG.production;
+};
+
 const SquarePage = () => {
-  const [topics, setTopics] = useState([]);
+  const [topics, setTopics] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   // 设置当前 TabBar 选中项 - 在小程序中通常自动管理
@@ -32,10 +38,7 @@ const SquarePage = () => {
   const fetchTopics = async () => {
     setLoading(true);
     try {
-      // 根据环境选择API地址
-      const isDevelopment = process.env.NODE_ENV === 'development';
-      const apiBase = isDevelopment ? API_CONFIG.development : API_CONFIG.production;
-
+      const apiBase = getApiBase();
       console.log('尝试连接到服务器:', apiBase);
 
       const res = await Taro.request({
@@ -48,22 +51,62 @@ const SquarePage = () => {
         timeout: 10000 // 10秒超时
       });
 
+      console.log('API响应:', res);
+
       if (res.data && res.data.code === 200) {
         setTopics(res.data.data || []);
         console.log('成功获取话题数据:', res.data.data?.length || 0, '条');
       } else {
         console.warn('API返回格式异常:', res.data);
-        setTopics([]);
+        // 显示一些测试数据
+        setTopics([
+          {
+            id: '1',
+            title: '测试话题1',
+            cover: null,
+            author: { nickname: '测试用户', avatar: null },
+            likeCount: 10,
+            commentCount: 5
+          },
+          {
+            id: '2',
+            title: '测试话题2',
+            cover: null,
+            author: { nickname: '测试用户2', avatar: null },
+            likeCount: 8,
+            commentCount: 3
+          }
+        ]);
       }
     } catch (error: any) {
       console.error('获取话题列表失败:', error);
 
+      // 即使出错也显示测试数据
+      setTopics([
+        {
+          id: '1',
+          title: '测试话题1（离线模式）',
+          cover: null,
+          author: { nickname: '测试用户', avatar: null },
+          likeCount: 10,
+          commentCount: 5
+        },
+        {
+          id: '2',
+          title: '测试话题2（离线模式）',
+          cover: null,
+          author: { nickname: '测试用户2', avatar: null },
+          likeCount: 8,
+          commentCount: 3
+        }
+      ]);
+
       // 根据错误类型显示不同提示
-      let errorMessage = '服务器连接失败，请检查网络';
+      let errorMessage = '服务器连接失败，已显示测试数据';
       if (error.errMsg?.includes('timeout')) {
-        errorMessage = '请求超时，请检查服务器是否启动';
+        errorMessage = '请求超时，已显示测试数据';
       } else if (error.errMsg?.includes('refuse')) {
-        errorMessage = '无法连接到服务器，请启动后端服务';
+        errorMessage = '无法连接到服务器，已显示测试数据';
       }
 
       Taro.showToast({
@@ -71,7 +114,6 @@ const SquarePage = () => {
         icon: 'none',
         duration: 3000
       });
-      setTopics([]);
     } finally {
       setLoading(false);
     }

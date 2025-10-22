@@ -45,7 +45,8 @@ const config = {
       basename: '/',
       customRoutes: {
         // 自定义路由映射
-        '/': '/pages/index/index',
+        '/': '/pages/square/index',
+        '/square': '/pages/square/index',
         '/community': '/pages/community/index',
         '/ranking': '/pages/community/ranking/index',
         '/matching': '/pages/community/matching/index',
