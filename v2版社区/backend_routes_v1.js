@@ -38,4 +38,31 @@ router.post('/users/:userId/follow', authenticateToken, communityController.foll
  */
 router.delete('/users/:userId/follow', authenticateToken, communityController.unfollowUser);
 
+/**
+ * 获取排行榜列表（第二版本新增）
+ * GET /api/community/rankings
+ * Query: type, period, page, pageSize
+ */
+router.get('/rankings', authenticateToken, communityController.getRankingList);
+
+/**
+ * 获取用户排名详情（第二版本新增）
+ * GET /api/community/rankings/users/:userId
+ * Query: type, period
+ */
+router.get('/rankings/users/:userId', authenticateToken, communityController.getUserRanking);
+
+/**
+ * 获取我的排名（第二版本新增）
+ * GET /api/community/rankings/mine
+ * Query: type, period
+ */
+router.get('/rankings/mine', authenticateToken, communityController.getMyRanking);
+
+/**
+ * 获取排行榜奖励配置（第二版本新增）
+ * GET /api/community/rankings/rewards
+ */
+router.get('/rankings/rewards', authenticateToken, communityController.getRewardConfig);
+
 module.exports = router;

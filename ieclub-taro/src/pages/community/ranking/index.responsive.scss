@@ -1,0 +1,437 @@
+// ieclub-taro/src/pages/community/ranking/index.responsive.scss
+// 排行榜页面响应式样式
+
+.ranking-page {
+  min-height: 100vh;
+  background: #f7f8fa;
+
+  @include respond-above('desktop') {
+    @include container(1200px);
+    padding-top: 24px;
+    padding-bottom: 40px;
+  }
+}
+
+// ==================== 我的排名卡片 ====================
+.my-ranking {
+  @include ieclub-gradient;
+  padding: 24px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+
+  // 装饰性背景
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    @include respond-above('desktop') {
+      width: 500px;
+      height: 500px;
+    }
+  }
+
+  @include respond-above('desktop') {
+    border-radius: 24px;
+    padding: 40px;
+    margin-bottom: 24px;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  &__title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+
+    @include respond-above('desktop') {
+      font-size: 32px;
+    }
+  }
+
+  &__rules {
+    padding: 8px 20px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition: all 0.3s $ease-smooth;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.35);
+      transform: translateY(-2px);
+    }
+  }
+
+  &__rules-text {
+    font-size: 13px;
+    color: #ffffff;
+    font-weight: 600;
+
+    @include respond-above('desktop') {
+      font-size: 14px;
+    }
+  }
+}
+
+// ==================== 排行榜类型选项卡 ====================
+.ranking-tabs {
+  background: #ffffff;
+  padding: 20px 0;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @include respond-above('desktop') {
+    border-radius: 16px;
+    padding: 24px;
+    overflow: visible;
+  }
+
+  &__scroll {
+    padding: 0 16px;
+    white-space: nowrap;
+
+    @include respond-above('desktop') {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      white-space: normal;
+    }
+  }
+}
+
+.ranking-tab {
+  display: inline-block;
+  padding: 10px 24px;
+  margin-right: 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #666666;
+  background: #f5f5f5;
+  cursor: pointer;
+  transition: all 0.3s $ease-smooth;
+
+  &:hover {
+    background: #e8e8e8;
+    transform: translateY(-2px);
+  }
+
+  &--active {
+    @include ieclub-gradient;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  @include respond-above('desktop') {
+    margin-right: 0;
+    padding: 12px 32px;
+    font-size: 15px;
+  }
+}
+
+// ==================== 时间周期选项卡 ====================
+.period-tabs {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #ffffff;
+  margin-bottom: 16px;
+
+  @include respond-above('desktop') {
+    border-radius: 16px;
+    padding: 20px 24px;
+    gap: 16px;
+  }
+}
+
+.period-tab {
+  flex: 1;
+  padding: 12px 0;
+  text-align: center;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #666666;
+  background: #f5f5f5;
+  cursor: pointer;
+  transition: all 0.3s $ease-smooth;
+
+  &:hover {
+    background: #e8e8e8;
+    transform: translateY(-2px);
+  }
+
+  &--active {
+    @include ieclub-gradient;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  @include respond-above('desktop') {
+    padding: 14px 0;
+    font-size: 15px;
+  }
+}
+
+// ==================== 排行榜列表 ====================
+.ranking-list {
+  padding: 0 16px 80px;
+
+  @include respond-above('desktop') {
+    padding: 0 0 40px;
+  }
+}
+
+// ==================== 排行榜卡片优化 ====================
+.ranking-card {
+  @include xiaohongshu-card;
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+
+  @include respond-above('desktop') {
+    padding: 24px;
+    margin-bottom: 16px;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    }
+  }
+
+  &__badge {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    flex-shrink: 0;
+
+    @include respond-above('desktop') {
+      width: 56px;
+      height: 56px;
+      margin-right: 16px;
+    }
+  }
+
+  &__badge-text {
+    font-size: 28px;
+    font-weight: 700;
+
+    @include respond-above('desktop') {
+      font-size: 32px;
+    }
+  }
+
+  &__avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    margin-right: 16px;
+    flex-shrink: 0;
+    border: 3px solid #f0f0f0;
+
+    @include respond-above('desktop') {
+      width: 72px;
+      height: 72px;
+      margin-right: 20px;
+      border-width: 4px;
+    }
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+
+  &__nickname {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    @include respond-above('desktop') {
+      font-size: 18px;
+    }
+  }
+
+  &__change {
+    font-size: 12px;
+    font-weight: 600;
+
+    @include respond-above('desktop') {
+      font-size: 13px;
+    }
+  }
+
+  &__scores {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+
+    @include respond-above('desktop') {
+      gap: 24px;
+    }
+  }
+}
+
+.score-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  &__value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a1a;
+
+    @include respond-above('desktop') {
+      font-size: 20px;
+    }
+  }
+
+  &__label {
+    font-size: 11px;
+    color: #999999;
+
+    @include respond-above('desktop') {
+      font-size: 12px;
+    }
+  }
+
+  &--main {
+    .score-item__value {
+      font-size: 24px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+
+      @include respond-above('desktop') {
+        font-size: 32px;
+      }
+    }
+  }
+}
+
+// ==================== 奖励说明 ====================
+.ranking-rewards {
+  @include xiaohongshu-card;
+  padding: 24px;
+  margin: 16px 16px 0;
+
+  @include respond-above('desktop') {
+    padding: 32px;
+    margin: 24px 0 0;
+    border-radius: 24px;
+  }
+
+  &__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+
+    @include respond-above('desktop') {
+      font-size: 24px;
+      margin-bottom: 24px;
+    }
+  }
+
+  &__list {
+    display: grid;
+    gap: 12px;
+
+    @include respond-above('tablet') {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    @include respond-above('desktop') {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+  }
+}
+
+.reward-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f8f8f8;
+  border-radius: 12px;
+  transition: all 0.3s $ease-smooth;
+
+  &:hover {
+    background: #f0f0f0;
+    transform: translateY(-2px);
+  }
+
+  @include respond-above('desktop') {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px;
+  }
+
+  &__rank {
+    font-size: 13px;
+    font-weight: 600;
+    color: #999999;
+
+    @include respond-above('desktop') {
+      font-size: 14px;
+    }
+  }
+
+  &__badge {
+    font-size: 32px;
+
+    @include respond-above('desktop') {
+      font-size: 48px;
+      margin: 12px 0;
+    }
+  }
+
+  &__title {
+    flex: 1;
+    font-size: 14px;
+    color: #666666;
+
+    @include respond-above('desktop') {
+      font-size: 16px;
+    }
+  }
+}

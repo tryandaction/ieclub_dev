@@ -1,15 +1,14 @@
 // ieclub-taro/src/app.scss
-// 全局样式入口 - 包含响应式优化和小红书风格
+// 全局样式入口 - 包含响应式优化
 
 // ==================== 基础变量 ====================
-@use './styles/variables.scss' as *;
-@use './styles/mixins.scss' as *;
+@import './styles/variables.scss';
 
 // ==================== 响应式工具 ====================
-@use './styles/responsive.scss' as *;
+@import './styles/responsive.scss';
 
 // ==================== 网页端优化 ====================
-@use './styles/web-optimizations.scss' as *;
+@import './styles/web-optimizations.scss';
 
 // ==================== 重置样式 ====================
 * {
@@ -21,7 +20,7 @@
 html, body {
   width: 100%;
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 
                'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
                'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -43,51 +42,23 @@ button {
   cursor: pointer;
 }
 
+input, textarea {
+  border: none;
+  outline: none;
+  font-family: inherit;
+}
+
 // ==================== 响应式容器 ====================
 .container {
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 16px;
-
-  @media (min-width: 768px) {
-    max-width: 750px;
-    padding: 0 24px;
-  }
-
-  @media (min-width: 1280px) {
-    max-width: 1200px;
-    padding: 0 32px;
-  }
+  @include container(1440px);
 }
 
 .container-narrow {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 16px;
-
-  @media (min-width: 768px) {
-    padding: 0 24px;
-  }
-
-  @media (min-width: 1280px) {
-    padding: 0 32px;
-  }
+  @include container(1200px);
 }
 
 .container-wide {
-  width: 100%;
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 0 16px;
-
-  @media (min-width: 768px) {
-    padding: 0 24px;
-  }
-
-  @media (min-width: 1280px) {
-    padding: 0 32px;
-  }
+  @include container(1600px);
 }
 
 // ==================== 通用工具类 ====================
@@ -120,40 +91,40 @@ button {
 
 // ==================== 响应式显示/隐藏 ====================
 .hide-mobile {
-  @media (max-width: 767px) {
+  @include respond-below('tablet') {
     display: none !important;
   }
 }
 
 .hide-tablet {
-  @media (min-width: 768px) and (max-width: 1279px) {
+  @include respond-between('tablet', 'desktop') {
     display: none !important;
   }
 }
 
 .hide-desktop {
-  @media (min-width: 1280px) {
+  @include respond-above('desktop') {
     display: none !important;
   }
 }
 
 .show-mobile-only {
   display: block;
-  @media (min-width: 768px) {
+  @include respond-above('tablet') {
     display: none !important;
   }
 }
 
 .show-desktop-only {
   display: none;
-  @media (min-width: 1280px) {
+  @include respond-above('desktop') {
     display: block !important;
   }
 }
 
 // ==================== IEClub 主题色 ====================
 .bg-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  @include ieclub-gradient;
 }
 
 .text-gradient {
@@ -179,22 +150,14 @@ button {
   color: #1a1a1a;
 }
 
-// ==================== 小红书风格卡片 ====================
+// ==================== 卡片样式 ====================
 .card {
-  background: #ffffff;
-  border-radius: 12px;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  @include xiaohongshu-card;
+}
 
-  &:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    transform: translateY(-4px);
-  }
-
-  @media (min-width: 1280px) {
-    border-radius: 16px;
-  }
+.card-hover {
+  @include xiaohongshu-card;
+  cursor: pointer;
 }
 
 // ==================== 加载状态 ====================
@@ -253,7 +216,7 @@ button {
   border-radius: 24px;
   font-size: 14px;
   font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s $ease-smooth;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -264,7 +227,7 @@ button {
   }
 
   &--primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    @include ieclub-gradient;
     color: #ffffff;
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 
@@ -358,7 +321,7 @@ button {
 
 .fade-enter-active {
   opacity: 1;
-  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.3s $ease-smooth;
 }
 
 .fade-exit {
@@ -367,7 +330,7 @@ button {
 
 .fade-exit-active {
   opacity: 0;
-  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.3s $ease-smooth;
 }
 
 .slide-up-enter {
@@ -378,7 +341,7 @@ button {
 .slide-up-enter-active {
   transform: translateY(0);
   opacity: 1;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s $ease-smooth;
 }
 
 // ==================== 无障碍支持 ====================

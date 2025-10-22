@@ -12,3 +12,11 @@ export default definePageConfig({
   navigationBarTitleText: '个人主页',
   enablePullDownRefresh: false
 });
+
+// ieclub-taro/src/pages/community/ranking/index.config.ts
+// 排行榜页面配置（第二版本新增）
+export default definePageConfig({
+  navigationBarTitleText: '贡献排行榜',
+  enablePullDownRefresh: true,
+  backgroundTextStyle: 'dark'
+});

@@ -122,7 +122,7 @@ export default function LoginPage() {
 
       // 跳转到首页
       setTimeout(() => {
-        Taro.reLaunch({ url: '/pages/index/index' })
+        Taro.reLaunch({ url: '/pages/square/index' })
       }, 1500)
 
     } catch (error) {
@@ -164,7 +164,7 @@ export default function LoginPage() {
 
       // 跳转到首页
       setTimeout(() => {
-        Taro.reLaunch({ url: '/pages/index/index' })
+        Taro.reLaunch({ url: '/pages/square/index' })
       }, 1500)
 
     } catch (error) {

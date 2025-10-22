@@ -242,3 +242,27 @@ exports.unfollowUser = asyncHandler(async (req, res) => {
 
   res.json(successResponse({ message: '取消关注成功' }));
 });
+
+// ==================== 第二版本：排行榜功能 ====================
+
+const rankingController = require('./rankingController');
+
+/**
+ * 获取排行榜列表
+ */
+exports.getRankingList = rankingController.getRankingList;
+
+/**
+ * 获取用户排名详情
+ */
+exports.getUserRanking = rankingController.getUserRanking;
+
+/**
+ * 获取我的排名
+ */
+exports.getMyRanking = rankingController.getMyRanking;
+
+/**
+ * 获取排行榜奖励配置
+ */
+exports.getRewardConfig = rankingController.getRewardConfig;

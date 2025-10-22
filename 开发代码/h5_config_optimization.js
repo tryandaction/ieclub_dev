@@ -1,44 +1,12 @@
-// config/index.js - 修复版本
-const path = require('path')
+// ieclub-taro/config/h5.js
+// H5 网页端构建优化配置
 
-const config = {
-  projectName: 'ieclub-taro',
-  date: '2025-1-1',
-  designWidth: 750,
-  deviceRatio: {
-    640: 2.34 / 2,
-    750: 1,
-    828: 1.81 / 2
-  },
-  sourceRoot: 'src',
-  outputRoot: 'dist',  // 根输出目录
-
-  plugins: [],
-  defineConstants: {},
-  copy: {
-    patterns: [],
-    options: {}
-  },
-
-  framework: 'react',
-  compiler: 'webpack5',
-
-  cache: {
-    enable: true  // 建议开启缓存提升构建速度
-  },
-
-  // ============ H5 配置 ============
+module.exports = {
+  // 网页端专属配置
   h5: {
     publicPath: '/',
     staticDirectory: 'static',
-
-    // 🔥 关键修复：明确指定 H5 输出到 dist/h5
-    output: {
-      path: path.join(__dirname, '../dist/h5'),  // 强制输出到 h5 子目录
-      filename: 'js/[name].[contenthash:8].js',
-      chunkFilename: 'js/[name].[contenthash:8].chunk.js'
-    },
-
+    
     // 路由模式
     router: {
       mode: 'browser', // 使用 browser 模式（更优雅的 URL）
@@ -85,7 +53,7 @@ const config = {
 
         // 压缩优化
         chain.optimization.minimize(true);
-
+        
         // 图片压缩
         chain.module
           .rule('images')
@@ -176,6 +144,12 @@ const config = {
       }
     },
 
+    // 输出配置
+    output: {
+      filename: 'js/[name].[contenthash:8].js',
+      chunkFilename: 'js/[name].[contenthash:8].chunk.js'
+    },
+
     // 图片资源配置
     imageUrlLoaderOption: {
       limit: 8192, // 小于 8KB 的图片转 base64
@@ -202,6 +176,7 @@ const config = {
         keywords: '创新创业,供需匹配,智能推荐,社区交流',
         viewport: 'width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover'
       },
+      favicon: './src/assets/favicon.ico',
       minify: {
         collapseWhitespace: true,
         removeComments: true,
@@ -240,39 +215,9 @@ const config = {
 
     // 环境变量
     env: {
-      API_URL: process.env.NODE_ENV === 'production'
+      API_URL: process.env.NODE_ENV === 'production' 
         ? 'https://api.ieclub.com'
         : 'http://localhost:3000'
     }
-  },
-
-  // ============ 小程序配置 ============
-  mini: {
-    postcss: {
-      pxtransform: {
-        enable: true,
-        config: {}
-      },
-      url: {
-        enable: true,
-        config: {
-          limit: 1024
-        }
-      },
-      cssModules: {
-        enable: false,
-        config: {
-          namingPattern: 'module',
-          generateScopedName: '[name]__[local]___[hash:base64:5]'
-        }
-      }
-    }
   }
-}
-
-module.exports = function (merge) {
-  if (process.env.NODE_ENV === 'development') {
-    return merge({}, config, require('./dev'))
-  }
-  return merge({}, config, require('./prod'))
-}
+};

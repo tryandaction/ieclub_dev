@@ -106,6 +106,21 @@ const CommunityPage: React.FC = () => {
         </View>
       </View>
 
+      {/* 排行榜入口 */}
+      <View 
+        className="community-page__ranking-entry"
+        onClick={() => Taro.navigateTo({ url: '/pages/community/ranking/index' })}
+      >
+        <View className="ranking-entry">
+          <View className="ranking-entry__icon">🏆</View>
+          <View className="ranking-entry__content">
+            <Text className="ranking-entry__title">贡献排行榜</Text>
+            <Text className="ranking-entry__desc">查看社区贡献榜单</Text>
+          </View>
+          <View className="ranking-entry__arrow">›</View>
+        </View>
+      </View>
+
       {/* 排序标签 */}
       <View className="community-page__sort">
         <View

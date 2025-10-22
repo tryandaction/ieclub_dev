@@ -1,0 +1,130 @@
+// ieclub-taro/src/styles/responsive.scss
+// 响应式设计系统 - 网页端深度优化
+
+// ==================== 断点定义 ====================
+$breakpoints: (
+  'mobile': 320px,      // 手机竖屏
+  'mobile-l': 480px,    // 手机横屏
+  'tablet': 768px,      // 平板竖屏
+  'tablet-l': 1024px,   // 平板横屏
+  'desktop': 1280px,    // 桌面端
+  'desktop-l': 1440px,  // 大屏桌面
+  'desktop-xl': 1920px  // 超大屏
+);
+
+// ==================== 响应式混入 ====================
+
+// 最小宽度查询
+@mixin respond-above($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    $value: map-get($breakpoints, $breakpoint);
+    @media (min-width: $value) {
+      @content;
+    }
+  }
+}
+
+// 最大宽度查询
+@mixin respond-below($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    $value: map-get($breakpoints, $breakpoint) - 1px;
+    @media (max-width: $value) {
+      @content;
+    }
+  }
+}
+
+// 区间查询
+@mixin respond-between($min, $max) {
+  $min-value: map-get($breakpoints, $min);
+  $max-value: map-get($breakpoints, $max) - 1px;
+  @media (min-width: $min-value) and (max-width: $max-value) {
+    @content;
+  }
+}
+
+// ==================== 容器宽度 ====================
+@mixin container($max-width: 1200px) {
+  width: 100%;
+  max-width: $max-width;
+  margin: 0 auto;
+  padding: 0 16px;
+
+  @include respond-above('tablet') {
+    padding: 0 24px;
+  }
+
+  @include respond-above('desktop') {
+    padding: 0 32px;
+  }
+}
+
+// ==================== 网格系统 ====================
+@mixin grid-layout($columns: 12, $gap: 16px) {
+  display: grid;
+  grid-template-columns: repeat($columns, 1fr);
+  gap: $gap;
+}
+
+// ==================== 小红书风格卡片 ====================
+@mixin xiaohongshu-card {
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-4px);
+  }
+
+  @include respond-above('desktop') {
+    border-radius: 16px;
+  }
+}
+
+// ==================== 瀑布流布局 ====================
+@mixin waterfall($columns: 2, $gap: 16px) {
+  column-count: $columns;
+  column-gap: $gap;
+
+  > * {
+    break-inside: avoid;
+    margin-bottom: $gap;
+  }
+
+  @include respond-above('tablet') {
+    column-count: $columns + 1;
+  }
+
+  @include respond-above('desktop') {
+    column-count: $columns + 2;
+  }
+}
+
+// ==================== 文字响应式 ====================
+@mixin responsive-text($mobile: 14px, $desktop: 16px) {
+  font-size: $mobile;
+
+  @include respond-above('desktop') {
+    font-size: $desktop;
+  }
+}
+
+// ==================== IEClub 渐变色 ====================
+@mixin ieclub-gradient($direction: 135deg) {
+  background: linear-gradient($direction, #667eea 0%, #764ba2 100%);
+}
+
+// ==================== 毛玻璃效果 ====================
+@mixin glassmorphism($blur: 10px, $opacity: 0.8) {
+  background: rgba(255, 255, 255, $opacity);
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+}
+
+// ==================== 动画缓动 ====================
+$ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+$ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+$ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);

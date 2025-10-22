@@ -22,9 +22,9 @@ const CustomTabBar: React.FC = () => {
       pagePath: '/pages/square/index'
     },
     {
-      key: 'community',
+      key: 'search',
       title: '社区',
-      pagePath: '/pages/community/index'
+      pagePath: '/pages/search/index'
     },
     {
       key: 'publish',
