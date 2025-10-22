@@ -4,6 +4,9 @@
 $primary-color: #667eea;     // 保留原有主色调
 $primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  // 保留原有渐变
 
+// 确保渐变在所有浏览器中正确显示
+$ieclub-gradient-fallback: #667eea;
+
 // 新增：IEClub 蓝紫渐变主题系统 - 来自开发代码的标志性设计
 $ieclub-blue: #3b82f6;       // IEClub 蓝色
 $ieclub-purple: #9333ea;     // IEClub 紫色

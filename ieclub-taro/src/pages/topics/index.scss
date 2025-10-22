@@ -81,6 +81,7 @@
 
       &:hover {
         background: linear-gradient(135deg, #f5f7fa 0%, #e8eaf6 100%);
+        background: -webkit-linear-gradient(135deg, #f5f7fa 0%, #e8eaf6 100%);
         border-color: $primary-color;
         transform: translateY(-2px);
       }
@@ -89,6 +90,9 @@
     /* 激活状态 */
     &--active {
       background: $primary-gradient;
+      background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: $bg-primary;
       font-weight: 700;
       box-shadow: $shadow-md;
