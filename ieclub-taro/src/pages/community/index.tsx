@@ -4,11 +4,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Input } from '@tarojs/components';
 import Taro, { useLoad, useReachBottom, usePullDownRefresh } from '@tarojs/taro';
-import useCommunityStore from '../../store/community';
-import { UserSortType } from '../../types/community';
-import UserCard from '../../components/UserCard';
-import EmptyState from '../../components/EmptyState';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import useCommunityStore from '@/store/community';
+import { UserSortType } from '@/types/community';
+import UserCard from '@/components/UserCard';
+import EmptyState from '@/components/EmptyState';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import './index.scss';
 
 const CommunityPage: React.FC = () => {

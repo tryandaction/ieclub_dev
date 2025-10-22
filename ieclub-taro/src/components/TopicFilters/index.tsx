@@ -2,7 +2,7 @@
 
 import { View, Picker } from '@tarojs/components'
 import { useState } from 'react'
-import type { TopicListParams } from '../../types'
+import type { TopicListParams } from '@/types'
 import './index.scss'
 
 interface TopicFiltersProps {

@@ -249,6 +249,15 @@ class AuthController {
     try {
       const { email, password } = req.body;
 
+      // 验证邮箱格式
+      const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          message: '请使用南科大邮箱'
+        });
+      }
+
       // 查找用户
       const user = await prisma.user.findUnique({
         where: { email }
@@ -261,6 +270,14 @@ class AuthController {
         });
       }
 
+      // 检查用户状态
+      if (user.status !== 'active') {
+        return res.status(401).json({
+          success: false,
+          message: '账户已被禁用，请联系管理员'
+        });
+      }
+
       // 验证密码
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
@@ -269,6 +286,15 @@ class AuthController {
           message: '邮箱或密码错误'
         });
       }
+
+      // 更新最后登录时间
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { 
+          lastLoginAt: new Date(),
+          lastActiveAt: new Date()
+        }
+      });
 
       // 生成token
       const token = jwt.sign(
@@ -286,11 +312,144 @@ class AuthController {
             id: user.id,
             email: user.email,
             nickname: user.nickname,
-            avatar: user.avatar
+            avatar: user.avatar,
+            level: user.level,
+            isCertified: user.isCertified
           }
         }
       });
     } catch (error) {
+      console.error('登录失败:', error);
+      next(error);
+    }
+  }
+
+  // 密码找回
+  static async forgotPassword(req, res, next) {
+    try {
+      const { email } = req.body;
+
+      // 验证邮箱格式
+      const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          message: '请使用南科大邮箱'
+        });
+      }
+
+      // 查找用户
+      const user = await prisma.user.findUnique({
+        where: { email }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: '该邮箱未注册'
+        });
+      }
+
+      // 生成重置token
+      const resetToken = jwt.sign(
+        { userId: user.id, email: user.email, type: 'password_reset' },
+        config.jwt.secret,
+        { expiresIn: '1h' }
+      );
+
+      // 发送重置邮件
+      const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:10086'}/reset-password?token=${resetToken}`;
+      const subject = 'IEClub 密码重置';
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #3b82f6;">IEClub 密码重置</h2>
+          <p>您好！</p>
+          <p>您请求重置密码，请点击下面的链接完成重置：</p>
+          <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background: #3b82f6; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0;">重置密码</a>
+          <p style="color: #ef4444;">链接将在1小时后过期，请尽快使用。</p>
+          <p>如果这不是您本人的操作，请忽略此邮件。</p>
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+          <p style="color: #9ca3af; font-size: 12px;">此邮件由系统自动发送，请勿回复。</p>
+        </div>
+      `;
+
+      await sendEmail(email, subject, html);
+
+      res.json({
+        success: true,
+        message: '重置链接已发送到您的邮箱，请查收'
+      });
+    } catch (error) {
+      console.error('密码找回失败:', error);
+      next(error);
+    }
+  }
+
+  // 重置密码
+  static async resetPassword(req, res, next) {
+    try {
+      const { token, newPassword } = req.body;
+
+      if (!token || !newPassword) {
+        return res.status(400).json({
+          success: false,
+          message: '缺少必要参数'
+        });
+      }
+
+      // 验证密码强度
+      if (newPassword.length < 6) {
+        return res.status(400).json({
+          success: false,
+          message: '密码至少6位'
+        });
+      }
+
+      // 验证token
+      const decoded = jwt.verify(token, config.jwt.secret);
+      if (decoded.type !== 'password_reset') {
+        return res.status(400).json({
+          success: false,
+          message: '无效的重置链接'
+        });
+      }
+
+      // 查找用户
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: '用户不存在'
+        });
+      }
+
+      // 加密新密码
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // 更新密码
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { 
+          password: hashedPassword,
+          updatedAt: new Date()
+        }
+      });
+
+      res.json({
+        success: true,
+        message: '密码重置成功，请重新登录'
+      });
+    } catch (error) {
+      if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+        return res.status(400).json({
+          success: false,
+          message: '重置链接已过期或无效'
+        });
+      }
+      console.error('重置密码失败:', error);
       next(error);
     }
   }

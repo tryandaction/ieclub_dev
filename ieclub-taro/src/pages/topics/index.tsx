@@ -3,7 +3,7 @@
 import { View, ScrollView } from '@tarojs/components'
 import { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'
-import { useTopicStore } from '../../store/topic'
+import { useTopicStore } from '@/store/topic'
 import TopicCard from '../../components/TopicCard'
 import TopicFilters from '../../components/TopicFilters'
 import EmptyState from '../../components/EmptyState'

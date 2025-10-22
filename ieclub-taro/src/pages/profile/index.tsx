@@ -3,8 +3,8 @@
 import { View, Image, Text, Button } from '@tarojs/components'
 import { useState, useEffect, useCallback } from 'react'
 import Taro from '@tarojs/taro'
-import { useUserStore } from '../../store/user'
-import { getUserStats } from '../../services/user'
+import { useUserStore } from '@/store/user'
+import { getUserStats } from '@/services/user'
 import './index.scss'
 
 export default function ProfilePage() {

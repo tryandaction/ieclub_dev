@@ -2,7 +2,7 @@
 // 社区模块状态管理 - 基于开发代码优化版本
 
 import { create } from 'zustand';
-import communityService from '../services/community';
+import communityService from '@/services/community';
 import type { CommunityUser } from '../types/community';
 import { UserSortType } from '../types/community';
 

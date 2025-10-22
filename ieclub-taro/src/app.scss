@@ -42,6 +42,8 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
   background: #f7f8fa;
   color: #1a1a1a;
+  font-size: 16px; // 修复字体太小问题
+  line-height: 1.6;
 }
 
 // ==================== 全局样式 ====================

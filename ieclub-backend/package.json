@@ -53,7 +53,10 @@
     "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
+    "multer": "^2.0.2",
     "nodemailer": "^6.9.7",
+    "sharp": "^0.34.4",
+    "uuid": "^13.0.0",
     "winston": "^3.18.3",
     "winston-daily-rotate-file": "^5.0.0"
   },

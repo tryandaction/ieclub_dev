@@ -3,7 +3,7 @@
 import { View, ScrollView } from '@tarojs/components'
 import { useState } from 'react'
 import EnhancedTopicCard from '../EnhancedTopicCard'
-import type { EnhancedTopic } from '../../types'
+import type { EnhancedTopic } from '@/types'
 import './index.scss'
 
 interface VirtualTopicListProps {

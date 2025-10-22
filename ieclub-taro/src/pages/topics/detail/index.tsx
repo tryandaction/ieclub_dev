@@ -117,20 +117,93 @@ export default function TopicDetailPage() {
 
   useEffect(() => {
     Taro.setNavigationBarTitle({ title: '话题详情' })
-    // TODO: 加载话题数据
+    loadTopicDetail()
+    loadComments()
   }, [topicId])
 
+  // 加载话题详情
+  const loadTopicDetail = async () => {
+    try {
+      const res = await Taro.request({
+        url: `${process.env.TARO_APP_API}/topics/${topicId}`,
+        method: 'GET',
+        header: {
+          'Authorization': `Bearer ${Taro.getStorageSync('token')}`
+        }
+      })
+
+      if (res.data.success) {
+        const topicData = res.data.data
+        setTopic({
+          id: topicData.id,
+          type: topicData.topicType === 'discussion' ? 'supply' : 'demand',
+          title: topicData.title,
+          content: topicData.content,
+          author: topicData.author,
+          images: topicData.images || [],
+          category: topicData.category,
+          tags: topicData.tags || [],
+          wantToHearCount: topicData.wantToHearCount || 0,
+          targetCount: topicData.targetCount || 15,
+          viewsCount: topicData.viewsCount || 0,
+          likesCount: topicData.likesCount || 0,
+          commentsCount: topicData.commentsCount || 0,
+          isLiked: topicData.isLiked || false,
+          isInterested: topicData.isInterested || false,
+          createdAt: topicData.createdAt
+        })
+      }
+    } catch (error) {
+      console.error('加载话题详情失败:', error)
+      Taro.showToast({ title: '加载失败', icon: 'none' })
+    }
+  }
+
+  // 加载评论列表
+  const loadComments = async () => {
+    try {
+      const res = await Taro.request({
+        url: `${process.env.TARO_APP_API}/topics/${topicId}/comments`,
+        method: 'GET',
+        header: {
+          'Authorization': `Bearer ${Taro.getStorageSync('token')}`
+        }
+      })
+
+      if (res.data.success) {
+        setComments(res.data.data)
+      }
+    } catch (error) {
+      console.error('加载评论失败:', error)
+    }
+  }
+
   // 点赞话题
-  const handleLikeTopic = () => {
-    setTopic({
-      ...topic,
-      isLiked: !topic.isLiked,
-      likesCount: topic.isLiked ? topic.likesCount - 1 : topic.likesCount + 1
-    })
-    Taro.showToast({
-      title: topic.isLiked ? '已取消点赞' : '点赞成功',
-      icon: 'success'
-    })
+  const handleLikeTopic = async () => {
+    try {
+      const res = await Taro.request({
+        url: `${process.env.TARO_APP_API}/topics/${topicId}/like`,
+        method: 'POST',
+        header: {
+          'Authorization': `Bearer ${Taro.getStorageSync('token')}`
+        }
+      })
+
+      if (res.data.success) {
+        setTopic({
+          ...topic,
+          isLiked: !topic.isLiked,
+          likesCount: topic.isLiked ? topic.likesCount - 1 : topic.likesCount + 1
+        })
+        Taro.showToast({
+          title: topic.isLiked ? '已取消点赞' : '点赞成功',
+          icon: 'success'
+        })
+      }
+    } catch (error) {
+      console.error('点赞失败:', error)
+      Taro.showToast({ title: '操作失败', icon: 'none' })
+    }
   }
 
   // 标记想听
@@ -173,16 +246,39 @@ export default function TopicDetailPage() {
   }
 
   // 发送评论
-  const handleSendComment = () => {
+  const handleSendComment = async () => {
     if (!commentText.trim()) {
       Taro.showToast({ title: '请输入评论内容', icon: 'none' })
       return
     }
 
-    // TODO: 调用评论API
-    Taro.showToast({ title: '评论成功', icon: 'success' })
-    setCommentText('')
-    setReplyingTo(null)
+    try {
+      const res = await Taro.request({
+        url: `${process.env.TARO_APP_API}/topics/${topicId}/comments`,
+        method: 'POST',
+        header: {
+          'Authorization': `Bearer ${Taro.getStorageSync('token')}`,
+          'Content-Type': 'application/json'
+        },
+        data: {
+          content: commentText,
+          parentId: replyingTo?.id || null
+        }
+      })
+
+      if (res.data.success) {
+        Taro.showToast({ title: '评论成功', icon: 'success' })
+        setCommentText('')
+        setReplyingTo(null)
+        // 重新加载评论列表
+        loadComments()
+      } else {
+        Taro.showToast({ title: res.data.message || '评论失败', icon: 'none' })
+      }
+    } catch (error) {
+      console.error('评论失败:', error)
+      Taro.showToast({ title: '评论失败', icon: 'none' })
+    }
   }
 
   return (

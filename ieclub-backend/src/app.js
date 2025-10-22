@@ -25,25 +25,41 @@ app.use(helmet({
 // HTTP参数污染保护
 app.use(hpp());
 
-// CORS配置
+// CORS配置 - 修复网页端无法显示问题
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:10086', 'http://localhost:3000', 'https://ieclub.online'];
+  : [
+      'http://localhost:10086', 
+      'http://localhost:3000', 
+      'http://localhost:8080',
+      'http://127.0.0.1:10086',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:8080',
+      'https://ieclub.online',
+      'https://www.ieclub.online'
+    ];
 
 app.use(cors({
   origin: function(origin, callback) {
-    // 允许没有origin的请求（如移动应用、Postman）
+    // 允许没有origin的请求（如移动应用、Postman、本地开发）
     if (!origin) return callback(null, true);
+    
+    // 允许所有本地开发环境
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
 
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      console.log('CORS blocked origin:', origin);
       callback(new Error('CORS policy violation'));
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar']
 }));
 
 // 压缩响应

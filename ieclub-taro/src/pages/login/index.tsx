@@ -104,29 +104,46 @@ export default function LoginPage() {
     try {
       setLoading(true)
 
-      // TODO: 调用后端注册API
-      // const res = await register({
-      //   email: form.email,
-      //   password: form.password,
-      //   verifyCode: form.verifyCode
-      // })
+      // 调用后端注册API
+      const res = await Taro.request({
+        url: `${process.env.TARO_APP_API}/auth/register`,
+        method: 'POST',
+        data: {
+          email: form.email,
+          password: form.password,
+          verifyCode: form.verifyCode,
+          nickname: form.email.split('@')[0] // 使用邮箱前缀作为默认昵称
+        }
+      })
 
-      // 模拟注册成功
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      if (res.data.success) {
+        Taro.showToast({ title: '注册成功', icon: 'success' })
+        
+        // 保存token和用户信息
+        Taro.setStorageSync('token', res.data.data.token)
+        Taro.setStorageSync('userInfo', res.data.data.user)
 
-      Taro.showToast({ title: '注册成功', icon: 'success' })
+        // 跳转到首页
+        setTimeout(() => {
+          Taro.reLaunch({ url: '/pages/square/index' })
+        }, 1500)
+      } else {
+        Taro.showToast({ title: res.data.message || '注册失败', icon: 'none' })
+      }
+
+    } catch (error: any) {
+      console.error('注册失败:', error)
+      let errorMessage = '注册失败，请重试'
       
-      // 保存token
-      // Taro.setStorageSync('token', res.data.token)
-      // Taro.setStorageSync('userInfo', res.data.user)
-
-      // 跳转到首页
-      setTimeout(() => {
-        Taro.reLaunch({ url: '/pages/square/index' })
-      }, 1500)
-
-    } catch (error) {
-      Taro.showToast({ title: '注册失败，请重试', icon: 'none' })
+      if (error.data?.message) {
+        errorMessage = error.data.message
+      } else if (error.errMsg?.includes('timeout')) {
+        errorMessage = '网络超时，请重试'
+      } else if (error.errMsg?.includes('fail')) {
+        errorMessage = '网络连接失败，请检查网络'
+      }
+      
+      Taro.showToast({ title: errorMessage, icon: 'none' })
     } finally {
       setLoading(false)
     }
@@ -147,28 +164,44 @@ export default function LoginPage() {
     try {
       setLoading(true)
 
-      // TODO: 调用后端登录API
-      // const res = await login({
-      //   email: form.email,
-      //   password: form.password
-      // })
+      // 调用后端登录API
+      const res = await Taro.request({
+        url: `${process.env.TARO_APP_API}/auth/login`,
+        method: 'POST',
+        data: {
+          email: form.email,
+          password: form.password
+        }
+      })
 
-      // 模拟登录成功
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      if (res.data.success) {
+        Taro.showToast({ title: '登录成功', icon: 'success' })
 
-      Taro.showToast({ title: '登录成功', icon: 'success' })
+        // 保存token和用户信息
+        Taro.setStorageSync('token', res.data.data.token)
+        Taro.setStorageSync('userInfo', res.data.data.user)
 
-      // 保存token
-      // Taro.setStorageSync('token', res.data.token)
-      // Taro.setStorageSync('userInfo', res.data.user)
+        // 跳转到首页
+        setTimeout(() => {
+          Taro.reLaunch({ url: '/pages/square/index' })
+        }, 1500)
+      } else {
+        Taro.showToast({ title: res.data.message || '登录失败', icon: 'none' })
+      }
 
-      // 跳转到首页
-      setTimeout(() => {
-        Taro.reLaunch({ url: '/pages/square/index' })
-      }, 1500)
-
-    } catch (error) {
-      Taro.showToast({ title: '登录失败，请检查账号密码', icon: 'none' })
+    } catch (error: any) {
+      console.error('登录失败:', error)
+      let errorMessage = '登录失败，请检查账号密码'
+      
+      if (error.data?.message) {
+        errorMessage = error.data.message
+      } else if (error.errMsg?.includes('timeout')) {
+        errorMessage = '网络超时，请重试'
+      } else if (error.errMsg?.includes('fail')) {
+        errorMessage = '网络连接失败，请检查网络'
+      }
+      
+      Taro.showToast({ title: errorMessage, icon: 'none' })
     } finally {
       setLoading(false)
     }
@@ -179,6 +212,11 @@ export default function LoginPage() {
     setMode(mode === 'login' ? 'register' : 'login')
     setStep(1)
     setForm({ email: '', verifyCode: '', password: '', confirmPassword: '' })
+  }
+
+  // 跳转到密码找回页面
+  const goToForgotPassword = () => {
+    Taro.navigateTo({ url: '/pages/forgot-password/index' })
   }
 
   return (
@@ -245,7 +283,7 @@ export default function LoginPage() {
               />
             </View>
 
-            <View className='forgot-password'>
+            <View className='forgot-password' onClick={goToForgotPassword}>
               <Text className='forgot-text'>忘记密码？</Text>
             </View>
 

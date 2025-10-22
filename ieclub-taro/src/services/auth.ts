@@ -66,6 +66,26 @@ export async function verifyCode(email: string, code: string): Promise<void> {
   })
 }
 
+// 密码找回
+export async function forgotPassword(email: string): Promise<void> {
+  return request<void>({
+    url: '/api/auth/forgot-password',
+    method: 'POST',
+    data: { email },
+    needAuth: false
+  })
+}
+
+// 重置密码
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  return request<void>({
+    url: '/api/auth/reset-password',
+    method: 'POST',
+    data: { token, newPassword },
+    needAuth: false
+  })
+}
+
 // 注意：重置密码和修改密码功能暂未实现
 // 如需要，请在后端添加相应接口
 

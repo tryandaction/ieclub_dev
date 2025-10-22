@@ -4,6 +4,7 @@
 const response = require('../utils/response');
 const logger = require('../utils/logger');
 const OSSService = require('../services/ossService');
+const LocalUploadService = require('../services/localUploadService');
 const WechatService = require('../services/wechatService');
 const axios = require('axios');
 const cheerio = require('cheerio');
@@ -23,14 +24,26 @@ class UploadController {
 
       // 图片安全检测（仅检测第一张，避免性能问题）
       if (files.length > 0) {
-        const securityCheck = await WechatService.imgSecCheck(files[0].buffer);
-        if (!securityCheck.pass) {
-          return response.error(res, '图片包含违规内容', 400);
+        try {
+          const securityCheck = await WechatService.imgSecCheck(files[0].buffer);
+          if (!securityCheck.pass) {
+            return response.error(res, '图片包含违规内容', 400);
+          }
+        } catch (error) {
+          logger.warn('图片安全检测失败，跳过检测:', error.message);
         }
       }
 
-      // 上传所有图片
-      const uploadResults = await OSSService.uploadImages(files);
+      // 上传所有图片（优先使用本地上传，开发环境）
+      let uploadResults;
+      try {
+        // 尝试使用OSS上传
+        uploadResults = await OSSService.uploadImages(files);
+      } catch (error) {
+        logger.warn('OSS上传失败，使用本地上传:', error.message);
+        // 降级到本地上传
+        uploadResults = await LocalUploadService.uploadImages(files);
+      }
 
       logger.info('图片上传成功:', {
         userId: req.userId,

@@ -46,72 +46,78 @@ export default function SearchPage() {
     setIsSearching(true)
 
     try {
-      // TODO: 调用搜索API
-      // const res = await searchAPI({
-      //   keyword: kw,
-      //   type: searchType,
-      //   filter: activeFilter
-      // })
+      const results: any = {
+        topics: [],
+        users: [],
+        projects: [],
+        tags: []
+      }
 
-      // 模拟搜索
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setResults({
-        topics: [
-          {
-            id: 't1',
-            type: 'supply',
-            title: 'GPT-4教育应用实战：从零到一开发AI学习助手',
-            content: '历时3个月，我开发了一个基于GPT-4的个性化学习助手...',
-            author: {
-              id: 'u1',
-              nickname: '张三',
-              avatar: 'https://via.placeholder.com/40/667eea/ffffff?text=Z'
-            },
-            cover: 'https://via.placeholder.com/100x75/667eea/ffffff?text=AI',
-            category: '技术',
-            tags: ['AI', 'GPT-4', '教育'],
-            likesCount: 42,
-            commentsCount: 15,
-            createdAt: '2小时前'
+      // 根据搜索类型调用不同的API
+      if (searchType === 'all' || searchType === 'topics') {
+        const topicsRes = await Taro.request({
+          url: `${process.env.TARO_APP_API}/search/topics`,
+          method: 'GET',
+          data: {
+            q: kw,
+            sortBy: activeFilter === 'hot' ? 'hot' : activeFilter === 'latest' ? 'new' : 'relevance',
+            page: 1,
+            limit: 20
           }
-        ],
-        users: [
-          {
-            id: 'u1',
-            nickname: '张三',
-            avatar: 'https://via.placeholder.com/60/667eea/ffffff?text=Z',
-            bio: 'AI工程师 | 教育科技爱好者',
-            tags: ['AI', '前端开发', 'React'],
-            followersCount: 128,
-            topicsCount: 23
+        })
+
+        if (topicsRes.data.success) {
+          results.topics = topicsRes.data.data.topics.map((topic: any) => ({
+            id: topic.id,
+            type: topic.topicType === 'discussion' ? 'supply' : 'demand',
+            title: topic.title,
+            content: topic.content,
+            author: topic.author,
+            cover: topic.images?.[0] || null,
+            category: topic.category,
+            tags: topic.tags || [],
+            likesCount: topic.likesCount || 0,
+            commentsCount: topic.commentsCount || 0,
+            createdAt: topic.createdAt
+          }))
+        }
+      }
+
+      if (searchType === 'all' || searchType === 'users') {
+        const usersRes = await Taro.request({
+          url: `${process.env.TARO_APP_API}/search/users`,
+          method: 'GET',
+          data: {
+            q: kw,
+            page: 1,
+            limit: 20
           }
-        ],
-        projects: [
-          {
-            id: 'p1',
-            title: 'AI学习助手平台',
-            description: '基于GPT-4的个性化学习系统',
-            author: {
-              id: 'u1',
-              nickname: '张三',
-              avatar: 'https://via.placeholder.com/40/667eea/ffffff?text=Z'
-            },
-            cover: 'https://via.placeholder.com/100x75/667eea/ffffff?text=Project',
-            tags: ['AI', 'GPT-4', '教育'],
-            status: 'completed'
-          }
-        ],
-        tags: [
-          { name: 'AI', count: 156, trend: 'up' },
-          { name: 'GPT-4', count: 89, trend: 'up' }
-        ]
-      })
+        })
+
+        if (usersRes.data.success) {
+          results.users = usersRes.data.data.users.map((user: any) => ({
+            id: user.id,
+            nickname: user.nickname,
+            avatar: user.avatar,
+            bio: user.bio,
+            tags: user.skills || [],
+            followersCount: user._count?.followers || 0,
+            topicsCount: user._count?.topics || 0
+          }))
+        }
+      }
+
+      setResults(results)
 
       // 保存搜索历史
       saveSearchHistory(kw)
 
-    } catch (error) {
-      Taro.showToast({ title: '搜索失败', icon: 'none' })
+    } catch (error: any) {
+      console.error('搜索失败:', error)
+      Taro.showToast({ 
+        title: error.data?.message || '搜索失败', 
+        icon: 'none' 
+      })
     } finally {
       setIsSearching(false)
     }

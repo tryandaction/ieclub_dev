@@ -4,11 +4,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Image, Text, ScrollView } from '@tarojs/components';
 import Taro, { useLoad, useRouter } from '@tarojs/taro';
-import communityService from '../../../services/community';
-import { formatDate } from '../../../utils/format';
-import type { UserProfile } from '../../../types/community';
-import LoadingSpinner from '../../../components/LoadingSpinner';
-import Button from '../../../components/Button';
+import communityService from '@/services/community';
+import { formatDate } from '@/utils/format';
+import type { UserProfile } from '@/types/community';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import Button from '@/components/Button';
 import './index.scss';
 
 const UserProfilePage: React.FC = () => {

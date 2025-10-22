@@ -8,7 +8,7 @@ import {
   likeComment as likeCommentApi,
   unlikeComment as unlikeCommentApi,
   getCommentReplies
-} from '../services/comment'
+} from '@/services/comment'
 import type { Comment, CreateCommentParams } from '../types'
 
 interface CommentState {

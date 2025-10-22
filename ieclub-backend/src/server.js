@@ -23,6 +23,11 @@ async function startServer() {
       logger.info(`💊 健康检查: http://localhost:${config.port}/health`);
     });
 
+    // 启动WebSocket服务
+    const websocketService = require('./services/websocketService');
+    websocketService.start(server);
+    logger.info(`🔌 WebSocket 服务已启动: ws://localhost:${config.port}/ws`);
+
     // 处理服务器错误
     server.on('error', (error) => {
       if (error.syscall !== 'listen') {

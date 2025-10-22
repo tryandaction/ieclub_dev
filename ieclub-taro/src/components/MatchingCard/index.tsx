@@ -1,7 +1,7 @@
 // ==================== 匹配卡片组件 ====================
 
 import { View, Image, Text } from '@tarojs/components'
-import type { DemandMatchResult } from '../../types'
+import type { DemandMatchResult } from '@/types'
 import './index.scss'
 
 interface MatchingCardProps {

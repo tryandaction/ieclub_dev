@@ -1,7 +1,7 @@
 // ==================== 分析Hooks ====================
 
 import { useCallback } from 'react'
-import { trackAction, trackPageView } from '../services/analytics'
+import { trackAction, trackPageView } from '@/services/analytics'
 
 export function useActionTracking() {
   const track = useCallback((action: string, properties: Record<string, any> = {}) => {

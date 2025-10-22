@@ -3,8 +3,8 @@
 import { View, Text, ScrollView } from '@tarojs/components'
 import { useEffect, useState } from 'react'
 import Taro from '@tarojs/taro'
-import { getTrendingKeywords } from '../../services/trending'
-import type { TrendingKeyword } from '../../types'
+import { getTrendingKeywords } from '@/services/trending'
+import type { TrendingKeyword } from '@/types'
 import './index.scss'
 
 export default function TrendingBar() {

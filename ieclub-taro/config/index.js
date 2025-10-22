@@ -57,6 +57,14 @@ const config = {
 
     // Webpack 配置
     webpackChain(chain) {
+      // 添加路径别名
+      chain.resolve.alias
+        .set('@', path.resolve(__dirname, '../src'))
+        .set('@/services', path.resolve(__dirname, '../src/services'))
+        .set('@/components', path.resolve(__dirname, '../src/components'))
+        .set('@/pages', path.resolve(__dirname, '../src/pages'))
+        .set('@/utils', path.resolve(__dirname, '../src/utils'))
+
       // 生产环境优化
       if (process.env.NODE_ENV === 'production') {
         // 代码分割优化
@@ -267,6 +275,15 @@ const config = {
           generateScopedName: '[name]__[local]___[hash:base64:5]'
         }
       }
+    },
+    // 添加路径别名配置
+    webpackChain(chain) {
+      chain.resolve.alias
+        .set('@', path.resolve(__dirname, '../src'))
+        .set('@/services', path.resolve(__dirname, '../src/services'))
+        .set('@/components', path.resolve(__dirname, '../src/components'))
+        .set('@/pages', path.resolve(__dirname, '../src/pages'))
+        .set('@/utils', path.resolve(__dirname, '../src/utils'))
     }
   }
 }

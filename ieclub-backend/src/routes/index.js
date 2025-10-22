@@ -9,6 +9,8 @@ const userController = require('../controllers/userController');
 const searchController = require('../controllers/searchController');
 const notificationController = require('../controllers/notificationController');
 const communityController = require('../controllers/communityController');
+const uploadController = require('../controllers/uploadController');
+const LocalUploadService = require('../services/localUploadService');
 
 const { authenticate } = require('../middleware/auth');
 
@@ -17,6 +19,8 @@ router.post('/auth/send-code', authController.sendVerifyCode);
 router.post('/auth/verify-code', authController.verifyCode);
 router.post('/auth/register', authController.register);
 router.post('/auth/login', authController.login);
+router.post('/auth/forgot-password', authController.forgotPassword);
+router.post('/auth/reset-password', authController.resetPassword);
 
 // ===== 话题路由 =====
 router.get('/topics', topicController.getTopics);
@@ -55,11 +59,12 @@ router.get('/auth/login-logs', authenticate, authController.getLoginLogs);
 router.get('/auth/security-logs', authenticate, authController.getSecurityLogs);
 
 // ===== 搜索路由 =====
-router.get('/search', searchController.search);
-router.get('/search/hot', searchController.getHotSearches);
+router.get('/search/topics', searchController.searchTopics);
+router.get('/search/users', searchController.searchUsers);
+router.get('/search/hot-keywords', searchController.getHotKeywords);
 router.get('/search/history', authenticate, searchController.getSearchHistory);
 router.delete('/search/history', authenticate, searchController.clearSearchHistory);
-router.get('/search/suggestions', searchController.getSearchSuggestions);
+router.get('/search/suggest', searchController.getSuggestions);
 
 // ===== 通知路由 =====
 router.get('/notifications', authenticate, notificationController.getNotifications);
@@ -67,6 +72,12 @@ router.get('/notifications/unread-count', authenticate, notificationController.g
 router.put('/notifications/:id/read', authenticate, notificationController.markAsRead);
 router.put('/notifications/read-all', authenticate, notificationController.markAllAsRead);
 router.delete('/notifications/:id', authenticate, notificationController.deleteNotification);
+
+// ===== 文件上传路由 =====
+router.post('/upload/images', authenticate, LocalUploadService.getUploadMiddleware().array('images', 9), uploadController.uploadImages);
+router.post('/upload/documents', authenticate, LocalUploadService.getUploadMiddleware().array('documents', 3), uploadController.uploadDocuments);
+router.post('/upload/link-preview', authenticate, uploadController.getLinkPreview);
+router.delete('/upload/file', authenticate, uploadController.deleteFile);
 
 // ===== 社区路由 =====
 router.use('/community', require('./community'));

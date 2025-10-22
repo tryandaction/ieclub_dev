@@ -3,6 +3,8 @@
 import { View, Text, Textarea, Image, Button } from '@tarojs/components'
 import { useState } from 'react'
 import Taro from '@tarojs/taro'
+import { uploadMultipleImages } from '@/services/upload'
+import type { UploadResult } from '@/services/upload'
 import './index.scss'
 
 const CATEGORIES = ['技术', '项目', '设计', '商业', '生活']
@@ -15,7 +17,7 @@ export default function CreateTopicPage() {
     content: '',
     category: '技术',
     tags: [] as string[],
-    images: [] as string[],
+    images: [] as UploadResult[],
     targetCount: 15 // 目标人数（15人成团）
   })
 
@@ -30,12 +32,29 @@ export default function CreateTopicPage() {
         sourceType: ['album', 'camera']
       })
 
-      setForm({
-        ...form,
-        images: [...form.images, ...res.tempFilePaths]
-      })
+      if (res.tempFilePaths.length > 0) {
+        Taro.showLoading({ title: '上传中...' })
+        
+        try {
+          // 上传图片到服务器
+          const uploadResults = await uploadMultipleImages(res.tempFilePaths)
+          
+          setForm({
+            ...form,
+            images: [...form.images, ...uploadResults]
+          })
+          
+          Taro.hideLoading()
+          Taro.showToast({ title: '上传成功', icon: 'success' })
+        } catch (uploadError) {
+          Taro.hideLoading()
+          Taro.showToast({ title: '上传失败', icon: 'none' })
+          console.error('图片上传失败:', uploadError)
+        }
+      }
     } catch (error) {
       console.error('选择图片失败', error)
+      Taro.showToast({ title: '选择图片失败', icon: 'none' })
     }
   }
 
@@ -83,18 +102,28 @@ export default function CreateTopicPage() {
     try {
       Taro.showLoading({ title: '发布中...' })
 
-      // TODO: 上传图片到服务器
-      // const imageUrls = await uploadImages(form.images)
+      // 调用发布接口
+      const res = await Taro.request({
+        url: `${process.env.TARO_APP_API}/topics`,
+        method: 'POST',
+        header: {
+          'Authorization': `Bearer ${Taro.getStorageSync('token')}`,
+          'Content-Type': 'application/json'
+        },
+        data: {
+          title: form.title,
+          content: form.content,
+          category: form.category,
+          tags: form.tags,
+          images: form.images.map(img => img.url),
+          topicType: postType === 'supply' ? 'discussion' : 'demand',
+          contentType: 'text'
+        }
+      })
 
-      // TODO: 调用发布接口
-      // await createTopic({
-      //   ...form,
-      //   type: postType,
-      //   images: imageUrls
-      // })
-
-      // 模拟发布
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      if (!res.data.success) {
+        throw new Error(res.data.message || '发布失败')
+      }
 
       Taro.hideLoading()
       Taro.showToast({ title: '发布成功', icon: 'success' })
@@ -180,7 +209,11 @@ export default function CreateTopicPage() {
           <View className='image-grid'>
             {form.images.map((img, index) => (
               <View key={index} className='image-item'>
-                <Image className='preview-image' src={img} mode='aspectFill' />
+                <Image 
+                  className='preview-image' 
+                  src={img.thumbnail || img.url} 
+                  mode='aspectFill' 
+                />
                 <View className='delete-btn' onClick={() => removeImage(index)}>
                   ✕
                 </View>

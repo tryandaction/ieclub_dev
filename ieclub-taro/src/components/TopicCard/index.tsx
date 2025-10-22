@@ -1,8 +1,8 @@
 // ==================== 话题卡片组件（增强版） ====================
 
 import { View, Image, Text } from '@tarojs/components'
-import { formatRelativeTime } from '../../utils/format'
-import type { Topic } from '../../types'
+import { formatRelativeTime } from '@/utils/format'
+import type { Topic } from '@/types'
 import './index.scss'
 
 interface TopicCardProps {

@@ -1,8 +1,8 @@
 // ==================== 评论列表组件（增强版） ====================
 
 import { View, Image, Text } from '@tarojs/components'
-import { formatRelativeTime } from '../../utils/format'
-import type { Comment } from '../../types'
+import { formatRelativeTime } from '@/utils/format'
+import type { Comment } from '@/types'
 import './index.scss'
 
 interface CommentListProps {

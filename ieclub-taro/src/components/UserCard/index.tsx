@@ -4,8 +4,8 @@
 import React from 'react';
 import { View, Image, Text } from '@tarojs/components';
 import Taro from '@tarojs/taro';
-import { formatDate } from '../../utils/format';
-import type { CommunityUser } from '../../types/community';
+import { formatDate } from '@/utils/format';
+import type { CommunityUser } from '@/types/community';
 import './index.scss';
 
 interface UserCardProps {

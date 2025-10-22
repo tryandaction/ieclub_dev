@@ -2,7 +2,7 @@
 
 import { create } from 'zustand'
 import Taro from '@tarojs/taro'
-import { login as loginApi, register as registerApi, getUserProfile } from '../services/user'
+import { login as loginApi, register as registerApi, getUserProfile } from '@/services/user'
 import type { User, LoginParams, RegisterParams } from '../types'
 
 interface UserState {

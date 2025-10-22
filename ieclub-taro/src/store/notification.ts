@@ -2,7 +2,7 @@
 
 import { create } from 'zustand'
 import Taro from '@tarojs/taro'
-import { getNotifications, markAllNotificationsRead, getUnreadCount } from '../services/notification'
+import { getNotifications, markAllNotificationsRead, getUnreadCount } from '@/services/notification'
 import type { Notification } from '../types'
 
 interface NotificationState {

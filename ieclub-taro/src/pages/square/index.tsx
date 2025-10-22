@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { View, ScrollView, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
-import { DefaultCoverIcon, DefaultAvatarIcon } from '../../components/CustomIcons';
+import { DefaultCoverIcon, DefaultAvatarIcon } from '@/components/CustomIcons';
 import './index.scss';
 
 // 使用统一的API配置

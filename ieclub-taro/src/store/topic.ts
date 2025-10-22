@@ -7,7 +7,7 @@ import {
   createEnhancedTopic,
   performQuickAction,
   getPersonalizedRecommendations
-} from '../services/topic'
+} from '@/services/topic'
 // import type { EnhancedTopic, CreateEnhancedTopicParams } from '../types'
 
 interface EnhancedTopicState {

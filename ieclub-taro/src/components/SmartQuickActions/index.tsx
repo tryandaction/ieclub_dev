@@ -3,7 +3,7 @@
 import { View, Text } from '@tarojs/components'
 import { useState } from 'react'
 import Taro from '@tarojs/taro'
-import type { EnhancedTopic } from '../../types'
+import type { EnhancedTopic } from '@/types'
 import './index.scss'
 
 interface QuickActionConfig {

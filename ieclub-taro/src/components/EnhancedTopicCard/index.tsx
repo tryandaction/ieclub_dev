@@ -1,11 +1,11 @@
 // ==================== 增强话题卡片组件 ====================
 
 import { View, Image, Text } from '@tarojs/components'
-import { formatRelativeTime } from '../../utils/format'
-import { useTopicStore } from '../../store/topic'
-import { useActionTracking } from '../../hooks/useAnalytics'
+import { formatRelativeTime } from '@/utils/format'
+import { useTopicStore } from '@/store/topic'
+import { useActionTracking } from '@/hooks/useAnalytics'
 import SmartQuickActions from '../SmartQuickActions'
-import type { EnhancedTopic } from '../../types'
+import type { EnhancedTopic } from '@/types'
 import './index.scss'
 
 interface EnhancedTopicCardProps {

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { View, ScrollView, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
-import { DefaultAvatarIcon } from '../../components/CustomIcons';
+import { DefaultAvatarIcon } from '@/components/CustomIcons';
 import './index.scss';
 
 const NotificationsPage = () => {
