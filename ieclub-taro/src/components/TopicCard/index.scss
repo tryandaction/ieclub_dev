@@ -9,10 +9,14 @@
   margin-bottom: $spacing-lg;
   box-shadow: $shadow-sm;
   transition: all $transition-base;
+  border: 1px solid rgba(0, 0, 0, 0.04);
 
   /* 平板和桌面端增加hover效果 */
   @include desktop-up {
     padding: $spacing-xl;
+    border-radius: $radius-xl;
+    box-shadow: $shadow-md;
+    border: 1px solid rgba(0, 0, 0, 0.06);
 
     &:hover {
       box-shadow: $shadow-lg;
@@ -60,6 +64,7 @@
 
     @include desktop-up {
       font-size: $font-xl;
+      font-weight: 500;
     }
   }
 
@@ -93,6 +98,8 @@
     @include desktop-up {
       font-size: $font-xxl;
       margin-bottom: $spacing-lg;
+      line-height: 1.3;
+      font-weight: 600;
     }
   }
 
@@ -116,6 +123,7 @@
       font-size: $font-lg;
       -webkit-line-clamp: 4;
       line-clamp: 4;
+      line-height: 1.7;
     }
   }
 
@@ -139,10 +147,15 @@
     @include desktop-up {
       padding: 12px 28px;
       font-size: $font-md;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8eaf6 100%);
+      background: -webkit-linear-gradient(135deg, #f5f7fa 0%, #e8eaf6 100%);
+      border: 1px solid rgba(102, 126, 234, 0.1);
 
       &:hover {
         background: linear-gradient(135deg, #e8eaf6 0%, #d1d5f0 100%);
+        background: -webkit-linear-gradient(135deg, #e8eaf6 0%, #d1d5f0 100%);
         transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
       }
     }
   }
@@ -154,6 +167,12 @@
     gap: $spacing-lg;
     padding-top: $spacing-md;
     border-top: 2px solid $border-color;  /* 加粗边框 */
+
+    @include desktop-up {
+      gap: $spacing-xl;
+      padding-top: $spacing-lg;
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+    }
   }
 
   /* 👆 操作按钮 - 更大更易点击 */
@@ -170,11 +189,13 @@
 
     @include desktop-up {
       font-size: $font-lg;
-      padding: 10px 16px;
+      padding: 12px 18px;
+      border-radius: $radius-md;
 
       &:hover {
         color: $primary-color;
         background: rgba(102, 126, 234, 0.08);
+        transform: translateY(-1px);
       }
     }
 
@@ -202,6 +223,7 @@
 
     @include desktop-up {
       font-size: $font-lg;
+      font-weight: 500;
     }
   }
 }
@@ -231,6 +253,7 @@
  .hot-tag {
    padding: 4px 12px;
    background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+   background: -webkit-linear-gradient(135deg, #ff6b6b, #ff8e53);
    border-radius: 12px;
    font-size: 12px;
    color: #fff;
@@ -244,6 +267,7 @@
    margin-bottom: $spacing-md;
    padding: 10px;
    background: linear-gradient(135deg, #f5f7fa 0%, #e3eaf2 100%);
+   background: -webkit-linear-gradient(135deg, #f5f7fa 0%, #e3eaf2 100%);
    border-radius: 8px;
 
    .stat-item {
