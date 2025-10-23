@@ -9,15 +9,20 @@ import './index.scss';
 const getApiBase = () => {
   const env = Taro.getEnv()
   
-  switch (env) {
+  // 检查是否为生产环境
+  const isProduction = process.env.NODE_ENV === 'production'
+  
+  switch (env as string) {
     case 'WEAPP':
       return 'https://api.ieclub.online/api'
     case 'H5':
-      return '/api'  // 使用代理
+      // 生产环境直接使用完整API地址，开发环境使用代理
+      return isProduction ? 'https://api.ieclub.online/api' : '/api'
     case 'RN':
       return 'https://api.ieclub.online/api'
     default:
-      return '/api'  // 开发环境也使用代理
+      // 生产环境直接使用完整API地址，开发环境使用代理
+      return isProduction ? 'https://api.ieclub.online/api' : '/api'
   }
 };
 

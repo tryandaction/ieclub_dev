@@ -5,21 +5,8 @@ import { useState } from 'react'
 import Taro from '@tarojs/taro'
 import './index.scss'
 
-// 获取API基础URL
-function getApiBaseUrl(): string {
-  const env = Taro.getEnv()
-  
-  switch (env) {
-    case 'WEAPP':
-      return 'https://api.ieclub.online/api'
-    case 'H5':
-      return '/api'
-    case 'RN':
-      return 'https://api.ieclub.online/api'
-    default:
-      return 'http://localhost:3000/api'
-  }
-}
+// 使用统一的API配置
+import { getApiBaseUrl } from '@/utils/api-config'
 
 export default function ForgotPasswordPage() {
   const [step, setStep] = useState(1) // 1: 输入邮箱, 2: 重置密码

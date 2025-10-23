@@ -3,21 +3,8 @@
 import Taro from '@tarojs/taro'
 import { request } from './request'
 
-// 获取API基础URL
-function getApiBaseUrl(): string {
-  const env = Taro.getEnv()
-  
-  switch (env) {
-    case 'WEAPP':
-      return 'https://api.ieclub.online/api'
-    case 'H5':
-      return '/api'  // 使用代理
-    case 'RN':
-      return 'https://api.ieclub.online/api'
-    default:
-      return '/api'  // 开发环境也使用代理
-  }
-}
+// 使用统一的API配置
+import { getApiBaseUrl } from '@/utils/api-config'
 import type {
   EnhancedTopic,
   CreateEnhancedTopicParams,

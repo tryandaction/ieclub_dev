@@ -5,21 +5,8 @@ import { useState, useEffect } from 'react'
 import Taro, { useRouter } from '@tarojs/taro'
 import './index.scss'
 
-// 获取API基础URL
-function getApiBaseUrl(): string {
-  const env = Taro.getEnv()
-  
-  switch (env) {
-    case 'WEAPP':
-      return 'https://api.ieclub.online/api'
-    case 'H5':
-      return '/api'
-    case 'RN':
-      return 'https://api.ieclub.online/api'
-    default:
-      return 'http://localhost:3000/api'
-  }
-}
+// 使用统一的API配置
+import { getApiBaseUrl } from '@/utils/api-config'
 
 // 模拟活动详情数据
 const MOCK_ACTIVITY_DETAIL = {

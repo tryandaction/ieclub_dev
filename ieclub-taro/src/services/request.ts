@@ -265,20 +265,23 @@ async function handleAPIError(error: APIError) {
 function getApiBaseUrl(): string {
   const env = Taro.getEnv()
   
+  // 检查是否为生产环境
+  const isProduction = process.env.NODE_ENV === 'production'
+  
   // 根据环境返回不同的API地址
-  switch (env) {
+  switch (env as string) {
     case 'WEAPP':
       // 小程序环境
       return 'https://api.ieclub.online/api'
     case 'H5':
-      // H5环境 - 使用代理
-      return '/api'
+      // H5环境 - 生产环境使用完整地址，开发环境使用代理
+      return isProduction ? 'https://api.ieclub.online/api' : '/api'
     case 'RN':
       // React Native环境
       return 'https://api.ieclub.online/api'
     default:
-      // 开发环境 - 使用代理
-      return '/api'
+      // 生产环境使用完整地址，开发环境使用代理
+      return isProduction ? 'https://api.ieclub.online/api' : '/api'
   }
 }
 
