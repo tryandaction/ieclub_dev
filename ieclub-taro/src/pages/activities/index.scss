@@ -2,6 +2,7 @@
 
 .activities-page {
   min-height: 100vh;
+  background: -webkit-linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   padding-bottom: 80px;
 
@@ -47,7 +48,8 @@
         font-weight: 500;
 
         &.active {
-          background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+          background: -webkit-linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
           color: white;
           box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
         }
@@ -61,7 +63,8 @@
     .create-btn {
       width: 48px;
       height: 48px;
-      background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+      background: -webkit-linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
       border-radius: 24px;
       display: flex;
       align-items: center;
@@ -163,19 +166,23 @@
         font-size: 12px;
         font-weight: 600;
         color: #fff;
+        -webkit-backdrop-filter: blur(10px);
         backdrop-filter: blur(10px);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
         &.status-recruiting {
-          background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+          background: -webkit-linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
         }
 
         &.status-active {
-          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          background: -webkit-linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         }
 
         &.status-completed {
-          background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+          background: -webkit-linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
         }
       }
 
@@ -189,6 +196,7 @@
         font-size: 12px;
         font-weight: 600;
         color: #fff;
+        -webkit-backdrop-filter: blur(10px);
         backdrop-filter: blur(10px);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
@@ -287,7 +295,8 @@
 
         .tag-item {
           padding: 6px 12px;
-          background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+          background: -webkit-linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
           color: #3b82f6;
           font-size: 12px;
           font-weight: 500;
@@ -330,7 +339,8 @@
         .register-btn {
           flex: 1;
           height: 44px;
-          background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+          background: -webkit-linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
           color: #fff;
           border: none;
           border-radius: 22px;
@@ -351,7 +361,8 @@
         .registered-btn {
           flex: 1;
           height: 44px;
-          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          background: -webkit-linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
           color: #fff;
           border: none;
           border-radius: 22px;
@@ -461,7 +472,8 @@
 
     .create-first-btn {
       padding: 12px 24px;
-      background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+      background: -webkit-linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
       color: #fff;
       border: none;
       border-radius: 24px;

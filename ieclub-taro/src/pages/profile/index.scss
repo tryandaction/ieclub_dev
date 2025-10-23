@@ -1,6 +1,7 @@
 // src/pages/profile/index.scss - 个人中心页面样式（现代化设计）
 .profile-page {
   min-height: 100vh;
+  background: -webkit-linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   padding-bottom: 80px;
 
@@ -23,7 +24,8 @@
 
     .header-background {
       height: 140px;
-      background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+      background: -webkit-linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
       position: relative;
       overflow: hidden;
 
@@ -82,7 +84,8 @@
         right: 0;
         width: 36px;
         height: 36px;
-        background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+        background: -webkit-linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
         border-radius: 50%;
         border: 4px solid white;
         display: flex;
@@ -119,7 +122,8 @@
         .meta-item {
           font-size: 14px;
           color: #6b7280;
-          background: linear-gradient(135deg, #f8f9fa 0%, #f1f5f9 100%);
+          background: -webkit-linear-gradient(135deg, #f8f9fa 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, #f8f9fa 0%, #f1f5f9 100%);
           padding: 6px 14px;
           border-radius: 16px;
           font-weight: 500;
@@ -219,13 +223,15 @@
         }
 
         .skill-tag {
-          background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+          background: -webkit-linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
           color: #3b82f6;
           border-color: #bfdbfe;
         }
 
         .interest-tag {
-          background: linear-gradient(135deg, #fce7f3 0%, #fef3c7 100%);
+          background: -webkit-linear-gradient(135deg, #fce7f3 0%, #fef3c7 100%);
+  background: linear-gradient(135deg, #fce7f3 0%, #fef3c7 100%);
           color: #ec4899;
           border-color: #f9a8d4;
         }
@@ -257,12 +263,14 @@
           flex: 1;
           max-width: 220px;
           justify-content: center;
-          background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+          background: -webkit-linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
           color: white;
           box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
 
           &.following {
-            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            background: -webkit-linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
             color: #6b7280;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
           }
@@ -276,12 +284,14 @@
           flex: 1;
           max-width: 220px;
           justify-content: center;
-          background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+          background: -webkit-linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
           color: #374151;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
           &:active {
-            background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+            background: -webkit-linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
           }
         }
 
@@ -290,18 +300,21 @@
           height: 52px;
           padding: 0;
           justify-content: center;
-          background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+          background: -webkit-linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
           color: #6b7280;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
           &.active {
-            background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+            background: -webkit-linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
             color: #3b82f6;
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
           }
 
           &.active-heart {
-            background: linear-gradient(135deg, #fce7f3 0%, #fee2e2 100%);
+            background: -webkit-linear-gradient(135deg, #fce7f3 0%, #fee2e2 100%);
+  background: linear-gradient(135deg, #fce7f3 0%, #fee2e2 100%);
             color: #ef4444;
             box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
           }
@@ -345,7 +358,8 @@
         gap: 10px;
         padding: 12px 20px;
         border-radius: 28px;
-        background: linear-gradient(135deg, #f8f9fa 0%, #f1f5f9 100%);
+        background: -webkit-linear-gradient(135deg, #f8f9fa 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, #f8f9fa 0%, #f1f5f9 100%);
         color: #6b7280;
         font-size: 14px;
         white-space: nowrap;
@@ -355,7 +369,8 @@
         border: 1px solid #e5e7eb;
 
         &.active {
-          background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+          background: -webkit-linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
           color: white;
           box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
           border-color: transparent;
@@ -376,7 +391,8 @@
         align-items: center;
         gap: 8px;
         padding: 10px 14px;
-        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        background: -webkit-linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
         border-radius: 24px;
         color: #6b7280;
         font-size: 14px;
@@ -387,7 +403,8 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
         &:active {
-          background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+          background: -webkit-linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
         }
       }
 
@@ -417,11 +434,13 @@
           transition: all 0.3s;
 
           &:active {
-            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            background: -webkit-linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
           }
 
           &.active {
-            background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+            background: -webkit-linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
             color: #3b82f6;
             font-weight: 600;
           }
@@ -573,12 +592,14 @@
         flex-shrink: 0;
 
         &.status-recruiting {
-          background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+          background: -webkit-linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
           color: #3b82f6;
         }
 
         &.status-active {
-          background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+          background: -webkit-linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
           color: #10b981;
         }
 
@@ -608,7 +629,8 @@
 
       .tag {
         padding: 4px 12px;
-        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        background: -webkit-linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
         color: #f59e0b;
         border-radius: 12px;
         font-size: 12px;
@@ -647,7 +669,8 @@
         width: 60px;
         height: 60px;
         border-radius: 8px;
-        background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+        background: -webkit-linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
         display: flex;
         align-items: center;
         justify-content: center;

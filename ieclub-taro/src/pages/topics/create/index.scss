@@ -66,7 +66,8 @@ $ieclub-gradient: linear-gradient(135deg, $primary-blue 0%, $primary-purple 100%
         }
 
         &.demand {
-          background: linear-gradient(135deg, $red-accent, #ff6b6b);
+          background: -webkit-linear-gradient(135deg, $red-accent 0%, #ff6b6b 100%);
+          background: linear-gradient(135deg, $red-accent 0%, #ff6b6b 100%);
         }
       }
     }
@@ -256,7 +257,8 @@ $ieclub-gradient: linear-gradient(135deg, $primary-blue 0%, $primary-purple 100%
       .target-count-box {
         text-align: center;
         padding: 20px;
-        background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+        background: -webkit-linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
         border-radius: 12px;
         margin-bottom: 16px;
 
@@ -315,7 +317,8 @@ $ieclub-gradient: linear-gradient(135deg, $primary-blue 0%, $primary-purple 100%
 
     // 温馨提示
     .tips-box {
-      background: linear-gradient(135deg, #fff9e6, #ffecb3);
+      background: -webkit-linear-gradient(135deg, #fff9e6 0%, #ffecb3 100%);
+      background: linear-gradient(135deg, #fff9e6 0%, #ffecb3 100%);
       border-radius: 12px;
       padding: 16px;
       margin-top: 16px;

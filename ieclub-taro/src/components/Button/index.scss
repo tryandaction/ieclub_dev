@@ -21,7 +21,7 @@
   @include desktop-up {
     padding: 20px 56px;
     font-size: $font-xl;
-    min-height: auto;
+    min-height: 0;
   }
 
   /* 主要按钮 */

@@ -10,10 +10,13 @@ function getApiBaseUrl(): string {
       return 'https://api.ieclub.online'
     case 'H5':
       // 开发环境使用后端地址，生产环境使用相对路径
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return 'http://localhost:3000'
+      if (typeof window !== 'undefined') {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          return 'http://localhost:3000'
+        }
+        return window.location.origin
       }
-      return window.location.origin
+      return 'http://localhost:3000' // 服务端渲染时的默认值
     case 'RN':
       return 'https://api.ieclub.online'
     default:
@@ -21,7 +24,17 @@ function getApiBaseUrl(): string {
   }
 }
 
-export const API_BASE_URL = getApiBaseUrl()
+// 延迟初始化，避免在模块加载时访问window
+let _apiBaseUrl: string | null = null
+export function getAPI_BASE_URL(): string {
+  if (_apiBaseUrl === null) {
+    _apiBaseUrl = getApiBaseUrl()
+  }
+  return _apiBaseUrl
+}
+
+// 为了向后兼容，保留常量导出，但使用函数调用
+export const API_BASE_URL = getAPI_BASE_URL()
 
 // 是否启用Mock数据（开发时使用）
 export const USE_MOCK = false

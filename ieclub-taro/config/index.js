@@ -14,7 +14,17 @@ const config = {
   outputRoot: 'dist',  // 根输出目录
 
   plugins: [],
-  defineConstants: {},
+  defineConstants: {
+    ENABLE_INNER_HTML: '"false"',
+    ENABLE_ADJACENT_HTML: '"false"',
+    ENABLE_CLONE_NODE: '"false"',
+    ENABLE_CONTAINS: '"false"',
+    ENABLE_SIZE_APIS: '"false"',
+    ENABLE_TEMPLATE_CONTENT: '"false"',
+    ENABLE_MUTATION_OBSERVER: '"false"',
+    ENABLE_RESIZE_OBSERVER: '"false"',
+    ENABLE_INTERSECTION_OBSERVER: '"false"'
+  },
   copy: {
     patterns: [],
     options: {}
@@ -64,6 +74,12 @@ const config = {
         .set('@/components', path.resolve(__dirname, '../src/components'))
         .set('@/pages', path.resolve(__dirname, '../src/pages'))
         .set('@/utils', path.resolve(__dirname, '../src/utils'))
+
+      // 修复 window is not defined 错误
+      chain.plugin('define').use(require('webpack').DefinePlugin, [{
+        'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+        'typeof window': JSON.stringify('object')
+      }])
 
       // 生产环境优化
       if (process.env.NODE_ENV === 'production') {

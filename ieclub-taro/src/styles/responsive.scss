@@ -1,6 +1,8 @@
 // ieclub-taro/src/styles/responsive.scss
 // 响应式设计系统 - 网页端深度优化
 
+@use 'sass:map';
+
 // ==================== 断点定义 ====================
 $breakpoints: (
   'mobile': 320px,      // 手机竖屏
@@ -16,8 +18,8 @@ $breakpoints: (
 
 // 最小宽度查询
 @mixin respond-above($breakpoint) {
-  @if map-has-key($breakpoints, $breakpoint) {
-    $value: map-get($breakpoints, $breakpoint);
+  @if map.has-key($breakpoints, $breakpoint) {
+    $value: map.get($breakpoints, $breakpoint);
     @media (min-width: $value) {
       @content;
     }
@@ -26,8 +28,8 @@ $breakpoints: (
 
 // 最大宽度查询
 @mixin respond-below($breakpoint) {
-  @if map-has-key($breakpoints, $breakpoint) {
-    $value: map-get($breakpoints, $breakpoint) - 1px;
+  @if map.has-key($breakpoints, $breakpoint) {
+    $value: map.get($breakpoints, $breakpoint) - 1px;
     @media (max-width: $value) {
       @content;
     }
@@ -36,8 +38,8 @@ $breakpoints: (
 
 // 区间查询
 @mixin respond-between($min, $max) {
-  $min-value: map-get($breakpoints, $min);
-  $max-value: map-get($breakpoints, $max) - 1px;
+  $min-value: map.get($breakpoints, $min);
+  $max-value: map.get($breakpoints, $max) - 1px;
   @media (min-width: $min-value) and (max-width: $max-value) {
     @content;
   }
@@ -117,6 +119,7 @@ $breakpoints: (
 
 // ==================== IEClub 渐变色 ====================
 @mixin ieclub-gradient($direction: 135deg) {
+  background: -webkit-linear-gradient($direction, #667eea 0%, #764ba2 100%);
   background: linear-gradient($direction, #667eea 0%, #764ba2 100%);
 }
 

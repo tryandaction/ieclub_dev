@@ -1,6 +1,6 @@
 // ==================== IEClub 应用配置优化版 ====================
 
-export default defineAppConfig({
+export default {
   // ===== 页面路由配置 =====
   // 主tabBar页面 + 独立功能页面，按访问频率排序
   pages: [
@@ -74,5 +74,4 @@ export default defineAppConfig({
       }
     ]
   }
-
-})
+}

@@ -4,38 +4,38 @@
 const express = require('express');
 const router = express.Router();
 const communityController = require('../controllers/communityController');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
 
 /**
  * 获取用户列表
  * GET /api/community/users
  * Query: page, pageSize, sortBy, keyword
  */
-router.get('/users', authenticateToken, communityController.getUserList);
+router.get('/users', authenticate, communityController.getUserList);
 
 /**
  * 搜索用户
  * GET /api/community/users/search
  * Query: keyword, page, pageSize
  */
-router.get('/users/search', authenticateToken, communityController.searchUsers);
+router.get('/users/search', authenticate, communityController.searchUsers);
 
 /**
  * 获取用户详细信息
  * GET /api/community/users/:userId
  */
-router.get('/users/:userId', authenticateToken, communityController.getUserProfile);
+router.get('/users/:userId', authenticate, communityController.getUserProfile);
 
 /**
  * 关注用户
  * POST /api/community/users/:userId/follow
  */
-router.post('/users/:userId/follow', authenticateToken, communityController.followUser);
+router.post('/users/:userId/follow', authenticate, communityController.followUser);
 
 /**
  * 取消关注
  * DELETE /api/community/users/:userId/follow
  */
-router.delete('/users/:userId/follow', authenticateToken, communityController.unfollowUser);
+router.delete('/users/:userId/follow', authenticate, communityController.unfollowUser);
 
 module.exports = router;

@@ -78,7 +78,8 @@
     .skill-tag {
       display: inline-block;
       padding: 4px 12px;
-      background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+      background: -webkit-linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+  background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
       border: 1px solid #667eea;
       border-radius: 12px;
       font-size: 13px;
@@ -128,7 +129,8 @@
       transition: all 0.3s ease;
 
       &.primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: #fff;
 
         &:active {

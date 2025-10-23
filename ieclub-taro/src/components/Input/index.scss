@@ -17,7 +17,7 @@
 
   @include desktop-up {
     padding: 16px 20px;
-    min-height: auto;
+    min-height: 0;
   }
 
   &::placeholder {

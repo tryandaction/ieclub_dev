@@ -181,10 +181,12 @@
 }
 
 .ranking-entry {
+  background: -webkit-linear-gradient(135deg, #fff5f5 0%, #f5f0ff 100%);
   background: linear-gradient(135deg, #fff5f5 0%, #f5f0ff 100%);
 }
 
 .matching-entry {
+  background: -webkit-linear-gradient(135deg, #e8f5ff 0%, #fff0f5 100%);
   background: linear-gradient(135deg, #e8f5ff 0%, #fff0f5 100%);
 }
 
@@ -320,7 +322,8 @@
 
     &--highlight {
       .stat-item__value {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         -webkit-background-clip: text;
         background-clip: text;
         -webkit-text-fill-color: transparent;

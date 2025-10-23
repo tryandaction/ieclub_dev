@@ -42,7 +42,8 @@
 
     .recommend-tag {
       padding: 4px 12px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: #fff;
       border-radius: 12px;
       font-size: 12px;
@@ -224,7 +225,8 @@
 
     .skill-tag {
       padding: 4px 12px;
-      background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+      background: -webkit-linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+  background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
       border: 1px solid #667eea;
       border-radius: 12px;
       font-size: 13px;
@@ -302,7 +304,8 @@
       }
 
       &.active {
-        background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+        background: -webkit-linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+  background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
         border-color: #667eea;
 
         .action-label {
@@ -327,7 +330,8 @@
   .hot-indicator {
     margin-top: 12px;
     padding: 8px 12px;
-    background: linear-gradient(90deg, #ff6b6b20, #ee5a6f20);
+    background: -webkit-linear-gradient(90deg, #ff6b6b20, #ee5a6f20);
+  background: linear-gradient(90deg, #ff6b6b20, #ee5a6f20);
     border-left: 3px solid #ff6b6b;
     border-radius: 8px;
     font-size: 13px;

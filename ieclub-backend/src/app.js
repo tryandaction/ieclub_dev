@@ -12,14 +12,9 @@ const app = express();
 
 // 安全中间件
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-    },
-  },
+  contentSecurityPolicy: false, // 移除CSP以避免兼容性问题
+  xContentTypeOptions: true, // 添加X-Content-Type-Options头
+  server: 'IEClub/2.0', // 设置服务器名称
 }));
 
 // HTTP参数污染保护
@@ -74,16 +69,32 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// 静态文件
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// 静态文件 - 添加缓存控制
+app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
+  maxAge: '1d', // 缓存1天
+  etag: true,
+  lastModified: true
+}));
 
 // 健康检查
 app.get('/health', (req, res) => {
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV
   });
+});
+
+// API缓存控制中间件
+app.use('/api', (req, res, next) => {
+  // 为API响应设置缓存控制
+  if (req.method === 'GET') {
+    res.set('Cache-Control', 'public, max-age=300'); // 5分钟缓存
+  } else {
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  }
+  next();
 });
 
 // API 路由

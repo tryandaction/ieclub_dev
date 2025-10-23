@@ -21,7 +21,8 @@
 
     .mark-all-btn {
       padding: 8px 16px;
-      background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+      background: -webkit-linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
       color: white;
       border-radius: 20px;
       font-size: 14px;
@@ -83,7 +84,8 @@
       }
 
       &.unread {
-        background: linear-gradient(135deg, #f8f9ff 0%, #fdfbff 100%);
+        background: -webkit-linear-gradient(135deg, #f8f9ff 0%, #fdfbff 100%);
+  background: linear-gradient(135deg, #f8f9ff 0%, #fdfbff 100%);
         border-left: 4px solid #3b82f6;
       }
 

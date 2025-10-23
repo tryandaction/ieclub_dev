@@ -42,7 +42,7 @@ router.post('/comments/:id/like', authenticate, commentController.likeComment);
 router.delete('/comments/:id', authenticate, commentController.deleteComment);
 
 // ===== 用户路由 =====
-router.get('/users/search', userController.searchUsers);
+router.get('/users/search', searchController.searchUsers);
 router.get('/users/:id', userController.getUserProfile);
 router.put('/users/:id', authenticate, userController.updateUserProfile);
 router.post('/users/:id/follow', authenticate, userController.followUser);

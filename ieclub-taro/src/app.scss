@@ -40,6 +40,9 @@ html, body {
                'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   background: #f7f8fa;
   color: #1a1a1a;
   font-size: 16px; // 修复字体太小问题
@@ -169,10 +172,12 @@ button {
 
 // ==================== IEClub 主题色 ====================
 .bg-gradient {
+  background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .text-gradient {
+  background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -280,6 +285,7 @@ button {
   }
 
   &--primary {
+    background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #ffffff;
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);

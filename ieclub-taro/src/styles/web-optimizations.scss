@@ -1,7 +1,7 @@
 // ieclub-taro/src/styles/web-optimizations.scss
 // 网页端全局优化样式
 
-@import './responsive.scss';
+@use './responsive.scss' as *;
 
 // ==================== 平滑滚动 ====================
 @include respond-above('desktop') {
@@ -26,10 +26,12 @@
   }
 
   ::-webkit-scrollbar-thumb {
+    background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 4px;
 
     &:hover {
+      background: -webkit-linear-gradient(135deg, #5568d3 0%, #6a4091 100%);
       background: linear-gradient(135deg, #5568d3 0%, #6a4091 100%);
     }
   }
@@ -424,6 +426,12 @@ img {
 // ==================== 加载骨架屏 ====================
 @include respond-above('desktop') {
   .skeleton {
+    background: -webkit-linear-gradient(
+      90deg,
+      #f0f0f0 25%,
+      #e8e8e8 50%,
+      #f0f0f0 75%
+    );
     background: linear-gradient(
       90deg,
       #f0f0f0 25%,

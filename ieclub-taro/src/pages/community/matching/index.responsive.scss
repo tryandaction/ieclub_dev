@@ -100,6 +100,7 @@
     padding: 20px;
     background: rgba(255, 255, 255, 0.15);
     border-radius: 16px;
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     position: relative;
     z-index: 1;
@@ -115,7 +116,8 @@
   padding: 10px 20px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 20px;
-  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
   cursor: pointer;
   transition: all 0.3s $ease-smooth;
 
@@ -210,6 +212,7 @@
   width: 240px;
   padding: 20px;
   margin-right: 12px;
+  background: -webkit-linear-gradient(135deg, #fff5f5 0%, #f5f0ff 100%);
   background: linear-gradient(135deg, #fff5f5 0%, #f5f0ff 100%);
   border-radius: 16px;
   vertical-align: top;
@@ -462,6 +465,7 @@
 
 .reason-tag {
   padding: 4px 12px;
+  background: -webkit-linear-gradient(135deg, #fff5f5 0%, #f5f0ff 100%);
   background: linear-gradient(135deg, #fff5f5 0%, #f5f0ff 100%);
   border-radius: 12px;
   font-size: 11px;

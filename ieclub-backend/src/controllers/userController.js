@@ -591,6 +591,203 @@ class UserController {
       return response.serverError(res);
     }
   }
+
+  /**
+   * 更新用户资料
+   * PUT /api/v1/users/:id
+   */
+  static async updateUserProfile(req, res) {
+    try {
+      const { id } = req.params;
+      const userId = req.userId;
+      const {
+        nickname,
+        bio,
+        major,
+        grade,
+        skills,
+        interests,
+        website,
+        github,
+        avatar
+      } = req.body;
+
+      // 检查用户权限
+      if (userId !== id) {
+        return response.forbidden(res, '无权限修改其他用户资料');
+      }
+
+      // 检查用户是否存在
+      const user = await prisma.user.findUnique({
+        where: { id }
+      });
+
+      if (!user) {
+        return response.notFound(res, '用户不存在');
+      }
+
+      // 更新用户资料
+      const updatedUser = await prisma.user.update({
+        where: { id },
+        data: {
+          ...(nickname && { nickname }),
+          ...(bio !== undefined && { bio }),
+          ...(major && { major }),
+          ...(grade && { grade }),
+          ...(skills && { skills }),
+          ...(interests && { interests }),
+          ...(website && { website }),
+          ...(github && { github }),
+          ...(avatar && { avatar })
+        },
+        select: {
+          id: true,
+          username: true,
+          nickname: true,
+          avatar: true,
+          bio: true,
+          verified: true,
+          major: true,
+          grade: true,
+          skills: true,
+          interests: true,
+          website: true,
+          github: true,
+          updatedAt: true
+        }
+      });
+
+      return response.success(res, updatedUser, '用户资料更新成功');
+    } catch (error) {
+      logger.error('更新用户资料失败:', error);
+      return response.serverError(res);
+    }
+  }
+
+  /**
+   * 点赞用户
+   * POST /api/v1/users/:id/like
+   */
+  static async likeUser(req, res) {
+    try {
+      const { id } = req.params;
+      const userId = req.userId;
+
+      if (userId === id) {
+        return response.error(res, '不能给自己点赞');
+      }
+
+      // 检查用户是否存在
+      const user = await prisma.user.findUnique({
+        where: { id }
+      });
+
+      if (!user) {
+        return response.notFound(res, '用户不存在');
+      }
+
+      // 检查是否已点赞
+      const existingLike = await prisma.like.findUnique({
+        where: {
+          userId_targetId_targetType: {
+            userId,
+            targetId: id,
+            targetType: 'user'
+          }
+        }
+      });
+
+      if (existingLike) {
+        // 已点赞，执行取消点赞
+        await prisma.like.delete({
+          where: {
+            userId_targetId_targetType: {
+              userId,
+              targetId: id,
+              targetType: 'user'
+            }
+          }
+        });
+
+        return response.success(res, { isLiked: false }, '已取消点赞');
+      } else {
+        // 未点赞，执行点赞
+        await prisma.like.create({
+          data: {
+            userId,
+            targetId: id,
+            targetType: 'user'
+          }
+        });
+
+        return response.success(res, { isLiked: true }, '点赞成功');
+      }
+    } catch (error) {
+      logger.error('点赞操作失败:', error);
+      return response.serverError(res);
+    }
+  }
+
+  /**
+   * 收藏用户
+   * POST /api/v1/users/:id/heart
+   */
+  static async heartUser(req, res) {
+    try {
+      const { id } = req.params;
+      const userId = req.userId;
+
+      if (userId === id) {
+        return response.error(res, '不能收藏自己');
+      }
+
+      // 检查用户是否存在
+      const user = await prisma.user.findUnique({
+        where: { id }
+      });
+
+      if (!user) {
+        return response.notFound(res, '用户不存在');
+      }
+
+      // 检查是否已收藏
+      const existingHeart = await prisma.bookmark.findUnique({
+        where: {
+          userId_topicId: {
+            userId,
+            topicId: id
+          }
+        }
+      });
+
+      if (existingHeart) {
+        // 已收藏，执行取消收藏
+        await prisma.bookmark.delete({
+          where: {
+            userId_topicId: {
+              userId,
+              topicId: id
+            }
+          }
+        });
+
+        return response.success(res, { isHearted: false }, '已取消收藏');
+      } else {
+        // 未收藏，执行收藏
+        await prisma.bookmark.create({
+          data: {
+            userId,
+            topicId: id
+          }
+        });
+
+        return response.success(res, { isHearted: true }, '收藏成功');
+      }
+    } catch (error) {
+      logger.error('收藏操作失败:', error);
+      return response.serverError(res);
+    }
+  }
 }
 
 module.exports = UserController;

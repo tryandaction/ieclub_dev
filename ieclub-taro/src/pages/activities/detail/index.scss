@@ -28,6 +28,7 @@
       left: 0;
       right: 0;
       bottom: 0;
+      background: -webkit-linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
       background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
       display: flex;
       justify-content: space-between;
@@ -40,6 +41,7 @@
         font-size: 14px;
         font-weight: 600;
         color: #fff;
+        -webkit-backdrop-filter: blur(10px);
         backdrop-filter: blur(10px);
       }
 
@@ -50,6 +52,7 @@
         font-size: 14px;
         font-weight: 600;
         color: #fff;
+        -webkit-backdrop-filter: blur(10px);
         backdrop-filter: blur(10px);
       }
     }
@@ -203,7 +206,8 @@
 
         .progress-fill {
           height: 100%;
-          background: linear-gradient(90deg, #3b82f6 0%, #9333ea 100%);
+          background: -webkit-linear-gradient(90deg, #3b82f6 0%, #9333ea 100%);
+  background: linear-gradient(90deg, #3b82f6 0%, #9333ea 100%);
           border-radius: 4px;
           transition: width 0.3s ease;
         }
@@ -335,7 +339,8 @@
     .register-btn {
       flex: 1;
       height: 44px;
-      background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+      background: -webkit-linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
       color: #fff;
       border: none;
       border-radius: 22px;

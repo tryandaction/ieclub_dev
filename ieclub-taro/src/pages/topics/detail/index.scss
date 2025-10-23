@@ -150,7 +150,8 @@ $ieclub-gradient: linear-gradient(135deg, $primary-blue 0%, $primary-purple 100%
 
     // 15人成团进度
     .team-progress {
-      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+      background: -webkit-linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
       border-radius: 12px;
       padding: 16px;
 

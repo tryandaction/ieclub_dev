@@ -459,7 +459,8 @@ $ieclub-gradient: linear-gradient(135deg, $primary-blue 0%, $primary-purple 100%
 
           .tag-result-item {
             padding: 16px;
-            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            background: -webkit-linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
             border-radius: 12px;
             position: relative;
 

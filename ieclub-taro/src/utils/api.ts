@@ -9,7 +9,11 @@ export function getApiBaseUrl(): string {
     case 'WEAPP':
       return 'https://api.ieclub.online'
     case 'H5':
-      return window.location.origin
+      // 安全地访问window对象
+      if (typeof window !== 'undefined' && window.location) {
+        return window.location.origin
+      }
+      return 'http://localhost:3000'
     case 'RN':
       return 'https://api.ieclub.online'
     default:

@@ -11,7 +11,11 @@ function getWebSocketBaseUrl(): string {
     case 'WEAPP':
       return 'wss://api.ieclub.online'
     case 'H5':
-      return window.location.protocol === 'https:' ? 'wss://api.ieclub.online' : 'ws://localhost:3000'
+      // 安全地访问window对象
+      if (typeof window !== 'undefined' && window.location) {
+        return window.location.protocol === 'https:' ? 'wss://api.ieclub.online' : 'ws://localhost:3000'
+      }
+      return 'ws://localhost:3000' // 服务端渲染时的默认值
     case 'RN':
       return 'wss://api.ieclub.online'
     default:

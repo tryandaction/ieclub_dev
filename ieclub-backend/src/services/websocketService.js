@@ -23,7 +23,9 @@ class WebSocketService {
 
     this.wss.on('connection', this.handleConnection.bind(this));
     
-    logger.info('WebSocket服务已启动', { port: server.address().port });
+    const address = server.address();
+    const port = address ? address.port : 'unknown';
+    logger.info('WebSocket服务已启动', { port });
   }
 
   // 验证客户端连接

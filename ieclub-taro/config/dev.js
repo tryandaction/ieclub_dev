@@ -6,7 +6,10 @@ module.exports = {
   },
   defineConstants: {
     TARO_APP_API: JSON.stringify('http://localhost:3000/api'),
-    TARO_APP_SERVER_URL: JSON.stringify('http://localhost:3000')
+    TARO_APP_SERVER_URL: JSON.stringify('http://localhost:3000'),
+    ENABLE_INNER_HTML: '"false"',
+    ENABLE_ADJACENT_HTML: '"false"',
+    ENABLE_CLONE_NODE: '"false"'
   },
   mini: {
     // 小程序配置
