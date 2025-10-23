@@ -166,6 +166,8 @@ const ActivityCreate = () => {
               className='input'
               placeholder='请输入活动标题'
               value={form.title}
+              id='activity-title'
+              name='title'
               onInput={(e) => handleInputChange('title', e.detail.value)}
             />
           </View>
@@ -187,6 +189,8 @@ const ActivityCreate = () => {
               className='input'
               placeholder='请输入活动地点'
               value={form.location}
+              id='activity-location'
+              name='location'
               onInput={(e) => handleInputChange('location', e.detail.value)}
             />
           </View>
@@ -243,6 +247,8 @@ const ActivityCreate = () => {
               placeholder='不限制请留空'
               type='number'
               value={form.maxParticipants}
+              id='activity-max-participants'
+              name='maxParticipants'
               onInput={(e) => handleInputChange('maxParticipants', e.detail.value)}
             />
           </View>

@@ -185,7 +185,7 @@ export default function CommunityPage() {
           mode='aspectFill'
         />
         {user.isOnline && <View className='online-indicator' />}
-      </View>
+            </View>
 
       <View className='user-info'>
         <View className='user-header'>
@@ -215,8 +215,8 @@ export default function CommunityPage() {
           <View className='stat-item'>
             <Text className='stat-value'>{user.followersCount}</Text>
             <Text className='stat-label'>粉丝</Text>
-          </View>
         </View>
+      </View>
 
         <View className='user-footer'>
           <Text className='last-active'>{user.lastActiveAt}</Text>
@@ -239,7 +239,7 @@ export default function CommunityPage() {
       {/* 顶部筛选栏 */}
       <View className='filter-bar'>
         <View className='filter-tabs'>
-          <View
+        <View
             className={`filter-tab ${sortBy === 'time' ? 'active' : ''}`}
             onClick={() => {
               setSortBy('time')
@@ -247,8 +247,8 @@ export default function CommunityPage() {
             }}
           >
             最新活跃
-          </View>
-          <View
+        </View>
+        <View
             className={`filter-tab ${sortBy === 'popularity' ? 'active' : ''}`}
             onClick={() => {
               setSortBy('popularity')
@@ -266,7 +266,7 @@ export default function CommunityPage() {
           <View className='loading'>
             <View className='loading-spinner'></View>
             <View className='loading-text'>加载中...</View>
-          </View>
+              </View>
         ) : users.length > 0 ? (
           <View className='users-list'>
             {users.map(renderUserCard)}

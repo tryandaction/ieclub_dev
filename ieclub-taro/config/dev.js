@@ -5,8 +5,8 @@ module.exports = {
     NODE_ENV: '"development"'
   },
   defineConstants: {
-    TARO_APP_API: '"http://localhost:3000/api"',
-    TARO_APP_SERVER_URL: '"http://localhost:3000"'
+    TARO_APP_API: JSON.stringify('http://localhost:3000/api'),
+    TARO_APP_SERVER_URL: JSON.stringify('http://localhost:3000')
   },
   mini: {
     // 小程序配置

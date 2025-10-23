@@ -178,10 +178,12 @@ const config = {
           secure: false
         }
       },
-      // 移动端调试
-      overlay: {
-        warnings: false,
-        errors: true
+      // 客户端配置（修复overlay问题）
+      client: {
+        overlay: {
+          warnings: false,
+          errors: true
+        }
       }
     },
 

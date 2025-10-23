@@ -467,6 +467,8 @@ export default function TopicDetailPage() {
               className='comment-input'
               placeholder={replyingTo ? `回复 ${replyingTo.author.nickname}` : '说点什么...'}
               value={commentText}
+              id='comment-input'
+              name='comment'
               onInput={(e) => setCommentText(e.detail.value)}
             />
             <View className='emoji-btn' onClick={() => setShowEmojiPicker(!showEmojiPicker)}>

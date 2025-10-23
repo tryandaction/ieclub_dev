@@ -163,6 +163,8 @@ export default function ForgotPasswordPage() {
                 type='text'
                 placeholder='请输入南科大邮箱'
                 value={form.email}
+                id='forgot-email'
+                name='email'
                 onInput={(e) => setForm({ ...form, email: e.detail.value })}
               />
             </View>
@@ -199,6 +201,8 @@ export default function ForgotPasswordPage() {
                 password
                 placeholder='请输入新密码'
                 value={form.newPassword}
+                id='forgot-new-password'
+                name='newPassword'
                 onInput={(e) => setForm({ ...form, newPassword: e.detail.value })}
               />
             </View>
@@ -212,6 +216,8 @@ export default function ForgotPasswordPage() {
                 password
                 placeholder='请再次输入新密码'
                 value={form.confirmPassword}
+                id='forgot-confirm-password'
+                name='confirmPassword'
                 onInput={(e) => setForm({ ...form, confirmPassword: e.detail.value })}
               />
             </View>

@@ -191,6 +191,8 @@ export default function SearchPage() {
             className='search-input'
             placeholder='搜索话题、用户、项目...'
             value={keyword}
+            id='search-keyword'
+            name='keyword'
             onInput={(e) => setKeyword(e.detail.value)}
             onConfirm={() => handleSearch()}
             focus
