@@ -271,14 +271,14 @@ function getApiBaseUrl(): string {
       // 小程序环境
       return 'https://api.ieclub.online/api'
     case 'H5':
-      // H5环境
+      // H5环境 - 使用代理
       return '/api'
     case 'RN':
       // React Native环境
       return 'https://api.ieclub.online/api'
     default:
-      // 开发环境
-      return 'http://localhost:3000/api'
+      // 开发环境 - 使用代理
+      return '/api'
   }
 }
 

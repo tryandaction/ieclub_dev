@@ -24,6 +24,35 @@ router.post('/auth/reset-password', authController.resetPassword);
 
 // ===== 话题路由 =====
 router.get('/topics', topicController.getTopics);
+
+// 添加测试路由
+router.get('/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'API连接正常',
+    timestamp: new Date().toISOString(),
+    data: {
+      topics: [
+        {
+          id: '1',
+          title: '测试话题1',
+          cover: null,
+          author: { nickname: '测试用户', avatar: null },
+          likesCount: 10,
+          commentsCount: 5
+        },
+        {
+          id: '2',
+          title: '测试话题2',
+          cover: null,
+          author: { nickname: '测试用户2', avatar: null },
+          likesCount: 8,
+          commentsCount: 3
+        }
+      ]
+    }
+  });
+});
 router.get('/topics/:id', topicController.getTopicDetail);
 router.post('/topics', authenticate, topicController.createTopic);
 router.put('/topics/:id', authenticate, topicController.updateTopic);

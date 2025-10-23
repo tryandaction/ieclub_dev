@@ -13,11 +13,11 @@ const getApiBase = () => {
     case 'WEAPP':
       return 'https://api.ieclub.online/api'
     case 'H5':
-      return '/api'
+      return '/api'  // 使用代理
     case 'RN':
       return 'https://api.ieclub.online/api'
     default:
-      return 'http://localhost:3000/api'
+      return '/api'  // 开发环境也使用代理
   }
 };
 
@@ -42,6 +42,22 @@ const SquarePage = () => {
       const apiBase = getApiBase();
       console.log('尝试连接到服务器:', apiBase);
 
+      // 先尝试测试API
+      const testRes = await Taro.request({
+        url: `${apiBase}/test`,
+        method: 'GET',
+        timeout: 5000
+      });
+
+      console.log('测试API响应:', testRes);
+
+      if (testRes.data && testRes.data.success) {
+        setTopics(testRes.data.data.topics || []);
+        console.log('成功获取测试数据:', testRes.data.data.topics?.length || 0, '条');
+        return;
+      }
+
+      // 如果测试API失败，尝试真实API
       const res = await Taro.request({
         url: `${apiBase}/topics`,
         method: 'GET',
@@ -49,56 +65,37 @@ const SquarePage = () => {
           page: 1,
           limit: 20
         },
-        timeout: 10000 // 10秒超时
+        timeout: 10000
       });
 
-      console.log('API响应:', res);
+      console.log('话题API响应:', res);
 
       if (res.data && res.data.success) {
         setTopics(res.data.data || []);
         console.log('成功获取话题数据:', res.data.data?.length || 0, '条');
       } else {
-        console.warn('API返回格式异常:', res.data);
-        // 显示一些测试数据
-        setTopics([
-          {
-            id: '1',
-            title: '测试话题1',
-            cover: null,
-            author: { nickname: '测试用户', avatar: null },
-            likesCount: 10,
-            commentsCount: 5
-          },
-          {
-            id: '2',
-            title: '测试话题2',
-            cover: null,
-            author: { nickname: '测试用户2', avatar: null },
-            likesCount: 8,
-            commentsCount: 3
-          }
-        ]);
+        throw new Error('API返回格式异常');
       }
     } catch (error: any) {
       console.error('获取话题列表失败:', error);
 
-      // 即使出错也显示测试数据
+      // 显示测试数据
       setTopics([
         {
           id: '1',
           title: '测试话题1（离线模式）',
           cover: null,
           author: { nickname: '测试用户', avatar: null },
-          likeCount: 10,
-          commentCount: 5
+          likesCount: 10,
+          commentsCount: 5
         },
         {
           id: '2',
           title: '测试话题2（离线模式）',
           cover: null,
           author: { nickname: '测试用户2', avatar: null },
-          likeCount: 8,
-          commentCount: 3
+          likesCount: 8,
+          commentsCount: 3
         }
       ]);
 

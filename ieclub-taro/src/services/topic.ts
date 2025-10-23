@@ -11,11 +11,11 @@ function getApiBaseUrl(): string {
     case 'WEAPP':
       return 'https://api.ieclub.online/api'
     case 'H5':
-      return '/api'
+      return '/api'  // 使用代理
     case 'RN':
       return 'https://api.ieclub.online/api'
     default:
-      return 'http://localhost:3000/api'
+      return '/api'  // 开发环境也使用代理
   }
 }
 import type {

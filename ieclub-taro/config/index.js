@@ -34,7 +34,10 @@ const config = {
   compiler: 'webpack5',
 
   cache: {
-    enable: true  // 建议开启缓存提升构建速度
+    enable: true,  // 建议开启缓存提升构建速度
+    buildDependencies: {
+      config: [__filename]
+    }
   },
 
   // ============ H5 配置 ============
@@ -51,7 +54,7 @@ const config = {
 
     // 路由模式
     router: {
-      mode: 'browser', // 使用 browser 模式（更优雅的 URL）
+      mode: 'hash', // 使用 hash 模式避免部署问题
       basename: '/',
       customRoutes: {
         // 自定义路由映射
@@ -78,8 +81,23 @@ const config = {
       // 修复 window is not defined 错误
       chain.plugin('define').use(require('webpack').DefinePlugin, [{
         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
-        'typeof window': JSON.stringify('object')
+        'typeof window': JSON.stringify('object'),
+        'global': 'globalThis'
       }])
+
+      // 优化模块解析
+      chain.resolve
+        .set('fallback', {
+          'fs': false,
+          'path': false,
+          'crypto': false
+        })
+
+      // 减少警告
+      chain.stats({
+        warnings: false,
+        errors: true
+      })
 
       // 生产环境优化
       if (process.env.NODE_ENV === 'production') {
@@ -189,9 +207,10 @@ const config = {
       historyApiFallback: true, // SPA 路由支持
       proxy: {
         '/api': {
-          target: 'http://39.108.160.112:3000',
+          target: 'http://localhost:3000',
           changeOrigin: true,
-          secure: false
+          secure: false,
+          logLevel: 'debug'
         }
       },
       // 客户端配置（修复overlay问题）
@@ -268,8 +287,8 @@ const config = {
     // 环境变量
     env: {
       API_URL: process.env.NODE_ENV === 'production'
-        ? 'https://api.ieclub.com'
-        : 'http://localhost:3000'
+        ? '"https://api.ieclub.online"'
+        : '"http://localhost:3000"'
     }
   },
 

@@ -5,8 +5,8 @@ module.exports = {
     NODE_ENV: '"development"'
   },
   defineConstants: {
-    TARO_APP_API: JSON.stringify('http://localhost:3000/api'),
-    TARO_APP_SERVER_URL: JSON.stringify('http://localhost:3000'),
+    TARO_APP_API: '"http://localhost:3000/api"',
+    TARO_APP_SERVER_URL: '"http://localhost:3000"',
     ENABLE_INNER_HTML: '"false"',
     ENABLE_ADJACENT_HTML: '"false"',
     ENABLE_CLONE_NODE: '"false"'
@@ -30,6 +30,7 @@ module.exports = {
         '/api': {
           target: 'http://localhost:3000',
           changeOrigin: true,
+          secure: false,
           pathRewrite: {
             '^/api': '/api'
           }
