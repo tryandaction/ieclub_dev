@@ -2,6 +2,22 @@
 
 import Taro from '@tarojs/taro'
 import { request } from './request'
+
+// 获取API基础URL
+function getApiBaseUrl(): string {
+  const env = Taro.getEnv()
+  
+  switch (env) {
+    case 'WEAPP':
+      return 'https://api.ieclub.online/api'
+    case 'H5':
+      return '/api'
+    case 'RN':
+      return 'https://api.ieclub.online/api'
+    default:
+      return 'http://localhost:3000/api'
+  }
+}
 import type {
   EnhancedTopic,
   CreateEnhancedTopicParams,
@@ -62,12 +78,12 @@ export async function uploadDocument(filePath: string): Promise<DocumentAttachme
 
   return new Promise((resolve, reject) => {
     Taro.uploadFile({
-      url: `${process.env.TARO_APP_API}/api/v2/upload/document`,
+      url: `${getApiBaseUrl()}/api/v2/upload/document`,
       filePath,
       name: 'file',
       header: {
         'Authorization': `Bearer ${token}`,
-        'X-Platform': process.env.TARO_ENV || 'unknown'
+        'X-Platform': Taro.getEnv() || 'unknown'
       },
       success: (res) => {
         try {

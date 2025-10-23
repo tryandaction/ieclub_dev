@@ -17,9 +17,9 @@ class UserController {
       const {
         sortBy = 'latest', // latest, likes, hearts, popular
         filterType = 'all', // all, topics, projects, comments
-        major, // 专业筛选
-        skills, // 技能筛选
-        interests // 兴趣筛选
+        // major, // 专业筛选
+        // skills, // 技能筛选
+        // interests // 兴趣筛选
       } = req.query;
 
       // 获取用户基本信息
@@ -69,7 +69,7 @@ class UserController {
       }
 
       // 构建内容查询条件
-      let contentData = {};
+      const contentData = {};
 
       // 获取用户话题（支持排序和筛选）
       if (filterType === 'all' || filterType === 'topics') {

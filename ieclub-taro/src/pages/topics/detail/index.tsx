@@ -5,6 +5,22 @@ import { useState, useEffect } from 'react'
 import Taro, { useRouter } from '@tarojs/taro'
 import './index.scss'
 
+// 获取API基础URL
+function getApiBaseUrl(): string {
+  const env = Taro.getEnv()
+  
+  switch (env) {
+    case 'WEAPP':
+      return 'https://api.ieclub.online/api'
+    case 'H5':
+      return '/api'
+    case 'RN':
+      return 'https://api.ieclub.online/api'
+    default:
+      return 'http://localhost:3000/api'
+  }
+}
+
 // 表情包列表
 const EMOJIS = [
   '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂',
@@ -125,7 +141,7 @@ export default function TopicDetailPage() {
   const loadTopicDetail = async () => {
     try {
       const res = await Taro.request({
-        url: `${process.env.TARO_APP_API}/topics/${topicId}`,
+        url: `${getApiBaseUrl()}/topics/${topicId}`,
         method: 'GET',
         header: {
           'Authorization': `Bearer ${Taro.getStorageSync('token')}`
@@ -163,7 +179,7 @@ export default function TopicDetailPage() {
   const loadComments = async () => {
     try {
       const res = await Taro.request({
-        url: `${process.env.TARO_APP_API}/topics/${topicId}/comments`,
+        url: `${getApiBaseUrl()}/topics/${topicId}/comments`,
         method: 'GET',
         header: {
           'Authorization': `Bearer ${Taro.getStorageSync('token')}`
@@ -182,7 +198,7 @@ export default function TopicDetailPage() {
   const handleLikeTopic = async () => {
     try {
       const res = await Taro.request({
-        url: `${process.env.TARO_APP_API}/topics/${topicId}/like`,
+        url: `${getApiBaseUrl()}/topics/${topicId}/like`,
         method: 'POST',
         header: {
           'Authorization': `Bearer ${Taro.getStorageSync('token')}`
@@ -192,13 +208,15 @@ export default function TopicDetailPage() {
       if (res.data.success) {
         setTopic({
           ...topic,
-          isLiked: !topic.isLiked,
-          likesCount: topic.isLiked ? topic.likesCount - 1 : topic.likesCount + 1
+          isLiked: res.data.data.isLiked,
+          likesCount: res.data.data.likesCount
         })
         Taro.showToast({
-          title: topic.isLiked ? '已取消点赞' : '点赞成功',
+          title: res.data.message || (res.data.data.isLiked ? '点赞成功' : '已取消点赞'),
           icon: 'success'
         })
+      } else {
+        Taro.showToast({ title: res.data.message || '操作失败', icon: 'none' })
       }
     } catch (error) {
       console.error('点赞失败:', error)
@@ -207,16 +225,37 @@ export default function TopicDetailPage() {
   }
 
   // 标记想听
-  const handleInterested = () => {
-    setTopic({
-      ...topic,
-      isInterested: !topic.isInterested,
-      wantToHearCount: topic.isInterested ? topic.wantToHearCount - 1 : topic.wantToHearCount + 1
-    })
-    Taro.showToast({
-      title: topic.isInterested ? '已取消' : '已标记想听',
-      icon: 'success'
-    })
+  const handleInterested = async () => {
+    try {
+      const res = await Taro.request({
+        url: `${getApiBaseUrl()}/topics/${topicId}/quick-action`,
+        method: 'POST',
+        header: {
+          'Authorization': `Bearer ${Taro.getStorageSync('token')}`,
+          'Content-Type': 'application/json'
+        },
+        data: {
+          actionType: 'interested'
+        }
+      })
+
+      if (res.data.success) {
+        setTopic({
+          ...topic,
+          isInterested: res.data.data.userAction,
+          wantToHearCount: res.data.data.count
+        })
+        Taro.showToast({
+          title: res.data.message || (res.data.data.userAction ? '已标记想听' : '已取消'),
+          icon: 'success'
+        })
+      } else {
+        Taro.showToast({ title: res.data.message || '操作失败', icon: 'none' })
+      }
+    } catch (error) {
+      console.error('标记想听失败:', error)
+      Taro.showToast({ title: '操作失败', icon: 'none' })
+    }
   }
 
   // 点赞评论
@@ -254,13 +293,14 @@ export default function TopicDetailPage() {
 
     try {
       const res = await Taro.request({
-        url: `${process.env.TARO_APP_API}/topics/${topicId}/comments`,
+        url: `${getApiBaseUrl()}/comments`,
         method: 'POST',
         header: {
           'Authorization': `Bearer ${Taro.getStorageSync('token')}`,
           'Content-Type': 'application/json'
         },
         data: {
+          topicId: topicId,
           content: commentText,
           parentId: replyingTo?.id || null
         }
@@ -272,6 +312,11 @@ export default function TopicDetailPage() {
         setReplyingTo(null)
         // 重新加载评论列表
         loadComments()
+        // 更新话题评论数
+        setTopic({
+          ...topic,
+          commentsCount: topic.commentsCount + 1
+        })
       } else {
         Taro.showToast({ title: res.data.message || '评论失败', icon: 'none' })
       }

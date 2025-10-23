@@ -5,6 +5,22 @@ import { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import './index.scss'
 
+// 获取API基础URL
+function getApiBaseUrl(): string {
+  const env = Taro.getEnv()
+  
+  switch (env) {
+    case 'WEAPP':
+      return 'https://api.ieclub.online/api'
+    case 'H5':
+      return '/api'
+    case 'RN':
+      return 'https://api.ieclub.online/api'
+    default:
+      return 'http://localhost:3000/api'
+  }
+}
+
 // 搜索类型
 const SEARCH_TYPES = [
   { key: 'all', label: '全部', icon: '🔍' },
@@ -56,7 +72,7 @@ export default function SearchPage() {
       // 根据搜索类型调用不同的API
       if (searchType === 'all' || searchType === 'topics') {
         const topicsRes = await Taro.request({
-          url: `${process.env.TARO_APP_API}/search/topics`,
+          url: `${getApiBaseUrl()}/search/topics`,
           method: 'GET',
           data: {
             q: kw,
@@ -85,7 +101,7 @@ export default function SearchPage() {
 
       if (searchType === 'all' || searchType === 'users') {
         const usersRes = await Taro.request({
-          url: `${process.env.TARO_APP_API}/search/users`,
+          url: `${getApiBaseUrl()}/search/users`,
           method: 'GET',
           data: {
             q: kw,

@@ -8,7 +8,7 @@ const commentController = require('../controllers/commentController');
 const userController = require('../controllers/userController');
 const searchController = require('../controllers/searchController');
 const notificationController = require('../controllers/notificationController');
-const communityController = require('../controllers/communityController');
+// const communityController = require('../controllers/communityController');
 const uploadController = require('../controllers/uploadController');
 const LocalUploadService = require('../services/localUploadService');
 
@@ -24,12 +24,16 @@ router.post('/auth/reset-password', authController.resetPassword);
 
 // ===== 话题路由 =====
 router.get('/topics', topicController.getTopics);
-router.get('/topics/:id', topicController.getTopicById);
+router.get('/topics/:id', topicController.getTopicDetail);
 router.post('/topics', authenticate, topicController.createTopic);
 router.put('/topics/:id', authenticate, topicController.updateTopic);
 router.delete('/topics/:id', authenticate, topicController.deleteTopic);
-router.post('/topics/:id/like', authenticate, topicController.likeTopic);
+router.post('/topics/:id/like', authenticate, topicController.toggleLike);
+router.post('/topics/:id/bookmark', authenticate, topicController.toggleBookmark);
 router.post('/topics/:id/quick-action', authenticate, topicController.quickAction);
+router.get('/topics/recommend', topicController.getRecommendTopics);
+router.get('/topics/trending', topicController.getTrendingTopics);
+router.get('/topics/:id/matches', topicController.getMatches);
 
 // ===== 评论路由 =====
 router.get('/topics/:topicId/comments', commentController.getComments);
@@ -46,17 +50,6 @@ router.get('/users/:id/following', userController.getFollowing);
 router.get('/users/:id/followers', userController.getFollowers);
 router.post('/users/:id/like', authenticate, userController.likeUser);
 router.post('/users/:id/heart', authenticate, userController.heartUser);
-
-// ===== 认证路由 =====
-router.post('/auth/send-code', authController.sendVerificationCode);
-router.post('/auth/verify-code', authController.verifyCode);
-router.post('/auth/register', authController.register);
-router.post('/auth/login', authController.login);
-router.post('/auth/forgot-password', authController.forgotPassword);
-router.post('/auth/reset-password', authController.resetPassword);
-router.post('/auth/change-password', authenticate, authController.changePassword);
-router.get('/auth/login-logs', authenticate, authController.getLoginLogs);
-router.get('/auth/security-logs', authenticate, authController.getSecurityLogs);
 
 // ===== 搜索路由 =====
 router.get('/search/topics', searchController.searchTopics);
@@ -81,5 +74,8 @@ router.delete('/upload/file', authenticate, uploadController.deleteFile);
 
 // ===== 社区路由 =====
 router.use('/community', require('./community'));
+
+// ===== 活动路由 =====
+router.use('/activities', require('./activities'));
 
 module.exports = router;

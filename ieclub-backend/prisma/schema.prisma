@@ -66,6 +66,10 @@ model User {
   topicQuickActions TopicQuickAction[]
   topicActions    TopicAction[]
   projectActions  ProjectAction[]
+  activities      Activity[]
+  activityParticipants ActivityParticipant[]
+  activityLikes   ActivityLike[]
+  activityComments ActivityComment[]
 
   @@map("users")
 }
@@ -385,4 +389,98 @@ model Project {
   @@index([category])
   @@index([createdAt])
   @@map("projects")
+}
+
+// ==================== 新增：活动表 ====================
+model Activity {
+  id              String      @id @default(cuid())
+  title           String      @db.VarChar(200)
+  description     String      @db.LongText
+  location        String      @db.VarChar(200)
+  startTime       DateTime
+  endTime         DateTime?
+  maxParticipants Int?
+  category        String      @db.VarChar(50)
+  tags            String?     @db.Text // JSON数组
+  cover           String?     @db.Text
+  images          String?     @db.Text // JSON数组
+  
+  // 统计数据
+  participantsCount Int       @default(0)
+  likesCount        Int       @default(0)
+  commentsCount     Int       @default(0)
+  
+  // 状态
+  status          String      @default("published") @db.VarChar(20) // published, draft, deleted
+  
+  // 时间戳
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // 关联关系
+  authorId        String
+  author          User        @relation(fields: [authorId], references: [id])
+  participants    ActivityParticipant[]
+  likes           ActivityLike[]
+  comments        ActivityComment[]
+  
+  @@index([authorId])
+  @@index([category])
+  @@index([startTime])
+  @@index([status])
+  @@index([createdAt])
+  @@map("activities")
+}
+
+// ==================== 活动参与表 ====================
+model ActivityParticipant {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  
+  // 关联关系
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  activityId  String
+  activity    Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, activityId])
+  @@index([userId])
+  @@index([activityId])
+  @@map("activity_participants")
+}
+
+// ==================== 活动点赞表 ====================
+model ActivityLike {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  
+  // 关联关系
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  activityId  String
+  activity    Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, activityId])
+  @@index([userId])
+  @@index([activityId])
+  @@map("activity_likes")
+}
+
+// ==================== 活动评论表 ====================
+model ActivityComment {
+  id          String   @id @default(cuid())
+  content     String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // 关联关系
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  activityId  String
+  activity    Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  
+  @@index([authorId])
+  @@index([activityId])
+  @@index([createdAt])
+  @@map("activity_comments")
 }

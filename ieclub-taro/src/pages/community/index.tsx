@@ -1,177 +1,284 @@
-// src/pages/community/index.tsx
-// 社区列表页面 - 基于开发代码优化版本，使用汉字图标
+// src/pages/community/index.tsx - 社区页面（第一版社区）
 
-import React, { useEffect, useState } from 'react';
-import { View, ScrollView, Input } from '@tarojs/components';
-import Taro, { useLoad, useReachBottom, usePullDownRefresh } from '@tarojs/taro';
-import useCommunityStore from '@/store/community';
-import { UserSortType } from '@/types/community';
-import UserCard from '@/components/UserCard';
-import EmptyState from '@/components/EmptyState';
-import LoadingSpinner from '@/components/LoadingSpinner';
-import './index.scss';
+import { View, Text, Image, ScrollView } from '@tarojs/components'
+import { useState, useEffect } from 'react'
+import Taro from '@tarojs/taro'
+import './index.scss'
 
-const CommunityPage: React.FC = () => {
-  const {
-    users,
-    currentSort,
-    loading,
-    hasMore,
-    searchKeyword,
-    setSort,
-    setSearchKeyword,
-    loadUsers,
-    loadMore,
-    searchUsers,
-    reset
-  } = useCommunityStore();
+// 获取API基础URL
+function getApiBaseUrl(): string {
+  const env = Taro.getEnv()
+  
+  switch (env) {
+    case 'WEAPP':
+      return 'https://api.ieclub.online/api'
+    case 'H5':
+      return '/api'
+    case 'RN':
+      return 'https://api.ieclub.online/api'
+    default:
+      return 'http://localhost:3000/api'
+  }
+}
 
-  const [localKeyword, setLocalKeyword] = useState('');
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+// 模拟社区用户数据
+const MOCK_USERS = [
+  {
+    id: 'u1',
+    nickname: '张工程师',
+    avatar: 'https://via.placeholder.com/60/667eea/ffffff?text=Z',
+    bio: 'AI领域资深专家，拥有10年行业经验',
+    level: 5,
+    isCertified: true,
+    topicsCount: 12,
+    likesCount: 156,
+    followersCount: 89,
+    lastActiveAt: '2小时前',
+    isOnline: true
+  },
+  {
+    id: 'u2',
+    nickname: '李创业者',
+    avatar: 'https://via.placeholder.com/60/3b82f6/ffffff?text=L',
+    bio: '连续创业者，专注教育科技领域',
+    level: 4,
+    isCertified: true,
+    topicsCount: 8,
+    likesCount: 234,
+    followersCount: 156,
+    lastActiveAt: '5小时前',
+    isOnline: false
+  },
+  {
+    id: 'u3',
+    nickname: '王设计师',
+    avatar: 'https://via.placeholder.com/60/9333ea/ffffff?text=W',
+    bio: 'UI/UX设计师，热爱创新设计',
+    level: 3,
+    isCertified: false,
+    topicsCount: 15,
+    likesCount: 98,
+    followersCount: 67,
+    lastActiveAt: '1天前',
+    isOnline: false
+  },
+  {
+    id: 'u4',
+    nickname: '陈研究员',
+    avatar: 'https://via.placeholder.com/60/10b981/ffffff?text=C',
+    bio: '机器学习研究员，发表多篇顶级论文',
+    level: 6,
+    isCertified: true,
+    topicsCount: 20,
+    likesCount: 345,
+    followersCount: 234,
+    lastActiveAt: '30分钟前',
+    isOnline: true
+  },
+  {
+    id: 'u5',
+    nickname: '刘产品经理',
+    avatar: 'https://via.placeholder.com/60/f59e0b/ffffff?text=L',
+    bio: '产品经理，专注用户体验优化',
+    level: 4,
+    isCertified: true,
+    topicsCount: 6,
+    likesCount: 123,
+    followersCount: 78,
+    lastActiveAt: '3小时前',
+    isOnline: false
+  }
+]
 
-  // 页面加载
-  useLoad(() => {
-    loadUsers(true);
-  });
+export default function CommunityPage() {
+  const [users, setUsers] = useState(MOCK_USERS)
+  const [loading, setLoading] = useState(false)
+  const [sortBy, setSortBy] = useState<'time' | 'popularity'>('time')
 
-  // 下拉刷新
-  usePullDownRefresh(() => {
-    loadUsers(true).finally(() => {
-      Taro.stopPullDownRefresh();
-    });
-  });
-
-  // 上拉加载更多
-  useReachBottom(() => {
-    if (hasMore && !loading) {
-      loadMore();
-    }
-  });
-
-  // 页面卸载时重置状态
   useEffect(() => {
-    return () => {
-      reset();
-      // 清理搜索防抖定时器
-      if (searchTimeout) {
-        clearTimeout(searchTimeout);
+    Taro.setNavigationBarTitle({ title: '社区' })
+    loadUsers()
+  }, [])
+
+  const loadUsers = async () => {
+    setLoading(true)
+    try {
+      const res = await Taro.request({
+        url: `${getApiBaseUrl()}/users`,
+        method: 'GET',
+        data: {
+          page: 1,
+          limit: 20,
+          sortBy
+        }
+      })
+
+      if (res.data.success) {
+        setUsers(res.data.data || [])
       }
-    };
-  }, [reset, searchTimeout]);
-
-  // 切换排序
-  const handleSortChange = (sort: UserSortType) => {
-    if (sort !== currentSort) {
-      setSort(sort);
+    } catch (error) {
+      console.error('加载用户列表失败:', error)
+      // 使用模拟数据
+      setUsers(MOCK_USERS)
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
-  // 搜索输入
-  const handleSearchInput = (e: any) => {
-    const keyword = e.detail.value;
-    setLocalKeyword(keyword);
+  const handleFollow = async (userId: string) => {
+    try {
+      const token = Taro.getStorageSync('token')
+      if (!token) {
+        Taro.showToast({ title: '请先登录', icon: 'none' })
+        return
+      }
 
-    // 防抖搜索
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
-    }
+      const res = await Taro.request({
+        url: `${getApiBaseUrl()}/users/${userId}/follow`,
+        method: 'POST',
+        header: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
 
-    const timeout = setTimeout(() => {
-      if (keyword.trim()) {
-        searchUsers(keyword.trim());
+      if (res.data.success) {
+        Taro.showToast({ title: '关注成功', icon: 'success' })
+        // 更新用户状态
+        setUsers(users.map(user => 
+          user.id === userId 
+            ? { ...user, followersCount: user.followersCount + 1 }
+            : user
+        ))
       } else {
-        setSearchKeyword('');
-        loadUsers(true);
+        Taro.showToast({ title: res.data.message || '关注失败', icon: 'none' })
       }
-    }, 500);
+    } catch (error) {
+      console.error('关注失败:', error)
+      Taro.showToast({ title: '关注失败', icon: 'none' })
+    }
+  }
 
-    setSearchTimeout(timeout);
-  };
+  const goToUserProfile = (userId: string) => {
+    Taro.navigateTo({
+      url: `/pages/profile/user/index?id=${userId}`
+    })
+  }
 
-  // 清空搜索
-  const handleClearSearch = () => {
-    setLocalKeyword('');
-    setSearchKeyword('');
-    loadUsers(true);
-  };
+  const getLevelColor = (level: number) => {
+    if (level >= 5) return '#ef4444' // 红色
+    if (level >= 4) return '#f59e0b' // 橙色
+    if (level >= 3) return '#10b981' // 绿色
+    if (level >= 2) return '#3b82f6' // 蓝色
+    return '#6b7280' // 灰色
+  }
+
+  const renderUserCard = (user: any) => (
+    <View
+      key={user.id}
+      className='user-card'
+      onClick={() => goToUserProfile(user.id)}
+    >
+      <View className='user-avatar-section'>
+        <Image
+          className='user-avatar'
+          src={user.avatar}
+          mode='aspectFill'
+        />
+        {user.isOnline && <View className='online-indicator' />}
+      </View>
+
+      <View className='user-info'>
+        <View className='user-header'>
+          <Text className='user-nickname'>{user.nickname}</Text>
+          {user.isCertified && (
+            <Text className='certified-badge'>✓</Text>
+          )}
+          <View 
+            className='level-badge'
+            style={{ backgroundColor: getLevelColor(user.level) }}
+          >
+            Lv.{user.level}
+          </View>
+        </View>
+
+        <Text className='user-bio'>{user.bio}</Text>
+
+        <View className='user-stats'>
+          <View className='stat-item'>
+            <Text className='stat-value'>{user.topicsCount}</Text>
+            <Text className='stat-label'>话题</Text>
+          </View>
+          <View className='stat-item'>
+            <Text className='stat-value'>{user.likesCount}</Text>
+            <Text className='stat-label'>获赞</Text>
+          </View>
+          <View className='stat-item'>
+            <Text className='stat-value'>{user.followersCount}</Text>
+            <Text className='stat-label'>粉丝</Text>
+          </View>
+        </View>
+
+        <View className='user-footer'>
+          <Text className='last-active'>{user.lastActiveAt}</Text>
+          <View 
+            className='follow-btn'
+            onClick={(e) => {
+              e.stopPropagation()
+              handleFollow(user.id)
+            }}
+          >
+            <Text className='follow-text'>+ 关注</Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  )
 
   return (
     <View className='community-page'>
-      {/* 搜索栏 */}
-      <View className='community-page__search'>
-        <View className='search-bar'>
-          <View className='search-bar__icon'>🔍</View>
-          <Input
-            className='search-bar__input'
-            placeholder='搜索用户昵称...'
-            value={localKeyword}
-            onInput={handleSearchInput}
-          />
-          {localKeyword && (
-            <View className='search-bar__clear' onClick={handleClearSearch}>
-              ✕
-            </View>
-          )}
-        </View>
-      </View>
-
-      {/* 排序标签 */}
-      <View className='community-page__sort'>
-        <View
-          className={`sort-tab ${currentSort === UserSortType.REGISTER_TIME ? 'sort-tab--active' : ''}`}
-          onClick={() => handleSortChange(UserSortType.REGISTER_TIME)}
-        >
-          最新加入
-        </View>
-        <View
-          className={`sort-tab ${currentSort === UserSortType.INTERACTION ? 'sort-tab--active' : ''}`}
-          onClick={() => handleSortChange(UserSortType.INTERACTION)}
-        >
-          人气最高
+      {/* 顶部筛选栏 */}
+      <View className='filter-bar'>
+        <View className='filter-tabs'>
+          <View
+            className={`filter-tab ${sortBy === 'time' ? 'active' : ''}`}
+            onClick={() => {
+              setSortBy('time')
+              loadUsers()
+            }}
+          >
+            最新活跃
+          </View>
+          <View
+            className={`filter-tab ${sortBy === 'popularity' ? 'active' : ''}`}
+            onClick={() => {
+              setSortBy('popularity')
+              loadUsers()
+            }}
+          >
+            人气排行
+          </View>
         </View>
       </View>
 
       {/* 用户列表 */}
-      <ScrollView
-        className='community-page__list'
-        scrollY
-        enableBackToTop
-      >
-        {users.length > 0 ? (
-          <>
-            {users.map(user => (
-              <UserCard
-                key={user.id}
-                user={user}
-                showInteraction={currentSort === UserSortType.INTERACTION}
-              />
-            ))}
-
-            {/* 加载更多提示 */}
-            {loading && (
-              <View className='community-page__loading'>
-                <LoadingSpinner />
-              </View>
-            )}
-
-            {!hasMore && (
-              <View className='community-page__no-more'>
-                已经到底啦~
-              </View>
-            )}
-          </>
-        ) : loading ? (
-          <View className='community-page__loading'>
-            <LoadingSpinner />
+      <ScrollView className='users-scroll' scrollY>
+        {loading ? (
+          <View className='loading'>
+            <View className='loading-spinner'></View>
+            <View className='loading-text'>加载中...</View>
+          </View>
+        ) : users.length > 0 ? (
+          <View className='users-list'>
+            {users.map(renderUserCard)}
           </View>
         ) : (
-          <EmptyState
-            title={searchKeyword ? '没有找到相关用户' : '暂无用户'}
-          />
+          <View className='empty-state'>
+            <View className='empty-icon'>👥</View>
+            <View className='empty-text'>暂无用户</View>
+            <View className='empty-hint'>快来发现更多有趣的用户吧</View>
+          </View>
         )}
       </ScrollView>
     </View>
-  );
-};
-
-export default CommunityPage;
+  )
+}

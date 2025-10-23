@@ -1,12 +1,26 @@
 // 前端常量配置（完善版）
+import Taro from '@tarojs/taro'
 
-export const API_BASE_URL = process.env.TARO_APP_API_URL ||
-  (process.env.NODE_ENV === 'production'
-    ? 'https://api.ieclub.online'
-    : 'http://localhost:3000');
+// 获取API基础URL
+function getApiBaseUrl(): string {
+  const env = Taro.getEnv()
+  
+  switch (env) {
+    case 'WEAPP':
+      return 'https://api.ieclub.online'
+    case 'H5':
+      return window.location.origin
+    case 'RN':
+      return 'https://api.ieclub.online'
+    default:
+      return 'http://localhost:3000'
+  }
+}
+
+export const API_BASE_URL = getApiBaseUrl()
 
 // 是否启用Mock数据（开发时使用）
-export const USE_MOCK = process.env.TARO_APP_USE_MOCK === 'true';
+export const USE_MOCK = false
 
 // 分页配置
 export const PAGE_SIZE = 20;

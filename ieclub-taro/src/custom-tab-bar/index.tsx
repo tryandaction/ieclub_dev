@@ -22,9 +22,9 @@ const CustomTabBar: React.FC = () => {
       pagePath: '/pages/square/index'
     },
     {
-      key: 'search',
+      key: 'community',
       title: '社区',
-      pagePath: '/pages/search/index'
+      pagePath: '/pages/community/index'
     },
     {
       key: 'publish',
@@ -33,13 +33,13 @@ const CustomTabBar: React.FC = () => {
       isCenter: true
     },
     {
-      key: 'notification',
-      title: '消息',
-      pagePath: '/pages/notifications/index'
+      key: 'activities',
+      title: '活动',
+      pagePath: '/pages/activities/index'
     },
     {
       key: 'profile',
-      title: '主页',
+      title: '我的',
       pagePath: '/pages/profile/index'
     }
   ], []);
@@ -59,9 +59,22 @@ const CustomTabBar: React.FC = () => {
 
   const switchTab = (index: number, tab: TabItem) => {
     if (tab.isCenter || tab.pagePath === 'center') {
-      // 中间加号：跳转到创建话题页面
-      Taro.navigateTo({
-        url: '/pages/topics/create/index'
+      // 中间加号：显示发布选择菜单
+      Taro.showActionSheet({
+        itemList: ['发布话题', '创建活动'],
+        success: (res) => {
+          if (res.tapIndex === 0) {
+            // 发布话题
+            Taro.navigateTo({
+              url: '/pages/topics/create/index'
+            });
+          } else if (res.tapIndex === 1) {
+            // 创建活动
+            Taro.navigateTo({
+              url: '/pages/activities/create/index'
+            });
+          }
+        }
       });
       return;
     }

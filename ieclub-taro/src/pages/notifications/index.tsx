@@ -5,6 +5,22 @@ import Taro from '@tarojs/taro';
 import { DefaultAvatarIcon } from '@/components/CustomIcons';
 import './index.scss';
 
+// 获取API基础URL
+function getApiBaseUrl(): string {
+  const env = Taro.getEnv()
+  
+  switch (env) {
+    case 'WEAPP':
+      return 'https://api.ieclub.online/api'
+    case 'H5':
+      return '/api'
+    case 'RN':
+      return 'https://api.ieclub.online/api'
+    default:
+      return 'http://localhost:3000/api'
+  }
+}
+
 const NotificationsPage = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -39,16 +55,16 @@ const NotificationsPage = () => {
       }
 
       const res = await Taro.request({
-        url: `${process.env.TARO_APP_API}/notifications`,
+        url: `${getApiBaseUrl()}/notifications`,
         method: 'GET',
         header: {
           Authorization: `Bearer ${token}`
         }
       });
 
-      if (res.data.code === 200) {
-        setNotifications(res.data.data);
-        setUnreadCount(res.data.unreadCount || 0);
+      if (res.data.success) {
+        setNotifications(res.data.data || []);
+        setUnreadCount(res.data.data?.unreadCount || 0);
       }
     } catch (error) {
       console.error('获取通知失败:', error);
@@ -65,7 +81,7 @@ const NotificationsPage = () => {
     try {
       const token = Taro.getStorageSync('token');
       await Taro.request({
-        url: `${process.env.TARO_APP_API}/notifications/${notificationId}/read`,
+        url: `${getApiBaseUrl()}/notifications/${notificationId}/read`,
         method: 'PUT',
         header: {
           Authorization: `Bearer ${token}`
@@ -83,7 +99,7 @@ const NotificationsPage = () => {
     try {
       const token = Taro.getStorageSync('token');
       await Taro.request({
-        url: `${process.env.TARO_APP_API}/notifications/read-all`,
+        url: `${getApiBaseUrl()}/notifications/read-all`,
         method: 'PUT',
         header: {
           Authorization: `Bearer ${token}`

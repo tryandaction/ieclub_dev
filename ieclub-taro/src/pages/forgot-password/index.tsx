@@ -5,6 +5,22 @@ import { useState } from 'react'
 import Taro from '@tarojs/taro'
 import './index.scss'
 
+// 获取API基础URL
+function getApiBaseUrl(): string {
+  const env = Taro.getEnv()
+  
+  switch (env) {
+    case 'WEAPP':
+      return 'https://api.ieclub.online/api'
+    case 'H5':
+      return '/api'
+    case 'RN':
+      return 'https://api.ieclub.online/api'
+    default:
+      return 'http://localhost:3000/api'
+  }
+}
+
 export default function ForgotPasswordPage() {
   const [step, setStep] = useState(1) // 1: 输入邮箱, 2: 重置密码
   const [form, setForm] = useState({
@@ -41,7 +57,7 @@ export default function ForgotPasswordPage() {
       setLoading(true)
       
       const res = await Taro.request({
-        url: `${process.env.TARO_APP_API}/auth/forgot-password`,
+        url: `${getApiBaseUrl()}/auth/forgot-password`,
         method: 'POST',
         data: { email: form.email }
       })
@@ -76,7 +92,7 @@ export default function ForgotPasswordPage() {
       setLoading(true)
       
       const res = await Taro.request({
-        url: `${process.env.TARO_APP_API}/auth/reset-password`,
+        url: `${getApiBaseUrl()}/auth/reset-password`,
         method: 'POST',
         data: {
           token: token || Taro.getCurrentInstance().router?.params?.token,

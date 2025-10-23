@@ -5,6 +5,22 @@ import { useState } from 'react'
 import Taro from '@tarojs/taro'
 import './index.scss'
 
+// 获取API基础URL
+function getApiBaseUrl(): string {
+  const env = Taro.getEnv()
+  
+  switch (env) {
+    case 'WEAPP':
+      return 'https://api.ieclub.online/api'
+    case 'H5':
+      return '/api'
+    case 'RN':
+      return 'https://api.ieclub.online/api'
+    default:
+      return 'http://localhost:3000/api'
+  }
+}
+
 export default function LoginPage() {
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [step, setStep] = useState(1) // 注册步骤：1=邮箱验证，2=设置密码
@@ -45,11 +61,19 @@ export default function LoginPage() {
     try {
       setLoading(true)
       
-      // TODO: 调用后端API发送验证码
-      // await sendEmailCode({ email: form.email })
+      // 调用后端API发送验证码
+      const res = await Taro.request({
+        url: `${getApiBaseUrl()}/auth/send-code`,
+        method: 'POST',
+        data: {
+          email: form.email,
+          type: 'register'
+        }
+      })
 
-      // 模拟发送成功
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      if (!res.data.success && res.data.code !== 200) {
+        throw new Error(res.data.message || '发送失败')
+      }
       
       Taro.showToast({ title: '验证码已发送', icon: 'success' })
       
@@ -73,17 +97,31 @@ export default function LoginPage() {
   }
 
   // 验证验证码并进入下一步
-  const verifyCodeAndNext = () => {
+  const verifyCodeAndNext = async () => {
     if (!form.verifyCode || form.verifyCode.length !== 6) {
       Taro.showToast({ title: '请输入6位验证码', icon: 'none' })
       return
     }
 
-    // TODO: 调用后端API验证验证码
-    // if (!await verifyEmailCode({ email: form.email, code: form.verifyCode })) {
-    //   Taro.showToast({ title: '验证码错误', icon: 'none' })
-    //   return
-    // }
+    // 调用后端API验证验证码
+    try {
+      const res = await Taro.request({
+        url: `${getApiBaseUrl()}/auth/verify-code`,
+        method: 'POST',
+        data: {
+          email: form.email,
+          code: form.verifyCode
+        }
+      })
+
+      if (!res.data.success) {
+        Taro.showToast({ title: res.data.message || '验证码错误', icon: 'none' })
+        return
+      }
+    } catch (error: any) {
+      Taro.showToast({ title: '验证码验证失败', icon: 'none' })
+      return
+    }
 
     setStep(2)
   }
@@ -106,7 +144,7 @@ export default function LoginPage() {
 
       // 调用后端注册API
       const res = await Taro.request({
-        url: `${process.env.TARO_APP_API}/auth/register`,
+        url: `${getApiBaseUrl()}/auth/register`,
         method: 'POST',
         data: {
           email: form.email,
@@ -166,7 +204,7 @@ export default function LoginPage() {
 
       // 调用后端登录API
       const res = await Taro.request({
-        url: `${process.env.TARO_APP_API}/auth/login`,
+        url: `${getApiBaseUrl()}/auth/login`,
         method: 'POST',
         data: {
           email: form.email,

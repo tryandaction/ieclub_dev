@@ -2,6 +2,22 @@
 
 import Taro from '@tarojs/taro'
 
+// 获取API基础URL
+function getApiBaseUrl(): string {
+  const env = Taro.getEnv()
+  
+  switch (env) {
+    case 'WEAPP':
+      return 'https://api.ieclub.online/api'
+    case 'H5':
+      return '/api'
+    case 'RN':
+      return 'https://api.ieclub.online/api'
+    default:
+      return 'http://localhost:3000/api'
+  }
+}
+
 enum LogLevel {
   DEBUG = 0,
   INFO = 1,
@@ -70,14 +86,14 @@ class Logger {
     }
 
     // 开发环境输出到控制台
-    if (process.env.NODE_ENV === 'development') {
+    if (Taro.getEnv() === 'unknown') { // 开发环境
       const method = level === LogLevel.ERROR ? 'error' :
                      level === LogLevel.WARN ? 'warn' : 'log'
       console[method](`[${LogLevel[level]}] ${message}`, entry.data)
     }
 
     // 生产环境存储到内存
-    if (process.env.NODE_ENV === 'production') {
+    if (Taro.getEnv() !== 'unknown') { // 生产环境
       this.logs.push(entry)
 
       // 限制日志数量
@@ -129,7 +145,7 @@ class Logger {
   private async reportToServer(entry: LogEntry) {
     try {
       await Taro.request({
-        url: `${process.env.TARO_APP_API_URL}/api/logs`,
+        url: `${getApiBaseUrl()}/api/logs`,
         method: 'POST',
         data: entry,
         header: {

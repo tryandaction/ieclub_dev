@@ -1,7 +1,7 @@
-// frontend/src/pages/profile/index.scss
+// src/pages/profile/index.scss - 个人中心页面样式（优化版）
 .profile-page {
   min-height: 100vh;
-  background: #f8f9ff;
+  background: #f8f8f8;
   padding-bottom: 80px;
 
   &.loading {
@@ -88,30 +88,31 @@
 
     .user-info {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
 
       .username {
-        font-size: 24px;
+        font-size: 26px;
         font-weight: 700;
         color: #1f2937;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
+        letter-spacing: -0.5px;
 
         @media (min-width: 768px) {
-          font-size: 28px;
+          font-size: 30px;
         }
       }
 
       .user-meta {
         display: flex;
         justify-content: center;
-        gap: 12px;
-        margin-bottom: 12px;
+        gap: 16px;
+        margin-bottom: 16px;
         flex-wrap: wrap;
 
         .meta-item {
           font-size: 14px;
           color: #6b7280;
-          background: #f3f4f6;
+          background: #f8f9fa;
           padding: 4px 12px;
           border-radius: 12px;
 
@@ -138,10 +139,10 @@
     .stats-row {
       display: flex;
       justify-content: space-around;
-      padding: 20px 0;
+      padding: 24px 0;
       border-top: 1px solid #f3f4f6;
       border-bottom: 1px solid #f3f4f6;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
 
       .stat-item {
         text-align: center;
@@ -153,22 +154,24 @@
         }
 
         .stat-value {
-          font-size: 20px;
+          font-size: 22px;
           font-weight: 700;
           color: #1f2937;
-          margin-bottom: 4px;
+          margin-bottom: 6px;
+          letter-spacing: -0.3px;
 
           @media (min-width: 768px) {
-            font-size: 24px;
+            font-size: 26px;
           }
         }
 
         .stat-label {
-          font-size: 13px;
-          color: #9ca3af;
+          font-size: 14px;
+          color: #6b7280;
+          font-weight: 500;
 
           @media (min-width: 768px) {
-            font-size: 14px;
+            font-size: 15px;
           }
         }
       }
@@ -293,15 +296,15 @@
 
   .content-tabs {
     background: white;
-    padding: 16px 20px;
-    margin-bottom: 16px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: sticky;
     top: 0;
     z-index: 10;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 
     // 平板和电脑端
     @media (min-width: 768px) {
@@ -319,15 +322,16 @@
       .tab-item {
         display: flex;
         align-items: center;
-        gap: 6px;
-        padding: 8px 16px;
-        border-radius: 20px;
-        background: #f3f4f6;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: 24px;
+        background: #f8f9fa;
         color: #6b7280;
         font-size: 14px;
         white-space: nowrap;
         cursor: pointer;
         transition: all 0.3s;
+        font-weight: 500;
 
         &.active {
           background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
@@ -432,9 +436,9 @@
 
   .content-card {
     background: white;
-    border-radius: 12px;
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     cursor: pointer;
     transition: all 0.3s;
 

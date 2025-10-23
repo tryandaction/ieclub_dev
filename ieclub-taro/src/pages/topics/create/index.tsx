@@ -7,6 +7,22 @@ import { uploadMultipleImages } from '@/services/upload'
 import type { UploadResult } from '@/services/upload'
 import './index.scss'
 
+// 获取API基础URL
+function getApiBaseUrl(): string {
+  const env = Taro.getEnv()
+  
+  switch (env) {
+    case 'WEAPP':
+      return 'https://api.ieclub.online/api'
+    case 'H5':
+      return '/api'
+    case 'RN':
+      return 'https://api.ieclub.online/api'
+    default:
+      return 'http://localhost:3000/api'
+  }
+}
+
 const CATEGORIES = ['技术', '项目', '设计', '商业', '生活']
 const TAGS_PRESET = ['AI', 'React', '前端', '后端', '设计', '创业', '学习', '分享']
 
@@ -104,7 +120,7 @@ export default function CreateTopicPage() {
 
       // 调用发布接口
       const res = await Taro.request({
-        url: `${process.env.TARO_APP_API}/topics`,
+        url: `${getApiBaseUrl()}/topics`,
         method: 'POST',
         header: {
           'Authorization': `Bearer ${Taro.getStorageSync('token')}`,

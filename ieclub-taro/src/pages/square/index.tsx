@@ -7,8 +7,18 @@ import './index.scss';
 
 // 使用统一的API配置
 const getApiBase = () => {
-  // 使用环境变量中的API地址，确保与config/prod.js一致
-  return process.env.TARO_APP_API || 'https://ieclub.online/api';
+  const env = Taro.getEnv()
+  
+  switch (env) {
+    case 'WEAPP':
+      return 'https://api.ieclub.online/api'
+    case 'H5':
+      return '/api'
+    case 'RN':
+      return 'https://api.ieclub.online/api'
+    default:
+      return 'http://localhost:3000/api'
+  }
 };
 
 const SquarePage = () => {
@@ -44,7 +54,7 @@ const SquarePage = () => {
 
       console.log('API响应:', res);
 
-      if (res.data && res.data.code === 200) {
+      if (res.data && res.data.success) {
         setTopics(res.data.data || []);
         console.log('成功获取话题数据:', res.data.data?.length || 0, '条');
       } else {
@@ -56,16 +66,16 @@ const SquarePage = () => {
             title: '测试话题1',
             cover: null,
             author: { nickname: '测试用户', avatar: null },
-            likeCount: 10,
-            commentCount: 5
+            likesCount: 10,
+            commentsCount: 5
           },
           {
             id: '2',
             title: '测试话题2',
             cover: null,
             author: { nickname: '测试用户2', avatar: null },
-            likeCount: 8,
-            commentCount: 3
+            likesCount: 8,
+            commentsCount: 3
           }
         ]);
       }
@@ -150,8 +160,8 @@ const SquarePage = () => {
           </View>
         </View>
         <View className='topic-stats'>
-          <View className='stat-item'>👍 {topic.likeCount || 0}</View>
-          <View className='stat-item'>💬 {topic.commentCount || 0}</View>
+          <View className='stat-item'>👍 {topic.likesCount || 0}</View>
+          <View className='stat-item'>💬 {topic.commentsCount || 0}</View>
         </View>
       </View>
     </View>

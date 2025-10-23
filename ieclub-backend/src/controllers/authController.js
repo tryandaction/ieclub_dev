@@ -23,9 +23,33 @@ const transporter = nodemailer.createTransport({
 // 验证码存储（生产环境用Redis）
 const verifyCodeStore = new Map();
 
+// 辅助函数
+function validateEmail(email) {
+  const regex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/;
+  return regex.test(email);
+}
+
+function generateVerificationCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+async function sendEmail(to, subject, html) {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to,
+      subject,
+      html
+    });
+  } catch (error) {
+    console.error('邮件发送失败:', error);
+    throw error;
+  }
+}
+
 class AuthController {
   // 发送邮箱验证码
-  static async sendVerifyCode(req, res, next) {
+  static async sendVerifyCode(req, res, _next) {
     try {
       const { email, type = 'register' } = req.body; // type: register, reset
 
@@ -78,22 +102,13 @@ class AuthController {
 
       // 生成验证码
       const code = generateVerificationCode();
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10分钟后过期
+      // const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10分钟后过期
 
-      // 保存验证码到数据库
-      await prisma.verificationCode.upsert({
-        where: { email },
-        update: {
-          code,
-          expiresAt,
-          attempts: 0
-        },
-        create: {
-          email,
-          code,
-          type,
-          expiresAt
-        }
+      // 保存验证码到内存存储（临时方案）
+      verifyCodeStore.set(email, {
+        code,
+        expireAt: Date.now() + 10 * 60 * 1000,
+        type
       });
 
       // 发送邮件

@@ -88,12 +88,15 @@ export async function request<T = any>(options: {
 
       // 添加通用头部
       header['Content-Type'] = header['Content-Type'] || 'application/json'
-      header['X-Platform'] = process.env.TARO_ENV || 'unknown'
+      header['X-Platform'] = Taro.getEnv() || 'unknown'
       header['X-Version'] = '1.0.0'
+
+      // 获取API基础URL
+      const apiBaseUrl = getApiBaseUrl()
 
       // 发送请求
       const response = await Taro.request({
-        url: `${process.env.TARO_APP_API}${url}`,
+        url: `${apiBaseUrl}${url}`,
         method,
         data,
         header,
@@ -255,6 +258,27 @@ async function handleAPIError(error: APIError) {
         title: error.message || '操作失败',
         icon: 'none'
       })
+  }
+}
+
+// 获取API基础URL
+function getApiBaseUrl(): string {
+  const env = Taro.getEnv()
+  
+  // 根据环境返回不同的API地址
+  switch (env) {
+    case 'WEAPP':
+      // 小程序环境
+      return 'https://api.ieclub.online/api'
+    case 'H5':
+      // H5环境
+      return '/api'
+    case 'RN':
+      // React Native环境
+      return 'https://api.ieclub.online/api'
+    default:
+      // 开发环境
+      return 'http://localhost:3000/api'
   }
 }
 

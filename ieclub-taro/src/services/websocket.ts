@@ -3,6 +3,22 @@
 
 import Taro from '@tarojs/taro'
 
+// 获取WebSocket基础URL
+function getWebSocketBaseUrl(): string {
+  const env = Taro.getEnv()
+  
+  switch (env) {
+    case 'WEAPP':
+      return 'wss://api.ieclub.online'
+    case 'H5':
+      return window.location.protocol === 'https:' ? 'wss://api.ieclub.online' : 'ws://localhost:3000'
+    case 'RN':
+      return 'wss://api.ieclub.online'
+    default:
+      return 'ws://localhost:3000'
+  }
+}
+
 export interface WebSocketMessage {
   type: string
   data?: any
@@ -23,7 +39,7 @@ class WebSocketService {
       return
     }
 
-    const wsUrl = `${process.env.TARO_APP_WS_URL || 'ws://localhost:3000'}/ws?token=${token}`
+    const wsUrl = `${getWebSocketBaseUrl()}/ws?token=${token}`
     
     try {
       this.ws = new WebSocket(wsUrl)

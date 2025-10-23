@@ -167,7 +167,7 @@ class WebSocketService {
   // 广播消息给所有在线用户
   broadcast(message) {
     let successCount = 0;
-    for (const [userId, ws] of this.clients.entries()) {
+    for (const [userId] of this.clients.entries()) {
       if (this.sendToUser(userId, message)) {
         successCount++;
       }

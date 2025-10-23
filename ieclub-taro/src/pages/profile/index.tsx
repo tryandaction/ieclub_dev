@@ -7,6 +7,22 @@ import { useUserStore } from '@/store/user'
 import { getUserStats } from '@/services/user'
 import './index.scss'
 
+// 获取API基础URL
+function getApiBaseUrl(): string {
+  const env = Taro.getEnv()
+  
+  switch (env) {
+    case 'WEAPP':
+      return 'https://api.ieclub.online/api'
+    case 'H5':
+      return '/api'
+    case 'RN':
+      return 'https://api.ieclub.online/api'
+    default:
+      return 'http://localhost:3000/api'
+  }
+}
+
 export default function ProfilePage() {
   const { userInfo, isLogin, logout } = useUserStore()
   const [stats, setStats] = useState({
@@ -16,6 +32,7 @@ export default function ProfilePage() {
     followersCount: 0,
     followingCount: 0
   })
+  const [unreadCount, setUnreadCount] = useState(0)
 
   const loadStats = useCallback(async () => {
     if (!userInfo) return
@@ -28,11 +45,35 @@ export default function ProfilePage() {
     }
   }, [userInfo])
 
+  const loadUnreadCount = useCallback(async () => {
+    if (!userInfo) return
+
+    try {
+      const token = Taro.getStorageSync('token')
+      if (!token) return
+
+      const res = await Taro.request({
+        url: `${getApiBaseUrl()}/notifications/unread-count`,
+        method: 'GET',
+        header: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if (res.data.success) {
+        setUnreadCount(res.data.data.count || 0)
+      }
+    } catch (error) {
+      console.error('加载未读消息数失败:', error)
+    }
+  }, [userInfo])
+
   useEffect(() => {
     if (isLogin && userInfo) {
       loadStats()
+      loadUnreadCount()
     }
-  }, [isLogin, userInfo, loadStats])
+  }, [isLogin, userInfo, loadStats, loadUnreadCount])
 
   // 设置当前 TabBar 选中项 - 在小程序中通常自动管理
   useEffect(() => {
@@ -58,6 +99,45 @@ export default function ProfilePage() {
   }
 
   const goToEdit = () => {
+    Taro.showToast({
+      title: '功能开发中',
+      icon: 'none'
+    })
+  }
+
+  const goToNotifications = () => {
+    Taro.navigateTo({ url: '/pages/notifications/index' })
+  }
+
+  const goToMyTopics = () => {
+    Taro.showToast({
+      title: '功能开发中',
+      icon: 'none'
+    })
+  }
+
+  const goToMyBookmarks = () => {
+    Taro.showToast({
+      title: '功能开发中',
+      icon: 'none'
+    })
+  }
+
+  const goToMyComments = () => {
+    Taro.showToast({
+      title: '功能开发中',
+      icon: 'none'
+    })
+  }
+
+  const goToSettings = () => {
+    Taro.showToast({
+      title: '功能开发中',
+      icon: 'none'
+    })
+  }
+
+  const goToHelp = () => {
     Taro.showToast({
       title: '功能开发中',
       icon: 'none'
@@ -117,17 +197,25 @@ export default function ProfilePage() {
 
       {/* 功能菜单 */}
       <View className='menu-section'>
-        <View className='menu-item'>
+        <View className='menu-item' onClick={goToNotifications}>
+          <View className='menu-icon'>🔔</View>
+          <Text className='menu-label'>消息通知</Text>
+          {unreadCount > 0 && (
+            <View className='unread-badge'>{unreadCount}</View>
+          )}
+          <View className='menu-arrow'>›</View>
+        </View>
+        <View className='menu-item' onClick={goToMyTopics}>
           <View className='menu-icon'>📝</View>
           <Text className='menu-label'>我的话题</Text>
           <View className='menu-arrow'>›</View>
         </View>
-        <View className='menu-item'>
+        <View className='menu-item' onClick={goToMyBookmarks}>
           <View className='menu-icon'>❤️</View>
           <Text className='menu-label'>我的收藏</Text>
           <View className='menu-arrow'>›</View>
         </View>
-        <View className='menu-item'>
+        <View className='menu-item' onClick={goToMyComments}>
           <View className='menu-icon'>💬</View>
           <Text className='menu-label'>我的评论</Text>
           <View className='menu-arrow'>›</View>
@@ -135,12 +223,12 @@ export default function ProfilePage() {
       </View>
 
       <View className='menu-section'>
-        <View className='menu-item'>
+        <View className='menu-item' onClick={goToSettings}>
           <View className='menu-icon'>⚙️</View>
           <Text className='menu-label'>设置</Text>
           <View className='menu-arrow'>›</View>
         </View>
-        <View className='menu-item'>
+        <View className='menu-item' onClick={goToHelp}>
           <View className='menu-icon'>❓</View>
           <Text className='menu-label'>帮助与反馈</Text>
           <View className='menu-arrow'>›</View>

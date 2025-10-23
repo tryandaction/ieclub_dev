@@ -70,7 +70,7 @@ class CommentController {
   // 创建评论
   static async createComment(req, res, next) {
     try {
-      const userId = req.user.id;
+      const userId = req.userId;
       const { topicId, content, parentId, replyToUserId } = req.body;
 
       if (!content || !content.trim()) {
@@ -123,7 +123,7 @@ class CommentController {
   static async likeComment(req, res, next) {
     try {
       const { id } = req.params;
-      const userId = req.user.id;
+      const userId = req.userId;
 
       const existingLike = await prisma.like.findUnique({
         where: {
@@ -177,7 +177,7 @@ class CommentController {
   static async deleteComment(req, res, next) {
     try {
       const { id } = req.params;
-      const userId = req.user.id;
+      const userId = req.userId;
 
       const comment = await prisma.comment.findUnique({
         where: { id }

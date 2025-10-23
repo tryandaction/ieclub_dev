@@ -3,6 +3,22 @@
 import { request } from './request'
 import Taro from '@tarojs/taro'
 
+// 获取API基础URL
+function getApiBaseUrl(): string {
+  const env = Taro.getEnv()
+  
+  switch (env) {
+    case 'WEAPP':
+      return 'https://api.ieclub.online/api'
+    case 'H5':
+      return '/api'
+    case 'RN':
+      return 'https://api.ieclub.online/api'
+    default:
+      return 'http://localhost:3000/api'
+  }
+}
+
 export interface UploadResult {
   url: string
   thumbnail?: string
@@ -43,7 +59,7 @@ export async function uploadImages(files: string[]): Promise<UploadResult[]> {
     }
 
     const res = await Taro.uploadFile({
-      url: `${process.env.TARO_APP_API}/upload/images`,
+      url: `${getApiBaseUrl()}/upload/images`,
       filePath: files[0], // 小程序只能一次上传一个文件
       name: 'images',
       header: {
@@ -71,7 +87,7 @@ export async function uploadImages(files: string[]): Promise<UploadResult[]> {
 export async function uploadSingleImage(filePath: string): Promise<UploadResult> {
   try {
     const res = await Taro.uploadFile({
-      url: `${process.env.TARO_APP_API}/upload/images`,
+      url: `${getApiBaseUrl()}/upload/images`,
       filePath,
       name: 'images',
       header: {
@@ -121,7 +137,7 @@ export async function uploadDocuments(files: string[]): Promise<DocumentUploadRe
     // 小程序需要逐个上传文档
     for (const filePath of files) {
       const res = await Taro.uploadFile({
-        url: `${process.env.TARO_APP_API}/upload/documents`,
+        url: `${getApiBaseUrl()}/upload/documents`,
         filePath,
         name: 'documents',
         header: {

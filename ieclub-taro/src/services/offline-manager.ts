@@ -3,6 +3,22 @@
 import { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 
+// 获取API基础URL
+function getApiBaseUrl(): string {
+  const env = Taro.getEnv()
+  
+  switch (env) {
+    case 'WEAPP':
+      return 'https://api.ieclub.online/api'
+    case 'H5':
+      return '/api'
+    case 'RN':
+      return 'https://api.ieclub.online/api'
+    default:
+      return 'http://localhost:3000/api'
+  }
+}
+
 interface OfflineAction {
   id: string
   type: 'create' | 'update' | 'delete'
@@ -105,7 +121,7 @@ export class OfflineManager {
                    type === 'update' ? 'PUT' : 'DELETE'
 
     await Taro.request({
-      url: `${process.env.TARO_APP_API_URL}${endpoint}`,
+      url: `${getApiBaseUrl()}${endpoint}`,
       method,
       data,
       header: {
