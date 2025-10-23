@@ -12,7 +12,7 @@ const cheerio = require('cheerio');
 class UploadController {
   /**
    * 上传图片（支持多张）
-   * POST /api/v1/upload/images
+   * POST /api/upload/images
    */
   static async uploadImages(req, res) {
     try {
@@ -21,6 +21,12 @@ class UploadController {
       if (!files || files.length === 0) {
         return response.error(res, '请选择要上传的图片');
       }
+
+      logger.info('收到上传请求:', {
+        userId: req.userId,
+        fileCount: files.length,
+        fileNames: files.map(f => f.originalname)
+      });
 
       // 图片安全检测（仅检测第一张，避免性能问题）
       if (files.length > 0) {
@@ -39,15 +45,18 @@ class UploadController {
       try {
         // 尝试使用OSS上传
         uploadResults = await OSSService.uploadImages(files);
+        logger.info('OSS上传成功');
       } catch (error) {
         logger.warn('OSS上传失败，使用本地上传:', error.message);
         // 降级到本地上传
         uploadResults = await LocalUploadService.uploadImages(files);
+        logger.info('本地上传成功');
       }
 
       logger.info('图片上传成功:', {
         userId: req.userId,
         count: uploadResults.length,
+        results: uploadResults.map(r => ({ url: r.url, size: r.size }))
       });
 
       return response.success(res, uploadResults, '上传成功');
