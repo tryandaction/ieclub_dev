@@ -8,7 +8,7 @@ function getApiBaseUrl(): string {
   switch (env) {
     case 'WEAPP':
       return 'https://api.ieclub.online'
-    case 'H5':
+    case 'WEB':
       // 开发环境使用后端地址，生产环境使用相对路径
       if (typeof window !== 'undefined') {
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {

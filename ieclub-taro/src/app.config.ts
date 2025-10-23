@@ -48,7 +48,7 @@ export default {
     backgroundColorBottom: '#f8fafc'
   },
 
-  // 使用自定义 TabBar - 新的5个Tab布局
+  // 使用自定义 TabBar - 4个Tab布局（中间+按钮不占用tab位置）
   tabBar: {
     custom: true,
     color: '#999999',

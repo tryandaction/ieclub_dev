@@ -10,7 +10,7 @@ function getWebSocketBaseUrl(): string {
   switch (env) {
     case 'WEAPP':
       return 'wss://api.ieclub.online'
-    case 'H5':
+    case 'WEB':
       // 安全地访问window对象
       if (typeof window !== 'undefined' && window.location) {
         return window.location.protocol === 'https:' ? 'wss://api.ieclub.online' : 'ws://localhost:3000'
@@ -27,6 +27,7 @@ export interface WebSocketMessage {
   type: string
   data?: any
   timestamp?: string
+  roomId?: string
 }
 
 class WebSocketService {

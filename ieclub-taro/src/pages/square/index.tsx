@@ -3,28 +3,8 @@ import { useState, useEffect } from 'react';
 import { View, ScrollView, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { DefaultCoverIcon, DefaultAvatarIcon } from '@/components/CustomIcons';
+import { getApiBaseUrl } from '@/utils/api-config';
 import './index.scss';
-
-// 使用统一的API配置
-const getApiBase = () => {
-  const env = Taro.getEnv()
-  
-  // 检查是否为生产环境
-  const isProduction = process.env.NODE_ENV === 'production'
-  
-  switch (env as string) {
-    case 'WEAPP':
-      return 'https://api.ieclub.online/api'
-    case 'H5':
-      // 生产环境直接使用完整API地址，开发环境使用代理
-      return isProduction ? 'https://api.ieclub.online/api' : '/api'
-    case 'RN':
-      return 'https://api.ieclub.online/api'
-    default:
-      // 生产环境直接使用完整API地址，开发环境使用代理
-      return isProduction ? 'https://api.ieclub.online/api' : '/api'
-  }
-};
 
 const SquarePage = () => {
   const [topics, setTopics] = useState<any[]>([]);
@@ -35,7 +15,12 @@ const SquarePage = () => {
     // TabBar选中状态在小程序环境中由框架自动管理
     // 这里可以添加其他页面初始化逻辑
     console.log('广场页面加载完成');
-  }, []);
+    
+    // 确保页面有内容显示
+    if (topics.length === 0 && !loading) {
+      console.log('页面初始化，准备加载数据');
+    }
+  }, [topics.length, loading]);
 
   useEffect(() => {
     fetchTopics();
@@ -44,7 +29,7 @@ const SquarePage = () => {
   const fetchTopics = async () => {
     setLoading(true);
     try {
-      const apiBase = getApiBase();
+      const apiBase = getApiBaseUrl();
       console.log('尝试连接到服务器:', apiBase);
 
       // 先尝试测试API

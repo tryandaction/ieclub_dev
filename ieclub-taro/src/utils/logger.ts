@@ -73,14 +73,14 @@ class Logger {
     }
 
     // 开发环境输出到控制台
-    if (Taro.getEnv() === 'unknown') { // 开发环境
+    if (Taro.getEnv() === 'WEB' && process.env.NODE_ENV === 'development') { // 开发环境
       const method = level === LogLevel.ERROR ? 'error' :
                      level === LogLevel.WARN ? 'warn' : 'log'
       console[method](`[${LogLevel[level]}] ${message}`, entry.data)
     }
 
     // 生产环境存储到内存
-    if (Taro.getEnv() !== 'unknown') { // 生产环境
+    if (Taro.getEnv() === 'WEB' && process.env.NODE_ENV === 'production') { // 生产环境
       this.logs.push(entry)
 
       // 限制日志数量

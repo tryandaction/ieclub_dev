@@ -80,7 +80,14 @@ const CustomTabBar: React.FC = () => {
     }
 
     setSelected(index);
-    Taro.switchTab({ url: tab.pagePath });
+    
+    // 🔥 关键修复：在H5环境下使用navigateTo而不是switchTab
+    // switchTab在H5环境下会产生hash路由问题
+    if (process.env.TARO_ENV === 'h5') {
+      Taro.navigateTo({ url: tab.pagePath });
+    } else {
+      Taro.switchTab({ url: tab.pagePath });
+    }
   };
 
   return (
