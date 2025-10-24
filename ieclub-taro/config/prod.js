@@ -27,11 +27,17 @@ module.exports = {
   },
   h5: {
     /**
-     * 如果需要在 h5 环境中开启 React Devtools
-     * 取消以下注释：
+     * 生产环境H5配置
      */
-    // devServer: {
-    //   https: false
-    // }
+    publicPath: '/',
+    staticDirectory: 'static',
+    router: {
+      mode: 'hash',
+      basename: '/'
+    },
+    // 生产环境不需要devServer配置
+    devServer: {
+      https: false
+    }
   }
 }

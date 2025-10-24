@@ -14,6 +14,7 @@ function getApiBaseUrl(): string {
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
           return 'http://localhost:3000'
         }
+        // 生产环境使用相对路径，nginx会代理到后端
         return window.location.origin
       }
       return 'http://localhost:3000' // 服务端渲染时的默认值
