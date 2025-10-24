@@ -8,22 +8,19 @@ import Taro from '@tarojs/taro'
 export function getApiBaseUrl(): string {
   const env = Taro.getEnv()
   
-  // 检查是否为生产环境
-  const isProduction = process.env.NODE_ENV === 'production'
-  
   switch (env) {
     case 'WEAPP':
       // 小程序环境
       return 'https://api.ieclub.online/api'
     case 'H5':
-      // H5环境 - 生产环境使用完整地址，开发环境使用代理
-      return isProduction ? 'https://api.ieclub.online/api' : '/api'
+      // 🔥 H5环境统一使用相对路径，通过Nginx代理避免跨域
+      return '/api'
     case 'RN':
       // React Native环境
       return 'https://api.ieclub.online/api'
     default:
-      // 生产环境使用完整地址，开发环境使用代理
-      return isProduction ? 'https://api.ieclub.online/api' : '/api'
+      // 默认使用相对路径
+      return '/api'
   }
 }
 
@@ -33,28 +30,24 @@ export function getApiBaseUrl(): string {
 export function getApiBaseUrlWithoutPath(): string {
   const env = Taro.getEnv()
   
-  // 检查是否为生产环境
-  const isProduction = process.env.NODE_ENV === 'production'
-  
   switch (env) {
     case 'WEAPP':
       // 小程序环境
       return 'https://api.ieclub.online'
     case 'H5':
-      // H5环境 - 生产环境使用完整地址，开发环境使用代理
-      if (isProduction) {
-        return 'https://api.ieclub.online'
-      }
-      // 安全地访问window对象
+      // 🔥 H5环境使用当前访问的域名
       if (typeof window !== 'undefined' && window.location) {
         return window.location.origin
       }
-      return 'http://localhost:3000'
+      return ''
     case 'RN':
       // React Native环境
       return 'https://api.ieclub.online'
     default:
-      // 生产环境使用完整地址，开发环境使用本地地址
-      return isProduction ? 'https://api.ieclub.online' : 'http://localhost:3000'
+      // 默认使用当前域名
+      if (typeof window !== 'undefined' && window.location) {
+        return window.location.origin
+      }
+      return 'http://localhost:3000'
   }
 }

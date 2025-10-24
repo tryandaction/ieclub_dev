@@ -45,8 +45,17 @@ html, body {
   text-size-adjust: 100%;
   background: #f7f8fa;
   color: #1a1a1a;
-  font-size: 16px; // 修复字体太小问题
+  font-size: 14px; // 移动端基准
   line-height: 1.6;
+
+  // 网页端字体更大更易读
+  @media (min-width: 768px) {
+    font-size: 16px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 18px; // 网页端基准字体
+  }
 }
 
 // ==================== 全局样式 ====================

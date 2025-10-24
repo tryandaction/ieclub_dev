@@ -13,8 +13,8 @@ interface NotificationIconProps extends IconProps {
   hasUnread?: boolean;
 }
 
-// 广场图标 - 内联SVG实现
-export const SquareIcon: React.FC<IconProps> = ({ active = false, size = 24, className = '' }) => (
+// 广场图标 - 内联SVG实现（增大默认尺寸）
+export const SquareIcon: React.FC<IconProps> = ({ active = false, size = 28, className = '' }) => (
   <View className={`icon-container ${active ? 'active' : ''}`} style={{ width: `${size}px`, height: `${size}px` }}>
     <View className='icon-svg' style={{ width: `${size}px`, height: `${size}px` }}>
       <View className='svg-content'>
@@ -29,8 +29,8 @@ export const SquareIcon: React.FC<IconProps> = ({ active = false, size = 24, cla
   </View>
 );
 
-// 社区图标 - 内联SVG实现
-export const CommunityIcon: React.FC<IconProps> = ({ active = false, size = 24, className = '' }) => (
+// 社区图标 - 内联SVG实现（增大默认尺寸）
+export const CommunityIcon: React.FC<IconProps> = ({ active = false, size = 28, className = '' }) => (
   <View className={`icon-container ${active ? 'active' : ''}`} style={{ width: `${size}px`, height: `${size}px` }}>
     <View className='icon-svg' style={{ width: `${size}px`, height: `${size}px` }}>
       <View className='svg-content'>
@@ -43,8 +43,8 @@ export const CommunityIcon: React.FC<IconProps> = ({ active = false, size = 24, 
   </View>
 );
 
-// 发布加号图标 - 内联SVG实现（大号）
-export const PlusIcon: React.FC<{ size?: number; className?: string }> = ({ size = 56, className = '' }) => (
+// 发布加号图标 - 内联SVG实现（增大默认尺寸）
+export const PlusIcon: React.FC<{ size?: number; className?: string }> = ({ size = 64, className = '' }) => (
   <View className='icon-container plus-icon' style={{ width: `${size}px`, height: `${size}px` }}>
     <View className='icon-svg' style={{ width: `${size}px`, height: `${size}px` }}>
       <View className='svg-content'>
@@ -55,10 +55,10 @@ export const PlusIcon: React.FC<{ size?: number; className?: string }> = ({ size
   </View>
 );
 
-// 通知图标 - 内联SVG实现
+// 通知图标 - 内联SVG实现（增大默认尺寸）
 export const NotificationIcon: React.FC<NotificationIconProps> = ({
   active = false,
-  size = 24,
+  size = 28,
   hasUnread = false,
   className = ''
 }) => (
@@ -77,8 +77,8 @@ export const NotificationIcon: React.FC<NotificationIconProps> = ({
   </View>
 );
 
-// 个人主页图标 - 内联SVG实现
-export const ProfileIcon: React.FC<IconProps> = ({ active = false, size = 24, className = '' }) => (
+// 个人主页图标 - 内联SVG实现（增大默认尺寸）
+export const ProfileIcon: React.FC<IconProps> = ({ active = false, size = 28, className = '' }) => (
   <View className={`icon-container ${active ? 'active' : ''}`} style={{ width: `${size}px`, height: `${size}px` }}>
     <View className='icon-svg' style={{ width: `${size}px`, height: `${size}px` }}>
       <View className='svg-content'>
@@ -91,8 +91,8 @@ export const ProfileIcon: React.FC<IconProps> = ({ active = false, size = 24, cl
   </View>
 );
 
-// 默认头像图标 - CSS绘制
-export const DefaultAvatarIcon: React.FC<{ size?: number; className?: string }> = ({ size = 40, className = '' }) => (
+// 默认头像图标 - CSS绘制（增大默认尺寸）
+export const DefaultAvatarIcon: React.FC<{ size?: number; className?: string }> = ({ size = 48, className = '' }) => (
   <View className={`icon-container default-avatar ${className}`} style={{
     width: `${size}px`,
     height: `${size}px`

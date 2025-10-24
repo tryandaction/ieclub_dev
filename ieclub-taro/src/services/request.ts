@@ -1,6 +1,7 @@
 // ==================== 完善错误处理系统 ====================
 
 import Taro from '@tarojs/taro'
+import { getApiBaseUrl as getApiBaseUrlFromConfig } from '@/utils/api-config'
 
 export enum ErrorCode {
   NETWORK_ERROR = 'NETWORK_ERROR',
@@ -261,28 +262,9 @@ async function handleAPIError(error: APIError) {
   }
 }
 
-// 获取API基础URL
+// 获取API基础URL - 统一从 api-config 导入
 function getApiBaseUrl(): string {
-  const env = Taro.getEnv()
-  
-  // 检查是否为生产环境
-  const isProduction = process.env.NODE_ENV === 'production'
-  
-  // 根据环境返回不同的API地址
-  switch (env as string) {
-    case 'WEAPP':
-      // 小程序环境
-      return 'https://api.ieclub.online/api'
-    case 'H5':
-      // H5环境 - 生产环境使用完整地址，开发环境使用代理
-      return isProduction ? 'https://api.ieclub.online/api' : '/api'
-    case 'RN':
-      // React Native环境
-      return 'https://api.ieclub.online/api'
-    default:
-      // 生产环境使用完整地址，开发环境使用代理
-      return isProduction ? 'https://api.ieclub.online/api' : '/api'
-  }
+  return getApiBaseUrlFromConfig()
 }
 
 // 辅助函数

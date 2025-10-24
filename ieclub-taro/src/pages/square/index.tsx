@@ -30,24 +30,9 @@ const SquarePage = () => {
     setLoading(true);
     try {
       const apiBase = getApiBaseUrl();
-      console.log('尝试连接到服务器:', apiBase);
+      console.log('📡 API地址:', apiBase);
 
-      // 先尝试测试API
-      const testRes = await Taro.request({
-        url: `${apiBase}/test`,
-        method: 'GET',
-        timeout: 5000
-      });
-
-      console.log('测试API响应:', testRes);
-
-      if (testRes.data && testRes.data.success) {
-        setTopics(testRes.data.data.topics || []);
-        console.log('成功获取测试数据:', testRes.data.data.topics?.length || 0, '条');
-        return;
-      }
-
-      // 如果测试API失败，尝试真实API
+      // 尝试获取话题列表
       const res = await Taro.request({
         url: `${apiBase}/topics`,
         method: 'GET',
@@ -58,49 +43,83 @@ const SquarePage = () => {
         timeout: 10000
       });
 
-      console.log('话题API响应:', res);
+      console.log('📊 话题API响应:', res);
 
-      if (res.data && res.data.success) {
-        setTopics(res.data.data || []);
-        console.log('成功获取话题数据:', res.data.data?.length || 0, '条');
-      } else {
-        throw new Error('API返回格式异常');
+      // 检查响应数据
+      if (res.statusCode === 200) {
+        const data = res.data;
+        
+        // 处理不同的响应格式
+        if (data && data.success && Array.isArray(data.data)) {
+          setTopics(data.data);
+          console.log('✅ 成功获取话题数据:', data.data.length, '条');
+          return;
+        } else if (data && Array.isArray(data.topics)) {
+          setTopics(data.topics);
+          console.log('✅ 成功获取话题数据:', data.topics.length, '条');
+          return;
+        }
       }
-    } catch (error: any) {
-      console.error('获取话题列表失败:', error);
 
-      // 显示测试数据
+      // 如果后端未运行，显示友好提示和测试数据
+      throw new Error('后端服务暂未启动');
+      
+    } catch (error: any) {
+      console.warn('⚠️ 获取话题列表失败:', error.errMsg || error.message);
+
+      // 显示丰富的测试数据
       setTopics([
         {
           id: '1',
-          title: '测试话题1（离线模式）',
+          title: '欢迎来到IEClub社区！',
+          content: '这是一个测试话题，后端服务暂未启动。',
           cover: null,
-          author: { nickname: '测试用户', avatar: null },
-          likesCount: 10,
-          commentsCount: 5
+          author: { 
+            id: 'test1',
+            nickname: 'IEClub团队', 
+            avatar: null 
+          },
+          likesCount: 128,
+          commentsCount: 45,
+          createdAt: new Date().toISOString()
         },
         {
           id: '2',
-          title: '测试话题2（离线模式）',
+          title: '如何开始使用IEClub？',
+          content: '浏览话题、参与讨论、发现更多可能...',
           cover: null,
-          author: { nickname: '测试用户2', avatar: null },
-          likesCount: 8,
-          commentsCount: 3
+          author: { 
+            id: 'test2',
+            nickname: '小助手', 
+            avatar: null 
+          },
+          likesCount: 96,
+          commentsCount: 32,
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: '3',
+          title: '分享你的创业想法',
+          content: '在这里找到志同道合的伙伴',
+          cover: null,
+          author: { 
+            id: 'test3',
+            nickname: '创业者', 
+            avatar: null 
+          },
+          likesCount: 73,
+          commentsCount: 18,
+          createdAt: new Date().toISOString()
         }
       ]);
 
-      // 根据错误类型显示不同提示
-      let errorMessage = '服务器连接失败，已显示测试数据';
-      if (error.errMsg?.includes('timeout')) {
-        errorMessage = '请求超时，已显示测试数据';
-      } else if (error.errMsg?.includes('refuse')) {
-        errorMessage = '无法连接到服务器，已显示测试数据';
-      }
-
+      console.log('💡 已显示测试数据（共3条）');
+      
+      // 只在第一次加载时显示提示
       Taro.showToast({
-        title: errorMessage,
+        title: '使用测试数据展示',
         icon: 'none',
-        duration: 3000
+        duration: 2000
       });
     } finally {
       setLoading(false);

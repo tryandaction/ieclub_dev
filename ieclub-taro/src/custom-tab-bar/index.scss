@@ -6,7 +6,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 120rpx;
+  height: 140rpx;  // 增大高度
   background: #ffffff;
   display: flex;
   align-items: center;
@@ -14,6 +14,12 @@
   box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 1000;
+
+  // 网页端优化
+  @media (min-width: 1024px) {
+    height: 80px;  // 网页端使用px单位
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
+  }
 }
 
 .tab-bar-item {
@@ -31,17 +37,26 @@
   }
 
   &__text {
-    font-size: 28rpx;
+    font-size: 32rpx;  // 增大字体
     color: #999999;
     font-weight: 500;
     transition: all 0.3s ease;
+
+    // 网页端更大字体
+    @media (min-width: 1024px) {
+      font-size: 16px;
+    }
   }
 
   &--active {
     .tab-bar-item__text {
       color: #667eea;
       font-weight: 600;
-      font-size: 30rpx;
+      font-size: 36rpx;  // 增大激活状态字体
+
+      @media (min-width: 1024px) {
+        font-size: 18px;
+      }
     }
   }
 
@@ -52,10 +67,10 @@
   }
 }
 
-// 中间加号按钮
+// 中间加号按钮（增大尺寸）
 .center-button {
-  width: 112rpx;
-  height: 112rpx;
+  width: 128rpx;  // 增大按钮
+  height: 128rpx;
   border-radius: 50%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   /* 确保渐变在微信小程序中正确显示 */
@@ -64,8 +79,16 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3);
-  margin-top: -32rpx; // 凸起效果
+  margin-top: -36rpx; // 增大凸起效果
   transition: all 0.3s ease;
+
+  // 网页端优化
+  @media (min-width: 1024px) {
+    width: 64px;
+    height: 64px;
+    margin-top: -18px;
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+  }
 
   &:active {
     transform: scale(0.95);
@@ -73,10 +96,14 @@
   }
 
   &__icon {
-    font-size: 64rpx;
+    font-size: 72rpx;  // 增大图标
     color: #ffffff;
     font-weight: 300;
     line-height: 1;
     text-align: center;
+
+    @media (min-width: 1024px) {
+      font-size: 36px;
+    }
   }
 }

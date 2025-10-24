@@ -26,7 +26,12 @@ const config = {
     ENABLE_INTERSECTION_OBSERVER: '"false"'
   },
   copy: {
-    patterns: [],
+    patterns: [
+      {
+        from: 'public/favicon.ico',
+        to: 'favicon.ico'
+      }
+    ],
     options: {}
   },
 
@@ -45,9 +50,8 @@ const config = {
     publicPath: '/',
     staticDirectory: 'static',
 
-    // 🔥 关键修复：明确指定 H5 输出到 dist/h5
+    // 🔥 关键修复：直接输出到 dist 根目录
     output: {
-      path: path.join(__dirname, '../dist/h5'),  // 强制输出到 h5 子目录
       filename: 'js/[name].[contenthash:8].js',
       chunkFilename: 'js/[name].[contenthash:8].chunk.js'
     },
@@ -332,7 +336,7 @@ const config = {
     // SEO 优化
     htmlPluginOption: {
       title: 'IEClub - 创新创业社区',
-      favicon: false, // 🔥 修复：禁用自动favicon，避免404错误
+      favicon: path.resolve(__dirname, '../public/favicon.ico'), // 🔥 修复：使用绝对路径
       meta: {
         description: 'IEClub是一个专注于创新创业的智能匹配社区平台',
         keywords: '创新创业,供需匹配,智能推荐,社区交流',

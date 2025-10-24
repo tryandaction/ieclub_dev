@@ -1,35 +1,12 @@
 // 前端常量配置（完善版）
-import Taro from '@tarojs/taro'
-
-// 获取API基础URL
-function getApiBaseUrl(): string {
-  const env = Taro.getEnv()
-  
-  switch (env) {
-    case 'WEAPP':
-      return 'https://api.ieclub.online'
-    case 'WEB':
-      // 开发环境使用后端地址，生产环境使用相对路径
-      if (typeof window !== 'undefined') {
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-          return 'http://localhost:3000'
-        }
-        // 生产环境使用相对路径，nginx会代理到后端
-        return window.location.origin
-      }
-      return 'http://localhost:3000' // 服务端渲染时的默认值
-    case 'RN':
-      return 'https://api.ieclub.online'
-    default:
-      return 'http://localhost:3000'
-  }
-}
+// API配置统一使用 @/utils/api-config
+import { getApiBaseUrlWithoutPath } from '@/utils/api-config'
 
 // 延迟初始化，避免在模块加载时访问window
 let _apiBaseUrl: string | null = null
 export function getAPI_BASE_URL(): string {
   if (_apiBaseUrl === null) {
-    _apiBaseUrl = getApiBaseUrl()
+    _apiBaseUrl = getApiBaseUrlWithoutPath()
   }
   return _apiBaseUrl
 }
