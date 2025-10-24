@@ -32,7 +32,7 @@ module.exports = {
     publicPath: '/',
     staticDirectory: 'static',
     router: {
-      mode: 'hash',
+      mode: 'hash', // 确保生产环境使用Hash模式
       basename: '/'
     },
     // 生产环境不需要devServer配置

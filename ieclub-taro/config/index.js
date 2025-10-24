@@ -54,7 +54,7 @@ const config = {
 
     // 路由模式
     router: {
-      mode: 'browser', // 使用 History 模式，URL 更美观
+      mode: 'hash', // 🔥 修复：使用 Hash 模式，避免服务器配置问题
       basename: '/',
       customRoutes: {
         // 自定义路由映射
@@ -332,6 +332,7 @@ const config = {
     // SEO 优化
     htmlPluginOption: {
       title: 'IEClub - 创新创业社区',
+      favicon: false, // 🔥 修复：禁用自动favicon，避免404错误
       meta: {
         description: 'IEClub是一个专注于创新创业的智能匹配社区平台',
         keywords: '创新创业,供需匹配,智能推荐,社区交流',
