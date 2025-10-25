@@ -12,7 +12,10 @@ class App extends Component<PropsWithChildren> {
   // Taro/React 在应用准备好后会调用这个生命周期方法
   componentDidMount() {
     console.log('--- ✅ [React 18 App] componentDidMount triggered ---');
-    this.renderReactApp();
+    // 延迟执行，确保 Taro 页面实例已准备好
+    setTimeout(() => {
+      this.renderReactApp();
+    }, 500);
   }
 
   // 当Taro切换页面导致props变化时，这个生命周期方法也会被调用
@@ -24,17 +27,24 @@ class App extends Component<PropsWithChildren> {
   // 我们的核心渲染逻辑
   renderReactApp() {
     console.log('--- 🚀 [Renderer] renderReactApp function called ---');
-    
+
     // 使用 Taro 的 Current 对象安全地获取当前页面实例
     // 这比依赖 props.children 更可靠
     const pageInstance = Current.page;
+    console.log('--- 📋 [Renderer] Current.page:', pageInstance);
+
     if (!pageInstance) {
       console.warn('--- ⚠️ [Renderer] Current.page is not ready yet, skipping render ---');
+      // 继续尝试渲染，延迟重试
+      setTimeout(() => {
+        this.renderReactApp();
+      }, 200);
       return;
     }
 
     if (!root) {
       const container = document.getElementById('app');
+      console.log('--- 📋 [Renderer] Container element:', container);
       if (container) {
         root = createRoot(container);
         console.log('--- ✅ [Renderer] React Root created ---');
@@ -45,8 +55,12 @@ class App extends Component<PropsWithChildren> {
     }
 
     // 命令 React 18 的 Root 将获取到的页面实例渲染出来
-    root.render(pageInstance as any);
-    console.log('--- ✅ [Renderer] root.render(Current.page) has been called ---');
+    try {
+      root.render(pageInstance as any);
+      console.log('--- ✅ [Renderer] root.render(Current.page) has been called ---');
+    } catch (error) {
+      console.error('--- ❌ [Renderer] Error rendering page:', error);
+    }
   }
 
   // App 组件本身不再渲染任何东西，它只作为一个生命周期的“钩子”
