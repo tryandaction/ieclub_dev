@@ -48,6 +48,7 @@ Write-Log "➡️  步骤 1/3: 正在提交代码到 Git..." -Color Yellow
 Set-Location -Path $ProjectRoot
 git add .
 git commit -m $commitMessage
+git checkout main
 git push origin main
 Write-Log "✅ 代码提交完成。" -Color Green
 
