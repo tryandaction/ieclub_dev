@@ -56,15 +56,15 @@ const config = {
       chunkFilename: 'js/[name].[contenthash:8].chunk.js'
     },
 
-    // 路由模式
+    // 路由模式 - 使用 hash 模式更可靠
     router: {
-      mode: 'browser', // 🔥 使用 History 模式（Browser 模式）
+      mode: 'hash', // 🔥 改用 Hash 模式，避免 Browser 模式的路由问题
       basename: '/',
       customRoutes: {
         // 自定义路由映射
         '/': '/pages/square/index',
         '/square': '/pages/square/index',
-        '/pages/square/index': '/pages/square/index', // 🔥 添加完整路径映射
+        '/pages/square/index': '/pages/square/index',
         '/community': '/pages/community/index',
         '/pages/community/index': '/pages/community/index',
         '/ranking': '/pages/community/ranking/index',
@@ -83,6 +83,8 @@ const config = {
         '/pages/login/index': '/pages/login/index',
         '/forgot-password': '/pages/forgot-password/index',
         '/pages/forgot-password/index': '/pages/forgot-password/index',
+        '/test-page': '/pages/test-page',
+        '/pages/test-page': '/pages/test-page',
       }
     },
 
