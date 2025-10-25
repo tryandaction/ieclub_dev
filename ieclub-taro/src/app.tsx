@@ -68,20 +68,58 @@ function App({ children }: PropsWithChildren) {
         if (!hasRealContent) {
           console.warn('⚠️ [激进方案] 检测到内容未渲染，使用Portal接管!')
           
-          // 清空原有内容
-          appElement.innerHTML = ''
-          
-          // 创建新的容器
-          const newContainer = document.createElement('div')
-          newContainer.id = 'taro-portal-root'
-          newContainer.style.cssText = 'width: 100%; height: 100%; min-height: 100vh;'
-          appElement.appendChild(newContainer)
-          
-          // 设置Portal容器
-          setPortalContainer(newContainer)
-          hasManuallyRenderedRef.current = true
-          
-          console.log('✅ [激进方案] Portal容器已创建，将强制渲染children')
+          // 找到 Taro 的根容器（不要删除它，避免破坏 React）
+          const taroContainer = appElement.querySelector('.app-container')
+          if (taroContainer) {
+            console.log('🎯 找到 Taro 容器，将在其内部创建Portal')
+            
+            // 在 Taro 容器内创建 Portal 容器（不清空父元素）
+            const newContainer = document.createElement('div')
+            newContainer.id = 'taro-portal-root'
+            newContainer.style.cssText = `
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              min-height: 100vh;
+              z-index: 9999;
+              background: #fff;
+            `
+            
+            // 插入到 Taro 容器内部
+            taroContainer.appendChild(newContainer)
+            
+            // 设置Portal容器
+            setPortalContainer(newContainer)
+            hasManuallyRenderedRef.current = true
+            
+            console.log('✅ [激进方案] Portal容器已创建在Taro内部，将强制渲染children')
+          } else {
+            console.warn('⚠️ 找不到 .app-container，尝试创建顶层Portal')
+            
+            // 如果找不到 Taro 容器，创建独立容器
+            const newContainer = document.createElement('div')
+            newContainer.id = 'taro-portal-root'
+            newContainer.style.cssText = `
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              min-height: 100vh;
+              z-index: 9999;
+              background: #fff;
+            `
+            
+            // 追加到 app 元素（不清空）
+            appElement.appendChild(newContainer)
+            
+            setPortalContainer(newContainer)
+            hasManuallyRenderedRef.current = true
+            
+            console.log('✅ [激进方案] 顶层Portal容器已创建，将强制渲染children')
+          }
         } else {
           console.log('✅ [激进检查] 内容已正常渲染，无需Portal')
         }
