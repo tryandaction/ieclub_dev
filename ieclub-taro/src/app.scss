@@ -435,3 +435,80 @@ button {
     display: none !important;
   }
 }
+
+// ==================== App 容器和错误页面样式 ====================
+.app-container {
+  min-height: 100vh;
+  width: 100%;
+  background: #f7f8fa;
+}
+
+.app-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+  text-align: center;
+
+  .error-icon {
+    font-size: 80px;
+    margin-bottom: 24px;
+    animation: pulse 2s ease-in-out infinite;
+    
+    @media (min-width: 768px) {
+      font-size: 100px;
+    }
+  }
+
+  .error-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 16px;
+    
+    @media (min-width: 768px) {
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+  }
+
+  .error-message {
+    font-size: 16px;
+    color: #666666;
+    margin-bottom: 12px;
+    line-height: 1.6;
+    
+    @media (min-width: 768px) {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+  }
+
+  .error-hint {
+    font-size: 14px;
+    color: #999999;
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    
+    @media (min-width: 768px) {
+      font-size: 16px;
+      padding: 16px 32px;
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
