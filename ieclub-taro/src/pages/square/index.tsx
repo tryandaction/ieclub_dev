@@ -7,6 +7,10 @@ import { getApiBaseUrl } from '@/utils/api-config';
 import './index.scss';
 
 const SquarePage = () => {
+  // ==================== 添加组件渲染日志 ====================
+  console.log('🎯 [SquarePage] Component is rendering/re-rendering');
+  // =========================================================
+
   const [topics, setTopics] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -23,6 +27,7 @@ const SquarePage = () => {
   }, [topics.length, loading]);
 
   useEffect(() => {
+    console.log('🚀 [SquarePage] useEffect triggered, calling fetchTopics');
     fetchTopics();
   }, []);
 
@@ -173,12 +178,41 @@ const SquarePage = () => {
     </View>
   );
 
-  // 添加调试日志
-  console.log('🎨 渲染广场页面', {
-    loading,
-    topicsCount: topics.length,
-    hasTopics: topics.length > 0
+  // ==================== 添加渲染前状态日志 ====================
+  console.log('🎨 [SquarePage] Before return - Current state:', {
+    loading: loading,
+    topics: topics,
+    topicsCount: topics ? topics.length : 'topics is null/undefined',
+    topicsType: typeof topics,
+    topicsIsArray: Array.isArray(topics),
+    hasTopics: topics && topics.length > 0
   });
+
+  // 添加错误边界保护
+  if (!topics) {
+    console.error('❌ [SquarePage] topics is null or undefined!');
+    return (
+      <View className='square-page'>
+        <View className='error-state'>
+          <View className='error-text'>数据加载异常</View>
+          <View className='error-hint'>topics 状态为 null</View>
+        </View>
+      </View>
+    );
+  }
+
+  if (!Array.isArray(topics)) {
+    console.error('❌ [SquarePage] topics is not an array!', typeof topics, topics);
+    return (
+      <View className='square-page'>
+        <View className='error-state'>
+          <View className='error-text'>数据格式异常</View>
+          <View className='error-hint'>topics 不是数组类型</View>
+        </View>
+      </View>
+    );
+  }
+  // ================================================================
 
   return (
     <View className='square-page'>

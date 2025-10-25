@@ -104,12 +104,28 @@ export async function request<T = any>(options: {
         timeout
       })
 
+      // ==================== 添加详细的API响应日志 ====================
+      console.log(`[API Request] ${method} ${apiBaseUrl}${url}`, {
+        requestData: data,
+        requestHeaders: header
+      });
+      console.log(`[API Response] Status: ${response.statusCode}`, {
+        fullResponse: response,
+        responseData: response.data,
+        responseDataType: typeof response.data,
+        responseDataIsNull: response.data === null,
+        responseDataIsUndefined: response.data === undefined
+      });
+      // ================================================================
+
       // 处理响应
       const result = response.data as any
 
       if (response.statusCode === 200 && result.code === 200) {
+        console.log(`[API Success] Returning data:`, result.data);
         return result.data as T
       } else {
+        console.log(`[API Error] Status: ${response.statusCode}, Result:`, result);
         throw parseAPIError(response.statusCode, result)
       }
 

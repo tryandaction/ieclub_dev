@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useLaunch } from '@tarojs/taro'
 import Taro from '@tarojs/taro'
 import { getApiBaseUrl } from '@/utils/api-config'
+import ErrorBoundary from './components/ErrorBoundary'
 import './app.scss'
 
 function App(props: any) {
@@ -50,8 +51,12 @@ function App(props: any) {
     }
   }
 
-  // children 是页面组件
-  return props.children
+  // 用 ErrorBoundary 包裹所有页面，捕获渲染错误
+  return (
+    <ErrorBoundary>
+      {props.children}
+    </ErrorBoundary>
+  )
 }
 
 export default App
