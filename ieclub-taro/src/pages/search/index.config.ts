@@ -1,5 +1,3 @@
-
-// ==================== pages/search/index.config.ts ====================
-export default definePageConfig({
+export default {
   navigationBarTitleText: '搜索'
-})
+}

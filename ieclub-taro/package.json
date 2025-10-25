@@ -26,6 +26,7 @@
 		"build:analyze": "npm run analyze"
 	},
 	"dependencies": {
+		"@iconify/iconify": "^3.1.1",
 		"@tarojs/components": "4.1.7",
 		"@tarojs/helper": "4.1.7",
 		"@tarojs/plugin-framework-react": "4.1.7",

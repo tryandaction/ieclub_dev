@@ -1,6 +1,4 @@
-// ==================== 话题详情页面配置 ====================
-
-export default definePageConfig({
+export default {
   navigationBarTitleText: '话题详情',
-  enablePullDownRefresh: false
-})
+  navigationStyle: 'custom'
+}

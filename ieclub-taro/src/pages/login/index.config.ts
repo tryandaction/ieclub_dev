@@ -1,6 +1,4 @@
-// ==================== 登录页面配置 ====================
-
-export default definePageConfig({
+export default {
   navigationBarTitleText: '登录',
   navigationStyle: 'custom'
-})
+}

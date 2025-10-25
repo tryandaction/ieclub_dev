@@ -1,233 +1,180 @@
-// ==================== 个人中心页面（增强版） ====================
-
-import { View, Image, Text, Button } from '@tarojs/components'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
+import { View, Text, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useUserStore } from '@/store/user'
-import { getUserStats } from '@/services/user'
 import './index.scss'
 
-// 使用统一的API配置
-import { getApiBaseUrl } from '@/utils/api-config'
-
-export default function ProfilePage() {
-  const { userInfo, isLogin, logout } = useUserStore()
-  const [stats, setStats] = useState({
-    topicsCount: 0,
-    commentsCount: 0,
-    likesCount: 0,
+export default function Profile() {
+  const [userInfo, setUserInfo] = useState({
+    nickname: '游客',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=default',
+    bio: '这个人很懒，还没有个性签名',
     followersCount: 0,
-    followingCount: 0
+    followingCount: 0,
+    topicsCount: 0,
+    likesCount: 0
   })
-  const [unreadCount, setUnreadCount] = useState(0)
 
-  const loadStats = useCallback(async () => {
-    if (!userInfo) return
-
-    try {
-      const data = await getUserStats(userInfo.id)
-      setStats(data)
-    } catch (error) {
-      console.error('加载统计数据失败:', error)
-    }
-  }, [userInfo])
-
-  const loadUnreadCount = useCallback(async () => {
-    if (!userInfo) return
-
-    try {
-      const token = Taro.getStorageSync('token')
-      if (!token) return
-
-      const res = await Taro.request({
-        url: `${getApiBaseUrl()}/notifications/unread-count`,
-        method: 'GET',
-        header: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-
-      if (res.data.success) {
-        setUnreadCount(res.data.data.count || 0)
-      }
-    } catch (error) {
-      console.error('加载未读消息数失败:', error)
-    }
-  }, [userInfo])
+  const [isLogin, setIsLogin] = useState(false)
 
   useEffect(() => {
-    if (isLogin && userInfo) {
-      loadStats()
-      loadUnreadCount()
-    }
-  }, [isLogin, userInfo, loadStats, loadUnreadCount])
-
-  // 设置当前 TabBar 选中项 - 在小程序中通常自动管理
-  useEffect(() => {
-    // TabBar选中状态在小程序环境中由框架自动管理
-    // 这里可以添加其他页面初始化逻辑
-    console.log('个人中心页面加载完成');
+    // 组件挂载时的逻辑
   }, [])
-
-  const handleLogout = () => {
-    Taro.showModal({
-      title: '提示',
-      content: '确定要退出登录吗？',
-      success: (res) => {
-        if (res.confirm) {
-          logout()
-        }
-      }
-    })
-  }
 
   const goToLogin = () => {
     Taro.navigateTo({ url: '/pages/login/index' })
   }
 
-  const goToEdit = () => {
-    Taro.showToast({
-      title: '功能开发中',
-      icon: 'none'
-    })
-  }
+  const menuItems = [
+    {
+      icon: 'mdi:heart-outline',
+      title: '我的点赞',
+      path: '/pages/user/likes',
+      color: '#FF6B9D'
+    },
+    {
+      icon: 'mdi:bookmark-outline',
+      title: '我的收藏',
+      path: '/pages/user/favorites',
+      color: '#FFA500'
+    },
+    {
+      icon: 'mdi:calendar-check',
+      title: '我的活动',
+      path: '/pages/user/activities',
+      color: '#5B7FFF'
+    },
+    {
+      icon: 'mdi:account-group',
+      title: '我的社区',
+      path: '/pages/user/communities',
+      color: '#7C4DFF'
+    }
+  ]
 
-  const goToNotifications = () => {
-    Taro.navigateTo({ url: '/pages/notifications/index' })
-  }
+  const settingItems = [
+    {
+      icon: 'mdi:account-edit-outline',
+      title: '编辑资料',
+      path: '/pages/settings/profile'
+    },
+    {
+      icon: 'mdi:cog-outline',
+      title: '设置',
+      path: '/pages/settings/index'
+    },
+    {
+      icon: 'mdi:help-circle-outline',
+      title: '帮助与反馈',
+      path: '/pages/help/index'
+    },
+    {
+      icon: 'mdi:information-outline',
+      title: '关于我们',
+      path: '/pages/about/index'
+    }
+  ]
 
-  const goToMyTopics = () => {
-    Taro.showToast({
-      title: '功能开发中',
-      icon: 'none'
-    })
-  }
-
-  const goToMyBookmarks = () => {
-    Taro.showToast({
-      title: '功能开发中',
-      icon: 'none'
-    })
-  }
-
-  const goToMyComments = () => {
-    Taro.showToast({
-      title: '功能开发中',
-      icon: 'none'
-    })
-  }
-
-  const goToSettings = () => {
-    Taro.showToast({
-      title: '功能开发中',
-      icon: 'none'
-    })
-  }
-
-  const goToHelp = () => {
-    Taro.showToast({
-      title: '功能开发中',
-      icon: 'none'
-    })
-  }
-
-  if (!isLogin || !userInfo) {
-    return (
-      <View className='profile-page'>
-        <View className='not-login'>
-          <View className='icon'>👤</View>
-          <Text className='text'>请先登录</Text>
-          <Button className='login-btn' onClick={goToLogin}>
-            立即登录
-          </Button>
-        </View>
-      </View>
-    )
+  const handleMenuClick = (path: string) => {
+    if (!isLogin) {
+      goToLogin()
+      return
+    }
+    console.log('导航到', path)
   }
 
   return (
     <View className='profile-page'>
-      {/* 用户信息卡片 */}
-      <View className='user-card'>
-        <View className='card-bg'></View>
+      {/* 用户信息区域 */}
+      <View className='user-header'>
+        <View className='background-gradient' />
+        
         <View className='user-info'>
-          <Image className='avatar' src={userInfo.avatar} mode='aspectFill' />
-          <View className='info'>
-            <Text className='nickname'>{userInfo.nickname}</Text>
-            <Text className='bio'>{userInfo.bio || '这个人很懒，什么都没写~'}</Text>
-          </View>
-          <View className='edit-btn' onClick={goToEdit}>
-            编辑
-          </View>
+          <Image 
+            src={userInfo.avatar}
+            className='avatar'
+            mode='aspectFill'
+            onClick={!isLogin ? goToLogin : undefined}
+          />
+          
+          {isLogin ? (
+            <>
+              <Text className='nickname'>{userInfo.nickname}</Text>
+              <Text className='bio'>{userInfo.bio}</Text>
+            </>
+          ) : (
+            <>
+              <Text className='nickname'>点击登录</Text>
+              <Text className='bio' onClick={goToLogin}>登录后查看更多内容</Text>
+            </>
+          )}
         </View>
 
-        {/* 统计数据 */}
+        {/* 数据统计 */}
         <View className='stats'>
           <View className='stat-item'>
-            <Text className='value'>{stats.topicsCount}</Text>
-            <Text className='label'>话题</Text>
+            <Text className='stat-value'>{userInfo.topicsCount}</Text>
+            <Text className='stat-label'>话题</Text>
           </View>
+          <View className='stat-divider' />
           <View className='stat-item'>
-            <Text className='value'>{stats.likesCount}</Text>
-            <Text className='label'>获赞</Text>
+            <Text className='stat-value'>{userInfo.followersCount}</Text>
+            <Text className='stat-label'>粉丝</Text>
           </View>
+          <View className='stat-divider' />
           <View className='stat-item'>
-            <Text className='value'>{stats.followersCount}</Text>
-            <Text className='label'>粉丝</Text>
+            <Text className='stat-value'>{userInfo.followingCount}</Text>
+            <Text className='stat-label'>关注</Text>
           </View>
+          <View className='stat-divider' />
           <View className='stat-item'>
-            <Text className='value'>{stats.followingCount}</Text>
-            <Text className='label'>关注</Text>
+            <Text className='stat-value'>{userInfo.likesCount}</Text>
+            <Text className='stat-label'>获赞</Text>
           </View>
         </View>
       </View>
 
       {/* 功能菜单 */}
-      <View className='menu-section'>
-        <View className='menu-item' onClick={goToNotifications}>
-          <View className='menu-icon'>🔔</View>
-          <Text className='menu-label'>消息通知</Text>
-          {unreadCount > 0 && (
-            <View className='unread-badge'>{unreadCount}</View>
-          )}
-          <View className='menu-arrow'>›</View>
-        </View>
-        <View className='menu-item' onClick={goToMyTopics}>
-          <View className='menu-icon'>📝</View>
-          <Text className='menu-label'>我的话题</Text>
-          <View className='menu-arrow'>›</View>
-        </View>
-        <View className='menu-item' onClick={goToMyBookmarks}>
-          <View className='menu-icon'>❤️</View>
-          <Text className='menu-label'>我的收藏</Text>
-          <View className='menu-arrow'>›</View>
-        </View>
-        <View className='menu-item' onClick={goToMyComments}>
-          <View className='menu-icon'>💬</View>
-          <Text className='menu-label'>我的评论</Text>
-          <View className='menu-arrow'>›</View>
-        </View>
+      <View className='menu-grid'>
+        {menuItems.map((item, index) => (
+          <View 
+            key={index}
+            className='menu-item'
+            onClick={() => handleMenuClick(item.path)}
+          >
+            <View 
+              className='icon-wrapper'
+              style={{ background: item.color }}
+            >
+              <View className='iconify-icon' data-icon={item.icon} />
+            </View>
+            <Text className='menu-title'>{item.title}</Text>
+          </View>
+        ))}
       </View>
 
-      <View className='menu-section'>
-        <View className='menu-item' onClick={goToSettings}>
-          <View className='menu-icon'>⚙️</View>
-          <Text className='menu-label'>设置</Text>
-          <View className='menu-arrow'>›</View>
-        </View>
-        <View className='menu-item' onClick={goToHelp}>
-          <View className='menu-icon'>❓</View>
-          <Text className='menu-label'>帮助与反馈</Text>
-          <View className='menu-arrow'>›</View>
-        </View>
+      {/* 设置列表 */}
+      <View className='setting-list'>
+        {settingItems.map((item, index) => (
+          <View 
+            key={index}
+            className='setting-item'
+            onClick={() => handleMenuClick(item.path)}
+          >
+            <View className='item-left'>
+              <View className='iconify-icon' data-icon={item.icon} />
+              <Text>{item.title}</Text>
+            </View>
+            <View className='iconify-icon arrow' data-icon='mdi:chevron-right' />
+          </View>
+        ))}
       </View>
 
-      {/* 退出登录 */}
-      <View className='logout-section'>
-        <Button className='logout-btn' onClick={handleLogout}>
-          退出登录
-        </Button>
-      </View>
+      {/* 退出登录按钮 */}
+      {isLogin && (
+        <View className='logout-btn' onClick={() => setIsLogin(false)}>
+          <Text>退出登录</Text>
+        </View>
+      )}
     </View>
   )
 }

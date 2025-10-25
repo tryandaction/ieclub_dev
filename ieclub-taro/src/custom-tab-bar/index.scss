@@ -1,109 +1,97 @@
-// ieclub-taro/src/custom-tab-bar/index.scss
-// 自定义 TabBar 样式 - IEClub 风格纯文字版本
-
 .custom-tab-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 140rpx;  // 增大高度
+  height: 100px;
   background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-around;
-  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 1000;
 
-  // 网页端优化
-  @media (min-width: 1024px) {
-    height: 80px;  // 网页端使用px单位
-    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
-  }
-}
+  .tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0;
+    position: relative;
 
-.tab-bar-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  position: relative;
-  transition: all 0.3s ease;
+    &.tab-item-special {
+      margin-top: -40px;
 
-  &:active {
-    opacity: 0.7;
-  }
+      .special-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 
-  &__text {
-    font-size: 32rpx;  // 增大字体
-    color: #999999;
-    font-weight: 500;
-    transition: all 0.3s ease;
-
-    // 网页端更大字体
-    @media (min-width: 1024px) {
-      font-size: 16px;
+        .iconify-icon {
+          font-size: 56px;
+          color: #ffffff;
+        }
+      }
     }
-  }
 
-  &--active {
-    .tab-bar-item__text {
-      color: #667eea;
-      font-weight: 600;
-      font-size: 36rpx;  // 增大激活状态字体
+    .iconify-icon {
+      width: 48px;
+      height: 48px;
+      font-size: 48px;
+      color: #999999;
+      transition: all 0.3s ease;
 
-      @media (min-width: 1024px) {
-        font-size: 18px;
+      &.active {
+        color: #5B7FFF;
+        transform: scale(1.1);
+      }
+    }
+
+    .tab-text {
+      font-size: 20px;
+      color: #999999;
+      margin-top: 4px;
+      transition: color 0.3s ease;
+
+      &.active {
+        color: #5B7FFF;
+        font-weight: 600;
       }
     }
   }
-
-  // 中间按钮特殊样式
-  &--center {
-    flex: 0 0 auto;
-    margin: 0 32rpx;
-  }
 }
 
-// 中间加号按钮（增大尺寸）
-.center-button {
-  width: 128rpx;  // 增大按钮
-  height: 128rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  /* 确保渐变在微信小程序中正确显示 */
-  background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3);
-  margin-top: -36rpx; // 增大凸起效果
-  transition: all 0.3s ease;
+// H5适配
+@media screen and (min-width: 768px) {
+  .custom-tab-bar {
+    height: 80px;
+    
+    .tab-item {
+      &.tab-item-special .special-icon {
+        width: 80px;
+        height: 80px;
+        
+        .iconify-icon {
+          font-size: 44px;
+        }
+      }
 
-  // 网页端优化
-  @media (min-width: 1024px) {
-    width: 64px;
-    height: 64px;
-    margin-top: -18px;
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
-  }
+      .iconify-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 36px;
+      }
 
-  &:active {
-    transform: scale(0.95);
-    box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.3);
-  }
-
-  &__icon {
-    font-size: 72rpx;  // 增大图标
-    color: #ffffff;
-    font-weight: 300;
-    line-height: 1;
-    text-align: center;
-
-    @media (min-width: 1024px) {
-      font-size: 36px;
+      .tab-text {
+        font-size: 14px;
+      }
     }
   }
 }

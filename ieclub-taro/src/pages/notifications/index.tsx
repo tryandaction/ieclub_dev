@@ -1,175 +1,191 @@
-// frontend/src/pages/notifications/index.jsx
-import { useState, useEffect } from 'react';
-import { View, ScrollView, Image } from '@tarojs/components';
-import Taro from '@tarojs/taro';
-import { DefaultAvatarIcon } from '@/components/CustomIcons';
-import './index.scss';
+import { useState } from 'react'
+import { View, Text, ScrollView, Image } from '@tarojs/components'
+import Taro from '@tarojs/taro'
+import './index.scss'
 
-// 使用统一的API配置
-import { getApiBaseUrl } from '@/utils/api-config'
+interface Notification {
+  id: string
+  type: 'like' | 'comment' | 'follow' | 'system'
+  user?: {
+    nickname: string
+    avatar: string
+  }
+  content: string
+  targetTitle?: string
+  time: string
+  isRead: boolean
+}
 
-const NotificationsPage = () => {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  // 设置当前 TabBar 选中项 - 在小程序中通常自动管理
-  useEffect(() => {
-    // TabBar选中状态在小程序环境中由框架自动管理
-    // 这里可以添加其他页面初始化逻辑
-    console.log('通知页面加载完成');
-  }, []);
-
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
-
-  const fetchNotifications = async () => {
-    setLoading(true);
-    try {
-      const token = Taro.getStorageSync('token');
-      if (!token) {
-        Taro.showToast({
-          title: '请先登录',
-          icon: 'none'
-        });
-        setTimeout(() => {
-          Taro.navigateTo({
-            url: '/pages/login/index'
-          });
-        }, 1500);
-        return;
-      }
-
-      const res = await Taro.request({
-        url: `${getApiBaseUrl()}/notifications`,
-        method: 'GET',
-        header: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (res.data.success) {
-        setNotifications(res.data.data || []);
-        setUnreadCount(res.data.data?.unreadCount || 0);
-      }
-    } catch (error) {
-      console.error('获取通知失败:', error);
-      Taro.showToast({
-        title: '加载失败',
-        icon: 'none'
-      });
-    } finally {
-      setLoading(false);
+export default function Notifications() {
+  const [activeTab, setActiveTab] = useState('all')
+  const [notifications, setNotifications] = useState<Notification[]>([
+    {
+      id: '1',
+      type: 'like',
+      user: {
+        nickname: '张三',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user1'
+      },
+      content: '赞了你的话题',
+      targetTitle: '高等数学期末重点串讲',
+      time: '2024-10-25T10:30:00Z',
+      isRead: false
+    },
+    {
+      id: '2',
+      type: 'comment',
+      user: {
+        nickname: '李四',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user2'
+      },
+      content: '评论了你的话题：讲得很清楚，太有帮助了！',
+      targetTitle: '高等数学期末重点串讲',
+      time: '2024-10-25T09:15:00Z',
+      isRead: false
+    },
+    {
+      id: '3',
+      type: 'follow',
+      user: {
+        nickname: '王五',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user3'
+      },
+      content: '关注了你',
+      time: '2024-10-24T16:20:00Z',
+      isRead: true
+    },
+    {
+      id: '4',
+      type: 'system',
+      content: '欢迎加入IEClub！开始你的知识分享之旅吧',
+      time: '2024-10-24T10:00:00Z',
+      isRead: true
     }
-  };
+  ])
 
-  const markAsRead = async (notificationId: string) => {
-    try {
-      const token = Taro.getStorageSync('token');
-      await Taro.request({
-        url: `${getApiBaseUrl()}/notifications/${notificationId}/read`,
-        method: 'PUT',
-        header: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      // 刷新列表
-      fetchNotifications();
-    } catch (error) {
-      console.error('标记已读失败:', error);
+  const getTypeIcon = (type: string) => {
+    const iconMap = {
+      like: { icon: 'mdi:heart', color: '#FF6B9D' },
+      comment: { icon: 'mdi:comment', color: '#5B7FFF' },
+      follow: { icon: 'mdi:account-plus', color: '#FFA500' },
+      system: { icon: 'mdi:bell', color: '#7C4DFF' }
     }
-  };
+    return iconMap[type] || iconMap.system
+  }
 
-  const markAllAsRead = async () => {
-    try {
-      const token = Taro.getStorageSync('token');
-      await Taro.request({
-        url: `${getApiBaseUrl()}/notifications/read-all`,
-        method: 'PUT',
-        header: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      Taro.showToast({
-        title: '已全部标记为已读',
-        icon: 'success'
-      });
-
-      fetchNotifications();
-    } catch (error) {
-      console.error('全部标记已读失败:', error);
+  const formatTime = (time: string) => {
+    const now = new Date().getTime()
+    const past = new Date(time).getTime()
+    const diff = now - past
+    
+    const minute = 60 * 1000
+    const hour = 60 * minute
+    const day = 24 * hour
+    
+    if (diff < hour) {
+      return `${Math.floor(diff / minute)}分钟前`
+    } else if (diff < day) {
+      return `${Math.floor(diff / hour)}小时前`
+    } else {
+      return `${Math.floor(diff / day)}天前`
     }
-  };
+  }
 
-  const getNotificationIcon = (type: string) => {
-    const iconMap: Record<string, string> = {
-      like: '👍',
-      heart: '❤️',
-      comment: '💬',
-      follow: '👤',
-      system: '📢',
-      topic_threshold: '🎉'
-    };
-    return iconMap[type] || '📢';
-  };
+  const markAllRead = () => {
+    setNotifications(notifications.map(n => ({ ...n, isRead: true })))
+    Taro.showToast({
+      title: '已全部标为已读',
+      icon: 'success'
+    })
+  }
 
-  const renderNotification = (notification: any) => (
-    <View
-      key={notification.id}
-      className={`notification-item ${notification.isRead ? '' : 'unread'}`}
-      onClick={() => markAsRead(notification.id)}
-    >
-      <View className='notification-icon'>
-        {getNotificationIcon(notification.type)}
-      </View>
-      <View className='notification-content'>
-        <View className='notification-text'>{notification.content}</View>
-        <View className='notification-time'>
-          {new Date(notification.createdAt).toLocaleString('zh-CN', {
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-          })}
-        </View>
-      </View>
-      {!notification.isRead && <View className='unread-dot'></View>}
-    </View>
-  );
+  const goBack = () => {
+    Taro.navigateBack()
+  }
 
   return (
     <View className='notifications-page'>
-      <View className='header'>
-        <View className='header-title'>通知</View>
-        {unreadCount > 0 && (
-          <View className='mark-all-btn' onClick={markAllAsRead}>
-            全部已读
-          </View>
-        )}
+      {/* 顶部导航栏 */}
+      <View className='nav-bar'>
+        <View className='nav-left' onClick={goBack}>
+          <View className='iconify-icon' data-icon='mdi:arrow-left' />
+        </View>
+        <Text className='title'>通知</Text>
+        <View className='nav-right' onClick={markAllRead}>
+          <Text>全部已读</Text>
+        </View>
       </View>
 
-      <ScrollView className='notifications-scroll' scrollY>
-        {loading ? (
-          <View className='loading'>
-            <View className='loading-spinner'></View>
-            <View className='loading-text'>加载中...</View>
-          </View>
-        ) : notifications.length > 0 ? (
-          <View className='notifications-list'>
-            {notifications.map(renderNotification)}
-          </View>
-        ) : (
-          <View className='empty-state'>
-            <View className='empty-icon'>🔔</View>
-            <View className='empty-text'>暂无通知</View>
-          </View>
-        )}
+      {/* 标签栏 */}
+      <View className='tab-bar'>
+        <View 
+          className={`tab-item ${activeTab === 'all' ? 'active' : ''}`}
+          onClick={() => setActiveTab('all')}
+        >
+          <Text>全部</Text>
+        </View>
+        <View 
+          className={`tab-item ${activeTab === 'interaction' ? 'active' : ''}`}
+          onClick={() => setActiveTab('interaction')}
+        >
+          <Text>互动</Text>
+        </View>
+        <View 
+          className={`tab-item ${activeTab === 'system' ? 'active' : ''}`}
+          onClick={() => setActiveTab('system')}
+        >
+          <Text>系统</Text>
+        </View>
+      </View>
+
+      {/* 通知列表 */}
+      <ScrollView className='content' scrollY>
+        <View className='notification-list'>
+          {notifications.map(notification => (
+            <View 
+              key={notification.id}
+              className={`notification-item ${!notification.isRead ? 'unread' : ''}`}
+            >
+              <View className='left'>
+                {notification.user ? (
+                  <Image 
+                    src={notification.user.avatar}
+                    className='avatar'
+                    mode='aspectFill'
+                  />
+                ) : (
+                  <View 
+                    className='type-icon'
+                    style={{ background: getTypeIcon(notification.type).color }}
+                  >
+                    <View 
+                      className='iconify-icon'
+                      data-icon={getTypeIcon(notification.type).icon}
+                    />
+                  </View>
+                )}
+              </View>
+
+              <View className='center'>
+                {notification.user && (
+                  <Text className='nickname'>{notification.user.nickname} </Text>
+                )}
+                <Text className='content'>{notification.content}</Text>
+                {notification.targetTitle && (
+                  <View className='target'>
+                    <Text>「{notification.targetTitle}」</Text>
+                  </View>
+                )}
+                <Text className='time'>{formatTime(notification.time)}</Text>
+              </View>
+
+              {!notification.isRead && (
+                <View className='unread-dot' />
+              )}
+            </View>
+          ))}
+        </View>
       </ScrollView>
     </View>
-  );
-};
-
-export default NotificationsPage;
+  )
+}
