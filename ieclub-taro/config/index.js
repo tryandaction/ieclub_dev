@@ -56,14 +56,15 @@ const config = {
       chunkFilename: 'js/[name].[contenthash:8].chunk.js'
     },
 
-    // 路由模式 - 使用 hash 模式更可靠
+    // 路由模式 - 使用 browser 模式（SEO友好）
     router: {
-      mode: 'hash', // 🔥 改用 Hash 模式，避免 Browser 模式的路由问题
+      mode: 'browser', // 🔥 Browser 模式，URL更美观
       basename: '/',
       customRoutes: {
-        // 自定义路由映射
+        // 🔥 关键修复：确保根路径和所有变体都指向同一个页面
         '/': '/pages/square/index',
-        '/square': '/pages/square/index',
+        '/square': '/pages/square/index', 
+        '/pages/square': '/pages/square/index',
         '/pages/square/index': '/pages/square/index',
         '/community': '/pages/community/index',
         '/pages/community/index': '/pages/community/index',
