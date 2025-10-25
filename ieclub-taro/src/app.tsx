@@ -1,7 +1,8 @@
 // src/app.tsx - 应用入口文件
-// 优化版本：解决 Taro 4.x + React 18 H5 端渲染问题
+// 激进方案：直接接管H5渲染，解决 Taro 4.x + React 18 空白问题
 
 import { PropsWithChildren, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useLaunch } from '@tarojs/taro'
 import { View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
@@ -11,7 +12,9 @@ import './app.scss'
 
 function App({ children }: PropsWithChildren) {
   const [isReady, setIsReady] = useState(false)
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null)
   const renderCountRef = useRef(0)
+  const hasManuallyRenderedRef = useRef(false)
   
   // 应用启动时执行
   useLaunch(() => {
@@ -42,33 +45,53 @@ function App({ children }: PropsWithChildren) {
     renderCountRef.current++
     console.log(`--- ✅ [App] 组件已挂载/更新 (第${renderCountRef.current}次渲染) ---`)
     
-    // H5环境下的渲染验证
-    if (process.env.TARO_ENV === 'h5' && typeof window !== 'undefined') {
-      // 立即检查
-      const checkRendering = () => {
+    // H5环境下的激进渲染方案
+    if (process.env.TARO_ENV === 'h5' && typeof window !== 'undefined' && !hasManuallyRenderedRef.current) {
+      const checkAndFix = () => {
         const appElement = document.getElementById('app')
-        if (appElement) {
-          const hasContent = appElement.children.length > 0
-          const innerHTML = appElement.innerHTML
-          console.log('🔍 [渲染检查] 挂载点子元素数量:', appElement.children.length)
-          console.log('🔍 [渲染检查] 挂载点有内容:', hasContent)
-          console.log('🔍 [渲染检查] innerHTML长度:', innerHTML.length)
+        if (!appElement) {
+          console.error('❌ 找不到 #app 挂载点')
+          return
+        }
+        
+        // 检查实际渲染内容
+        const innerHTML = appElement.innerHTML
+        const textContent = appElement.textContent || ''
+        
+        console.log('🔍 [激进检查] innerHTML长度:', innerHTML.length)
+        console.log('🔍 [激进检查] textContent长度:', textContent.length)
+        console.log('🔍 [激进检查] 子元素数量:', appElement.children.length)
+        
+        // 判断是否真正渲染了内容（不只是空标签）
+        const hasRealContent = textContent.trim().length > 10 || innerHTML.length > 200
+        
+        if (!hasRealContent) {
+          console.warn('⚠️ [激进方案] 检测到内容未渲染，使用Portal接管!')
           
-          if (!hasContent && innerHTML.length < 50) {
-            console.warn('⚠️ [渲染检查] DOM内容异常，尝试强制更新...')
-            // 触发React强制更新
-            setIsReady(prev => !prev)
-          } else {
-            console.log('✅ [渲染检查] DOM渲染正常')
-          }
+          // 清空原有内容
+          appElement.innerHTML = ''
+          
+          // 创建新的容器
+          const newContainer = document.createElement('div')
+          newContainer.id = 'taro-portal-root'
+          newContainer.style.cssText = 'width: 100%; height: 100%; min-height: 100vh;'
+          appElement.appendChild(newContainer)
+          
+          // 设置Portal容器
+          setPortalContainer(newContainer)
+          hasManuallyRenderedRef.current = true
+          
+          console.log('✅ [激进方案] Portal容器已创建，将强制渲染children')
+        } else {
+          console.log('✅ [激进检查] 内容已正常渲染，无需Portal')
         }
       }
       
-      // 延迟检查，确保DOM已更新
+      // 多次检查，确保捕获问题
       const timers = [
-        setTimeout(checkRendering, 100),
-        setTimeout(checkRendering, 500),
-        setTimeout(checkRendering, 1000)
+        setTimeout(checkAndFix, 50),
+        setTimeout(checkAndFix, 200),
+        setTimeout(checkAndFix, 500)
       ]
       
       // 测试API连接
@@ -104,11 +127,13 @@ function App({ children }: PropsWithChildren) {
   console.log('children类型:', typeof children)
   console.log('children存在:', !!children)
   console.log('isReady:', isReady)
+  console.log('hasManuallyRendered:', hasManuallyRenderedRef.current)
+  console.log('portalContainer存在:', !!portalContainer)
   
   // 如果 children 为空，显示友好提示
   if (!children) {
     console.error('❌ [App] props.children 为空!')
-    return (
+    const errorUI = (
       <ErrorBoundary>
         <View className="app-error">
           <View className="error-icon">⚠️</View>
@@ -118,10 +143,31 @@ function App({ children }: PropsWithChildren) {
         </View>
       </ErrorBoundary>
     )
+    
+    // H5环境且有Portal容器，使用Portal渲染
+    if (process.env.TARO_ENV === 'h5' && portalContainer) {
+      console.log('🚀 [Portal] 使用Portal渲染错误页面')
+      return createPortal(errorUI, portalContainer)
+    }
+    
+    return errorUI
   }
   
-  // 正常渲染
-  console.log('--- ✅ [App] 返回 children 进行渲染 ---')
+  // H5环境且需要使用Portal
+  if (process.env.TARO_ENV === 'h5' && portalContainer) {
+    console.log('🚀 [Portal] 使用Portal强制渲染children')
+    return createPortal(
+      <ErrorBoundary>
+        <View className="app-container">
+          {children}
+        </View>
+      </ErrorBoundary>,
+      portalContainer
+    )
+  }
+  
+  // 正常渲染（小程序环境或Portal未激活）
+  console.log('--- ✅ [App] 返回 children 进行正常渲染 ---')
   return (
     <ErrorBoundary>
       <View className="app-container">

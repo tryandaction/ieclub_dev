@@ -5,7 +5,7 @@
 # 功能: 提交代码，然后清理并构建小程序版本。
 #       运行完毕后，请手动打开微信开发者工具进行后续操作。
 #
-# 使用方法: ./build-weapp-local.ps1 -commitMessage "你的提交信息"
+# 使用方法: ./build-weapp-local.ps1 -commitMessage "build"
 # ==========================================================
 
 param (
@@ -22,12 +22,12 @@ function Write-Log { param ([string]$Message, [string]$Color = "White"); Write-H
 Write-Log "🚀 开始微信小程序的本地构建流程..." -Color Cyan
 
 # --- 步骤 1: Git 推送 (如果两个脚本都用，这步可能会重复，但安全) ---
-Write-Log "➡️  步骤 1/2: 提交代码到 Git..." -Color Yellow
-Set-Location -Path $ProjectRoot
-git add .
-git commit -m $commitMessage
-git push origin main
-Write-Log "✅ 代码提交完成。" -Color Green
+#Write-Log "➡️  步骤 1/2: 提交代码到 Git..." -Color Yellow
+#Set-Location -Path $ProjectRoot
+#git add .
+#git commit -m $commitMessage
+#git push origin main
+#Write-Log "✅ 代码提交完成。" -Color Green
 
 # --- 步骤 2: 构建小程序应用 ---
 Write-Log "➡️  步骤 2/2: 构建小程序应用..." -Color Yellow
