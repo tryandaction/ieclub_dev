@@ -1,15 +1,12 @@
-import { Component, PropsWithChildren } from 'react'
+import { Component, PropsWithChildren, ReactNode } from 'react'
 import './app.scss'
 
+// 标准的 Taro React 应用入口组件。
+// 在 H5 和小程序环境中，Taro 会负责把 children 挂载到页面容器上。
 class App extends Component<PropsWithChildren> {
-  componentDidMount() {
-    console.log('App component mounted')
-  }
-
-  render() {
-    console.log('App render called with children:', this.props.children)
-    // Taro 会自动处理页面渲染，这里只需要返回 children
-    return this.props.children
+  // 只需将子节点（页面）返回，交由 Taro 管理挂载。
+  render(): ReactNode {
+    return this.props.children || null
   }
 }
 
