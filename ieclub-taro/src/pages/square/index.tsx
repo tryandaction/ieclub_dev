@@ -32,7 +32,28 @@ export default function Square() {
   const loadTopics = async () => {
     try {
       setLoading(true)
-      // Mock数据
+
+      // 尝试从API获取数据
+      try {
+        const res = await Taro.request({
+          url: 'https://api.ieclub.online/api/topics',
+          method: 'GET',
+          timeout: 5000
+        })
+
+        if (res.statusCode === 200 && res.data?.success) {
+          const apiTopics = res.data.data || []
+          if (apiTopics.length > 0) {
+            setTopics(apiTopics)
+            setLoading(false)
+            return
+          }
+        }
+      } catch (apiError) {
+        console.warn('API调用失败，使用Mock数据:', apiError)
+      }
+
+      // API失败时使用Mock数据
       const mockTopics: Topic[] = [
         {
           id: '1',
@@ -116,7 +137,7 @@ export default function Square() {
   }
 
   const getTypeTag = (type: string) => {
-    const typeMap = {
+    const typeMap: Record<string, { text: string; color: string }> = {
       topic_offer: { text: '我来讲', color: '#5B7FFF' },
       topic_demand: { text: '想听', color: '#FF6B9D' },
       project: { text: '项目', color: '#FFA500' }
@@ -144,6 +165,24 @@ export default function Square() {
 
   return (
     <View className='square-page'>
+      {/* 调试信息 */}
+      {process.env.NODE_ENV === 'development' && (
+        <View className='debug-info' style={{
+          position: 'fixed',
+          top: '10px',
+          right: '10px',
+          background: 'rgba(0,0,0,0.8)',
+          color: 'white',
+          padding: '10px',
+          borderRadius: '5px',
+          fontSize: '12px',
+          zIndex: 9999
+        }}>
+          话题数: {topics.length}<br/>
+          加载中: {loading ? '是' : '否'}
+        </View>
+      )}
+
       {/* 顶部导航栏 */}
       <View className='nav-bar'>
         <View className='nav-left'>
@@ -162,25 +201,25 @@ export default function Square() {
 
       {/* 标签栏 */}
       <View className='tab-bar'>
-        <View 
+        <View
           className={`tab-item ${activeTab === 'all' ? 'active' : ''}`}
           onClick={() => setActiveTab('all')}
         >
           <Text>全部</Text>
         </View>
-        <View 
+        <View
           className={`tab-item ${activeTab === 'offer' ? 'active' : ''}`}
           onClick={() => setActiveTab('offer')}
         >
           <Text>我来讲</Text>
         </View>
-        <View 
+        <View
           className={`tab-item ${activeTab === 'demand' ? 'active' : ''}`}
           onClick={() => setActiveTab('demand')}
         >
           <Text>想听</Text>
         </View>
-        <View 
+        <View
           className={`tab-item ${activeTab === 'project' ? 'active' : ''}`}
           onClick={() => setActiveTab('project')}
         >
@@ -189,91 +228,102 @@ export default function Square() {
       </View>
 
       {/* 话题瀑布流 */}
-      <ScrollView 
+      <ScrollView
         className='content'
         scrollY
         enableBackToTop
         refresherEnabled
         refresherTriggered={loading}
       >
-        <View className='masonry-container'>
-          {topics.map(topic => (
-            <View 
-              key={topic.id} 
-              className='topic-card'
-              onClick={() => goToDetail(topic.id)}
-            >
-              {/* 图片 */}
-              {topic.images && topic.images.length > 0 && (
-                <View className='card-image'>
-                  <Image 
-                    src={topic.images[0]} 
-                    mode='widthFix'
-                    className='image'
-                  />
-                  {topic.images.length > 1 && (
-                    <View className='image-count'>
-                      <View className='iconify-icon' data-icon='mdi:image-multiple' />
-                      <Text>{topic.images.length}</Text>
-                    </View>
-                  )}
-                </View>
-              )}
-
-              {/* 内容 */}
-              <View className='card-content'>
-                <View className='card-title'>{topic.title}</View>
-                <View className='card-desc'>{topic.content}</View>
-                
-                {/* 标签 */}
-                {topic.tags && topic.tags.length > 0 && (
-                  <View className='card-tags'>
-                    {topic.tags.map((tag, index) => (
-                      <View key={index} className='tag'>#{tag}</View>
-                    ))}
+        {loading ? (
+          <View className='loading-container'>
+            <View className='loading-spinner'></View>
+            <Text className='loading-text'>正在加载话题...</Text>
+          </View>
+        ) : topics.length > 0 ? (
+          <View className='masonry-container'>
+            {topics.map(topic => (
+              <View
+                key={topic.id}
+                className='topic-card'
+                onClick={() => goToDetail(topic.id)}
+              >
+                {/* 图片 */}
+                {topic.images && topic.images.length > 0 && (
+                  <View className='card-image'>
+                    <Image
+                      src={topic.images[0]}
+                      mode='widthFix'
+                      className='image'
+                      onError={() => console.log('图片加载失败:', topic.images?.[0])}
+                    />
+                    {topic.images.length > 1 && (
+                      <View className='image-count'>
+                        <View className='iconify-icon' data-icon='mdi:image-multiple' />
+                        <Text>{topic.images.length}</Text>
+                      </View>
+                    )}
                   </View>
                 )}
 
-                {/* 底部信息 */}
-                <View className='card-footer'>
-                  <View className='author-info'>
-                    <Image 
-                      src={topic.author.avatar} 
-                      className='avatar'
-                      mode='aspectFill'
-                    />
-                    <Text className='nickname'>{topic.author.nickname}</Text>
-                  </View>
-                  
-                  <View className='actions'>
-                    <View 
-                      className='action-item'
-                      onClick={(e) => handleLike(e, topic.id)}
-                    >
-                      <View className='iconify-icon' data-icon='mdi:heart-outline' />
-                      <Text>{topic.likesCount}</Text>
-                    </View>
-                    <View className='action-item'>
-                      <View className='iconify-icon' data-icon='mdi:comment-outline' />
-                      <Text>{topic.commentsCount}</Text>
-                    </View>
-                  </View>
-                </View>
+                {/* 内容 */}
+                <View className='card-content'>
+                  <View className='card-title'>{topic.title}</View>
+                  <View className='card-desc'>{topic.content}</View>
 
-                {/* 类型标签 */}
-                <View 
-                  className='type-tag'
-                  style={{ background: getTypeTag(topic.contentType).color }}
-                >
-                  {getTypeTag(topic.contentType).text}
+                  {/* 标签 */}
+                  {topic.tags && topic.tags.length > 0 && (
+                    <View className='card-tags'>
+                      {topic.tags.map((tag, index) => (
+                        <View key={index} className='tag'>#{tag}</View>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* 底部信息 */}
+                  <View className='card-footer'>
+                    <View className='author-info'>
+                      <Image
+                        src={topic.author.avatar}
+                        className='avatar'
+                        mode='aspectFill'
+                        onError={() => console.log('头像加载失败:', topic.author.avatar)}
+                      />
+                      <Text className='nickname'>{topic.author.nickname}</Text>
+                    </View>
+
+                    <View className='actions'>
+                      <View
+                        className='action-item'
+                        onClick={(e) => handleLike(e, topic.id)}
+                      >
+                        <View className='iconify-icon' data-icon='mdi:heart-outline' />
+                        <Text>{topic.likesCount}</Text>
+                      </View>
+                      <View className='action-item'>
+                        <View className='iconify-icon' data-icon='mdi:comment-outline' />
+                        <Text>{topic.commentsCount}</Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* 类型标签 */}
+                  <View
+                    className='type-tag'
+                    style={{ background: getTypeTag(topic.contentType).color }}
+                  >
+                    {getTypeTag(topic.contentType).text}
+                  </View>
                 </View>
               </View>
-            </View>
-          ))}
-        </View>
-
-        {loading && (
-          <View className='loading-more'>加载中...</View>
+            ))}
+          </View>
+        ) : (
+          <View className='empty-container'>
+            <View className='empty-icon'>📭</View>
+            <Text className='empty-text'>暂无话题</Text>
+            <Text className='empty-hint'>快来发布第一个话题吧</Text>
+          </View>
         )}
       </ScrollView>
     </View>
