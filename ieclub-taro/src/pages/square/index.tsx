@@ -173,6 +173,13 @@ const SquarePage = () => {
     </View>
   );
 
+  // 添加调试日志
+  console.log('🎨 渲染广场页面', {
+    loading,
+    topicsCount: topics.length,
+    hasTopics: topics.length > 0
+  });
+
   return (
     <View className='square-page'>
       {/* 顶部搜索栏 */}
