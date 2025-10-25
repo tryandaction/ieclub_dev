@@ -1,25 +1,38 @@
 // src/services/websocket.ts
 // WebSocket 实时通信服务
 
+// @ts-ignore
 import Taro from '@tarojs/taro'
 
-// 获取WebSocket基础URL
+// 🔥 获取WebSocket基础URL（必须使用完整绝对路径）
 function getWebSocketBaseUrl(): string {
   const env = Taro.getEnv()
   
+  // 检测是否为localhost
+  const isLocalhost = typeof window !== 'undefined' && 
+                     window.location && 
+                     window.location.hostname === 'localhost'
+  
   switch (env) {
-    case 'WEAPP':
-      return 'wss://api.ieclub.online'
-    case 'WEB':
-      // 安全地访问window对象
+    case Taro.ENV_TYPE.WEAPP:
+      // 小程序环境：使用完整wss地址
+      return 'wss://ieclub.online'
+    case Taro.ENV_TYPE.WEB:
+      // 🔥 H5环境：生产用wss，开发用ws
       if (typeof window !== 'undefined' && window.location) {
-        return window.location.protocol === 'https:' ? 'wss://api.ieclub.online' : 'ws://localhost:3000'
+        if (isLocalhost) {
+          console.log('🔧 WebSocket: 开发环境 ws://localhost:3000');
+          return 'ws://localhost:3000';
+        } else {
+          console.log('🔧 WebSocket: 生产环境 wss://ieclub.online');
+          return 'wss://ieclub.online';
+        }
       }
-      return 'ws://localhost:3000' // 服务端渲染时的默认值
-    case 'RN':
-      return 'wss://api.ieclub.online'
-    default:
       return 'ws://localhost:3000'
+    case Taro.ENV_TYPE.RN:
+      return 'wss://ieclub.online'
+    default:
+      return isLocalhost ? 'ws://localhost:3000' : 'wss://ieclub.online'
   }
 }
 
@@ -35,7 +48,7 @@ class WebSocketService {
   private reconnectAttempts = 0
   private maxReconnectAttempts = 5
   private reconnectInterval = 3000
-  private heartbeatInterval: NodeJS.Timeout | null = null
+  private heartbeatInterval: ReturnType<typeof setInterval> | null = null
   private messageHandlers: Map<string, Function[]> = new Map()
 
   // 连接WebSocket

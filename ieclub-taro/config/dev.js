@@ -39,7 +39,7 @@ module.exports = {
     },
     publicPath: '/',
     router: {
-      mode: 'hash',
+      mode: 'browser', // 🔥 开发环境也使用 browser 模式
       basename: '/'
     }
   }
