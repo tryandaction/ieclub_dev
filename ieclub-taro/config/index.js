@@ -58,7 +58,7 @@ const config = {
 
     // 路由模式
     router: {
-      mode: 'hash', // 🔥 修复：使用 Hash 模式，避免服务器配置问题
+      mode: 'browser', // 🔥 使用 History 模式（Browser 模式）
       basename: '/',
       customRoutes: {
         // 自定义路由映射

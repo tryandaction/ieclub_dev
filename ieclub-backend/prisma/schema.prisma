@@ -13,15 +13,18 @@ datasource db {
 
 model User {
   id          String   @id @default(cuid())
-  openid      String   @unique
-  unionid     String?
-  sessionKey  String?
+  
+  // 登录认证 - 支持邮箱和微信小程序双登录
+  email       String   @unique @db.VarChar(100)
+  password    String   @db.VarChar(255) // 密码哈希
+  openid      String?  @unique // 微信小程序openid（可选）
+  unionid     String?  // 微信unionid（可选）
+  sessionKey  String?  // 微信session_key（可选）
 
   // 基本信息
   nickname    String   @db.VarChar(50)
-  avatar      String   @db.Text
+  avatar      String?  @default("") @db.Text // 头像可选
   gender      Int      @default(0) @db.TinyInt
-  email       String?  @unique @db.VarChar(100)
   phone       String?  @unique @db.VarChar(20)
   bio         String?  @db.Text
 

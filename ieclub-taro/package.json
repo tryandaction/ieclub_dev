@@ -47,6 +47,7 @@
 		"@pmmmwh/react-refresh-webpack-plugin": "^0.6.1",
 		"@tarojs/cli": "4.1.7",
 		"@tarojs/webpack5-runner": "4.1.7",
+		"@types/prop-types": "^15.7.15",
 		"@types/react": "^18.2.45",
 		"@typescript-eslint/eslint-plugin": "^6.14.0",
 		"@typescript-eslint/parser": "^6.14.0",
