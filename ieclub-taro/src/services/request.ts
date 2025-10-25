@@ -121,13 +121,28 @@ export async function request<T = any>(options: {
       // 处理响应
       const result = response.data as any
 
-      if (response.statusCode === 200 && result.code === 200) {
-        console.log(`[API Success] Returning data:`, result.data);
-        return result.data as T
-      } else {
-        console.log(`[API Error] Status: ${response.statusCode}, Result:`, result);
-        throw parseAPIError(response.statusCode, result)
+      // 🔥 兼容多种响应格式
+      if (response.statusCode === 200) {
+        // 格式1: { success: true, data: {...} }
+        if (result && result.success === true) {
+          console.log(`[API Success] 格式1 - success:true, 返回 data:`, result.data);
+          return result.data as T
+        }
+        // 格式2: { code: 200, data: {...} }
+        if (result && result.code === 200) {
+          console.log(`[API Success] 格式2 - code:200, 返回 data:`, result.data);
+          return result.data as T
+        }
+        // 格式3: 直接返回数据数组/对象
+        if (result) {
+          console.log(`[API Success] 格式3 - 直接返回数据:`, result);
+          return result as T
+        }
       }
+      
+      // 错误响应
+      console.log(`[API Error] Status: ${response.statusCode}, Result:`, result);
+      throw parseAPIError(response.statusCode, result)
 
     } catch (error: any) {
       lastError = error instanceof APIError ? error : new APIError(

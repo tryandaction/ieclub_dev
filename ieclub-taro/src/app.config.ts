@@ -50,9 +50,9 @@ export default {
     backgroundColorBottom: '#f8fafc'
   },
 
-  // 使用自定义 TabBar - 4个Tab布局（中间+按钮不占用tab位置）
+  // TabBar配置 - 标准4个Tab布局
   tabBar: {
-    custom: true,
+    custom: false, // 🔥 改为标准TabBar，确保H5正常显示
     color: '#999999',
     selectedColor: '#667eea',
     backgroundColor: '#ffffff',
@@ -60,20 +60,38 @@ export default {
     list: [
       {
         pagePath: 'pages/square/index',
-        text: '广场'
+        text: '广场',
+        iconPath: 'assets/icons/square.png',
+        selectedIconPath: 'assets/icons/square-active.png'
       },
       {
         pagePath: 'pages/community/index',
-        text: '社区'
+        text: '社区',
+        iconPath: 'assets/icons/community.png',
+        selectedIconPath: 'assets/icons/community-active.png'
       },
       {
         pagePath: 'pages/activities/index',
-        text: '活动'
+        text: '活动',
+        iconPath: 'assets/icons/activity.png',
+        selectedIconPath: 'assets/icons/activity-active.png'
       },
       {
         pagePath: 'pages/profile/index',
-        text: '我的'
+        text: '我的',
+        iconPath: 'assets/icons/profile.png',
+        selectedIconPath: 'assets/icons/profile-active.png'
       }
     ]
+  },
+  
+  // ===== H5专用配置 =====
+  h5: {
+    publicPath: '/',
+    staticDirectory: 'static',
+    router: {
+      mode: 'browser', // 使用 browser 模式（需要后端支持）或 'hash'
+      basename: '/'
+    }
   }
 }

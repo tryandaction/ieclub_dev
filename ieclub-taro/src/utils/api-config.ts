@@ -3,46 +3,54 @@ import Taro from '@tarojs/taro'
 
 /**
  * 🔥 获取API基础URL（用于request.ts中拼接完整路径）
- * 注意：这个函数返回的URL会和相对路径（如 '/api/xxx'）拼接
- * 所以生产环境必须返回完整域名：https://ieclub.online
+ * 
+ * 最佳实践：
+ * - H5开发环境：返回空字符串 '' - 让webpack devServer的proxy处理
+ * - H5生产环境：返回完整域名 'https://ieclub.online'
+ * - 小程序环境：返回完整域名 'https://ieclub.online'
  */
 export function getApiBaseUrl(): string {
   const env = Taro.getEnv()
   
-  // 安全检测环境变量
+  // 环境检测
+  const isDev = process.env.NODE_ENV === 'development'
+  const isH5 = env === Taro.ENV_TYPE.WEB
   const isProduction = typeof window !== 'undefined' && 
                       window.location.protocol === 'https:' &&
                       window.location.hostname !== 'localhost'
-  const isLocalhost = typeof window !== 'undefined' && 
-                     (window.location.hostname === 'localhost' || 
-                      window.location.hostname === '127.0.0.1')
+  
+  console.log('🔧 [API Config] 环境检测:', {
+    NODE_ENV: process.env.NODE_ENV,
+    TARO_ENV: process.env.TARO_ENV,
+    env,
+    isDev,
+    isH5,
+    isProduction
+  })
   
   // 🔥 H5/WEB环境的关键判断
-  if (env === Taro.ENV_TYPE.WEB) {
-    if (isProduction) {
-      // 🔥 生产环境：返回完整域名+/api路径
-      console.log('🔧 H5生产环境，使用绝对域名: https://ieclub.online/api');
-      return 'https://ieclub.online/api';
+  if (isH5) {
+    if (isDev) {
+      // 🔥 H5开发环境：返回空字符串，让代理处理
+      // 在 config/index.js 中配置了 proxy: { '/api': 'http://localhost:3000' }
+      console.log('✅ H5开发环境，使用空字符串（webpack代理）')
+      return ''
     } else {
-      // 开发环境：返回/api路径，让代理处理
-      console.log('🔧 H5开发环境，使用/api路径（通过代理）');
-      return '/api';
+      // 🔥 H5生产环境：返回完整域名
+      console.log('✅ H5生产环境，使用完整域名: https://ieclub.online')
+      return 'https://ieclub.online'
     }
   }
   
-  // 小程序和其他环境
-  switch (env) {
-    case Taro.ENV_TYPE.WEAPP:
-      return 'https://ieclub.online/api'
-    case Taro.ENV_TYPE.RN:
-      return 'https://ieclub.online/api'
-    default:
-      // 兜底逻辑
-      if (isLocalhost) {
-        return '/api'; // 本地开发用/api路径
-      }
-      return 'https://ieclub.online/api'; // 生产环境用绝对路径
+  // 小程序环境
+  if (env === Taro.ENV_TYPE.WEAPP) {
+    console.log('✅ 小程序环境，使用完整域名: https://ieclub.online')
+    return 'https://ieclub.online'
   }
+  
+  // 其他环境（RN等）
+  console.log('✅ 其他环境，使用完整域名: https://ieclub.online')
+  return 'https://ieclub.online'
 }
 
 /**
