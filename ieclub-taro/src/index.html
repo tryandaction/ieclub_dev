@@ -29,5 +29,15 @@
         }
       }, 500);
     });
+
+    // 确保 React 18 渲染容器存在
+    if (!document.getElementById('app')) {
+      var appDiv = document.createElement('div');
+      appDiv.id = 'app';
+      appDiv.style.width = '100%';
+      appDiv.style.height = '100%';
+      document.body.appendChild(appDiv);
+      console.log('Created #app container for React 18');
+    }
   </script>
 </body>
