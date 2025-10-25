@@ -233,31 +233,32 @@ const config = {
           name: 'runtime'
         });
 
-        // 图片压缩
-        chain.module
-          .rule('images')
-          .test(/\.(png|jpe?g|gif|svg)$/i)
-          .use('image-webpack-loader')
-          .loader('image-webpack-loader')
-          .options({
-            mozjpeg: {
-              progressive: true,
-              quality: 80
-            },
-            optipng: {
-              enabled: true,
-            },
-            pngquant: {
-              quality: [0.65, 0.90],
-              speed: 4
-            },
-            gifsicle: {
-              interlaced: false,
-            },
-            webp: {
-              quality: 80
-            }
-          });
+        // 图片压缩（需要先安装 image-webpack-loader）
+        // 如需启用，请运行: npm install --save-dev image-webpack-loader
+        // chain.module
+        //   .rule('images')
+        //   .test(/\.(png|jpe?g|gif|svg)$/i)
+        //   .use('image-webpack-loader')
+        //   .loader('image-webpack-loader')
+        //   .options({
+        //     mozjpeg: {
+        //       progressive: true,
+        //       quality: 80
+        //     },
+        //     optipng: {
+        //       enabled: true,
+        //     },
+        //     pngquant: {
+        //       quality: [0.65, 0.90],
+        //       speed: 4
+        //     },
+        //     gifsicle: {
+        //       interlaced: false,
+        //     },
+        //     webp: {
+        //       quality: 80
+        //     }
+        //   });
       }
 
       // 🔥 优化性能预算 - 基于实际情况调整
