@@ -177,6 +177,11 @@ ehthumbs.db
 tmp/
 temp/
 
+# Deploy script temporary files
+.deploy/
+deploy_*.log
+backup_*/
+
 # Project specific - delegate to subdirectories
 # Frontend specific files are ignored in ieclub-taro/.gitignore
 # Backend specific files are ignored in ieclub-backend/.gitignore
