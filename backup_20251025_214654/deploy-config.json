@@ -1,0 +1,78 @@
+{
+  "project": {
+    "name": "IEclub",
+    "version": "2.0.0",
+    "description": "IEclub智能部署配置"
+  },
+  "server": {
+    "host": "39.108.160.112",
+    "port": 22,
+    "username": "root",
+    "projectPath": "/var/www/ieclub_dev",
+    "pm2AppName": "ieclub-api",
+    "nginxService": "nginx",
+    "keyPath": "~/.ssh/id_rsa",
+    "backupPath": "/var/backups/ieclub"
+  },
+  "git": {
+    "branch": "main",
+    "remote": "origin"
+  },
+  "build": {
+    "frontend": {
+      "buildCommand": "npm run build:h5:prod",
+      "buildPath": "ieclub-taro",
+      "distPath": "dist"
+    },
+    "backend": {
+      "buildPath": "ieclub-backend",
+      "installCommand": "npm install --production"
+    }
+  },
+  "docker": {
+    "enabled": true,
+    "composeFile": "docker-compose.yml",
+    "services": ["frontend", "backend", "db", "redis"]
+  },
+  "healthChecks": {
+    "frontend": {
+      "url": "http://localhost",
+      "expectedStatus": 200,
+      "timeout": 10
+    },
+    "backend": {
+      "url": "http://localhost:3000/api/health",
+      "expectedStatus": 200,
+      "timeout": 10
+    },
+    "database": {
+      "command": "docker exec ieclub_dev-db-1 mysqladmin ping -h localhost",
+      "timeout": 5
+    },
+    "redis": {
+      "command": "docker exec ieclub_dev-redis-1 redis-cli ping",
+      "timeout": 5
+    }
+  },
+  "notifications": {
+    "webhook": "",
+    "email": "",
+    "dingtalk": "",
+    "wechat": ""
+  },
+  "environment": {
+    "NODE_ENV": "production",
+    "PORT": "3000",
+    "DATABASE_URL": "mysql://root:password@localhost:3306/ieclub",
+    "REDIS_URL": "redis://localhost:6379"
+  },
+  "backup": {
+    "enabled": true,
+    "schedule": "0 2 * * *",
+    "retention": 7,
+    "paths": [
+      "/var/www/ieclub_dev",
+      "/var/lib/mysql/ieclub"
+    ]
+  }
+}

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { useLaunch } from '@tarojs/taro'
+import { View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { getApiBaseUrl } from '@/utils/api-config'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -29,6 +30,15 @@ function App(props: any) {
       if (appElement) {
         console.log('🎯 App挂载点HTML:', appElement.innerHTML ? '有内容' : '空')
       }
+      
+      // 延迟检查DOM内容
+      setTimeout(() => {
+        const appElementAfter = document.getElementById('app')
+        if (appElementAfter) {
+          console.log('🎯 [延迟检查] App挂载点HTML:', appElementAfter.innerHTML ? '有内容' : '仍然空')
+          console.log('🎯 [延迟检查] App子元素数量:', appElementAfter.children.length)
+        }
+      }, 1000)
     }
   })
 
@@ -62,6 +72,30 @@ function App(props: any) {
   }
 
   // 用 ErrorBoundary 包裹所有页面，捕获渲染错误
+  console.log('🎨 [App] Rendering, props.children:', props.children)
+  console.log('🎨 [App] props.children type:', typeof props.children)
+  console.log('🎨 [App] props.children is null?', props.children === null)
+  console.log('🎨 [App] props.children is undefined?', props.children === undefined)
+  
+  // 添加渲染内容检查
+  if (!props.children) {
+    console.error('❌ [App] props.children 为空，这可能导致页面空白!')
+    return (
+      <ErrorBoundary>
+        <View style={{ 
+          padding: '20px', 
+          textAlign: 'center', 
+          fontSize: '16px',
+          background: '#f0f0f0',
+          minHeight: '100vh'
+        }}>
+          <View style={{ marginBottom: '20px', fontSize: '24px' }}>⚠️ 页面加载异常</View>
+          <View>props.children 为空</View>
+        </View>
+      </ErrorBoundary>
+    )
+  }
+  
   return (
     <ErrorBoundary>
       {props.children}
