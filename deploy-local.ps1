@@ -8,7 +8,8 @@
 # 3. 规范地打包并上传到服务器。
 #
 # 使用方法:
-# ./deploy-local.ps1 -commitMessage "你的提交信息"
+# cd C:\universe\GitHub_try\IEclub_dev
+# ./deploy-local.ps1 -commitMessage "up1"
 # 服务器部署脚本: deploy-server.sh
 # # 如果这次只更新了后端，不更新网站
 #./deploy-server.sh
@@ -25,7 +26,10 @@ param (
 
 # --- 本地环境变量配置 ---
 $ProjectRoot = "C:\universe\GitHub_try\IEclub_dev"
-$FrontendDir = "$Project-Root\ieclub-taro"
+# ==================== ✨ 核心修复在这里 ✨ ====================
+# 使用 ${...} 的方式来安全地拼接路径，防止解析错误
+$FrontendDir = "${ProjectRoot}\ieclub-taro"
+# ===============================================================
 $ServerUser = "root"
 $ServerIP = "39.108.160.112"
 $RemoteTempPath = "/tmp/dist.zip"
@@ -41,7 +45,6 @@ Write-Log "🚀 开始执行 IEClub 本地打包上传流程..." -Color Cyan
 
 # --- 步骤 1: Git 推送 ---
 Write-Log "➡️  步骤 1/3: 正在提交代码到 Git..." -Color Yellow
-# 使用 Set-Location 替换 cd
 Set-Location -Path $ProjectRoot
 git add .
 git commit -m $commitMessage
@@ -50,10 +53,9 @@ Write-Log "✅ 代码提交完成。" -Color Green
 
 # --- 步骤 2: 构建前端 H5 ---
 Write-Log "➡️  步骤 2/3: 正在构建前端 H5 应用..." -Color Yellow
-# 使用 Set-Location 替换 cd
 Set-Location -Path $FrontendDir
 
-# 彻底清理环境，防止混合编译
+# 彻底清理环境
 Write-Log "  - 清理旧的构建产物..."
 if (Test-Path -Path "dist") { Remove-Item -Path "dist" -Recurse -Force }
 if (Test-Path -Path "dist.zip") { Remove-Item -Path "dist.zip" -Force }
@@ -68,7 +70,6 @@ Write-Log "✅ 前端构建完成。" -Color Green
 
 # --- 步骤 3: 打包并上传 ---
 Write-Log "➡️  步骤 3/3: 正在打包并上传前端文件..." -Color Yellow
-# 打包时只打包 dist 目录本身
 Compress-Archive -Path "$FrontendDir\dist" -DestinationPath "$FrontendDir\dist.zip" -Force
 
 # 使用 SCP 上传
