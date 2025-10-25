@@ -10,6 +10,7 @@ const searchController = require('../controllers/searchController');
 const notificationController = require('../controllers/notificationController');
 // const communityController = require('../controllers/communityController');
 const uploadController = require('../controllers/uploadController');
+const announcementController = require('../controllers/announcementController');
 const LocalUploadService = require('../services/localUploadService');
 
 const { authenticate } = require('../middleware/auth');
@@ -106,5 +107,10 @@ router.use('/community', require('./community'));
 
 // ===== 活动路由 =====
 router.use('/activities', require('./activities'));
+
+// ===== 公告路由 =====
+router.get('/announcements', announcementController.getAnnouncements);
+router.get('/announcements/:id', announcementController.getAnnouncementDetail);
+router.put('/announcements/:id/read', authenticate, announcementController.markAsRead);
 
 module.exports = router;
