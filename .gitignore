@@ -11,11 +11,10 @@
 docker-compose*.yml
 
 # Documentation and project files
-*.md
 LICENSE
 remind.md
 版本控制.md
-部署方案.md
+部署文档.md
 
 # IDE and editor files
 .vscode/
