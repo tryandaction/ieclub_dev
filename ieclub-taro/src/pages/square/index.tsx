@@ -9,10 +9,12 @@ import './index.scss';
 const SquarePage = () => {
   // ==================== 添加组件渲染日志 ====================
   console.log('🎯 [SquarePage] Component is rendering/re-rendering');
+  console.log('🎯 [SquarePage] Component mounted at:', new Date().toISOString());
   // =========================================================
 
   const [topics, setTopics] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // 设置当前 TabBar 选中项 - 在小程序中通常自动管理
   useEffect(() => {
@@ -28,6 +30,7 @@ const SquarePage = () => {
 
   useEffect(() => {
     console.log('🚀 [SquarePage] useEffect triggered, calling fetchTopics');
+    setMounted(true);
     fetchTopics();
   }, []);
 
@@ -217,6 +220,21 @@ const SquarePage = () => {
 
   return (
     <View className='square-page'>
+      {/* 调试信息 */}
+      {process.env.NODE_ENV === 'development' && (
+        <View style={{ 
+          padding: '10px', 
+          background: '#f0f0f0', 
+          fontSize: '12px',
+          borderBottom: '1px solid #ddd'
+        }}>
+          <View>🎯 组件状态: {mounted ? '已挂载' : '未挂载'}</View>
+          <View>📊 话题数量: {topics.length}</View>
+          <View>⏳ 加载状态: {loading ? '加载中' : '已完成'}</View>
+          <View>🕒 渲染时间: {new Date().toLocaleTimeString()}</View>
+        </View>
+      )}
+
       {/* 顶部搜索栏 */}
       <View className='header'>
         <View className='search-bar' onClick={goToSearch}>

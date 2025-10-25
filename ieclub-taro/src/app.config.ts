@@ -12,6 +12,7 @@ export default {
 
     // 独立功能页面（按需访问）
     'pages/test-page',                // 🧪 测试页面 - 调试用
+    'pages/test-simple/index',        // 🧪 简单测试页面 - 路由调试
     'pages/login/index',              // 登录注册 - 认证入口
     'pages/forgot-password/index',    // 忘记密码
 

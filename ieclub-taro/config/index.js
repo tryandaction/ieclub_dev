@@ -66,6 +66,8 @@ const config = {
         '/square': '/pages/square/index', 
         '/pages/square': '/pages/square/index',
         '/pages/square/index': '/pages/square/index',
+        '/test-simple': '/pages/test-simple/index',
+        '/pages/test-simple/index': '/pages/test-simple/index',
         '/community': '/pages/community/index',
         '/pages/community/index': '/pages/community/index',
         '/ranking': '/pages/community/ranking/index',
@@ -126,10 +128,8 @@ const config = {
                   console.log('Route changed:', window.location.pathname);
                 });
                 
-                // 确保初始路由正确
-                if (window.location.pathname === '/' || window.location.pathname === '') {
-                  window.history.replaceState(null, '', '/pages/square/index');
-                }
+                // 确保初始路由正确 - 不要强制跳转，让Taro处理
+                console.log('Initial route:', window.location.pathname);
               }
             </script>
           `
