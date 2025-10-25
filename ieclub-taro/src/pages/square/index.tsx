@@ -38,6 +38,7 @@ const SquarePage = () => {
       console.log('📡 API地址:', apiBase);
 
       // 尝试获取话题列表
+      // apiBase已经包含/api，所以直接拼接路由
       const res = await Taro.request({
         url: `${apiBase}/topics`,
         method: 'GET',

@@ -28,12 +28,12 @@ module.exports = {
   },
   h5: {
     /**
-     * 🔥 生产环境H5配置 - 关键修复
+     * 🔥 生产环境H5配置 - Browser模式专业配置
      */
     publicPath: '/',
     staticDirectory: 'static',
     router: {
-      mode: 'browser', // 🔥 必须使用 browser 模式（不是 hash）
+      mode: 'browser', // 🔥 Browser模式 - 更专业的SPA路由
       basename: '/'
     },
     // 生产环境不需要devServer配置

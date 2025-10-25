@@ -217,9 +217,9 @@ const ActivityCreate = () => {
           <View className='form-item'>
             <Text className='label'>开始时间 *</Text>
             <Picker
-              mode='datetime'
+              mode='date'
               value={form.startTime}
-              onChange={(e) => handleInputChange('startTime', e.detail.value)}
+              onChange={(e: any) => handleInputChange('startTime', e.detail.value)}
             >
               <View className='picker'>
                 {form.startTime || '请选择开始时间'}
@@ -230,9 +230,9 @@ const ActivityCreate = () => {
           <View className='form-item'>
             <Text className='label'>结束时间</Text>
             <Picker
-              mode='datetime'
+              mode='date'
               value={form.endTime}
-              onChange={(e) => handleInputChange('endTime', e.detail.value)}
+              onChange={(e: any) => handleInputChange('endTime', e.detail.value)}
             >
               <View className='picker'>
                 {form.endTime || '请选择结束时间'}

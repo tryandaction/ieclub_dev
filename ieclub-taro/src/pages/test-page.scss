@@ -1,0 +1,133 @@
+// 测试页面样式
+.test-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 20px;
+
+  .test-header {
+    text-align: center;
+    margin-bottom: 40px;
+    color: white;
+
+    .test-title {
+      display: block;
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .test-subtitle {
+      display: block;
+      font-size: 16px;
+      opacity: 0.9;
+    }
+  }
+
+  .test-section {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    .section-title {
+      display: block;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 16px;
+      color: #333;
+    }
+
+    .info-item {
+      display: flex;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .info-label {
+        width: 100px;
+        color: #666;
+        font-weight: 500;
+      }
+
+      .info-value {
+        flex: 1;
+        color: #333;
+        word-break: break-all;
+      }
+    }
+
+    .test-buttons {
+      display: flex;
+      gap: 12px;
+      flex-direction: column;
+    }
+
+    .test-button {
+      padding: 16px;
+      background: #f5f5f5;
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 16px;
+      font-weight: 500;
+      color: #333;
+
+      &:active {
+        transform: scale(0.98);
+      }
+
+      &.primary {
+        background: #667eea;
+        color: white;
+
+        &:hover {
+          background: #5568d3;
+        }
+      }
+
+      &:hover {
+        background: #e8e8e8;
+      }
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+
+      @media (min-width: 768px) {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .status-item {
+      padding: 16px;
+      border-radius: 12px;
+      text-align: center;
+      background: #f5f5f5;
+
+      &.success {
+        background: #e8f5e9;
+      }
+
+      .status-icon {
+        display: block;
+        font-size: 32px;
+        margin-bottom: 8px;
+        color: #4caf50;
+      }
+
+      .status-text {
+        display: block;
+        font-size: 14px;
+        color: #333;
+      }
+    }
+  }
+}
+

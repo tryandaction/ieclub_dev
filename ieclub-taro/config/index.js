@@ -64,16 +64,25 @@ const config = {
         // 自定义路由映射
         '/': '/pages/square/index',
         '/square': '/pages/square/index',
+        '/pages/square/index': '/pages/square/index', // 🔥 添加完整路径映射
         '/community': '/pages/community/index',
+        '/pages/community/index': '/pages/community/index',
         '/ranking': '/pages/community/ranking/index',
         '/matching': '/pages/community/matching/index',
         '/notifications': '/pages/notifications/index',
+        '/pages/notifications/index': '/pages/notifications/index',
         '/profile': '/pages/profile/index',
+        '/pages/profile/index': '/pages/profile/index',
         '/activities': '/pages/activities/index',
+        '/pages/activities/index': '/pages/activities/index',
         '/topics': '/pages/topics/index',
+        '/pages/topics/index': '/pages/topics/index',
         '/search': '/pages/search/index',
+        '/pages/search/index': '/pages/search/index',
         '/login': '/pages/login/index',
+        '/pages/login/index': '/pages/login/index',
         '/forgot-password': '/pages/forgot-password/index',
+        '/pages/forgot-password/index': '/pages/forgot-password/index',
       }
     },
 

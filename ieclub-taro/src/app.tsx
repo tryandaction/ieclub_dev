@@ -19,6 +19,16 @@ function App(props: any) {
     if (process.env.TARO_ENV === 'h5' && typeof window !== 'undefined') {
       console.log('🌍 当前URL:', window.location.href)
       console.log('📍 Origin:', window.location.origin)
+      console.log('📍 Protocol:', window.location.protocol)
+      console.log('📍 Hostname:', window.location.hostname)
+      console.log('📍 Pathname:', window.location.pathname)
+      
+      // 检查DOM挂载点
+      const appElement = document.getElementById('app')
+      console.log('🎯 App挂载点存在:', !!appElement)
+      if (appElement) {
+        console.log('🎯 App挂载点HTML:', appElement.innerHTML ? '有内容' : '空')
+      }
     }
   })
 

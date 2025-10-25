@@ -196,7 +196,7 @@ export default function ActivitiesPage() {
   }
 
   const getStatusText = (status: string) => {
-    const statusMap = {
+    const statusMap: Record<string, string> = {
       open: '报名中',
       full: '已满员',
       closed: '已关闭',
@@ -206,7 +206,7 @@ export default function ActivitiesPage() {
   }
 
   const getStatusColor = (status: string) => {
-    const colorMap = {
+    const colorMap: Record<string, string> = {
       open: '#10b981',
       full: '#f59e0b',
       closed: '#6b7280',

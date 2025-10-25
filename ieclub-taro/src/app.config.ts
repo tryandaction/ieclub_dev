@@ -11,6 +11,7 @@ export default {
     'pages/profile/index',            // 我的 - 个人中心
 
     // 独立功能页面（按需访问）
+    'pages/test-page',                // 🧪 测试页面 - 调试用
     'pages/login/index',              // 登录注册 - 认证入口
     'pages/forgot-password/index',    // 忘记密码
 

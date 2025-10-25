@@ -20,28 +20,28 @@ export function getApiBaseUrl(): string {
   // 🔥 H5/WEB环境的关键判断
   if (env === Taro.ENV_TYPE.WEB) {
     if (isProduction) {
-      // 🔥 生产环境：返回完整域名（不带/api，因为services里已经有了）
-      console.log('🔧 H5生产环境，使用绝对域名: https://ieclub.online');
-      return 'https://ieclub.online';
+      // 🔥 生产环境：返回完整域名+/api路径
+      console.log('🔧 H5生产环境，使用绝对域名: https://ieclub.online/api');
+      return 'https://ieclub.online/api';
     } else {
-      // 开发环境：返回空字符串，让相对路径通过devServer代理
-      console.log('🔧 H5开发环境，使用空字符串（相对路径）');
-      return '';
+      // 开发环境：返回/api路径，让代理处理
+      console.log('🔧 H5开发环境，使用/api路径（通过代理）');
+      return '/api';
     }
   }
   
   // 小程序和其他环境
   switch (env) {
     case Taro.ENV_TYPE.WEAPP:
-      return 'https://ieclub.online'
+      return 'https://ieclub.online/api'
     case Taro.ENV_TYPE.RN:
-      return 'https://ieclub.online'
+      return 'https://ieclub.online/api'
     default:
       // 兜底逻辑
       if (isLocalhost) {
-        return ''; // 本地开发用相对路径
+        return '/api'; // 本地开发用/api路径
       }
-      return 'https://ieclub.online'; // 生产环境用绝对路径
+      return 'https://ieclub.online/api'; // 生产环境用绝对路径
   }
 }
 

@@ -53,12 +53,12 @@ export function useIntersectionObserver(
     
     // 小程序环境使用createIntersectionObserver
     else {
-      const observer = Taro.createIntersectionObserver()
+      const observer = Taro.createIntersectionObserver(targetRef.current)
       
       observer
         .relativeToViewport({ bottom: 100 })
         .observe(`#${targetRef.current.id}`, (res) => {
-          if (res.intersectionRatio > 0) {
+          if (res.intersectionRatio && res.intersectionRatio > 0) {
             onIntersect?.()
           }
         })
