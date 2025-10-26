@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { View, Text, Textarea, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import Icon from '../../components/Icon'
+import { IconConfig } from '../../config/icon.config'
 import './index.scss'
 
 export default function Publish() {
@@ -10,9 +12,9 @@ export default function Publish() {
   const [selectedType, setSelectedType] = useState('topic_offer')
 
   const contentTypes = [
-    { id: 'topic_offer', name: '我来讲', icon: 'mdi:microphone', color: '#5B7FFF' },
-    { id: 'topic_demand', name: '想听', icon: 'mdi:ear-hearing', color: '#FF6B9D' },
-    { id: 'project', name: '项目', icon: 'mdi:lightbulb-on', color: '#FFA500' }
+    { id: 'topic_offer', name: '我来讲', icon: IconConfig.content.offer, color: '#5B7FFF' },
+    { id: 'topic_demand', name: '想听', icon: IconConfig.content.demand, color: '#FF6B9D' },
+    { id: 'project', name: '项目', icon: IconConfig.content.project, color: '#FFA500' }
   ]
 
   const chooseImage = async () => {
@@ -78,7 +80,7 @@ export default function Publish() {
       {/* 顶部导航栏 */}
       <View className='nav-bar'>
         <View className='nav-left' onClick={() => Taro.switchTab({ url: '/pages/square/index' })}>
-          <View className='iconify-icon' data-icon='mdi:close' />
+          <Icon icon={IconConfig.action.close} size={24} color="#333" />
         </View>
         <Text className='title'>发布内容</Text>
         <View className='nav-right' onClick={handlePublish}>
@@ -95,10 +97,10 @@ export default function Publish() {
             style={{ borderColor: selectedType === type.id ? type.color : 'transparent' }}
             onClick={() => setSelectedType(type.id)}
           >
-            <View 
-              className='iconify-icon'
-              data-icon={type.icon}
-              style={{ color: selectedType === type.id ? type.color : '#999' }}
+            <Icon 
+              icon={type.icon}
+              size={24}
+              color={selectedType === type.id ? type.color : '#999'}
             />
             <Text style={{ color: selectedType === type.id ? type.color : '#666' }}>
               {type.name}
@@ -136,14 +138,14 @@ export default function Publish() {
                 className='remove-btn'
                 onClick={() => removeImage(index)}
               >
-                <View className='iconify-icon' data-icon='mdi:close-circle' />
+                <Icon icon={IconConfig.action.close} size={20} color="#fff" />
               </View>
             </View>
           ))}
           
           {images.length < 9 && (
             <View className='add-image' onClick={chooseImage}>
-              <View className='iconify-icon' data-icon='mdi:plus' />
+              <Icon icon={IconConfig.action.add} size={32} color="#999" />
             </View>
           )}
         </View>
@@ -152,15 +154,15 @@ export default function Publish() {
       {/* 工具栏 */}
       <View className='toolbar'>
         <View className='tool-item' onClick={chooseImage}>
-          <View className='iconify-icon' data-icon='mdi:image' />
+          <Icon icon={IconConfig.content.image} size={24} color="#666" />
           <Text>图片</Text>
         </View>
         <View className='tool-item'>
-          <View className='iconify-icon' data-icon='mdi:tag' />
+          <Icon icon={IconConfig.content.tag} size={24} color="#666" />
           <Text>话题</Text>
         </View>
         <View className='tool-item'>
-          <View className='iconify-icon' data-icon='mdi:map-marker' />
+          <Icon icon={IconConfig.content.location} size={24} color="#666" />
           <Text>位置</Text>
         </View>
       </View>

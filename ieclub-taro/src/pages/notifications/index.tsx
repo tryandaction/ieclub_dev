@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { View, Text, ScrollView, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import Icon from '../../components/Icon'
+import { IconConfig } from '../../config/icon.config'
 import './index.scss'
 
 interface Notification {
@@ -65,10 +67,10 @@ export default function Notifications() {
 
   const getTypeIcon = (type: string) => {
     const iconMap = {
-      like: { icon: 'mdi:heart', color: '#FF6B9D' },
-      comment: { icon: 'mdi:comment', color: '#5B7FFF' },
-      follow: { icon: 'mdi:account-plus', color: '#FFA500' },
-      system: { icon: 'mdi:bell', color: '#7C4DFF' }
+      like: { icon: IconConfig.interaction.like, color: '#FF6B9D' },
+      comment: { icon: IconConfig.interaction.comment, color: '#5B7FFF' },
+      follow: { icon: IconConfig.user.follow, color: '#FFA500' },
+      system: { icon: IconConfig.interaction.notification, color: '#7C4DFF' }
     }
     return iconMap[type] || iconMap.system
   }
@@ -108,7 +110,7 @@ export default function Notifications() {
       {/* 顶部导航栏 */}
       <View className='nav-bar'>
         <View className='nav-left' onClick={goBack}>
-          <View className='iconify-icon' data-icon='mdi:arrow-left' />
+          <Icon icon={IconConfig.nav.back} size={24} color="#333" />
         </View>
         <Text className='title'>通知</Text>
         <View className='nav-right' onClick={markAllRead}>
@@ -158,9 +160,10 @@ export default function Notifications() {
                     className='type-icon'
                     style={{ background: getTypeIcon(notification.type).color }}
                   >
-                    <View 
-                      className='iconify-icon'
-                      data-icon={getTypeIcon(notification.type).icon}
+                    <Icon 
+                      icon={getTypeIcon(notification.type).icon}
+                      size={20}
+                      color="#fff"
                     />
                   </View>
                 )}

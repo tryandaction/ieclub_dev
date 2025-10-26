@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { View, Text, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import Icon from '../../components/Icon'
+import { IconConfig } from '../../config/icon.config'
 import './index.scss'
 
 export default function Profile() {
@@ -26,25 +28,25 @@ export default function Profile() {
 
   const menuItems = [
     {
-      icon: 'mdi:heart-outline',
+      icon: IconConfig.interaction.like,
       title: '我的点赞',
       path: '/pages/user/likes',
       color: '#FF6B9D'
     },
     {
-      icon: 'mdi:bookmark-outline',
+      icon: IconConfig.interaction.favorite,
       title: '我的收藏',
       path: '/pages/user/favorites',
       color: '#FFA500'
     },
     {
-      icon: 'mdi:calendar-check',
+      icon: IconConfig.content.event,
       title: '我的活动',
       path: '/pages/user/activities',
       color: '#5B7FFF'
     },
     {
-      icon: 'mdi:account-group',
+      icon: IconConfig.social.community,
       title: '我的社区',
       path: '/pages/user/communities',
       color: '#7C4DFF'
@@ -53,22 +55,22 @@ export default function Profile() {
 
   const settingItems = [
     {
-      icon: 'mdi:account-edit-outline',
+      icon: IconConfig.user.edit,
       title: '编辑资料',
       path: '/pages/settings/profile'
     },
     {
-      icon: 'mdi:cog-outline',
+      icon: IconConfig.user.settings,
       title: '设置',
       path: '/pages/settings/index'
     },
     {
-      icon: 'mdi:help-circle-outline',
+      icon: IconConfig.interaction.help,
       title: '帮助与反馈',
       path: '/pages/help/index'
     },
     {
-      icon: 'mdi:information-outline',
+      icon: IconConfig.content.info,
       title: '关于我们',
       path: '/pages/about/index'
     }
@@ -145,7 +147,7 @@ export default function Profile() {
               className='icon-wrapper'
               style={{ background: item.color }}
             >
-              <View className='iconify-icon' data-icon={item.icon} />
+              <Icon icon={item.icon} size={24} color="#fff" />
             </View>
             <Text className='menu-title'>{item.title}</Text>
           </View>
@@ -161,10 +163,10 @@ export default function Profile() {
             onClick={() => handleMenuClick(item.path)}
           >
             <View className='item-left'>
-              <View className='iconify-icon' data-icon={item.icon} />
+              <Icon icon={item.icon} size={20} color="#666" />
               <Text>{item.title}</Text>
             </View>
-            <View className='iconify-icon arrow' data-icon='mdi:chevron-right' />
+            <Icon icon={IconConfig.nav.right} size={20} color="#999" />
           </View>
         ))}
       </View>

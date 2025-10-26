@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import Icon from '../../components/Icon'
+import { IconConfig, getTopicTypeIcon, getTopicTypeColor, getTopicTypeText } from '../../config/icon.config'
 import './index.scss'
 
 interface Topic {
@@ -190,10 +192,10 @@ export default function Square() {
         </View>
         <View className='nav-right'>
           <View className='nav-icon' onClick={goToSearch}>
-            <View className='iconify-icon' data-icon='mdi:magnify' />
+            <Icon icon={IconConfig.nav.search} size={24} color="#333" />
           </View>
           <View className='nav-icon' onClick={goToNotifications}>
-            <View className='iconify-icon' data-icon='mdi:bell-outline' />
+            <Icon icon={IconConfig.nav.notification} size={24} color="#333" />
             <View className='badge'>3</View>
           </View>
         </View>
@@ -259,7 +261,7 @@ export default function Square() {
                     />
                     {topic.images.length > 1 && (
                       <View className='image-count'>
-                        <View className='iconify-icon' data-icon='mdi:image-multiple' />
+                        <Icon icon={IconConfig.file.image} size={16} color="#fff" />
                         <Text>{topic.images.length}</Text>
                       </View>
                     )}
@@ -297,11 +299,11 @@ export default function Square() {
                         className='action-item'
                         onClick={(e) => handleLike(e, topic.id)}
                       >
-                        <View className='iconify-icon' data-icon='mdi:heart-outline' />
+                        <Icon icon={IconConfig.interaction.like} size={18} color="#999" />
                         <Text>{topic.likesCount}</Text>
                       </View>
                       <View className='action-item'>
-                        <View className='iconify-icon' data-icon='mdi:comment-outline' />
+                        <Icon icon={IconConfig.interaction.comment} size={18} color="#999" />
                         <Text>{topic.commentsCount}</Text>
                       </View>
                     </View>

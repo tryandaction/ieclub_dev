@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { View, Text, Input, Button } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import Icon from '../../components/Icon'
+import { IconConfig } from '../../config/icon.config'
 import './index.scss'
 
 export default function Login() {
@@ -120,7 +122,7 @@ export default function Login() {
       {/* Logo和标题 */}
       <View className='header'>
         <View className='logo-wrapper'>
-          <View className='iconify-icon' data-icon='mdi:school' />
+          <Icon icon={IconConfig.misc.home} size={64} color="#1890ff" />
         </View>
         <Text className='app-name'>IEClub</Text>
         <Text className='slogan'>知识共享，共同成长</Text>
@@ -147,7 +149,7 @@ export default function Login() {
         <View className='form'>
           <View className='input-group'>
             <View className='input-wrapper'>
-              <View className='iconify-icon' data-icon='mdi:phone' />
+              <Icon icon={IconConfig.misc.phone} size={20} color="#999" />
               <Input
                 className='input'
                 type='number'
@@ -161,7 +163,7 @@ export default function Login() {
 
           <View className='input-group'>
             <View className='input-wrapper'>
-              <View className='iconify-icon' data-icon='mdi:message' />
+              <Icon icon={IconConfig.nav.message} size={20} color="#999" />
               <Input
                 className='input'
                 type='number'
@@ -186,7 +188,7 @@ export default function Login() {
       ) : (
         <View className='wechat-login'>
           <View className='wechat-btn' onClick={handleWeChatLogin}>
-            <View className='iconify-icon' data-icon='mdi:wechat' />
+            <Icon icon={IconConfig.misc.wechat} size={24} color="#fff" />
             <Text>微信一键登录</Text>
           </View>
         </View>

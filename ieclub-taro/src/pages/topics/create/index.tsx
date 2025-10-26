@@ -1,5 +1,7 @@
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import Icon from '../../../components/Icon'
+import { IconConfig } from '../../../config/icon.config'
 import './index.scss'
 
 export default function TopicCreate() {
@@ -10,7 +12,7 @@ export default function TopicCreate() {
   return (
     <View className='topic-create-page'>
       <View className='back-btn' onClick={goBack}>
-        <View className='iconify-icon' data-icon='mdi:arrow-left' />
+        <Icon icon={IconConfig.nav.back} size={24} color="#333" />
       </View>
       <Text>创建话题页（开发中）</Text>
     </View>

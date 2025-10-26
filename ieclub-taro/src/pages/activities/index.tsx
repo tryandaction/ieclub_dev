@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import Icon from '../../components/Icon'
+import { IconConfig } from '../../config/icon.config'
 import './index.scss'
 
 interface Activity {
@@ -102,7 +104,7 @@ export default function Activities() {
       <View className='nav-bar'>
         <Text className='title'>活动</Text>
         <View className='nav-right' onClick={() => console.log('创建活动')}>
-          <View className='iconify-icon' data-icon='mdi:plus-circle-outline' />
+          <Icon icon={IconConfig.action.add} size={24} color="#1890ff" />
         </View>
       </View>
 
@@ -156,11 +158,11 @@ export default function Activities() {
 
                 <View className='info-row'>
                   <View className='info-item'>
-                    <View className='iconify-icon' data-icon='mdi:clock-outline' />
+                    <Icon icon={IconConfig.content.time} size={16} color="#999" />
                     <Text>{formatDate(activity.startTime)}</Text>
                   </View>
                   <View className='info-item'>
-                    <View className='iconify-icon' data-icon='mdi:map-marker' />
+                    <Icon icon={IconConfig.content.location} size={16} color="#999" />
                     <Text>{activity.location}</Text>
                   </View>
                 </View>

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { View, Text, Input, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import Icon from '../../components/Icon'
+import { IconConfig } from '../../config/icon.config'
 import './index.scss'
 
 export default function Search() {
@@ -49,11 +51,11 @@ export default function Search() {
       {/* 搜索栏 */}
       <View className='search-bar'>
         <View className='back-btn' onClick={goBack}>
-          <View className='iconify-icon' data-icon='mdi:arrow-left' />
+          <Icon icon={IconConfig.nav.back} size={24} color="#333" />
         </View>
         
         <View className='search-input-wrapper'>
-          <View className='iconify-icon' data-icon='mdi:magnify' />
+          <Icon icon={IconConfig.action.search} size={20} color="#999" />
           <Input
             className='search-input'
             placeholder='搜索话题、活动、用户'
@@ -67,7 +69,7 @@ export default function Search() {
               className='clear-btn'
               onClick={() => setKeyword('')}
             >
-              <View className='iconify-icon' data-icon='mdi:close-circle' />
+              <Icon icon={IconConfig.action.close} size={18} color="#999" />
             </View>
           )}
         </View>
@@ -84,7 +86,7 @@ export default function Search() {
             <View className='section-header'>
               <Text className='section-title'>搜索历史</Text>
               <View className='clear-history' onClick={clearHistory}>
-                <View className='iconify-icon' data-icon='mdi:delete-outline' />
+                <Icon icon={IconConfig.action.delete} size={20} color="#999" />
               </View>
             </View>
             

@@ -512,23 +512,3 @@ button {
     opacity: 0.8;
   }
 }
-
-// ==================== Iconify 图标支持 ====================
-.iconify-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  vertical-align: middle;
-  
-  &::before {
-    content: attr(data-icon);
-    font-family: 'iconify' !important;
-    font-style: normal;
-    font-weight: normal;
-    font-variant: normal;
-    text-transform: none;
-    line-height: 1;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-}
