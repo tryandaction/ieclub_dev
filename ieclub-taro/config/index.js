@@ -18,6 +18,8 @@ const config = {
   },
   copy: {
     patterns: [
+      { from: 'src/assets/favicon.svg', to: 'dist/favicon.ico' },
+      { from: 'index.html', to: 'dist/index.html' }
     ],
     options: {
     }
@@ -44,6 +46,11 @@ const config = {
     },
     // 指定 HTML 模板文件
     htmlPluginOption: {
+      template: path.resolve(__dirname, '../index.html')
+    },
+    // 确保生成 index.html
+    index: {
+      entry: 'src/app.js',
       template: path.resolve(__dirname, '../index.html')
     }
   },
