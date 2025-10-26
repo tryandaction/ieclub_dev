@@ -49,23 +49,27 @@ Write-Log "✅ H5 构建完成。本地 'dist' 目录现在是 H5 版本。" -Co
 Write-Log "➡️  步骤 3/3: 调整目录结构并打包上传 H5 文件..." -Color Yellow
 
 # 创建符合服务器期望的目录结构 dist/h5/
-$TempDistPath = "$FrontendDir\temp_dist"
-$H5Path = "$TempDistPath\h5"
+# 服务器期望解压后得到: /tmp/dist/h5/
+$TempPackPath = "$FrontendDir\temp_pack"
+$DistPath = "$TempPackPath\dist"
+$H5Path = "$DistPath\h5"
 
-Write-Log "  - 创建临时目录结构..."
-if (Test-Path -Path $TempDistPath) { Remove-Item -Path $TempDistPath -Recurse -Force }
+Write-Log "  - 创建临时打包目录结构 (dist/h5/)..."
+if (Test-Path -Path $TempPackPath) { Remove-Item -Path $TempPackPath -Recurse -Force }
 New-Item -Path $H5Path -ItemType Directory -Force | Out-Null
 
-# 将构建产物移动到 h5 子目录
-Write-Log "  - 复制构建产物到 h5 子目录..."
+# 将构建产物复制到 dist/h5/ 子目录
+Write-Log "  - 复制构建产物到 dist/h5/ 子目录..."
 Copy-Item -Path "$FrontendDir\dist\*" -Destination $H5Path -Recurse -Force
 
-# 打包 (只打包 h5 目录)
-Write-Log "  - 打包文件..."
-Compress-Archive -Path "$H5Path" -DestinationPath "$FrontendDir\dist.zip" -Force
+# 打包 dist 目录（包含 h5 子目录）
+Write-Log "  - 打包文件 (打包 dist/ 目录)..."
+Set-Location -Path $TempPackPath
+Compress-Archive -Path "dist" -DestinationPath "$FrontendDir\dist.zip" -Force
+Set-Location -Path $FrontendDir
 
 # 清理临时目录
-Remove-Item -Path $TempDistPath -Recurse -Force
+Remove-Item -Path $TempPackPath -Recurse -Force
 
 # 上传
 Write-Log "  - 上传到服务器..."
