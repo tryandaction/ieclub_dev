@@ -53,11 +53,13 @@ deploy_frontend() {
         
         # 解压（-qq 静默模式，忽略路径分隔符警告）
         cd /tmp
-        unzip -qq -o "${TEMP_ZIP}" -d "${TEMP_EXTRACT}" 2>/dev/null || unzip -o "${TEMP_ZIP}" -d "${TEMP_EXTRACT}" > /dev/null
+        unzip -qq -o "${TEMP_ZIP}" -d "${TEMP_EXTRACT}" 2>&1 | grep -v "appears to use backslashes" || true
         
         # 验证解压结果
         if [ ! -d "${TEMP_EXTRACT}" ] || [ -z "$(ls -A ${TEMP_EXTRACT})" ]; then
             log_error "解压失败或压缩包为空！"
+            log_info "尝试列出 /tmp 目录内容..."
+            ls -la /tmp/
             exit 1
         fi
         
