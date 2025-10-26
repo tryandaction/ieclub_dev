@@ -57,7 +57,7 @@ class UserController {
             grade: true,
             skills: true,
             interests: true,
-            isVerified: true,
+            verified: true,
             createdAt: true
           },
           skip,
