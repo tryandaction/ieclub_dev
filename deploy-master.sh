@@ -93,14 +93,30 @@ deploy_frontend() {
         log_success "前端部署完成（从源码构建）。"
     fi
     
-    # 重启 Nginx
-    log_info "重启 Nginx..."
+    # 配置 Nginx
+    log_info "配置 Nginx..."
+    
+    # 检查是否有 HTTP-only 配置
+    if [ -f "${PROJECT_ROOT}/nginx-http-only.conf" ]; then
+        log_info "使用 HTTP-only 配置..."
+        cp "${PROJECT_ROOT}/nginx-http-only.conf" /etc/nginx/sites-available/ieclub
+    elif [ -f "${PROJECT_ROOT}/nginx-production.conf" ]; then
+        log_info "使用生产环境配置..."
+        cp "${PROJECT_ROOT}/nginx-production.conf" /etc/nginx/sites-available/ieclub
+    fi
+    
+    # 创建软链接
+    ln -sf /etc/nginx/sites-available/ieclub /etc/nginx/sites-enabled/ieclub
+    
+    # 测试并重启 Nginx
+    log_info "测试 Nginx 配置..."
     if nginx -t 2>/dev/null; then
         systemctl reload nginx
-        log_success "Nginx 已重启。"
+        log_success "Nginx 重启成功。"
     else
-        log_error "Nginx 配置测试失败，跳过重启。请检查 SSL 证书配置。"
-        log_info "提示: 如果没有 SSL 证书，请使用 HTTP-only 配置或生成自签名证书。"
+        log_error "Nginx 配置测试失败。"
+        nginx -t
+        exit 1
     fi
     
     log_success "========== 前端部署完成 =========="

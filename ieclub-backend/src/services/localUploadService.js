@@ -5,9 +5,14 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
 const sharp = require('sharp');
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 const config = require('../config');
 const logger = require('../utils/logger');
+
+// 使用 crypto 替代 uuid
+function uuidv4() {
+  return crypto.randomUUID();
+}
 
 // 确保上传目录存在
 const uploadDir = path.join(__dirname, '../../uploads');
