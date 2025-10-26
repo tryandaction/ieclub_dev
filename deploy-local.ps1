@@ -51,10 +51,28 @@ Write-Log "✅ H5 构建完成。本地 'dist' 目录现在是 H5 版本。" -Co
 # --- 步骤 3: 上传前端代码到服务器 ---
 Write-Log "➡️  步骤 3/5: 上传前端代码到服务器..." -Color Yellow
 
-# 排除 node_modules 和其他不需要的文件
+# 1. 打包 dist 目录
+Write-Log "  - 打包前端构建产物..."
+$ZipPath = "$FrontendDir\dist.zip"
+if (Test-Path $ZipPath) { Remove-Item $ZipPath -Force }
+
+# 使用 PowerShell 的 Compress-Archive（自动处理路径分隔符）
+Compress-Archive -Path "$FrontendDir\dist\*" -DestinationPath $ZipPath -Force
+if ($LASTEXITCODE -ne 0 -and -not (Test-Path $ZipPath)) { 
+    Write-Log "❌ 前端打包失败！" -Color Red
+    exit 1 
+}
+
+# 2. 上传压缩包到服务器
+Write-Log "  - 上传前端构建产物到服务器..."
+scp "$ZipPath" "${ServerUser}@${ServerIP}:${RemoteTempPath}"
+if ($LASTEXITCODE -ne 0) { Write-Log "❌ 前端构建产物上传失败！" -Color Red; exit 1 }
+
+# 3. 上传前端源码（用于后续开发）
 Write-Log "  - 上传前端源码 (排除 node_modules)..."
 scp -r "$FrontendDir\src" "$FrontendDir\config" "$FrontendDir\package.json" "$FrontendDir\package-lock.json" "$FrontendDir\project.config.json" "${ServerUser}@${ServerIP}:${RemoteProjectPath}/ieclub-taro/"
-if ($LASTEXITCODE -ne 0) { Write-Log "❌ 前端代码上传失败！" -Color Red; exit 1 }
+if ($LASTEXITCODE -ne 0) { Write-Log "❌ 前端源码上传失败！" -Color Red; exit 1 }
+
 Write-Log "✅ 前端代码上传成功。" -Color Green
 
 # --- 步骤 4: 上传后端代码到服务器 ---

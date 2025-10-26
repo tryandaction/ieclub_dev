@@ -51,13 +51,13 @@ deploy_frontend() {
         rm -rf "${TEMP_EXTRACT}"
         mkdir -p "${TEMP_EXTRACT}"
         
-        # 解压
+        # 解压（-qq 静默模式，忽略路径分隔符警告）
         cd /tmp
-        unzip -o "${TEMP_ZIP}" -d /tmp > /dev/null
+        unzip -qq -o "${TEMP_ZIP}" -d "${TEMP_EXTRACT}" 2>/dev/null || unzip -o "${TEMP_ZIP}" -d "${TEMP_EXTRACT}" > /dev/null
         
-        # 验证目录结构
-        if [ ! -d "${TEMP_EXTRACT}/h5" ]; then
-            log_error "压缩包结构不正确！未找到 'dist/h5/' 目录。"
+        # 验证解压结果
+        if [ ! -d "${TEMP_EXTRACT}" ] || [ -z "$(ls -A ${TEMP_EXTRACT})" ]; then
+            log_error "解压失败或压缩包为空！"
             exit 1
         fi
         
@@ -65,7 +65,9 @@ deploy_frontend() {
         log_info "同步前端文件到 Nginx 目录..."
         rm -rf "${FRONTEND_DIR}/dist"
         mkdir -p "${FRONTEND_DIR}/dist"
-        cp -r "${TEMP_EXTRACT}/h5/"* "${FRONTEND_DIR}/dist/"
+        
+        # 直接复制解压出来的所有文件（因为我们压缩的是 dist/* 的内容）
+        cp -r "${TEMP_EXTRACT}/"* "${FRONTEND_DIR}/dist/"
         
         # 清理临时文件
         rm -rf "${TEMP_EXTRACT}"
