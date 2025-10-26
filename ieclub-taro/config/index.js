@@ -56,39 +56,10 @@ const config = {
       chunkFilename: 'js/[name].[contenthash:8].chunk.js'
     },
 
-    // 路由模式 - 修复Taro H5路由问题
+    // 路由模式 - 使用hash模式（Taro H5最稳定的路由模式）
     router: {
-      mode: 'browser', // 🔥 改回browser模式，但添加路由修复
-      basename: '/',
-      customRoutes: {
-        // 🔥 关键修复：确保根路径和所有变体都指向同一个页面
-        '/': '/pages/square/index',
-        '/square': '/pages/square/index', 
-        '/pages/square': '/pages/square/index',
-        '/pages/square/index': '/pages/square/index',
-        '/test-simple': '/pages/test-simple/index',
-        '/pages/test-simple/index': '/pages/test-simple/index',
-        '/community': '/pages/community/index',
-        '/pages/community/index': '/pages/community/index',
-        '/ranking': '/pages/community/ranking/index',
-        '/matching': '/pages/community/matching/index',
-        '/notifications': '/pages/notifications/index',
-        '/pages/notifications/index': '/pages/notifications/index',
-        '/profile': '/pages/profile/index',
-        '/pages/profile/index': '/pages/profile/index',
-        '/activities': '/pages/activities/index',
-        '/pages/activities/index': '/pages/activities/index',
-        '/topics': '/pages/topics/index',
-        '/pages/topics/index': '/pages/topics/index',
-        '/search': '/pages/search/index',
-        '/pages/search/index': '/pages/search/index',
-        '/login': '/pages/login/index',
-        '/pages/login/index': '/pages/login/index',
-        '/forgot-password': '/pages/forgot-password/index',
-        '/pages/forgot-password/index': '/pages/forgot-password/index',
-        '/test-page': '/pages/test-page',
-        '/pages/test-page': '/pages/test-page',
-      }
+      mode: 'hash',
+      basename: '/'
     },
 
     // Webpack 配置
@@ -107,109 +78,6 @@ const config = {
         'typeof window': JSON.stringify('object'),
         'global': 'globalThis'
       }])
-
-      // 🔥 关键修复：添加Taro H5路由修复脚本
-      if (chain.plugins.has('html')) {
-        chain.plugin('html').tap(args => {
-          const templateParams = args[0].templateParameters || {};
-          args[0].templateParameters = {
-            ...templateParams,
-            // 添加Taro H5路由修复脚本
-            routerFallback: `
-              <script>
-                // 🔥 Taro H5路由修复脚本
-                (function() {
-                  console.log('🔧 初始化Taro H5路由修复...');
-                  
-                  // 等待DOM加载完成
-                  if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', initRouter);
-                  } else {
-                    initRouter();
-                  }
-                  
-                  function initRouter() {
-                    console.log('🚀 开始修复Taro H5路由...');
-                    
-                    // 检查Taro是否已加载
-                    const checkTaro = setInterval(() => {
-                      if (window.Taro && window.Taro.getCurrentInstance) {
-                        clearInterval(checkTaro);
-                        console.log('✅ Taro已加载，开始路由修复');
-                        fixTaroRouter();
-                      }
-                    }, 100);
-                    
-                    // 超时保护
-                    setTimeout(() => {
-                      clearInterval(checkTaro);
-                      console.warn('⚠️ Taro加载超时，尝试强制修复路由');
-                      forceFixRouter();
-                    }, 5000);
-                  }
-                  
-                  function fixTaroRouter() {
-                    try {
-                      // 获取当前路由信息
-                      const currentPath = window.location.pathname;
-                      console.log('📍 当前路径:', currentPath);
-                      
-                      // 如果路径是根路径，重定向到首页
-                      if (currentPath === '/' || currentPath === '') {
-                        console.log('🔄 重定向到首页');
-                        window.history.replaceState(null, '', '/pages/square/index');
-                      }
-                      
-                      // 监听路由变化
-                      window.addEventListener('popstate', function(event) {
-                        console.log('🔄 路由变化:', window.location.pathname);
-                        // 触发Taro路由更新
-                        if (window.Taro && window.Taro.getCurrentInstance) {
-                          const instance = window.Taro.getCurrentInstance();
-                          if (instance && instance.router) {
-                            console.log('🔄 更新Taro路由');
-                          }
-                        }
-                      });
-                      
-                      // 强制触发路由更新
-                      setTimeout(() => {
-                        console.log('🔄 强制触发路由更新');
-                        window.dispatchEvent(new PopStateEvent('popstate'));
-                      }, 100);
-                      
-                    } catch (error) {
-                      console.error('❌ 路由修复失败:', error);
-                      forceFixRouter();
-                    }
-                  }
-                  
-                  function forceFixRouter() {
-                    console.log('🔧 执行强制路由修复...');
-                    
-                    // 检查是否有页面内容
-                    const appContainer = document.getElementById('app');
-                    if (appContainer && appContainer.children.length === 0) {
-                      console.log('⚠️ 检测到空页面，尝试重新加载路由');
-                      
-                      // 尝试重新加载当前页面
-                      setTimeout(() => {
-                        const currentPath = window.location.pathname;
-                        if (currentPath === '/' || currentPath === '') {
-                          window.location.href = '/pages/square/index';
-                        } else {
-                          window.location.reload();
-                        }
-                      }, 1000);
-                    }
-                  }
-                })();
-              </script>
-            `
-          };
-          return args;
-        });
-      }
 
       // 优化模块解析
       chain.resolve
@@ -422,7 +290,8 @@ const config = {
     // SEO 优化
     htmlPluginOption: {
       title: 'IEClub - 创新创业社区',
-      favicon: path.resolve(__dirname, '../public/favicon.ico'), // 🔥 修复：使用绝对路径
+      template: path.resolve(__dirname, '../public/index.html'), // 使用自定义模板
+      favicon: path.resolve(__dirname, '../public/favicon.ico'),
       meta: {
         description: 'IEClub是一个专注于创新创业的智能匹配社区平台',
         keywords: '创新创业,供需匹配,智能推荐,社区交流',

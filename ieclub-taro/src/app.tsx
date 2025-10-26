@@ -69,14 +69,23 @@ class App extends Component<PropsWithChildren> {
   forceRenderPage() {
     console.log('🔧 强制渲染页面内容...')
     
+    // 强制重新渲染React组件
+    this.forceUpdate()
+    
     // 尝试重新触发Taro路由
-    if (window.Taro && window.Taro.getCurrentInstance) {
+    if (window.Taro) {
       try {
-        const instance = window.Taro.getCurrentInstance()
-        console.log('🔄 获取Taro实例:', instance)
+        // 获取当前路由
+        const routes = Taro.getCurrentPages()
+        console.log('🔄 当前路由栈:', routes.length)
         
-        // 强制重新渲染
-        this.forceUpdate()
+        if (routes.length === 0) {
+          // 如果没有路由，导航到首页
+          console.log('🔄 路由栈为空，重定向到首页')
+          Taro.redirectTo({ url: '/pages/square/index' }).catch(err => {
+            console.error('❌ 重定向失败:', err)
+          })
+        }
       } catch (error) {
         console.error('❌ 强制渲染失败:', error)
       }
