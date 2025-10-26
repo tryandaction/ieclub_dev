@@ -46,12 +46,7 @@ const config = {
     },
     // 指定 HTML 模板文件
     htmlPluginOption: {
-      template: path.resolve(__dirname, '../index.html')
-    },
-    // 确保生成 index.html
-    index: {
-      entry: 'src/app.js',
-      template: path.resolve(__dirname, '../index.html')
+      template: path.resolve(__dirname, '../src/index.html')
     }
   },
   weapp: {
