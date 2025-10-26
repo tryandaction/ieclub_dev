@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 
 // 导入 AuthProvider
 import { AuthProvider } from './store/AuthContext.jsx';
@@ -103,7 +103,7 @@ function App() {
 
   return (
     <AuthProvider> {/* 包裹整个应用以提供认证状态 */}
-      <BrowserRouter> {/* 启用路由功能 */}
+      <HashRouter> {/* 使用 Hash 路由以支持静态部署 */}
         {isMobile ? (
           // 移动端使用优化的UI
           <MobileOptimizedUI />
@@ -134,7 +134,7 @@ function App() {
 
           </Routes>
         )}
-      </BrowserRouter>
+      </HashRouter>
     </AuthProvider>
   );
 }

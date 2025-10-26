@@ -1,19 +1,14 @@
+// Taro H5 应用配置
+// 由于我们使用 React Router 进行路由管理，这里只保留一个占位页面
 export default {
   pages: [
-    'pages/home/HomePage',
-    'pages/auth/LoginPage',
-    'pages/auth/RegisterPage',
-    'pages/bookmarks/BookmarksPage',
-    'pages/events/EventsPage',
-    'pages/leaderboard/LeaderboardPage',
-    'pages/match/MatchPage',
-    'pages/profile/ProfilePage',
-    'pages/settings/SettingsPage'
+    'pages/index/index' // Taro 要求的占位页面
   ],
   window: {
     backgroundTextStyle: 'light',
     navigationBarBackgroundColor: '#ffffff',
     navigationBarTitleText: 'IEClub',
-    navigationBarTextStyle: 'black'
+    navigationBarTextStyle: 'black',
+    navigationStyle: 'custom' // 使用自定义导航栏
   }
 }

@@ -18,6 +18,7 @@
 		"build:h5:prod": "cross-env NODE_ENV=production TARO_APP_BUILD_ENV=production taro build --type h5",
 		"build:weapp:beta": "cross-env NODE_ENV=production TARO_APP_BUILD_ENV=beta taro build --type weapp",
 		"build:h5:beta": "cross-env NODE_ENV=production TARO_APP_BUILD_ENV=beta taro build --type h5",
+		"vercel-build": "npm run build:h5:prod",
 		"lint": "eslint --ext .js,.jsx,.ts,.tsx src",
 		"lint:fix": "eslint --ext .js,.jsx,.ts,.tsx src --fix",
 		"type-check": "tsc --noEmit",
