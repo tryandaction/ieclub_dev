@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { View, Text, ScrollView, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import { useDebounce } from '@/hooks/useDebounce'
 import './index.scss'
 
 interface Topic {
@@ -24,6 +25,19 @@ export default function Square() {
   const [topics, setTopics] = useState<Topic[]>([])
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('all')
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+
+  // 使用 useMemo 缓存过滤后的话题列表
+  const filteredTopics = useMemo(() => {
+    if (activeTab === 'all') return topics
+    const typeMap: Record<string, string> = {
+      offer: 'topic_offer',
+      demand: 'topic_demand',
+      project: 'project'
+    }
+    return topics.filter(topic => topic.contentType === typeMap[activeTab])
+  }, [topics, activeTab])
 
   useEffect(() => {
     loadTopics()
@@ -121,22 +135,38 @@ export default function Square() {
     setLoading(false)
   }
 
-  const goToSearch = () => {
+  // 使用 useCallback 避免不必要的重新渲染
+  const goToSearch = useCallback(() => {
     Taro.navigateTo({ url: '/pages/search/index' })
-  }
+  }, [])
 
-  const goToNotifications = () => {
+  const goToNotifications = useCallback(() => {
     Taro.navigateTo({ url: '/pages/notifications/index' })
-  }
+  }, [])
 
-  const goToDetail = (id: string) => {
+  const goToDetail = useCallback((id: string) => {
     Taro.navigateTo({ url: `/pages/topics/detail/index?id=${id}` })
-  }
+  }, [])
 
-  const handleLike = (e: any, id: string) => {
+  const handleLike = useCallback((e: any, id: string) => {
     e.stopPropagation()
     console.log('点赞话题', id)
-  }
+    // 乐观更新：立即更新UI
+    setTopics(prevTopics => 
+      prevTopics.map(topic => 
+        topic.id === id 
+          ? { ...topic, likesCount: topic.likesCount + 1 }
+          : topic
+      )
+    )
+  }, [])
+
+  // 加载更多
+  const loadMore = useCallback(async () => {
+    if (loading || !hasMore) return
+    setPage(prev => prev + 1)
+    // 这里可以调用API加载更多数据
+  }, [loading, hasMore])
 
   const getTypeTag = (type: string) => {
     const typeMap: Record<string, { text: string; color: string }> = {
@@ -218,30 +248,40 @@ export default function Square() {
         enableBackToTop
         refresherEnabled
         refresherTriggered={loading}
+        onScrollToLower={loadMore}
+        lowerThreshold={100}
       >
         <View className='masonry-container'>
-          {topics.map(topic => (
-            <View
-              key={topic.id}
-              className='topic-card'
-              onClick={() => goToDetail(topic.id)}
-            >
-              {/* 图片 */}
-              {topic.images && topic.images.length > 0 && (
-                <View className='card-image'>
-                  <Image
-                    src={topic.images[0]}
-                    mode='widthFix'
-                    className='image'
-                  />
-                  {topic.images.length > 1 && (
-                    <View className='image-count'>
-                      <View className='iconify-icon' data-icon='mdi:image-multiple' />
-                      <Text>{topic.images.length}</Text>
-                    </View>
-                  )}
-                </View>
-              )}
+          {filteredTopics.length === 0 && !loading ? (
+            <View className='empty-state'>
+              <Text className='empty-text'>暂无内容</Text>
+              <Text className='empty-hint'>换个分类看看吧~</Text>
+            </View>
+          ) : (
+            filteredTopics.map(topic => (
+              <View
+                key={topic.id}
+                className='topic-card'
+                onClick={() => goToDetail(topic.id)}
+              >
+                {/* 图片 */}
+                {topic.images && topic.images.length > 0 && (
+                  <View className='card-image'>
+                    <Image
+                      src={topic.images[0]}
+                      mode='widthFix'
+                      className='image'
+                      lazyLoad
+                      showMenuByLongpress
+                    />
+                    {topic.images.length > 1 && (
+                      <View className='image-count'>
+                        <View className='iconify-icon' data-icon='mdi:image-multiple' />
+                        <Text>{topic.images.length}</Text>
+                      </View>
+                    )}
+                  </View>
+                )}
 
               {/* 内容 */}
               <View className='card-content'>
@@ -292,11 +332,19 @@ export default function Square() {
                 </View>
               </View>
             </View>
-          ))}
+            ))
+          )}
         </View>
 
         {loading && (
-          <View className='loading-more'>加载中...</View>
+          <View className='loading-more'>
+            <View className='loading-spinner' />
+            <Text>加载中...</Text>
+          </View>
+        )}
+        
+        {!loading && !hasMore && filteredTopics.length > 0 && (
+          <View className='no-more'>没有更多了~</View>
         )}
       </ScrollView>
     </View>

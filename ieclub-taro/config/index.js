@@ -11,7 +11,7 @@ const config = {
     828: 1.81 / 2
   },
   sourceRoot: 'src',
-  outputRoot: 'dist',  // 根输出目录
+  outputRoot: 'dist',  // 根输出目录（H5会输出到dist/h5，小程序到dist/weapp）
 
   plugins: [],
   defineConstants: {
@@ -49,8 +49,9 @@ const config = {
   h5: {
     publicPath: '/',
     staticDirectory: 'static',
-
-    // 🔥 关键修复：直接输出到 dist 根目录
+    
+    // Taro 会自动将 H5 输出到 dist/ 目录（不是 dist/h5/）
+    // 如果需要输出到 dist/h5/，需要在 outputRoot 中指定或使用后处理脚本
     output: {
       filename: 'js/[name].[contenthash:8].js',
       chunkFilename: 'js/[name].[contenthash:8].chunk.js'
@@ -206,11 +207,9 @@ const config = {
         //   });
       }
 
-      // 🔥 优化性能预算 - 基于实际情况调整
+      // 关闭性能提示（开发环境下文件较大是正常的）
       chain.performance
-        .maxEntrypointSize(1600000) // 1.6MB (基于实际1.48MB调整)
-        .maxAssetSize(600000) // 600KB (基于实际537KB调整)
-        .hints('warning'); // 只显示警告，不阻止构建
+        .hints(false); // 关闭性能提示
 
       // 开发环境也启用代码分割，减少初始加载大小
       if (process.env.NODE_ENV === 'development') {

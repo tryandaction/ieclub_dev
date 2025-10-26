@@ -4,12 +4,17 @@
   padding-bottom: 120px;
 
   .nav-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 88px;
     background: #ffffff;
     display: flex;
     align-items: center;
     padding: 0 32px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    z-index: 999;
 
     .title {
       font-size: 36px;
@@ -19,14 +24,184 @@
   }
 
   .content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 200px 0;
+    margin-top: 88px;
+    height: calc(100vh - 88px - 120px);
+    padding: 24px;
 
-    .coming-soon {
-      font-size: 32px;
-      color: #999;
+    .community-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+
+      .community-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-left: 6px solid;
+        transition: all 0.3s ease;
+        cursor: pointer;
+
+        &:active {
+          transform: translateY(-4px);
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+          display: flex;
+          align-items: flex-start;
+          gap: 24px;
+          margin-bottom: 24px;
+
+          .icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            flex-shrink: 0;
+          }
+
+          .info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            .name {
+              font-size: 32px;
+              font-weight: 600;
+              color: #333;
+            }
+
+            .description {
+              font-size: 24px;
+              color: #666;
+              line-height: 1.5;
+            }
+          }
+        }
+
+        .card-footer {
+          display: flex;
+          gap: 48px;
+          padding-top: 24px;
+          border-top: 1px solid #f0f0f0;
+
+          .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+
+            .stat-value {
+              font-size: 28px;
+              font-weight: 600;
+              color: #333;
+            }
+
+            .stat-label {
+              font-size: 22px;
+              color: #999;
+            }
+          }
+        }
+      }
+    }
+
+    .create-hint {
+      text-align: center;
+      padding: 60px 0;
+
+      .hint-text {
+        font-size: 24px;
+        color: #ccc;
+      }
+    }
+  }
+}
+
+// H5响应式适配
+@media screen and (min-width: 768px) {
+  .community-page {
+    max-width: 1200px;
+    margin: 0 auto;
+
+    .nav-bar {
+      height: 64px;
+      padding: 0 24px;
+
+      .title {
+        font-size: 24px;
+      }
+    }
+
+    .content {
+      margin-top: 64px;
+      height: calc(100vh - 64px - 80px);
+      padding: 20px;
+
+      .community-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+
+        .community-card {
+          padding: 20px;
+          border-radius: 12px;
+
+          .card-header {
+            gap: 16px;
+            margin-bottom: 16px;
+
+            .icon {
+              width: 56px;
+              height: 56px;
+              border-radius: 12px;
+              font-size: 28px;
+            }
+
+            .info {
+              gap: 6px;
+
+              .name {
+                font-size: 18px;
+              }
+
+              .description {
+                font-size: 14px;
+              }
+            }
+          }
+
+          .card-footer {
+            gap: 32px;
+            padding-top: 16px;
+
+            .stat {
+              gap: 4px;
+
+              .stat-value {
+                font-size: 16px;
+              }
+
+              .stat-label {
+                font-size: 12px;
+              }
+            }
+          }
+        }
+      }
+
+      .create-hint {
+        padding: 40px 0;
+
+        .hint-text {
+          font-size: 14px;
+        }
+      }
     }
   }
 }
