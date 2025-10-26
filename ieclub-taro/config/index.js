@@ -56,9 +56,9 @@ const config = {
       chunkFilename: 'js/[name].[contenthash:8].chunk.js'
     },
 
-    // 路由模式 - 使用 browser 模式（SEO友好）
+    // 路由模式 - 修复Taro H5路由问题
     router: {
-      mode: 'browser', // 🔥 Browser 模式，URL更美观
+      mode: 'browser', // 🔥 改回browser模式，但添加路由修复
       basename: '/',
       customRoutes: {
         // 🔥 关键修复：确保根路径和所有变体都指向同一个页面
@@ -108,33 +108,106 @@ const config = {
         'global': 'globalThis'
       }])
 
-      // 🔥 关键修复：添加History API fallback处理
+      // 🔥 关键修复：添加Taro H5路由修复脚本
       if (chain.plugins.has('html')) {
         chain.plugin('html').tap(args => {
-        args[0].templateParameters = {
-          ...args[0].templateParameters,
-          // 添加路由fallback脚本
-          routerFallback: `
-            <script>
-              // 修复H5路由问题
-              if (typeof window !== 'undefined') {
-                // 确保History API可用
-                if (!window.history || !window.history.pushState) {
-                  console.warn('History API not supported, falling back to hash mode');
-                }
-                
-                // 监听路由变化，防止hash路由问题
-                window.addEventListener('popstate', function(event) {
-                  console.log('Route changed:', window.location.pathname);
-                });
-                
-                // 确保初始路由正确 - 不要强制跳转，让Taro处理
-                console.log('Initial route:', window.location.pathname);
-              }
-            </script>
-          `
-        };
-        return args;
+          const templateParams = args[0].templateParameters || {};
+          args[0].templateParameters = {
+            ...templateParams,
+            // 添加Taro H5路由修复脚本
+            routerFallback: `
+              <script>
+                // 🔥 Taro H5路由修复脚本
+                (function() {
+                  console.log('🔧 初始化Taro H5路由修复...');
+                  
+                  // 等待DOM加载完成
+                  if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initRouter);
+                  } else {
+                    initRouter();
+                  }
+                  
+                  function initRouter() {
+                    console.log('🚀 开始修复Taro H5路由...');
+                    
+                    // 检查Taro是否已加载
+                    const checkTaro = setInterval(() => {
+                      if (window.Taro && window.Taro.getCurrentInstance) {
+                        clearInterval(checkTaro);
+                        console.log('✅ Taro已加载，开始路由修复');
+                        fixTaroRouter();
+                      }
+                    }, 100);
+                    
+                    // 超时保护
+                    setTimeout(() => {
+                      clearInterval(checkTaro);
+                      console.warn('⚠️ Taro加载超时，尝试强制修复路由');
+                      forceFixRouter();
+                    }, 5000);
+                  }
+                  
+                  function fixTaroRouter() {
+                    try {
+                      // 获取当前路由信息
+                      const currentPath = window.location.pathname;
+                      console.log('📍 当前路径:', currentPath);
+                      
+                      // 如果路径是根路径，重定向到首页
+                      if (currentPath === '/' || currentPath === '') {
+                        console.log('🔄 重定向到首页');
+                        window.history.replaceState(null, '', '/pages/square/index');
+                      }
+                      
+                      // 监听路由变化
+                      window.addEventListener('popstate', function(event) {
+                        console.log('🔄 路由变化:', window.location.pathname);
+                        // 触发Taro路由更新
+                        if (window.Taro && window.Taro.getCurrentInstance) {
+                          const instance = window.Taro.getCurrentInstance();
+                          if (instance && instance.router) {
+                            console.log('🔄 更新Taro路由');
+                          }
+                        }
+                      });
+                      
+                      // 强制触发路由更新
+                      setTimeout(() => {
+                        console.log('🔄 强制触发路由更新');
+                        window.dispatchEvent(new PopStateEvent('popstate'));
+                      }, 100);
+                      
+                    } catch (error) {
+                      console.error('❌ 路由修复失败:', error);
+                      forceFixRouter();
+                    }
+                  }
+                  
+                  function forceFixRouter() {
+                    console.log('🔧 执行强制路由修复...');
+                    
+                    // 检查是否有页面内容
+                    const appContainer = document.getElementById('app');
+                    if (appContainer && appContainer.children.length === 0) {
+                      console.log('⚠️ 检测到空页面，尝试重新加载路由');
+                      
+                      // 尝试重新加载当前页面
+                      setTimeout(() => {
+                        const currentPath = window.location.pathname;
+                        if (currentPath === '/' || currentPath === '') {
+                          window.location.href = '/pages/square/index';
+                        } else {
+                          window.location.reload();
+                        }
+                      }, 1000);
+                    }
+                  }
+                })();
+              </script>
+            `
+          };
+          return args;
         });
       }
 
