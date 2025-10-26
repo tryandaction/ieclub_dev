@@ -2,42 +2,134 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>IEclub - 跨学科交流平台</title>
+  <meta name="description" content="IEClub - 面向学习、科研、创业的综合性智能社区平台">
+  <meta name="keywords" content="学习,科研,创业,交流,社区,智能匹配">
+  <title>IEClub - 创造线上线下交互的无限可能</title>
+  
+  <!-- Iconify 图标库 -->
+  <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
   
   <!-- Taro 会自动注入这些标签 -->
   <!-- <link rel="stylesheet" href="..."> -->
   <!-- <script src="..."></script> -->
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    #app {
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
+    }
+    
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #ffffff;
+      z-index: 9999;
+    }
+    
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      font-size: 14px;
+      color: #999;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    }
+  </style>
 </head>
 <body>
   <!-- Taro 应用挂载点 -->
   <div id="app"></div>
   
   <!-- 加载提示 -->
-  <div id="loading" style="display: flex; justify-content: center; align-items: center; height: 100vh; font-size: 14px; color: #999;">
-    加载中...
+  <div id="loading">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">IEClub 加载中...</div>
   </div>
   
   <script>
-    // 应用加载后隐藏 loading
+    console.log('🚀 IEClub H5 启动');
+    console.log('📱 User Agent:', navigator.userAgent);
+    console.log('🌐 URL:', window.location.href);
+    
+    // 监听应用加载完成
     window.addEventListener('DOMContentLoaded', function() {
+      console.log('✅ DOM 加载完成');
+      
+      // 确保 #app 容器存在
+      var appContainer = document.getElementById('app');
+      if (!appContainer) {
+        console.warn('⚠️ #app 容器不存在，正在创建...');
+        appContainer = document.createElement('div');
+        appContainer.id = 'app';
+        document.body.insertBefore(appContainer, document.body.firstChild);
+      }
+      
+      // 等待 React 渲染
+      var checkInterval = setInterval(function() {
+        if (appContainer.children.length > 0) {
+          console.log('✅ React 渲染完成，隐藏 loading');
+          var loading = document.getElementById('loading');
+          if (loading) {
+            loading.style.display = 'none';
+          }
+          clearInterval(checkInterval);
+        }
+      }, 100);
+      
+      // 10秒超时保护
       setTimeout(function() {
         var loading = document.getElementById('loading');
-        if (loading) {
+        if (loading && loading.style.display !== 'none') {
+          console.warn('⚠️ 加载超时，强制隐藏 loading');
           loading.style.display = 'none';
         }
-      }, 500);
+        clearInterval(checkInterval);
+      }, 10000);
     });
-
-    // 确保 React 18 渲染容器存在
-    if (!document.getElementById('app')) {
-      var appDiv = document.createElement('div');
-      appDiv.id = 'app';
-      appDiv.style.width = '100%';
-      appDiv.style.height = '100%';
-      document.body.appendChild(appDiv);
-      console.log('Created #app container for React 18');
-    }
+    
+    // 错误监听
+    window.addEventListener('error', function(e) {
+      console.error('❌ 全局错误:', e.error || e.message);
+    });
+    
+    window.addEventListener('unhandledrejection', function(e) {
+      console.error('❌ 未处理的 Promise 错误:', e.reason);
+    });
   </script>
 </body>

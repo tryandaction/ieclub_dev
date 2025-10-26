@@ -92,14 +92,29 @@ export default function Login() {
     Taro.navigateBack()
   }
 
+  const enterAsGuest = () => {
+    // 设置游客标识
+    Taro.setStorageSync('isGuest', true)
+    Taro.setStorageSync('token', 'guest-token-' + Date.now())
+    
+    Taro.showToast({
+      title: '以游客身份进入',
+      icon: 'success'
+    })
+    
+    setTimeout(() => {
+      Taro.switchTab({ url: '/pages/square/index' })
+    }, 1000)
+  }
+
   return (
     <View className='login-page'>
       {/* 背景装饰 */}
       <View className='background-decoration' />
 
-      {/* 返回按钮 */}
-      <View className='back-btn' onClick={goBack}>
-        <View className='iconify-icon' data-icon='mdi:close' />
+      {/* 跳过按钮 */}
+      <View className='skip-btn' onClick={enterAsGuest}>
+        <Text className='skip-text'>跳过</Text>
       </View>
 
       {/* Logo和标题 */}

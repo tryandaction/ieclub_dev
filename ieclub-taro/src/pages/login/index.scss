@@ -15,22 +15,22 @@
     opacity: 0.1;
   }
 
-  .back-btn {
+  .skip-btn {
     position: fixed;
     top: 48px;
-    left: 32px;
-    width: 64px;
-    height: 64px;
+    right: 32px;
+    padding: 16px 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 50%;
+    background: rgba(91, 127, 255, 0.1);
+    border-radius: 32px;
     z-index: 999;
 
-    .iconify-icon {
-      font-size: 40px;
-      color: #333;
+    .skip-text {
+      font-size: 28px;
+      color: #5B7FFF;
+      font-weight: 500;
     }
   }
 
@@ -222,14 +222,13 @@
       height: 600px;
     }
 
-    .back-btn {
+    .skip-btn {
       top: 32px;
-      left: 32px;
-      width: 48px;
-      height: 48px;
+      right: 32px;
+      padding: 12px 24px;
 
-      .iconify-icon {
-        font-size: 28px;
+      .skip-text {
+        font-size: 16px;
       }
     }
 

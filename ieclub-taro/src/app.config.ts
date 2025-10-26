@@ -1,5 +1,6 @@
 export default {
   pages: [
+    'pages/login/index',           // 登录页作为首页
     'pages/square/index',
     'pages/community/index',
     'pages/publish/index',
@@ -9,7 +10,6 @@ export default {
     'pages/notifications/index',
     'pages/topics/detail/index',
     'pages/topics/create/index',
-    'pages/login/index',
   ],
   
   window: {
