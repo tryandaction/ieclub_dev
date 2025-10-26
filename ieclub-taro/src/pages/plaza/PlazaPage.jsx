@@ -155,9 +155,9 @@ const PlazaPage = () => {
                 : 'text-gray-600'
             }`}
           >
-            <div className="flex items-center justify-center gap-2 text-base">
+            <div className="inline-flex items-center justify-center gap-2 text-base">
               <Icon icon="topicOffer" size="md" color={activeTab === 'topics' ? '#8B5CF6' : '#6B7280'} />
-              <span>我来讲 · 想听</span>
+              <span className="leading-none">我来讲 · 想听</span>
             </div>
             {activeTab === 'topics' && (
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-t" />
@@ -171,9 +171,9 @@ const PlazaPage = () => {
                 : 'text-gray-600'
             }`}
           >
-            <div className="flex items-center justify-center gap-2 text-base">
+            <div className="inline-flex items-center justify-center gap-2 text-base">
               <Icon icon="project" size="md" color={activeTab === 'projects' ? '#EA580C' : '#6B7280'} />
-              <span>项目</span>
+              <span className="leading-none">项目</span>
             </div>
             {activeTab === 'projects' && (
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-red-500 rounded-t" />

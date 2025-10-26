@@ -72,19 +72,19 @@ export const Sidebar = () => {
             to={item.path}
             end={item.path === '/'}
             className={({ isActive }) =>
-              `w-full flex items-center justify-between px-4 py-3 rounded-xl font-semibold transition-all group ${
+              `w-full inline-flex items-center justify-between px-4 py-3 rounded-xl font-semibold transition-all group ${
                 isActive 
                   ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md' 
                   : 'bg-white hover:bg-gray-50 text-gray-700'
               }`
             }
           >
-            <div className="flex items-center gap-3">
+            <div className="inline-flex items-center gap-3">
               <item.icon size={20} />
-              {item.label}
+              <span className="leading-none">{item.label}</span>
             </div>
             {item.badge && (
-              <span className={`text-xs px-2 py-0.5 rounded-full font-bold bg-white text-blue-600`}>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-bold bg-white text-blue-600 leading-none`}>
                 {item.badge}
               </span>
             )}
@@ -101,21 +101,21 @@ export const Sidebar = () => {
                 key={item.id}
                 to={item.path}
                 className={({ isActive }) => 
-                  `w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold bg-white transition-all ${
+                  `w-full inline-flex items-center gap-3 px-4 py-3 rounded-xl font-semibold bg-white transition-all ${
                     isActive ? 'text-blue-600' : 'text-gray-700 hover:bg-gray-50'
                   }`
                 }
               >
                 <item.icon size={20} className="text-gray-500" />
-                {item.label}
+                <span className="leading-none">{item.label}</span>
               </NavLink>
             ))}
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold bg-white hover:bg-red-50 text-red-600 transition-all"
+              className="w-full inline-flex items-center gap-3 px-4 py-3 rounded-xl font-semibold bg-white hover:bg-red-50 text-red-600 transition-all"
             >
               <LogOut size={20} />
-              退出登录
+              <span className="leading-none">退出登录</span>
             </button>
           </div>
         </>
@@ -124,9 +124,9 @@ export const Sidebar = () => {
       <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-100 mt-4">
         <div className="flex items-center gap-2 mb-2">
           <School size={20} className="text-blue-600" />
-          <p className="font-bold text-gray-800">校区交流</p>
+          <p className="font-bold text-gray-800 leading-none">校区交流</p>
         </div>
-        <p className="text-sm text-gray-600 mb-3">即将支持跨校区、跨学校交流功能</p>
+        <p className="text-sm text-gray-600 mb-3 leading-relaxed">即将支持跨校区、跨学校交流功能</p>
         <Button variant="outline" className="w-full text-sm">了解更多</Button>
       </div>
     </aside>

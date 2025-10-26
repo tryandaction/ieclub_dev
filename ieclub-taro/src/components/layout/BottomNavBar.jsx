@@ -70,7 +70,7 @@ const BottomNavBar = ({ currentPage, onPageChange, onPublishClick }) => {
                 >
                   <Icon icon={item.icon} size="lg" color="#ffffff" />
                 </div>
-                <span className="text-xs font-medium text-gray-600 mt-1">
+                <span className="text-xs font-medium text-gray-600 mt-1 leading-none">
                   {item.label}
                 </span>
               </button>
@@ -87,14 +87,14 @@ const BottomNavBar = ({ currentPage, onPageChange, onPublishClick }) => {
                 isActive ? 'text-purple-600' : 'text-gray-500'
               }`}
             >
-              <div className={`transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
+              <div className={`flex items-center justify-center transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
                 <Icon 
                   icon={item.icon} 
                   size="md" 
                   color={isActive ? item.activeColor : '#9CA3AF'} 
                 />
               </div>
-              <span className={`text-xs font-medium mt-1 transition-colors ${
+              <span className={`text-xs font-medium mt-1 transition-colors leading-none ${
                 isActive ? 'font-bold' : ''
               }`}>
                 {item.label}

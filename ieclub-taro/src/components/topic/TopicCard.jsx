@@ -116,9 +116,9 @@ const TopicCard = ({
 
   // 渲染类型徽章
   const renderTypeBadge = () => (
-    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${typeConfig.badgeClass}`}>
+    <div className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${typeConfig.badgeClass}`}>
       <Icon icon={typeConfig.icon} size="sm" />
-      <span>{typeConfig.name}</span>
+      <span className="leading-none">{typeConfig.name}</span>
     </div>
   );
 
@@ -216,9 +216,9 @@ const TopicCard = ({
         
         {/* 类型徽章 - 左上角 */}
         <div className="absolute top-3 left-3 z-10">
-          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-md bg-white shadow-md`}>
+          <div className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-md bg-white shadow-md`}>
             <Icon icon={typeConfig.icon} size="sm" color={type === TopicType.OFFER ? '#5B7FFF' : type === TopicType.DEMAND ? '#FF6B9D' : '#FFA500'} />
-            <span className={type === TopicType.OFFER ? 'text-blue-700' : type === TopicType.DEMAND ? 'text-pink-700' : 'text-orange-700'}>{typeConfig.name}</span>
+            <span className={`leading-none ${type === TopicType.OFFER ? 'text-blue-700' : type === TopicType.DEMAND ? 'text-pink-700' : 'text-orange-700'}`}>{typeConfig.name}</span>
           </div>
         </div>
 
@@ -249,7 +249,7 @@ const TopicCard = ({
               {tags.slice(0, 3).map((tag, index) => (
                 <span
                   key={index}
-                  className="inline-flex items-center px-2.5 py-1 bg-white backdrop-blur-sm text-gray-800 rounded-full text-xs font-bold shadow-lg"
+                  className="inline-flex items-center justify-center px-2.5 py-1 bg-white backdrop-blur-sm text-gray-800 rounded-full text-xs font-bold shadow-lg leading-none"
                 >
                   #{tag}
                 </span>
@@ -260,18 +260,21 @@ const TopicCard = ({
           {/* 类型特有标签 - 底部 */}
           <div className="flex gap-2 text-xs">
             {type === TopicType.OFFER && format && (
-              <span className="px-2.5 py-1.5 bg-white/95 backdrop-blur-md rounded-full font-bold text-gray-800 shadow-lg">
-                {format === 'online' ? '🌐 线上' : '📍 线下'}
+              <span className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-white/95 backdrop-blur-md rounded-full font-bold text-gray-800 shadow-lg leading-none">
+                <span>{format === 'online' ? '🌐' : '📍'}</span>
+                <span>{format === 'online' ? '线上' : '线下'}</span>
               </span>
             )}
             {type === TopicType.DEMAND && wantToHearCount && (
-              <span className="px-2.5 py-1.5 bg-pink-600 backdrop-blur-md text-white rounded-full font-bold shadow-lg">
-                👥 {wantToHearCount}人想听
+              <span className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-pink-600 backdrop-blur-md text-white rounded-full font-bold shadow-lg leading-none">
+                <span>👥</span>
+                <span>{wantToHearCount}人想听</span>
               </span>
             )}
             {type === TopicType.PROJECT && recruiting && (
-              <span className="px-2.5 py-1.5 bg-orange-600 backdrop-blur-md text-white rounded-full font-bold shadow-lg">
-                🔥 招募中
+              <span className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-orange-600 backdrop-blur-md text-white rounded-full font-bold shadow-lg leading-none">
+                <span>🔥</span>
+                <span>招募中</span>
               </span>
             )}
           </div>
@@ -290,12 +293,12 @@ const TopicCard = ({
               console.log('跳转到用户主页:', author);
             }}
           >
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-sm font-bold shadow-sm">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0">
               {avatar || author?.charAt(0) || 'U'}
             </div>
-            <span className="text-sm font-bold text-gray-900 hover:text-purple-600 transition-colors">{author || '匿名用户'}</span>
+            <span className="text-sm font-bold text-gray-900 hover:text-purple-600 transition-colors leading-none">{author || '匿名用户'}</span>
           </div>
-          <span className="text-xs font-medium text-gray-500">{formattedTime}</span>
+          <span className="text-xs font-medium text-gray-500 leading-none flex-shrink-0">{formattedTime}</span>
         </div>
 
         {/* 互动数据 */}
@@ -303,29 +306,29 @@ const TopicCard = ({
           {/* 点赞 */}
           <button
             onClick={handleLike}
-            className="flex items-center gap-1.5 hover:text-red-500 transition-colors group"
+            className="flex items-center justify-center gap-1.5 hover:text-red-500 transition-colors group"
           >
             <Icon
               icon={isLiked ? 'liked' : 'like'}
               size="sm"
               color={isLiked ? '#f43f5e' : 'currentColor'}
             />
-            <span className="text-sm font-semibold">{likesCount > 0 ? likesCount : 0}</span>
+            <span className="text-sm font-semibold leading-none">{likesCount > 0 ? likesCount : 0}</span>
           </button>
 
           {/* 评论 */}
           <button
             onClick={handleComment}
-            className="flex items-center gap-1.5 hover:text-blue-500 transition-colors group"
+            className="flex items-center justify-center gap-1.5 hover:text-blue-500 transition-colors group"
           >
             <Icon icon="comment" size="sm" />
-            <span className="text-sm font-semibold">{commentsCount > 0 ? commentsCount : 0}</span>
+            <span className="text-sm font-semibold leading-none">{commentsCount > 0 ? commentsCount : 0}</span>
           </button>
 
           {/* 浏览 */}
-          <div className="flex items-center gap-1.5 text-gray-500">
+          <div className="flex items-center justify-center gap-1.5 text-gray-500">
             <Icon icon="view" size="sm" />
-            <span className="text-sm font-semibold">{viewsCount}</span>
+            <span className="text-sm font-semibold leading-none">{viewsCount}</span>
           </div>
         </div>
       </div>
