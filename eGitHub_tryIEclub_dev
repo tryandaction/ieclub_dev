@@ -1,0 +1,39 @@
+[33mcommit ac720b6dd339f0d320e21137ca6f88d0e6affbb6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: xingduoweiyun <12310203@mail.sustech.edu.cn>
+Date:   Sun Oct 26 14:08:52 2025 +0800
+
+    fix infinite refresh bug
+
+[1mdiff --git a/ieclub-taro/src/app.tsx b/ieclub-taro/src/app.tsx[m
+[1mindex 43268ce8..1204bb37 100644[m
+[1m--- a/ieclub-taro/src/app.tsx[m
+[1m+++ b/ieclub-taro/src/app.tsx[m
+[36m@@ -69,14 +69,23 @@[m [mclass App extends Component<PropsWithChildren> {[m
+   forceRenderPage() {[m
+     console.log('🔧 强制渲染页面内容...')[m
+     [m
+[32m+[m[32m    // 强制重新渲染React组件[m
+[32m+[m[32m    this.forceUpdate()[m
+[32m+[m[41m    [m
+     // 尝试重新触发Taro路由[m
+[31m-    if (window.Taro && window.Taro.getCurrentInstance) {[m
+[32m+[m[32m    if (window.Taro) {[m
+       try {[m
+[31m-        const instance = window.Taro.getCurrentInstance()[m
+[31m-        console.log('🔄 获取Taro实例:', instance)[m
+[32m+[m[32m        // 获取当前路由[m
+[32m+[m[32m        const routes = Taro.getCurrentPages()[m
+[32m+[m[32m        console.log('🔄 当前路由栈:', routes.length)[m
+         [m
+[31m-        // 强制重新渲染[m
+[31m-        this.forceUpdate()[m
+[32m+[m[32m        if (routes.length === 0) {[m
+[32m+[m[32m          // 如果没有路由，导航到首页[m
+[32m+[m[32m          console.log('🔄 路由栈为空，重定向到首页')[m
+[32m+[m[32m          Taro.redirectTo({ url: '/pages/square/index' }).catch(err => {[m
+[32m+[m[32m            console.error('❌ 重定向失败:', err)[m
+[32m+[m[32m          })[m
+[32m+[m[32m        }[m
+       } catch (error) {[m
+         console.error('❌ 强制渲染失败:', error)[m
+       }[m
