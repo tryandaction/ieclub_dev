@@ -15,37 +15,42 @@ const EventCard = ({ event }) => {
   const isFull = event.participants >= event.maxParticipants;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border hover:shadow-lg transition-all overflow-hidden group">
-      <div className="relative h-40 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center overflow-hidden">
-        <span className="text-white text-5xl z-10">{event.icon || '📅'}</span>
+    <div className="bg-white rounded-2xl shadow-sm border hover:shadow-lg transition-all overflow-hidden group hover:-translate-y-1 active:scale-98">
+      <div className="relative h-32 md:h-40 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center overflow-hidden">
+        <span className="text-white text-4xl md:text-5xl z-10">{event.icon || '📅'}</span>
         <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity"></div>
         {isFull && (
-          <div className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+          <div className="absolute top-2 right-2 md:top-3 md:right-3 bg-red-500 text-white px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-bold">
             已满员
           </div>
         )}
       </div>
-      <div className="p-6">
-        <h3 className="text-xl font-bold mb-3 text-gray-800 group-hover:text-blue-600 transition-colors">{event.title}</h3>
-        <div className="space-y-2 mb-4 text-gray-600">
-          <p className="flex items-center gap-2"><User size={16} className="text-gray-400" /> <span className="font-semibold">{event.organizer}</span></p>
-          <p className="flex items-center gap-2"><Clock size={16} className="text-gray-400" /> {event.date}</p>
-          <p className="flex items-center gap-2"><MapPin size={16} className="text-gray-400" /> {event.location}</p>
+      <div className="p-4 md:p-6">
+        <h3 className="text-lg md:text-xl font-bold mb-2 md:mb-3 text-gray-800 group-hover:text-purple-600 transition-colors line-clamp-2">{event.title}</h3>
+        <div className="space-y-1.5 md:space-y-2 mb-3 md:mb-4 text-sm md:text-base text-gray-600">
+          <p className="flex items-center gap-2"><User size={14} className="md:w-4 md:h-4 text-gray-400 flex-shrink-0" /> <span className="font-semibold truncate">{event.organizer}</span></p>
+          <p className="flex items-center gap-2"><Clock size={14} className="md:w-4 md:h-4 text-gray-400 flex-shrink-0" /> <span className="truncate">{event.date}</span></p>
+          <p className="flex items-center gap-2"><MapPin size={14} className="md:w-4 md:h-4 text-gray-400 flex-shrink-0" /> <span className="truncate">{event.location}</span></p>
         </div>
-        <p className="text-gray-700 mb-4 line-clamp-2">{event.description}</p>
-        <div className="mb-4">
-          <div className="flex justify-between text-sm mb-2">
+        <p className="text-sm md:text-base text-gray-700 mb-3 md:mb-4 line-clamp-2">{event.description}</p>
+        <div className="mb-3 md:mb-4">
+          <div className="flex justify-between text-xs md:text-sm mb-1.5 md:mb-2">
             <span className="text-gray-600 font-semibold">报名进度</span>
             <span className="font-bold text-gray-800">{event.participants}/{event.maxParticipants}人</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-            <div className={`h-2.5 rounded-full transition-all duration-500 ${progress >= 80 ? 'bg-gradient-to-r from-red-400 to-red-600' : 'bg-gradient-to-r from-purple-400 to-purple-600'}`} style={{ width: `${progress}%` }} />
+          <div className="w-full bg-gray-200 rounded-full h-2 md:h-2.5 overflow-hidden">
+            <div className={`h-full rounded-full transition-all duration-500 ${progress >= 80 ? 'bg-gradient-to-r from-red-400 to-red-600' : 'bg-gradient-to-r from-purple-400 to-purple-600'}`} style={{ width: `${progress}%` }} />
           </div>
         </div>
-        <div className="flex gap-2 mb-4 flex-wrap">
-          {event.tags.map((tag, idx) => (<Tag key={idx} variant="purple">{tag}</Tag>))}
+        <div className="flex gap-1.5 md:gap-2 mb-3 md:mb-4 flex-wrap">
+          {event.tags.map((tag, idx) => (<Tag key={idx} variant="purple" className="text-xs md:text-sm">{tag}</Tag>))}
         </div>
-        <Button variant={registered ? 'success' : isFull ? 'secondary' : 'primary'} className="w-full" onClick={() => !isFull && setRegistered(!registered)} disabled={isFull && !registered}>
+        <Button 
+          variant={registered ? 'success' : isFull ? 'secondary' : 'primary'} 
+          className="w-full text-sm md:text-base py-2 md:py-3" 
+          onClick={() => !isFull && setRegistered(!registered)} 
+          disabled={isFull && !registered}
+        >
           {registered ? '✓ 已报名' : isFull ? '活动已满' : '立即报名'}
         </Button>
       </div>
@@ -120,27 +125,58 @@ export const EventsPage = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap justify-between items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">活动广场</h2>
-          <p className="text-gray-600">发现精彩活动，结识志同道合的伙伴</p>
+    <div className="pb-20 md:pb-6">
+      {/* 顶部标题栏 - 移动端优化 */}
+      <div className="bg-white border-b sticky top-0 z-20 md:relative md:bg-transparent md:border-0">
+        <div className="px-4 py-4 md:py-6">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-4">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent flex items-center gap-2">
+                <span>📅</span>
+                <span>活动广场</span>
+              </h2>
+              <p className="text-sm md:text-base text-gray-600 mt-1">发现精彩活动，结识志同道合的伙伴</p>
+            </div>
+            <Button 
+              variant="primary" 
+              icon={Plus} 
+              onClick={() => setShowCreateEvent(true)}
+              className="w-full md:w-auto text-sm md:text-base"
+            >
+              创建活动
+            </Button>
+          </div>
         </div>
-        <Button variant="primary" icon={Plus} onClick={() => setShowCreateEvent(true)}>创建活动</Button>
       </div>
-      <div className="bg-white p-4 rounded-xl border shadow-sm">
-        <div className="flex gap-2 flex-wrap">
+
+      {/* 筛选器 - 移动端横向滚动 */}
+      <div className="bg-gray-50 md:bg-white px-4 py-3 md:p-4 md:rounded-xl md:border md:shadow-sm mt-4 md:mt-6">
+        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
           {['all', 'lecture', 'workshop', 'social', 'competition'].map(type => (
-            <button key={type} onClick={() => setFilterType(type)} className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterType === type ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
-              {type === 'all' && '全部活动'} {type === 'lecture' && '学术讲座'} {type === 'workshop' && '工作坊'}
-              {type === 'social' && '社交活动'} {type === 'competition' && '竞赛路演'}
+            <button 
+              key={type} 
+              onClick={() => setFilterType(type)} 
+              className={`px-3 md:px-4 py-2 rounded-lg font-semibold text-sm md:text-base transition-all whitespace-nowrap ${
+                filterType === type 
+                  ? 'bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-md' 
+                  : 'bg-white md:bg-gray-100 hover:bg-gray-50 md:hover:bg-gray-200 text-gray-700 border md:border-0'
+              }`}
+            >
+              {type === 'all' && '全部'} 
+              {type === 'lecture' && '学术讲座'} 
+              {type === 'workshop' && '工作坊'}
+              {type === 'social' && '社交活动'} 
+              {type === 'competition' && '竞赛路演'}
             </button>
           ))}
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      {/* 活动列表 - 响应式网格 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 px-4 md:px-0 mt-4 md:mt-6">
         {events.map(event => (<EventCard key={event.id} event={event} />))}
       </div>
+
       <CreateEventModal isOpen={showCreateEvent} onClose={() => setShowCreateEvent(false)} onSubmit={handleCreateEvent} />
     </div>
   );

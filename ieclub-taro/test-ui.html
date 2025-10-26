@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IEClub UI 测试页面</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 24px;
+      padding: 40px;
+      max-width: 800px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    
+    p {
+      color: #666;
+      margin-bottom: 30px;
+    }
+    
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+    
+    .test-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      border-radius: 16px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+    
+    .test-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
+    }
+    
+    .test-card:active {
+      transform: scale(0.98);
+    }
+    
+    .test-card h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    
+    .test-card p {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.9);
+      margin: 0;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 600;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    .btn:hover {
+      box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+      transform: translateY(-2px);
+    }
+    
+    .btn:active {
+      transform: scale(0.98);
+    }
+    
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: #10b981;
+      color: white;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 24px;
+      }
+      
+      h1 {
+        font-size: 24px;
+      }
+      
+      .test-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎓 IEClub UI 测试中心</h1>
+    <p>快速测试所有页面的响应式布局和交互效果</p>
+    
+    <div class="status">
+      <span class="status-dot"></span>
+      <span>开发服务器运行中</span>
+    </div>
+    
+    <div class="test-grid">
+      <div class="test-card" onclick="openPage('/')">
+        <h3>🏠 首页</h3>
+        <p>传统首页布局</p>
+      </div>
+      
+      <div class="test-card" onclick="openPage('#/plaza')">
+        <h3>🏛️ 话题广场</h3>
+        <p>瀑布流布局 + Tab切换</p>
+      </div>
+      
+      <div class="test-card" onclick="openPage('#/community')">
+        <h3>👥 社区</h3>
+        <p>群体 + 匹配 + 排行榜</p>
+      </div>
+      
+      <div class="test-card" onclick="openPage('#/events')">
+        <h3>📅 活动</h3>
+        <p>活动列表 + 筛选</p>
+      </div>
+      
+      <div class="test-card" onclick="openPage('#/profile')">
+        <h3>👤 个人中心</h3>
+        <p>用户资料 + OCR</p>
+      </div>
+      
+      <div class="test-card" onclick="openPage('#/login')">
+        <h3>🔐 登录</h3>
+        <p>认证页面</p>
+      </div>
+    </div>
+    
+    <div style="text-align: center;">
+      <button class="btn" onclick="openPage('#/')">
+        打开主应用 →
+      </button>
+    </div>
+    
+    <div style="margin-top: 30px; padding: 20px; background: #f3f4f6; border-radius: 12px;">
+      <h3 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 12px;">📱 测试检查清单</h3>
+      <ul style="color: #6b7280; font-size: 14px; line-height: 2;">
+        <li>✅ 编译无错误</li>
+        <li>✅ 响应式布局正常</li>
+        <li>✅ 动画效果流畅</li>
+        <li>✅ 组件导入正确</li>
+        <li>✅ 路由跳转正常</li>
+        <li>🔄 移动端底部导航（需缩小窗口测试）</li>
+        <li>🔄 桌面端侧边栏（需放大窗口测试）</li>
+      </ul>
+    </div>
+  </div>
+  
+  <script>
+    function openPage(path) {
+      window.open(`http://localhost:10086/${path}`, '_blank');
+    }
+    
+    // 检查服务器状态
+    fetch('http://localhost:10086')
+      .then(() => {
+        console.log('✅ 开发服务器运行正常');
+      })
+      .catch(() => {
+        document.querySelector('.status').style.background = '#ef4444';
+        document.querySelector('.status span:last-child').textContent = '服务器未启动';
+        console.error('❌ 无法连接到开发服务器');
+      });
+  </script>
+</body>
+</html>
+

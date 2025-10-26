@@ -190,43 +190,31 @@ export const HomePage = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* 欢迎横幅 */}
-      <div className="bg-gradient-primary text-white p-8 rounded-2xl shadow-lg relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full -mr-32 -mt-32"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-10 rounded-full -ml-24 -mb-24"></div>
+    <div className="home-page">
+      {/* 精简的欢迎区 - 小红书风格 */}
+      <div className="mb-6 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 text-white p-6 rounded-3xl shadow-xl relative overflow-hidden">
+        {/* 装饰元素 */}
+        <div className="absolute top-0 right-0 w-40 h-40 bg-white opacity-10 rounded-full -mr-20 -mt-20 blur-2xl"></div>
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white opacity-10 rounded-full -ml-16 -mb-16 blur-2xl"></div>
+        
         <div className="relative z-10">
-          <h1 className="text-4xl font-bold mb-3">欢迎来到 IEclub 👋</h1>
-          <p className="text-xl opacity-95 mb-2">南方科技大学跨学科交流社区</p>
-          <p className="text-sm opacity-80">学习 · 科研 · 创业 | 智能匹配 · 资源对接 · 知识分享</p>
+          <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
+            <span>欢迎来到 IEclub</span>
+            <span className="text-2xl">👋</span>
+          </h1>
+          <p className="text-sm opacity-90">南科大跨学科交流社区 · 学习分享 · 资源对接</p>
         </div>
       </div>
 
-      {/* 快捷操作按钮 */}
-      <div className="flex flex-wrap gap-3">
-        <button
-          onClick={() => !isAuthenticated ? navigate('/login') : setShowCreateModal(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-primary text-white rounded-lg font-medium hover:shadow-primary transition-all"
-        >
-          <Icon icon="publish" size="sm" color="#ffffff" />
-          <span>发布话题</span>
-        </button>
-        <button
-          onClick={() => setFilters({ ...filters, sortBy: TopicSortBy.HOT })}
-          className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-lg font-medium hover:border-primary-300 hover:bg-primary-50 transition-all"
-        >
-          <Icon icon="fire" size="sm" color="#ef4444" />
-          <span>热门话题</span>
-        </button>
+      {/* 话题筛选器 */}
+      <div className="mb-5">
+        <TopicFilter
+          filters={filters}
+          onChange={handleFilterChange}
+        />
       </div>
 
-      {/* 话题筛选器 */}
-      <TopicFilter
-        filters={filters}
-        onChange={handleFilterChange}
-      />
-
-      {/* 话题列表 */}
+      {/* 话题列表 - 瀑布流 */}
       <TopicList
         topics={sortedTopics}
         loading={isLoading}
@@ -238,6 +226,16 @@ export const HomePage = () => {
         onComment={handleComment}
         emptyType={filters.type}
       />
+
+      {/* 悬浮发布按钮 - 小红书风格 */}
+      <button
+        onClick={() => !isAuthenticated ? navigate('/login') : setShowCreateModal(true)}
+        className="fixed bottom-8 right-8 w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 transition-all flex items-center justify-center z-50 group"
+        style={{ boxShadow: '0 8px 32px rgba(168, 85, 247, 0.4)' }}
+      >
+        <Icon icon="publish" size="lg" color="#ffffff" />
+        <span className="sr-only">发布话题</span>
+      </button>
 
       {/* 发布话题模态框（待实现） */}
       {/* <CreateTopicModal 

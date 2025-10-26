@@ -42,47 +42,67 @@ export const ProfilePage = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-2xl overflow-hidden shadow-xl relative">
+    <div className="pb-20 md:pb-6">
+      {/* 个人信息卡片 - 优化移动端布局 */}
+      <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-b-3xl md:rounded-3xl overflow-hidden shadow-xl relative">
         <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-        <div className="p-8 relative z-10">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-6">
-              <Avatar src={user?.avatar} size="xl" status="online" />
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <h2 className="text-4xl font-bold">{user?.username || '用户'}</h2>
-                  <Shield size={24} fill="white" />
+        <div className="p-4 md:p-8 relative z-10">
+          <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-4">
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 text-center md:text-left w-full md:w-auto">
+              <Avatar src={user?.avatar} size="xl" status="online" className="ring-4 ring-white/30" />
+              <div className="flex-1">
+                <div className="flex items-center justify-center md:justify-start gap-2 md:gap-3 mb-2">
+                  <h2 className="text-2xl md:text-4xl font-bold">{user?.username || '用户'}</h2>
+                  <Shield size={20} className="md:w-6 md:h-6" fill="white" />
                 </div>
-                <p className="text-xl opacity-90 mb-1">{user?.major || '专业'}</p>
-                <p className="text-lg opacity-75">{user?.school || '学校'} · {user?.grade || '年级'}</p>
+                <p className="text-base md:text-xl opacity-90 mb-1">{user?.major || '专业'}</p>
+                <p className="text-sm md:text-lg opacity-75">{user?.school || '学校'} · {user?.grade || '年级'}</p>
               </div>
             </div>
-            <Button variant="secondary" icon={Edit3} onClick={() => setIsEditing(true)}>编辑资料</Button>
+            <Button 
+              variant="secondary" 
+              icon={Edit3} 
+              onClick={() => setIsEditing(true)}
+              className="w-full md:w-auto"
+            >
+              编辑资料
+            </Button>
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+      {/* 统计数据 - 优化移动端间距 */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 px-4 md:px-0 mt-4 md:mt-6">
         {stats.map((stat, idx) => {
           const Icon = stat.icon;
           return (
-            <div key={idx} className="bg-white p-6 rounded-xl border shadow-sm hover:shadow-md transition-all text-center">
-              <Icon size={24} className="mx-auto mb-2 text-blue-500" />
-              <p className="text-3xl font-bold text-gray-800 mb-1">{stat.value}</p>
-              <p className="text-sm text-gray-600">{stat.label}</p>
+            <div key={idx} className="bg-white p-4 md:p-6 rounded-xl border shadow-sm hover:shadow-md transition-all text-center">
+              <Icon size={20} className="md:w-6 md:h-6 mx-auto mb-2 text-purple-500" />
+              <p className="text-2xl md:text-3xl font-bold text-gray-800 mb-1">{stat.value}</p>
+              <p className="text-xs md:text-sm text-gray-600">{stat.label}</p>
             </div>
           );
         })}
       </div>
-      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <div className="flex border-b">
+      <div className="bg-white rounded-xl md:rounded-xl mx-4 md:mx-0 shadow-sm border overflow-hidden mt-4 md:mt-6">
+        <div className="flex border-b overflow-x-auto">
           {['posts', 'projects', 'ocr'].map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 px-6 py-4 font-semibold transition-all ${activeTab === tab ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'}`}>
-              {tab === 'posts' && '我的帖子'} {tab === 'projects' && '我的项目'} {tab === 'ocr' && 'OCR识别'}
+            <button 
+              key={tab} 
+              onClick={() => setActiveTab(tab)} 
+              className={`flex-1 min-w-[100px] px-4 md:px-6 py-3 md:py-4 font-semibold text-sm md:text-base transition-all whitespace-nowrap ${
+                activeTab === tab 
+                  ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50' 
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {tab === 'posts' && '我的帖子'} 
+              {tab === 'projects' && '我的项目'} 
+              {tab === 'ocr' && 'OCR识别'}
             </button>
           ))}
         </div>
-        <div className="p-6">
+        <div className="p-4 md:p-6">
           {activeTab === 'posts' && (
             <div className="text-center py-12">
               <FileText size={48} className="mx-auto mb-4 text-gray-400" />

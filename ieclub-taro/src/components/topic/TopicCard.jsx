@@ -201,99 +201,133 @@ const TopicCard = ({
   return (
     <div
       onClick={handleCardClick}
-      className={`bg-white rounded-xl border-2 ${typeConfig.borderColor} p-4 hover:shadow-card-hover transition-all cursor-pointer`}
+      className="topic-card bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all cursor-pointer group active:scale-95"
     >
-      {/* 头部：作者信息和类型徽章 */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
-          {/* 头像 */}
-          <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-white font-semibold">
-            {avatar || author?.charAt(0) || 'U'}
-          </div>
-          <div>
-            <div className="font-medium text-gray-900">{author || '匿名用户'}</div>
-            <div className="text-xs text-gray-500">{formattedTime}</div>
+      {/* 封面图区域 - 小红书风格 */}
+      <div className="relative aspect-[3/4] overflow-hidden" style={{
+        background: type === TopicType.OFFER 
+          ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+          : type === TopicType.DEMAND
+          ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+          : 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+      }}>
+        {/* 装饰性渐变叠加 */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30"></div>
+        
+        {/* 类型徽章 - 左上角 */}
+        <div className="absolute top-3 left-3 z-10">
+          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-md ${typeConfig.badgeClass} shadow-sm`}>
+            <Icon icon={typeConfig.icon} size="sm" />
+            <span>{typeConfig.name}</span>
           </div>
         </div>
-        {renderTypeBadge()}
-      </div>
 
-      {/* 标题 */}
-      <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
-        {title}
-      </h3>
+        {/* 收藏按钮 - 右上角 */}
+        <button
+          onClick={handleBookmark}
+          className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-all shadow-sm"
+        >
+          <Icon
+            icon={isBookmarked ? 'bookmarked' : 'bookmark'}
+            size="sm"
+            color={isBookmarked ? '#eab308' : '#64748b'}
+          />
+        </button>
 
-      {/* 内容 */}
-      <p className="text-gray-600 text-sm mb-3 line-clamp-3">
-        {content}
-      </p>
-
-      {/* 标签 */}
-      {tags && tags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-3">
-          {tags.slice(0, 3).map((tag, index) => (
-            <span
-              key={index}
-              className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs"
-            >
-              <Icon icon="tag" size="xs" />
-              {tag}
-            </span>
-          ))}
-          {tags.length > 3 && (
-            <span className="text-xs text-gray-400">+{tags.length - 3}</span>
+        {/* 内容预览区域 */}
+        <div className="absolute inset-0 p-4 flex flex-col justify-end z-10">
+          {/* 标题 */}
+          <h3 className="text-lg font-bold text-white mb-2 line-clamp-2" style={{
+            textShadow: '0 2px 8px rgba(0,0,0,0.3)'
+          }}>
+            {title}
+          </h3>
+          
+          {/* 标签 */}
+          {tags && tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {tags.slice(0, 3).map((tag, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center px-2 py-0.5 bg-white/95 backdrop-blur-sm text-gray-800 rounded-full text-xs font-medium shadow-md"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
           )}
         </div>
-      )}
 
-      {/* 类型特有信息 */}
-      {renderOfferInfo()}
-      {renderDemandInfo()}
-      {renderProjectInfo()}
+        {/* 类型特有标签 - 底部左侧 */}
+        <div className="absolute bottom-3 left-3 z-10 flex gap-2 text-xs">
+          {type === TopicType.OFFER && format && (
+            <span className="px-2 py-1 bg-white/90 backdrop-blur-sm rounded-full font-medium text-gray-700 shadow-sm">
+              {format === 'online' ? '🌐 线上' : '📍 线下'}
+            </span>
+          )}
+          {type === TopicType.DEMAND && wantToHearCount && (
+            <span className="px-2 py-1 bg-pink-500/90 backdrop-blur-sm text-white rounded-full font-medium shadow-sm">
+              👥 {wantToHearCount}人想听
+            </span>
+          )}
+          {type === TopicType.PROJECT && recruiting && (
+            <span className="px-2 py-1 bg-orange-500/90 backdrop-blur-sm text-white rounded-full font-medium shadow-sm">
+              🔥 招募中
+            </span>
+          )}
+        </div>
+      </div>
 
-      {/* 底部：互动按钮 */}
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-        <div className="flex items-center gap-4">
+      {/* 卡片底部信息 */}
+      <div className="p-3">
+        {/* 作者信息 */}
+        <div className="flex items-center justify-between mb-2">
+          <div 
+            className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={(e) => {
+              e.stopPropagation();
+              // TODO: 跳转到用户主页
+              console.log('跳转到用户主页:', author);
+            }}
+          >
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-xs font-semibold">
+              {avatar || author?.charAt(0) || 'U'}
+            </div>
+            <span className="text-sm font-medium text-gray-700 hover:text-purple-600 transition-colors">{author || '匿名用户'}</span>
+          </div>
+          <span className="text-xs text-gray-400">{formattedTime}</span>
+        </div>
+
+        {/* 互动数据 */}
+        <div className="flex items-center gap-4 text-gray-600">
           {/* 点赞 */}
           <button
             onClick={handleLike}
-            className="flex items-center gap-1.5 text-gray-600 hover:text-red-500 transition-colors"
+            className="flex items-center gap-1 hover:text-red-500 transition-colors"
           >
             <Icon
               icon={isLiked ? 'liked' : 'like'}
               size="sm"
               color={isLiked ? '#f43f5e' : 'currentColor'}
             />
-            <span className="text-sm">{likesCount}</span>
+            <span className="text-xs">{likesCount > 0 ? likesCount : ''}</span>
           </button>
 
           {/* 评论 */}
           <button
             onClick={handleComment}
-            className="flex items-center gap-1.5 text-gray-600 hover:text-blue-500 transition-colors"
+            className="flex items-center gap-1 hover:text-blue-500 transition-colors"
           >
             <Icon icon="comment" size="sm" />
-            <span className="text-sm">{commentsCount}</span>
+            <span className="text-xs">{commentsCount > 0 ? commentsCount : ''}</span>
           </button>
 
           {/* 浏览 */}
-          <div className="flex items-center gap-1.5 text-gray-500">
-            <Icon icon="view" size="sm" />
-            <span className="text-sm">{viewsCount}</span>
+          <div className="flex items-center gap-1 text-gray-400">
+            <Icon icon="view" size="xs" />
+            <span className="text-xs">{viewsCount}</span>
           </div>
         </div>
-
-        {/* 收藏 */}
-        <button
-          onClick={handleBookmark}
-          className="flex items-center gap-1.5 text-gray-600 hover:text-yellow-500 transition-colors"
-        >
-          <Icon
-            icon={isBookmarked ? 'bookmarked' : 'bookmark'}
-            size="sm"
-            color={isBookmarked ? '#eab308' : 'currentColor'}
-          />
-        </button>
       </div>
     </div>
   );

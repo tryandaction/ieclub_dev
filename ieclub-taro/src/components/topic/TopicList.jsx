@@ -1,10 +1,13 @@
 /**
  * 话题列表组件
  * 渲染话题列表，支持加载更多、空状态、加载状态
+ * 使用小红书风格的瀑布流布局
  */
 import React from 'react';
 import TopicCard from './TopicCard.jsx';
+import MasonryGrid from './MasonryGrid.jsx';
 import Icon from '../common/Icon.jsx';
+import { SkeletonCard } from '../common/SkeletonCard.jsx';
 
 /**
  * 空状态组件
@@ -38,22 +41,11 @@ const EmptyState = ({ type }) => {
  */
 const LoadingState = () => {
   return (
-    <div className="space-y-4">
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="bg-white rounded-xl border p-4 animate-pulse">
-          <div className="flex items-start gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-gray-200"></div>
-            <div className="flex-1">
-              <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded w-32"></div>
-            </div>
-          </div>
-          <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded w-full mb-1"></div>
-          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-        </div>
+    <MasonryGrid gap={16} minColumnWidth={260}>
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <SkeletonCard key={i} variant="topic" />
       ))}
-    </div>
+    </MasonryGrid>
   );
 };
 
@@ -91,26 +83,28 @@ const TopicList = ({
   }
 
   return (
-    <div className="space-y-4">
-      {/* 话题列表 */}
-      {topics.map((topic) => (
-        <TopicCard
-          key={topic.id}
-          topic={topic}
-          onClick={onTopicClick}
-          onLike={onLike}
-          onBookmark={onBookmark}
-          onComment={onComment}
-        />
-      ))}
+    <div className="topic-list">
+      {/* 瀑布流布局 - 小红书风格 */}
+      <MasonryGrid gap={16} minColumnWidth={260}>
+        {topics.map((topic) => (
+          <TopicCard
+            key={topic.id}
+            topic={topic}
+            onClick={onTopicClick}
+            onLike={onLike}
+            onBookmark={onBookmark}
+            onComment={onComment}
+          />
+        ))}
+      </MasonryGrid>
 
       {/* 加载更多按钮 */}
       {hasMore && (
-        <div className="flex justify-center py-4">
+        <div className="flex justify-center py-8 mt-4">
           <button
             onClick={onLoadMore}
             disabled={loading}
-            className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-primary-500 text-primary-500 rounded-lg font-medium hover:bg-primary-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-8 py-3 bg-white border-2 border-primary-500 text-primary-500 rounded-full font-medium hover:bg-primary-50 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <>
@@ -129,9 +123,9 @@ const TopicList = ({
 
       {/* 没有更多了 */}
       {!hasMore && topics.length > 0 && (
-        <div className="flex items-center justify-center py-4 text-gray-400 text-sm">
+        <div className="flex items-center justify-center py-8 text-gray-400 text-sm">
           <Icon icon="check" size="sm" className="mr-1" />
-          <span>没有更多了</span>
+          <span>已经到底了～</span>
         </div>
       )}
     </div>
