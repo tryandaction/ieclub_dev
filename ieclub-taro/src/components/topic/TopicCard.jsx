@@ -211,21 +211,21 @@ const TopicCard = ({
           ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
           : 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
       }}>
-        {/* 装饰性渐变叠加 */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30"></div>
+        {/* 装饰性渐变叠加 - 增强底部对比度 */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50"></div>
         
         {/* 类型徽章 - 左上角 */}
         <div className="absolute top-3 left-3 z-10">
-          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-md ${typeConfig.badgeClass} shadow-sm`}>
-            <Icon icon={typeConfig.icon} size="sm" />
-            <span>{typeConfig.name}</span>
+          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-md bg-white shadow-md`}>
+            <Icon icon={typeConfig.icon} size="sm" color={type === TopicType.OFFER ? '#5B7FFF' : type === TopicType.DEMAND ? '#FF6B9D' : '#FFA500'} />
+            <span className={type === TopicType.OFFER ? 'text-blue-700' : type === TopicType.DEMAND ? 'text-pink-700' : 'text-orange-700'}>{typeConfig.name}</span>
           </div>
         </div>
 
         {/* 收藏按钮 - 右上角 */}
         <button
           onClick={handleBookmark}
-          className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-all shadow-sm"
+          className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center hover:bg-white transition-all shadow-md hover:scale-110"
         >
           <Icon
             icon={isBookmarked ? 'bookmarked' : 'bookmark'}
@@ -237,51 +237,51 @@ const TopicCard = ({
         {/* 内容预览区域 */}
         <div className="absolute inset-0 p-4 flex flex-col justify-end z-10">
           {/* 标题 */}
-          <h3 className="text-lg font-bold text-white mb-2 line-clamp-2" style={{
-            textShadow: '0 2px 8px rgba(0,0,0,0.3)'
+          <h3 className="text-xl font-black text-white mb-2 line-clamp-2 leading-tight" style={{
+            textShadow: '0 2px 12px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.8)'
           }}>
             {title}
           </h3>
           
           {/* 标签 */}
           {tags && tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-2">
+            <div className="flex flex-wrap gap-1.5 mb-3">
               {tags.slice(0, 3).map((tag, index) => (
                 <span
                   key={index}
-                  className="inline-flex items-center px-2 py-0.5 bg-white/95 backdrop-blur-sm text-gray-800 rounded-full text-xs font-medium shadow-md"
+                  className="inline-flex items-center px-2.5 py-1 bg-white backdrop-blur-sm text-gray-800 rounded-full text-xs font-bold shadow-lg"
                 >
                   #{tag}
                 </span>
               ))}
             </div>
           )}
-        </div>
 
-        {/* 类型特有标签 - 底部左侧 */}
-        <div className="absolute bottom-3 left-3 z-10 flex gap-2 text-xs">
-          {type === TopicType.OFFER && format && (
-            <span className="px-2 py-1 bg-white/90 backdrop-blur-sm rounded-full font-medium text-gray-700 shadow-sm">
-              {format === 'online' ? '🌐 线上' : '📍 线下'}
-            </span>
-          )}
-          {type === TopicType.DEMAND && wantToHearCount && (
-            <span className="px-2 py-1 bg-pink-500/90 backdrop-blur-sm text-white rounded-full font-medium shadow-sm">
-              👥 {wantToHearCount}人想听
-            </span>
-          )}
-          {type === TopicType.PROJECT && recruiting && (
-            <span className="px-2 py-1 bg-orange-500/90 backdrop-blur-sm text-white rounded-full font-medium shadow-sm">
-              🔥 招募中
-            </span>
-          )}
+          {/* 类型特有标签 - 底部 */}
+          <div className="flex gap-2 text-xs">
+            {type === TopicType.OFFER && format && (
+              <span className="px-2.5 py-1.5 bg-white/95 backdrop-blur-md rounded-full font-bold text-gray-800 shadow-lg">
+                {format === 'online' ? '🌐 线上' : '📍 线下'}
+              </span>
+            )}
+            {type === TopicType.DEMAND && wantToHearCount && (
+              <span className="px-2.5 py-1.5 bg-pink-600 backdrop-blur-md text-white rounded-full font-bold shadow-lg">
+                👥 {wantToHearCount}人想听
+              </span>
+            )}
+            {type === TopicType.PROJECT && recruiting && (
+              <span className="px-2.5 py-1.5 bg-orange-600 backdrop-blur-md text-white rounded-full font-bold shadow-lg">
+                🔥 招募中
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
       {/* 卡片底部信息 */}
-      <div className="p-3">
+      <div className="p-4 bg-white">
         {/* 作者信息 */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-3">
           <div 
             className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={(e) => {
@@ -290,42 +290,42 @@ const TopicCard = ({
               console.log('跳转到用户主页:', author);
             }}
           >
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-xs font-semibold">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-sm font-bold shadow-sm">
               {avatar || author?.charAt(0) || 'U'}
             </div>
-            <span className="text-sm font-medium text-gray-700 hover:text-purple-600 transition-colors">{author || '匿名用户'}</span>
+            <span className="text-sm font-bold text-gray-900 hover:text-purple-600 transition-colors">{author || '匿名用户'}</span>
           </div>
-          <span className="text-xs text-gray-400">{formattedTime}</span>
+          <span className="text-xs font-medium text-gray-500">{formattedTime}</span>
         </div>
 
         {/* 互动数据 */}
-        <div className="flex items-center gap-4 text-gray-600">
+        <div className="flex items-center gap-5 text-gray-700">
           {/* 点赞 */}
           <button
             onClick={handleLike}
-            className="flex items-center gap-1 hover:text-red-500 transition-colors"
+            className="flex items-center gap-1.5 hover:text-red-500 transition-colors group"
           >
             <Icon
               icon={isLiked ? 'liked' : 'like'}
               size="sm"
               color={isLiked ? '#f43f5e' : 'currentColor'}
             />
-            <span className="text-xs">{likesCount > 0 ? likesCount : ''}</span>
+            <span className="text-sm font-semibold">{likesCount > 0 ? likesCount : 0}</span>
           </button>
 
           {/* 评论 */}
           <button
             onClick={handleComment}
-            className="flex items-center gap-1 hover:text-blue-500 transition-colors"
+            className="flex items-center gap-1.5 hover:text-blue-500 transition-colors group"
           >
             <Icon icon="comment" size="sm" />
-            <span className="text-xs">{commentsCount > 0 ? commentsCount : ''}</span>
+            <span className="text-sm font-semibold">{commentsCount > 0 ? commentsCount : 0}</span>
           </button>
 
           {/* 浏览 */}
-          <div className="flex items-center gap-1 text-gray-400">
-            <Icon icon="view" size="xs" />
-            <span className="text-xs">{viewsCount}</span>
+          <div className="flex items-center gap-1.5 text-gray-500">
+            <Icon icon="view" size="sm" />
+            <span className="text-sm font-semibold">{viewsCount}</span>
           </div>
         </div>
       </div>

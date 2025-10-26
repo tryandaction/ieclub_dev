@@ -129,48 +129,54 @@ const PlazaPage = () => {
 
   return (
     <div className="plaza-page pb-20">
-      {/* 顶部标题栏 */}
-      <div className="sticky top-0 z-30 bg-white border-b">
-        <div className="px-4 py-3">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent flex items-center gap-2">
-            <span>🏛️</span>
-            <span>话题广场</span>
+      {/* 欢迎横幅 - 小红书风格 */}
+      <div className="mb-6 mx-4 mt-4 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 text-white p-6 rounded-3xl shadow-xl relative overflow-hidden">
+        {/* 装饰元素 */}
+        <div className="absolute top-0 right-0 w-40 h-40 bg-white opacity-10 rounded-full -mr-20 -mt-20 blur-2xl"></div>
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white opacity-10 rounded-full -ml-16 -mb-16 blur-2xl"></div>
+        
+        <div className="relative z-10">
+          <h1 className="text-3xl font-bold mb-2 flex items-center gap-2 drop-shadow-md">
+            <span>欢迎来到 IEclub</span>
+            <span className="text-2xl">👋</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-1">发现精彩内容，分享你的知识</p>
+          <p className="text-sm font-medium drop-shadow">南科大学科交流社区 · 学习分享 · 资源对接</p>
         </div>
+      </div>
 
-        {/* Tab切换 */}
-        <div className="flex border-t">
+      {/* Tab切换 - 改进版 */}
+      <div className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm mb-4">
+        <div className="flex">
           <button
             onClick={() => setActiveTab('topics')}
-            className={`flex-1 py-3 text-center font-semibold transition-all relative ${
+            className={`flex-1 py-4 text-center font-bold transition-all relative ${
               activeTab === 'topics'
                 ? 'text-purple-600'
-                : 'text-gray-500'
+                : 'text-gray-600'
             }`}
           >
-            <div className="flex items-center justify-center gap-2">
-              <Icon icon="topicOffer" size="sm" />
-              <span>话题</span>
+            <div className="flex items-center justify-center gap-2 text-base">
+              <Icon icon="topicOffer" size="md" color={activeTab === 'topics' ? '#8B5CF6' : '#6B7280'} />
+              <span>我来讲 · 想听</span>
             </div>
             {activeTab === 'topics' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-600 to-pink-600" />
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-t" />
             )}
           </button>
           <button
             onClick={() => setActiveTab('projects')}
-            className={`flex-1 py-3 text-center font-semibold transition-all relative ${
+            className={`flex-1 py-4 text-center font-bold transition-all relative ${
               activeTab === 'projects'
                 ? 'text-orange-600'
-                : 'text-gray-500'
+                : 'text-gray-600'
             }`}
           >
-            <div className="flex items-center justify-center gap-2">
-              <Icon icon="project" size="sm" />
+            <div className="flex items-center justify-center gap-2 text-base">
+              <Icon icon="project" size="md" color={activeTab === 'projects' ? '#EA580C' : '#6B7280'} />
               <span>项目</span>
             </div>
             {activeTab === 'projects' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-orange-500 to-red-500" />
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-red-500 rounded-t" />
             )}
           </button>
         </div>

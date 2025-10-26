@@ -69,12 +69,12 @@ const TopicFilter = ({
   };
 
   return (
-    <div className="bg-white rounded-xl border shadow-sm p-4">
+    <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-5">
       {/* 类型筛选 - 横向滚动 */}
       <div className="mb-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Icon icon="filter" size="sm" color="#667eea" />
-          <span className="text-sm font-medium text-gray-700">话题类型</span>
+        <div className="flex items-center gap-2 mb-3">
+          <Icon icon="filter" size="md" color="#667eea" />
+          <span className="text-sm font-bold text-gray-900">话题类型</span>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {typeOptions.map((option) => (
@@ -82,11 +82,11 @@ const TopicFilter = ({
               key={option.value || 'all'}
               onClick={() => handleTypeChange(option.value)}
               className={`
-                flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap
+                flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold whitespace-nowrap text-sm
                 transition-all flex-shrink-0
                 ${type === option.value
-                  ? 'bg-gradient-primary text-white shadow-primary'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  ? 'bg-gradient-primary text-white shadow-lg scale-105'
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-800 hover:scale-105'
                 }
               `}
             >
@@ -104,20 +104,20 @@ const TopicFilter = ({
       {/* 展开/收起更多筛选 */}
       <button
         onClick={() => setShowFilters(!showFilters)}
-        className="flex items-center gap-2 text-sm text-primary-500 hover:text-primary-600 font-medium mb-3"
+        className="flex items-center gap-2 text-sm text-purple-600 hover:text-purple-700 font-bold mb-3 hover:underline"
       >
-        <Icon icon={showFilters ? 'chevronUp' : 'chevronDown'} size="sm" />
+        <Icon icon={showFilters ? 'chevronUp' : 'chevronDown'} size="sm" color="#8B5CF6" />
         <span>{showFilters ? '收起筛选' : '更多筛选'}</span>
       </button>
 
       {/* 更多筛选选项 */}
       {showFilters && (
-        <div className="space-y-4 border-t pt-4">
+        <div className="space-y-5 border-t-2 border-gray-100 pt-4">
           {/* 分类筛选 */}
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Icon icon="category" size="sm" color="#667eea" />
-              <span className="text-sm font-medium text-gray-700">内容分类</span>
+            <div className="flex items-center gap-2 mb-3">
+              <Icon icon="category" size="md" color="#667eea" />
+              <span className="text-sm font-bold text-gray-900">内容分类</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {categoryOptions.map((option) => (
@@ -125,15 +125,15 @@ const TopicFilter = ({
                   key={option.value}
                   onClick={() => handleCategoryChange(option.value)}
                   className={`
-                    flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
-                    transition-all
+                    flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold
+                    transition-all hover:scale-105
                     ${category === option.value
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                      ? 'bg-purple-600 text-white shadow-lg'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
                     }
                   `}
                 >
-                  <Icon icon={option.icon} size="xs" />
+                  <Icon icon={option.icon} size="xs" color={category === option.value ? '#ffffff' : 'currentColor'} />
                   <span>{option.label}</span>
                 </button>
               ))}
@@ -142,9 +142,9 @@ const TopicFilter = ({
 
           {/* 排序方式 */}
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Icon icon="sort" size="sm" color="#667eea" />
-              <span className="text-sm font-medium text-gray-700">排序方式</span>
+            <div className="flex items-center gap-2 mb-3">
+              <Icon icon="sort" size="md" color="#667eea" />
+              <span className="text-sm font-bold text-gray-900">排序方式</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {sortOptions.map((option) => (
@@ -152,15 +152,15 @@ const TopicFilter = ({
                   key={option.value}
                   onClick={() => handleSortChange(option.value)}
                   className={`
-                    flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
-                    transition-all
+                    flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold
+                    transition-all hover:scale-105
                     ${sortBy === option.value
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                      ? 'bg-purple-600 text-white shadow-lg'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
                     }
                   `}
                 >
-                  <Icon icon={option.icon} size="xs" />
+                  <Icon icon={option.icon} size="xs" color={sortBy === option.value ? '#ffffff' : 'currentColor'} />
                   <span>{option.label}</span>
                 </button>
               ))}
