@@ -1,3 +1,5 @@
+const path = require('path')
+
 const config = {
   projectName: 'ieclub-taro',
   date: '2023-10-26',
@@ -24,6 +26,35 @@ const config = {
   compiler: 'webpack5',
   cache: {
     enable: false
+  },
+  h5: {
+    publicPath: '/',
+    staticDirectory: 'static',
+    output: {
+      filename: 'js/[name].js'
+    },
+    router: {
+      mode: 'hash'  // 使用 hash 模式，适合静态部署
+    },
+    esnextModules: ['taro-ui'],
+    postcss: {
+      autoprefixer: {
+        enable: true
+      }
+    },
+    // 指定 HTML 模板文件
+    htmlPluginOption: {
+      template: path.resolve(__dirname, '../index.html')
+    }
+  },
+  weapp: {
+    module: {
+      postcss: {
+        autoprefixer: {
+          enable: true
+        }
+      }
+    }
   }
 }
 
