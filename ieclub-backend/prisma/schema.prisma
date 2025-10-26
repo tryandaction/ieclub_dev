@@ -27,6 +27,12 @@ model User {
   gender      Int      @default(0) @db.TinyInt
   phone       String?  @unique @db.VarChar(20)
   bio         String?  @db.Text
+  
+  // 学校信息
+  school      String?  @db.VarChar(100) // 学校
+  major       String?  @db.VarChar(100) // 专业
+  grade       String?  @db.VarChar(20)  // 年级
+  verified    Boolean  @default(false)  // 是否认证
 
   // 技能和兴趣
   skills      String?  @db.Text // 技能标签数组 (JSON字符串)
