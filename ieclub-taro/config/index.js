@@ -18,8 +18,8 @@ const config = {
   },
   copy: {
     patterns: [
-      { from: 'src/assets/favicon.svg', to: 'dist/favicon.ico' },
-      { from: 'index.html', to: 'dist/index.html' }
+      { from: 'src/assets/favicon.svg', to: 'dist/favicon.ico' }
+      // 注意：不要复制 index.html，让 Taro 通过 htmlPluginOption 自动处理
     ],
     options: {
     }
