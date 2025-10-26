@@ -97,6 +97,22 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
+// 根路径处理 - API信息页面
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'IEClub API Server',
+    version: '2.0.0',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/health',
+      api: '/api',
+      documentation: 'https://ieclub.online/docs'
+    },
+    status: 'running'
+  });
+});
+
 // API 路由
 try {
   const routes = require('./routes');

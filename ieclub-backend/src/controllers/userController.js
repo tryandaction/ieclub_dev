@@ -8,6 +8,81 @@ const prisma = new PrismaClient();
 
 class UserController {
   /**
+    * 获取用户列表
+    * GET /api/users
+    */
+  static async getUsers(req, res) {
+    try {
+      const { 
+        page = 1, 
+        limit = 20,
+        search = '',
+        major = '',
+        grade = '',
+        skills = ''
+      } = req.query;
+
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+      const where = {};
+
+      // 搜索条件
+      if (search) {
+        where.OR = [
+          { nickname: { contains: search } },
+          { bio: { contains: search } }
+        ];
+      }
+
+      if (major) {
+        where.major = { contains: major };
+      }
+
+      if (grade) {
+        where.grade = grade;
+      }
+
+      if (skills) {
+        where.skills = { contains: skills };
+      }
+
+      const [users, total] = await Promise.all([
+        prisma.user.findMany({
+          where,
+          select: {
+            id: true,
+            nickname: true,
+            avatar: true,
+            bio: true,
+            major: true,
+            grade: true,
+            skills: true,
+            interests: true,
+            isVerified: true,
+            createdAt: true
+          },
+          skip,
+          take: parseInt(limit),
+          orderBy: { createdAt: 'desc' }
+        }),
+        prisma.user.count({ where })
+      ]);
+
+      return response.success(res, {
+        users,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          totalPages: Math.ceil(total / parseInt(limit))
+        }
+      }, '获取用户列表成功');
+    } catch (error) {
+      logger.error('获取用户列表失败:', error);
+      return response.error(res, '获取用户列表失败', 500);
+    }
+  }
+
+  /**
     * 获取用户详细信息（增强版）
     * GET /api/v1/users/:id
     */

@@ -468,6 +468,48 @@ class AuthController {
       next(error);
     }
   }
+
+  // 获取用户信息
+  async getProfile(req, res, next) {
+    try {
+      const userId = req.user.id;
+      
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          nickname: true,
+          avatar: true,
+          bio: true,
+          school: true,
+          major: true,
+          grade: true,
+          interests: true,
+          skills: true,
+          isVerified: true,
+          createdAt: true,
+          updatedAt: true
+        }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: '用户不存在'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: '获取用户信息成功',
+        data: user
+      });
+    } catch (error) {
+      console.error('获取用户信息失败:', error);
+      next(error);
+    }
+  }
 }
 
 module.exports = AuthController;

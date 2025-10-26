@@ -61,7 +61,8 @@
     "uuid": "^13.0.0",
     "winston": "^3.18.3",
     "winston-daily-rotate-file": "^5.0.0",
-    "ws": "^8.18.3"
+    "ws": "^8.18.3",
+    "xss": "^1.0.15"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

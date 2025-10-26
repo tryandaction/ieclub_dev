@@ -2,10 +2,10 @@
 const express = require('express');
 const router = express.Router();
 
-const authController = require('../controllers/authController');
+const AuthController = require('../controllers/authController');
 const topicController = require('../controllers/topicController');
 const commentController = require('../controllers/commentController');
-const userController = require('../controllers/userController');
+const UserController = require('../controllers/userController');
 const searchController = require('../controllers/searchController');
 const notificationController = require('../controllers/notificationController');
 // const communityController = require('../controllers/communityController');
@@ -15,13 +15,18 @@ const LocalUploadService = require('../services/localUploadService');
 
 const { authenticate } = require('../middleware/auth');
 
+// 创建控制器实例
+const authControllerInstance = new AuthController();
+const userControllerInstance = new UserController();
+
 // ===== 认证路由 =====
-router.post('/auth/send-code', authController.sendVerifyCode);
-router.post('/auth/verify-code', authController.verifyCode);
-router.post('/auth/register', authController.register);
-router.post('/auth/login', authController.login);
-router.post('/auth/forgot-password', authController.forgotPassword);
-router.post('/auth/reset-password', authController.resetPassword);
+router.post('/auth/send-code', AuthController.sendVerifyCode);
+router.post('/auth/verify-code', AuthController.verifyCode);
+router.post('/auth/register', AuthController.register);
+router.post('/auth/login', AuthController.login);
+router.post('/auth/forgot-password', AuthController.forgotPassword);
+router.post('/auth/reset-password', AuthController.resetPassword);
+router.get('/auth/profile', authenticate, authControllerInstance.getProfile.bind(authControllerInstance));
 
 // ===== 话题路由 =====
 router.get('/topics', topicController.getTopics);
@@ -72,14 +77,15 @@ router.post('/comments/:id/like', authenticate, commentController.likeComment);
 router.delete('/comments/:id', authenticate, commentController.deleteComment);
 
 // ===== 用户路由 =====
+router.get('/users', UserController.getUsers);
 router.get('/users/search', searchController.searchUsers);
-router.get('/users/:id', userController.getUserProfile);
-router.put('/users/:id', authenticate, userController.updateUserProfile);
-router.post('/users/:id/follow', authenticate, userController.followUser);
-router.get('/users/:id/following', userController.getFollowing);
-router.get('/users/:id/followers', userController.getFollowers);
-router.post('/users/:id/like', authenticate, userController.likeUser);
-router.post('/users/:id/heart', authenticate, userController.heartUser);
+router.get('/users/:id', UserController.getUserProfile);
+router.put('/users/:id', authenticate, UserController.updateUserProfile);
+router.post('/users/:id/follow', authenticate, UserController.followUser);
+router.get('/users/:id/following', UserController.getFollowing);
+router.get('/users/:id/followers', UserController.getFollowers);
+router.post('/users/:id/like', authenticate, UserController.likeUser);
+router.post('/users/:id/heart', authenticate, UserController.heartUser);
 
 // ===== 搜索路由 =====
 router.get('/search/topics', searchController.searchTopics);
