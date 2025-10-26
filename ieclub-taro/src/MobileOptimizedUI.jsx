@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Search, Bell, MessageCircle, Calendar, Users, TrendingUp, Settings, LogOut, Upload, Heart, Bookmark, Share2, Send, ChevronDown, Home, User, Plus, ArrowLeft } from 'lucide-react';
+import Icon from './components/common/Icon.jsx';
 
 // 导入现有的页面组件
 import { HomePage } from './pages/home/HomePage.jsx';
@@ -31,11 +31,11 @@ export default function MobileOptimizedUI() {
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-bottom z-50">
       <div className="flex justify-around items-center h-16 px-2">
         {[
-          { id: 'home', icon: Home, label: '首页' },
-          { id: 'events', icon: Calendar, label: '活动' },
-          { id: 'match', icon: Users, label: '匹配' },
-          { id: 'ranking', icon: TrendingUp, label: '排行' },
-          { id: 'profile', icon: User, label: '我的' }
+          { id: 'home', icon: 'square', label: '广场' },
+          { id: 'events', icon: 'activities', label: '活动' },
+          { id: 'match', icon: 'community', label: '社区' },
+          { id: 'ranking', icon: 'ranking', label: '排行' },
+          { id: 'profile', icon: 'profile', label: '我的' }
         ].map(item => (
           <button
             key={item.id}
@@ -45,13 +45,11 @@ export default function MobileOptimizedUI() {
             }}
             className="flex flex-col items-center justify-center flex-1 h-full"
           >
-            <div className={`flex items-center justify-center ${
-              currentPage === item.id
-                ? 'text-blue-600'
-                : 'text-gray-600'
-            }`}>
-              <item.icon size={20} />
-            </div>
+            <Icon 
+              icon={item.icon}
+              size="md"
+              color={currentPage === item.id ? '#667eea' : '#6b7280'}
+            />
             <span className={`text-xs mt-1 ${
               currentPage === item.id ? 'text-blue-600 font-medium' : 'text-gray-600'
             }`}>
@@ -72,13 +70,13 @@ export default function MobileOptimizedUI() {
         </h1>
         <div className="flex items-center gap-3">
           <button className="p-2 hover:bg-gray-100 rounded-full relative">
-            <Search size={20} className="text-gray-700" />
+            <Icon icon="search" size="md" color="#374151" />
           </button>
           <button 
             onClick={() => setShowNotifications(!showNotifications)}
             className="p-2 hover:bg-gray-100 rounded-full relative"
           >
-            <Bell size={20} className="text-gray-700" />
+            <Icon icon="notification" size="md" color="#374151" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
         </div>
@@ -95,13 +93,13 @@ export default function MobileOptimizedUI() {
         </h1>
         <nav className="space-y-2">
           {[
-            { id: 'home', icon: Home, label: '首页' },
-            { id: 'events', icon: Calendar, label: '活动广场' },
-            { id: 'match', icon: Users, label: '兴趣匹配' },
-            { id: 'ranking', icon: TrendingUp, label: '排行榜' },
-            { id: 'bookmarks', icon: Bookmark, label: '收藏' },
-            { id: 'profile', icon: User, label: '个人主页' },
-            { id: 'settings', icon: Settings, label: '设置' }
+            { id: 'home', icon: 'square', label: '话题广场' },
+            { id: 'events', icon: 'activities', label: '活动广场' },
+            { id: 'match', icon: 'community', label: '社区' },
+            { id: 'ranking', icon: 'ranking', label: '排行榜' },
+            { id: 'bookmarks', icon: 'bookmark', label: '收藏' },
+            { id: 'profile', icon: 'profile', label: '个人主页' },
+            { id: 'settings', icon: 'settings', label: '设置' }
           ].map(item => (
             <button
               key={item.id}
@@ -112,7 +110,11 @@ export default function MobileOptimizedUI() {
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
-              <item.icon size={20} />
+              <Icon 
+                icon={item.icon} 
+                size="md"
+                color={currentPage === item.id ? '#667eea' : '#374151'}
+              />
               <span className="font-medium">{item.label}</span>
             </button>
           ))}
@@ -162,14 +164,14 @@ export default function MobileOptimizedUI() {
           onClick={() => setCurrentPage('create')}
           className="fixed bottom-20 right-4 w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center z-40"
         >
-          <Plus size={24} />
+          <Icon icon="publish" size="lg" color="#ffffff" />
         </button>
       )}
 
       {/* 桌面端浮动按钮 */}
       {!isMobile && (
         <button className="fixed bottom-8 right-8 w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center">
-          <Plus size={24} />
+          <Icon icon="publish" size="lg" color="#ffffff" />
         </button>
       )}
     </div>

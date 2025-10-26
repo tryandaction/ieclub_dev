@@ -1,78 +1,249 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // 导入 useNavigate
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../store/AuthContext.jsx';
-import { Button } from '../../components/common/Button.jsx';
-// 导入我们刚刚创建的两个新组件
-import { PostCard } from '../../components/post/PostCard.jsx';
-import { CreatePostModal } from '../../components/post/CreatePostModal.jsx';
-import { Plus, TrendingUp, Filter } from 'lucide-react';
+import { useTopicStore, TopicType, TopicCategory, TopicSortBy } from '../../store/topicStore';
+import { TopicFilter, TopicList } from '../../components/topic';
+import Icon from '../../components/common/Icon.jsx';
+
+// 模拟话题数据
+const mockTopics = [
+  {
+    id: 1,
+    type: TopicType.OFFER,
+    title: '线性代数期末重点串讲',
+    content: '大家好！临近期末了，我整理了线性代数的核心知识点和常见题型。包括：行列式计算、矩阵运算、特征值与特征向量、线性方程组等。适合想要系统复习的同学。',
+    author: '张明',
+    avatar: '👨‍💻',
+    category: TopicCategory.STUDY,
+    tags: ['线性代数', '期末复习', '数学'],
+    likesCount: 45,
+    commentsCount: 12,
+    viewsCount: 230,
+    bookmarksCount: 18,
+    isLiked: false,
+    isBookmarked: false,
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2小时前
+    format: 'offline',
+    maxParticipants: 30,
+    availableTimes: ['周六14:00-16:00', '周日10:00-12:00'],
+  },
+  {
+    id: 2,
+    type: TopicType.DEMAND,
+    title: '求Python数据分析入门指导',
+    content: '我是生物医学专业的研究生，需要处理实验数据，想学习Python数据分析（Pandas, NumPy, Matplotlib）。希望能找到愿意教我的大神，线上线下都可以！',
+    author: '李思',
+    avatar: '👩‍🔬',
+    category: TopicCategory.SKILL,
+    tags: ['Python', '数据分析', '求助'],
+    likesCount: 28,
+    commentsCount: 8,
+    viewsCount: 156,
+    bookmarksCount: 6,
+    isLiked: true,
+    isBookmarked: false,
+    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5小时前
+    wantToHearCount: 16,
+    isTeamFormed: true,
+  },
+  {
+    id: 3,
+    type: TopicType.PROJECT,
+    title: '智能排课系统 - 招募前端开发工程师',
+    content: '我们正在开发一个基于AI的智能排课推荐系统，目前MVP已完成70%。寻找熟悉React/Vue的前端工程师加入团队。项目有完整的产品规划和技术架构，适合想积累项目经验的同学。',
+    author: '王浩',
+    avatar: '🧑‍💼',
+    category: TopicCategory.STARTUP,
+    tags: ['前端开发', 'React', '项目招募'],
+    likesCount: 67,
+    commentsCount: 23,
+    viewsCount: 445,
+    bookmarksCount: 34,
+    isLiked: false,
+    isBookmarked: true,
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1天前
+    projectStage: 'MVP开发中',
+    teamSize: 5,
+    recruiting: true,
+  },
+  {
+    id: 4,
+    type: TopicType.OFFER,
+    title: 'React Hooks 实战分享',
+    content: '从useState到useContext，从useEffect到自定义Hooks，全面讲解React Hooks的使用技巧和最佳实践。会结合实际项目案例进行讲解。',
+    author: '赵六',
+    avatar: '👨‍💻',
+    category: TopicCategory.SKILL,
+    tags: ['React', 'Hooks', '前端'],
+    likesCount: 89,
+    commentsCount: 31,
+    viewsCount: 567,
+    bookmarksCount: 45,
+    isLiked: true,
+    isBookmarked: true,
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3天前
+    format: 'online',
+    maxParticipants: 50,
+  },
+];
 
 export const HomePage = () => {
   const { isAuthenticated } = useAuth();
-  const navigate = useNavigate(); // <-- 在这里调用
-  const [posts, setPosts] = useState([
-    { id: 1, author: '张明', avatar: '👨‍💻', major: '计算机科学与工程系', title: '寻找对AI+教育感兴趣的小伙伴', content: '我正在做一个基于大模型的个性化学习助手项目...\n✅ 原型设计\n✅ 基础架构搭建', category: '项目招募', tags: ['AI', '教育科技'], likes: 23, comments: 8, time: '2小时前', verified: true, commentsList: [{ id: 1, author: '李思', avatar: '👩', content: '很有意思的项目！', likes: 3, time: '1小时前' }] },
-    { id: 2, author: '李思', avatar: '👩‍🔬', major: '生物医学工程系', title: '分享：如何从零开始学习Python数据分析', content: '最近整理了一套适合生物医学背景同学的Python学习路径...', category: '资源分享', tags: ['Python', '数据分析'], likes: 45, comments: 15, time: '5小时前', verified: true, images: [1, 2], commentsList: [] },
-    { id: 3, author: '王浩', avatar: '🧑‍🎨', major: '工业设计', title: '【资源分享】超全UI设计工具合集', content: '整理了一份设计师必备工具清单...', category: '资源分享', tags: ['设计', '工具'], likes: 67, comments: 22, time: '1天前', commentsList: [] }
-  ]);
-  const [showCreatePost, setShowCreatePost] = useState(false);
-  const [filter, setFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('latest');
+  const navigate = useNavigate();
+  
+  // 使用Zustand store
+  const {
+    topics,
+    filters,
+    pagination,
+    isLoading,
+    setTopics,
+    setFilters,
+    likeTopic,
+    bookmarkTopic,
+    incrementViews,
+  } = useTopicStore();
 
-  const handleCreatePost = (postData) => {
-    const newPost = { id: Date.now(), author: '张明', avatar: '👨‍💻', major: '计算机科学与工程系', title: postData.title, content: postData.content, category: postData.category, tags: postData.tags.split(' ').filter(t => t), likes: 0, comments: 0, time: '刚刚', verified: true, commentsList: [] };
-    setPosts([newPost, ...posts]);
-    setShowCreatePost(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  // 初始化：加载模拟数据
+  useEffect(() => {
+    // 实际项目中这里应该调用API
+    // const fetchTopics = async () => {
+    //   setLoading(true);
+    //   try {
+    //     const data = await api.topics.getList(filters);
+    //     setTopics(data.topics);
+    //     setPagination(data.pagination);
+    //   } catch (error) {
+    //     console.error('加载话题失败:', error);
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // };
+    // fetchTopics();
+
+    // 使用模拟数据
+    if (topics.length === 0) {
+      setTopics(mockTopics);
+    }
+  }, []);
+
+  // 筛选话题
+  const filteredTopics = topics.filter((topic) => {
+    // 类型筛选
+    if (filters.type && topic.type !== filters.type) return false;
+    // 分类筛选
+    if (filters.category !== TopicCategory.ALL && topic.category !== filters.category) return false;
+    return true;
+  });
+
+  // 排序话题
+  const sortedTopics = [...filteredTopics].sort((a, b) => {
+    switch (filters.sortBy) {
+      case TopicSortBy.LATEST:
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      case TopicSortBy.HOT:
+        return (b.likesCount + b.commentsCount) - (a.likesCount + a.commentsCount);
+      case TopicSortBy.TRENDING:
+        // 简化的趋势算法：结合热度和时间
+        const scoreA = (a.likesCount + a.commentsCount) / Math.max(1, (Date.now() - new Date(a.createdAt)) / (1000 * 60 * 60));
+        const scoreB = (b.likesCount + b.commentsCount) / Math.max(1, (Date.now() - new Date(b.createdAt)) / (1000 * 60 * 60));
+        return scoreB - scoreA;
+      case TopicSortBy.RECOMMENDED:
+      default:
+        return 0; // 保持原顺序（实际应该有推荐算法）
+    }
+  });
+
+  // 处理筛选变化
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
   };
 
-  // 替换掉的部分
-  if (!isAuthenticated) {
-    return (
-      <div className="flex flex-col items-center justify-center text-center h-[calc(100vh-200px)]">
-        <div className="text-6xl mb-6">🎓</div>
-        <h2 className="text-3xl font-bold mb-4">欢迎来到IEclub</h2>
-        <p className="text-gray-600 mb-8">登录后查看完整内容</p>
-        <Button variant="primary" onClick={() => navigate('/login')}>
-          立即登录
-        </Button>
-      </div>
-    );
-  }
+  // 处理话题点击
+  const handleTopicClick = (topic) => {
+    incrementViews(topic.id);
+    // 跳转到话题详情页（暂未实现）
+    console.log('查看话题详情:', topic);
+  };
+
+  // 处理点赞
+  const handleLike = (topicId) => {
+    likeTopic(topicId);
+  };
+
+  // 处理收藏
+  const handleBookmark = (topicId) => {
+    bookmarkTopic(topicId);
+  };
+
+  // 处理评论
+  const handleComment = (topicId) => {
+    console.log('评论话题:', topicId);
+  };
+
+  // 处理加载更多
+  const handleLoadMore = () => {
+    console.log('加载更多');
+    // loadNextPage();
+  };
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white p-8 rounded-2xl shadow-lg relative overflow-hidden">
+      {/* 欢迎横幅 */}
+      <div className="bg-gradient-primary text-white p-8 rounded-2xl shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full -mr-32 -mt-32"></div>
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-10 rounded-full -ml-24 -mb-24"></div>
         <div className="relative z-10">
           <h1 className="text-4xl font-bold mb-3">欢迎来到 IEclub 👋</h1>
           <p className="text-xl opacity-95 mb-2">南方科技大学跨学科交流社区</p>
-          <p className="text-sm opacity-80">连接思想 · 激发创新 · 共同成长</p>
+          <p className="text-sm opacity-80">学习 · 科研 · 创业 | 智能匹配 · 资源对接 · 知识分享</p>
         </div>
       </div>
+
+      {/* 快捷操作按钮 */}
       <div className="flex flex-wrap gap-3">
-        <Button variant="primary" icon={Plus} onClick={() => setShowCreatePost(true)}>发布帖子</Button>
-        <Button variant="outline" icon={TrendingUp}>热门话题</Button>
-        <Button variant="ghost" icon={Filter}>筛选</Button>
+        <button
+          onClick={() => !isAuthenticated ? navigate('/login') : setShowCreateModal(true)}
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-primary text-white rounded-lg font-medium hover:shadow-primary transition-all"
+        >
+          <Icon icon="publish" size="sm" color="#ffffff" />
+          <span>发布话题</span>
+        </button>
+        <button
+          onClick={() => setFilters({ ...filters, sortBy: TopicSortBy.HOT })}
+          className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-lg font-medium hover:border-primary-300 hover:bg-primary-50 transition-all"
+        >
+          <Icon icon="fire" size="sm" color="#ef4444" />
+          <span>热门话题</span>
+        </button>
       </div>
-      <div className="bg-white p-4 rounded-xl border shadow-sm">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex gap-2 flex-wrap">
-            {['all', 'academic', 'project', 'resource', 'qa'].map(filterType => (
-              <button key={filterType} onClick={() => setFilter(filterType)} className={`px-4 py-2 rounded-lg font-semibold transition-all ${filter === filterType ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>{filterType.charAt(0).toUpperCase() + filterType.slice(1)}</button>
-            ))}
-          </div>
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="latest">最新发布</option>
-            <option value="hot">最热</option>
-            <option value="comments">最多评论</option>
-          </select>
-        </div>
-      </div>
-      <div className="space-y-4">
-        {posts.map(post => (<PostCard key={post.id} post={post} />))}
-      </div>
-      <CreatePostModal isOpen={showCreatePost} onClose={() => setShowCreatePost(false)} onSubmit={handleCreatePost} />
+
+      {/* 话题筛选器 */}
+      <TopicFilter
+        filters={filters}
+        onChange={handleFilterChange}
+      />
+
+      {/* 话题列表 */}
+      <TopicList
+        topics={sortedTopics}
+        loading={isLoading}
+        hasMore={pagination.hasMore}
+        onLoadMore={handleLoadMore}
+        onTopicClick={handleTopicClick}
+        onLike={handleLike}
+        onBookmark={handleBookmark}
+        onComment={handleComment}
+        emptyType={filters.type}
+      />
+
+      {/* 发布话题模态框（待实现） */}
+      {/* <CreateTopicModal 
+        isOpen={showCreateModal} 
+        onClose={() => setShowCreateModal(false)} 
+      /> */}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Outlet } from 'react-router-dom';
 
 // 导入 AuthProvider
 import { AuthProvider } from './store/AuthContext.jsx';
@@ -7,24 +7,14 @@ import { AuthProvider } from './store/AuthContext.jsx';
 // 导入移动端优化的UI组件
 import MobileOptimizedUI from './MobileOptimizedUI.jsx';
 
-// 导入拆分的所有组件和页面
+// 导入路由配置
+import { routes } from './router';
+import { RouteGuard } from './router/RouteGuard.jsx';
+import { PageTransition } from './router/PageTransition.jsx';
+
+// 导入布局组件
 import { Navbar } from './components/layout/Navbar.jsx';
 import { Sidebar } from './components/layout/Sidebar.jsx';
-
-import { LoginPage } from './pages/auth/LoginPage.jsx';
-import { RegisterPage } from './pages/auth/RegisterPage.jsx';
-
-import { HomePage } from './pages/home/HomePage.jsx';
-
-import { EventsPage } from './pages/events/EventsPage.jsx';
-
-import { MatchPage } from './pages/match/MatchPage.jsx';
-
-import { ProfilePage } from './pages/profile/ProfilePage.jsx';
-
-import { LeaderboardPage } from './pages/leaderboard/LeaderboardPage.jsx';
-import { BookmarksPage } from './pages/bookmarks/BookmarksPage.jsx';
-import { SettingsPage } from './pages/settings/SettingsPage.jsx';
 
 
 // ==================== 状态管理 ====================
@@ -69,8 +59,7 @@ import { SettingsPage } from './pages/settings/SettingsPage.jsx';
 
 // ==================== 主应用 ====================
 
-// 1. 定义主布局组件
-// 这个组件包含了导航栏和侧边栏，<Outlet /> 是一个占位符，代表子页面将在这里显示
+// 主布局组件 - 包含导航栏和侧边栏
 const MainLayout = () => {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -79,7 +68,9 @@ const MainLayout = () => {
         <div className="flex gap-6">
           <Sidebar />
           <main className="flex-1 min-w-0">
-            <Outlet /> {/* 子页面会在这里渲染 */}
+            <PageTransition>
+              <Outlet />
+            </PageTransition>
           </main>
         </div>
       </div>
@@ -102,36 +93,62 @@ function App() {
   }, []);
 
   return (
-    <AuthProvider> {/* 包裹整个应用以提供认证状态 */}
-      <HashRouter> {/* 使用 Hash 路由以支持静态部署 */}
+    <AuthProvider>
+      <HashRouter>
         {isMobile ? (
           // 移动端使用优化的UI
           <MobileOptimizedUI />
         ) : (
-          // 桌面端使用现有的布局
-          <Routes> {/* 路由规则列表 */}
+          // 桌面端使用配置化的路由
+          <Routes>
+            {routes.map((route, index) => {
+              const { path, element, title, requireAuth, layout } = route;
+              
+              // 包装元素：添加路由守卫和页面过渡
+              const guardedElement = (
+                <RouteGuard requireAuth={requireAuth} title={title}>
+                  {element}
+                </RouteGuard>
+              );
 
-            {/* a. 不需要布局的页面 (登录页, 注册页) */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+              // 不需要布局的页面（如登录、注册）
+              if (!layout) {
+                return (
+                  <Route
+                    key={index}
+                    path={path}
+                    element={<PageTransition>{guardedElement}</PageTransition>}
+                  />
+                );
+              }
 
-            {/* b. 使用主布局的页面 */}
+              // 需要布局的页面
+              return null; // 将在下面的MainLayout中处理
+            })}
+
+            {/* 使用主布局的页面 */}
             <Route path="/" element={<MainLayout />}>
-              {/* 默认子路由，访问'/'时显示 */}
-              <Route index element={<HomePage />} />
-              {/* 其他子路由 */}
-              <Route path="trending" element={<HomePage />} /> {/* 热门页也暂时使用首页组件 */}
-              <Route path="events" element={<EventsPage />} />
-              <Route path="match" element={<MatchPage />} />
-              <Route path="profile" element={<ProfilePage />} />
-              <Route path="leaderboard" element={<LeaderboardPage />} />
-              <Route path="bookmarks" element={<BookmarksPage />} />
-              <Route path="settings" element={<SettingsPage />} />
+              {routes
+                .filter((route) => route.layout)
+                .map((route, index) => {
+                  const { path, element, title, requireAuth } = route;
+                  
+                  const guardedElement = (
+                    <RouteGuard requireAuth={requireAuth} title={title}>
+                      {element}
+                    </RouteGuard>
+                  );
+
+                  // 首页使用index route
+                  if (path === '/') {
+                    return <Route key={index} index element={guardedElement} />;
+                  }
+
+                  return (
+                    <Route key={index} path={path} element={guardedElement} />
+                  );
+                })}
             </Route>
-
-            {/* c. 如果用户访问了不存在的页面，自动跳转回首页 */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-
           </Routes>
         )}
       </HashRouter>

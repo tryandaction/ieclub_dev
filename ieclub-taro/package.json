@@ -27,6 +27,7 @@
 		"build:analyze": "npm run analyze"
 	},
 	"dependencies": {
+		"@iconify/react": "^6.0.2",
 		"@tailwindcss/postcss": "^4.1.16",
 		"@tarojs/components": "4.1.7",
 		"@tarojs/helper": "4.1.7",
@@ -37,7 +38,7 @@
 		"@tarojs/react": "4.1.7",
 		"@tarojs/runtime": "4.1.7",
 		"@tarojs/taro": "^4.1.7",
-		"dayjs": "^1.11.10",
+		"dayjs": "^1.11.18",
 		"lucide-react": "^0.294.0",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
