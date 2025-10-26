@@ -95,8 +95,13 @@ deploy_frontend() {
     
     # 重启 Nginx
     log_info "重启 Nginx..."
-    nginx -t && systemctl reload nginx
-    log_success "Nginx 已重启。"
+    if nginx -t 2>/dev/null; then
+        systemctl reload nginx
+        log_success "Nginx 已重启。"
+    else
+        log_error "Nginx 配置测试失败，跳过重启。请检查 SSL 证书配置。"
+        log_info "提示: 如果没有 SSL 证书，请使用 HTTP-only 配置或生成自签名证书。"
+    fi
     
     log_success "========== 前端部署完成 =========="
 }
@@ -106,6 +111,15 @@ deploy_backend() {
     log_info "========== 开始部署后端 =========="
     
     cd "${BACKEND_DIR}"
+    
+    # 检查 .env 文件是否存在（必须手动上传）
+    if [ ! -f ".env" ]; then
+        log_error ".env 文件不存在！请先手动上传 .env 文件到服务器"
+        log_error "使用命令: scp ieclub-backend/.env root@39.108.160.112:/root/ieclub/ieclub-backend/.env"
+        exit 1
+    else
+        log_success ".env 文件已存在，继续部署。"
+    fi
     
     # 安装依赖
     log_info "安装后端依赖..."
@@ -117,7 +131,7 @@ deploy_backend() {
         pm2 restart ieclub-backend
     else
         log_info "首次启动后端服务..."
-        pm2 start server.js --name ieclub-backend
+        pm2 start src/server.js --name ieclub-backend
     fi
     
     pm2 save
