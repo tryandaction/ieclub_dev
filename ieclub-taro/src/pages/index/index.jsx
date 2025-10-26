@@ -1,8 +1,19 @@
-// 这是 Taro 要求的占位页面
-// 实际应用使用 React Router，不会渲染这个页面
-import React from 'react';
+import React, { Component } from 'react';
+import { View } from '@tarojs/components';
+import App from '../../App.jsx';
+import './index.scss';
 
-export default function Index() {
-  return null;
+// Taro 页面实例 - 在H5环境下渲染React Router应用
+export default class Index extends Component {
+  componentDidMount() {
+    console.log('Index page mounted');
+  }
+
+  render() {
+    return (
+      <View className="index">
+        <App />
+      </View>
+    );
+  }
 }
-

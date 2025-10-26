@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import './index.css';
-import App from './App.jsx';
 
 // Taro H5 应用入口
-// 包装成 Taro 组件类以满足 Taro 的页面实例要求
+// 这里只是一个壳，实际内容在pages/index/index.jsx中渲染
 class TaroApp extends Component {
   componentDidMount() {
     console.log('Taro App mounted');
@@ -18,8 +17,8 @@ class TaroApp extends Component {
   }
 
   render() {
-    // 直接渲染 App.jsx 中的主应用组件
-    return <App />;
+    // 返回空，实际内容在页面中
+    return this.props.children;
   }
 }
 
