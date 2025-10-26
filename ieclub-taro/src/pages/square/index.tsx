@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import Icon from '../../components/Icon'
-import { IconConfig, getTopicTypeIcon, getTopicTypeColor, getTopicTypeText } from '../../config/icon.config'
 import './index.scss'
 
 interface Topic {
@@ -24,7 +22,7 @@ interface Topic {
 
 export default function Square() {
   const [topics, setTopics] = useState<Topic[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('all')
 
   useEffect(() => {
@@ -32,93 +30,95 @@ export default function Square() {
   }, [])
 
   const loadTopics = async () => {
-    try {
-      setLoading(true)
-
-      // 尝试从API获取数据
-      try {
-        const res = await Taro.request({
-          url: 'https://api.ieclub.online/api/topics',
-          method: 'GET',
-          timeout: 5000
-        })
-
-        if (res.statusCode === 200 && res.data?.success) {
-          const apiTopics = res.data.data || []
-          if (apiTopics.length > 0) {
-            setTopics(apiTopics)
-            setLoading(false)
-            return
-          }
-        }
-      } catch (apiError) {
-        console.warn('API调用失败，使用Mock数据:', apiError)
+    setLoading(true)
+    
+    // Mock数据 - 快速展示界面
+    const mockTopics: Topic[] = [
+      {
+        id: '1',
+        title: '高等数学期末重点串讲',
+        content: '马上期末了，整理了一些高数的重点内容，包括微积分、级数、多元函数等核心考点...',
+        author: {
+          nickname: '数学小天才',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=1'
+        },
+        images: ['https://picsum.photos/400/300?random=1'],
+        likesCount: 128,
+        commentsCount: 45,
+        viewsCount: 892,
+        tags: ['学习', '数学', '期末'],
+        contentType: 'topic_offer',
+        createdAt: '2024-10-25T10:30:00Z'
+      },
+      {
+        id: '2',
+        title: '求线性代数复习指导',
+        content: '线代学得有点懵，特别是特征值和矩阵对角化部分，有没有大佬能分享一下复习经验？',
+        author: {
+          nickname: '迷茫的小萌新',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=2'
+        },
+        likesCount: 67,
+        commentsCount: 23,
+        viewsCount: 445,
+        tags: ['学习', '求助'],
+        contentType: 'topic_demand',
+        createdAt: '2024-10-25T09:15:00Z'
+      },
+      {
+        id: '3',
+        title: '创业项目：校园二手交易平台',
+        content: '我们团队正在开发一个校园二手交易小程序，目前需要前端和UI设计师加入...',
+        author: {
+          nickname: '创业者Leo',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=3'
+        },
+        images: [
+          'https://picsum.photos/400/300?random=2',
+          'https://picsum.photos/400/300?random=3'
+        ],
+        likesCount: 234,
+        commentsCount: 78,
+        viewsCount: 1523,
+        tags: ['创业', '项目', '招募'],
+        contentType: 'project',
+        createdAt: '2024-10-24T16:20:00Z'
+      },
+      {
+        id: '4',
+        title: 'Python爬虫实战教程',
+        content: '从零开始学习Python爬虫，涵盖requests、BeautifulSoup、Scrapy等主流框架...',
+        author: {
+          nickname: '代码侠',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=4'
+        },
+        images: ['https://picsum.photos/400/500?random=4'],
+        likesCount: 189,
+        commentsCount: 56,
+        viewsCount: 1234,
+        tags: ['编程', 'Python', '爬虫'],
+        contentType: 'topic_offer',
+        createdAt: '2024-10-24T14:00:00Z'
+      },
+      {
+        id: '5',
+        title: '寻找算法竞赛队友',
+        content: '准备参加ACM-ICPC区域赛，现在缺一名算法选手，要求熟悉动态规划和图论...',
+        author: {
+          nickname: '算法爱好者',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=5'
+        },
+        likesCount: 45,
+        commentsCount: 18,
+        viewsCount: 567,
+        tags: ['竞赛', '算法', '组队'],
+        contentType: 'project',
+        createdAt: '2024-10-24T10:30:00Z'
       }
-
-      // API失败时使用Mock数据
-      const mockTopics: Topic[] = [
-        {
-          id: '1',
-          title: '高等数学期末重点串讲',
-          content: '马上期末了，整理了一些高数的重点内容，包括微积分、级数、多元函数等核心考点...',
-          author: {
-            nickname: '数学小天才',
-            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=1'
-          },
-          images: ['https://picsum.photos/400/300?random=1'],
-          likesCount: 128,
-          commentsCount: 45,
-          viewsCount: 892,
-          tags: ['学习', '数学', '期末'],
-          contentType: 'topic_offer',
-          createdAt: '2024-10-25T10:30:00Z'
-        },
-        {
-          id: '2',
-          title: '求线性代数复习指导',
-          content: '线代学得有点懵，特别是特征值和矩阵对角化部分，有没有大佬能分享一下复习经验？',
-          author: {
-            nickname: '迷茫的小萌新',
-            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=2'
-          },
-          likesCount: 67,
-          commentsCount: 23,
-          viewsCount: 445,
-          tags: ['学习', '求助'],
-          contentType: 'topic_demand',
-          createdAt: '2024-10-25T09:15:00Z'
-        },
-        {
-          id: '3',
-          title: '创业项目：校园二手交易平台',
-          content: '我们团队正在开发一个校园二手交易小程序，目前需要前端和UI设计师加入...',
-          author: {
-            nickname: '创业者Leo',
-            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=3'
-          },
-          images: [
-            'https://picsum.photos/400/300?random=2',
-            'https://picsum.photos/400/300?random=3'
-          ],
-          likesCount: 234,
-          commentsCount: 78,
-          viewsCount: 1523,
-          tags: ['创业', '项目', '招募'],
-          contentType: 'project',
-          createdAt: '2024-10-24T16:20:00Z'
-        }
-      ]
-      
-      setTopics(mockTopics)
-    } catch (error) {
-      console.error('加载话题失败', error)
-      Taro.showToast({
-        title: '加载失败',
-        icon: 'none'
-      })
-    } finally {
-      setLoading(false)
-    }
+    ]
+    
+    setTopics(mockTopics)
+    setLoading(false)
   }
 
   const goToSearch = () => {
@@ -167,24 +167,6 @@ export default function Square() {
 
   return (
     <View className='square-page'>
-      {/* 调试信息 */}
-      {process.env.NODE_ENV === 'development' && (
-        <View className='debug-info' style={{
-          position: 'fixed',
-          top: '10px',
-          right: '10px',
-          background: 'rgba(0,0,0,0.8)',
-          color: 'white',
-          padding: '10px',
-          borderRadius: '5px',
-          fontSize: '12px',
-          zIndex: 9999
-        }}>
-          话题数: {topics.length}<br/>
-          加载中: {loading ? '是' : '否'}
-        </View>
-      )}
-
       {/* 顶部导航栏 */}
       <View className='nav-bar'>
         <View className='nav-left'>
@@ -192,10 +174,10 @@ export default function Square() {
         </View>
         <View className='nav-right'>
           <View className='nav-icon' onClick={goToSearch}>
-            <Icon icon={IconConfig.nav.search} size={24} color="#333" />
+            <View className='iconify-icon' data-icon='mdi:magnify' />
           </View>
           <View className='nav-icon' onClick={goToNotifications}>
-            <Icon icon={IconConfig.nav.notification} size={24} color="#333" />
+            <View className='iconify-icon' data-icon='mdi:bell-outline' />
             <View className='badge'>3</View>
           </View>
         </View>
@@ -237,95 +219,84 @@ export default function Square() {
         refresherEnabled
         refresherTriggered={loading}
       >
-        {loading ? (
-          <View className='loading-container'>
-            <View className='loading-spinner'></View>
-            <Text className='loading-text'>正在加载话题...</Text>
-          </View>
-        ) : topics.length > 0 ? (
-          <View className='masonry-container'>
-            {topics.map(topic => (
-              <View
-                key={topic.id}
-                className='topic-card'
-                onClick={() => goToDetail(topic.id)}
-              >
-                {/* 图片 */}
-                {topic.images && topic.images.length > 0 && (
-                  <View className='card-image'>
-                    <Image
-                      src={topic.images[0]}
-                      mode='widthFix'
-                      className='image'
-                      onError={() => console.log('图片加载失败:', topic.images?.[0])}
-                    />
-                    {topic.images.length > 1 && (
-                      <View className='image-count'>
-                        <Icon icon={IconConfig.file.image} size={16} color="#fff" />
-                        <Text>{topic.images.length}</Text>
-                      </View>
-                    )}
+        <View className='masonry-container'>
+          {topics.map(topic => (
+            <View
+              key={topic.id}
+              className='topic-card'
+              onClick={() => goToDetail(topic.id)}
+            >
+              {/* 图片 */}
+              {topic.images && topic.images.length > 0 && (
+                <View className='card-image'>
+                  <Image
+                    src={topic.images[0]}
+                    mode='widthFix'
+                    className='image'
+                  />
+                  {topic.images.length > 1 && (
+                    <View className='image-count'>
+                      <View className='iconify-icon' data-icon='mdi:image-multiple' />
+                      <Text>{topic.images.length}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {/* 内容 */}
+              <View className='card-content'>
+                <View className='card-title'>{topic.title}</View>
+                <View className='card-desc'>{topic.content}</View>
+
+                {/* 标签 */}
+                {topic.tags && topic.tags.length > 0 && (
+                  <View className='card-tags'>
+                    {topic.tags.map((tag, index) => (
+                      <View key={index} className='tag'>#{tag}</View>
+                    ))}
                   </View>
                 )}
 
-                {/* 内容 */}
-                <View className='card-content'>
-                  <View className='card-title'>{topic.title}</View>
-                  <View className='card-desc'>{topic.content}</View>
-
-                  {/* 标签 */}
-                  {topic.tags && topic.tags.length > 0 && (
-                    <View className='card-tags'>
-                      {topic.tags.map((tag, index) => (
-                        <View key={index} className='tag'>#{tag}</View>
-                      ))}
-                    </View>
-                  )}
-
-                  {/* 底部信息 */}
-                  <View className='card-footer'>
-                    <View className='author-info'>
-                      <Image
-                        src={topic.author.avatar}
-                        className='avatar'
-                        mode='aspectFill'
-                        onError={() => console.log('头像加载失败:', topic.author.avatar)}
-                      />
-                      <Text className='nickname'>{topic.author.nickname}</Text>
-                    </View>
-
-                    <View className='actions'>
-                      <View
-                        className='action-item'
-                        onClick={(e) => handleLike(e, topic.id)}
-                      >
-                        <Icon icon={IconConfig.interaction.like} size={18} color="#999" />
-                        <Text>{topic.likesCount}</Text>
-                      </View>
-                      <View className='action-item'>
-                        <Icon icon={IconConfig.interaction.comment} size={18} color="#999" />
-                        <Text>{topic.commentsCount}</Text>
-                      </View>
-                    </View>
+                {/* 底部信息 */}
+                <View className='card-footer'>
+                  <View className='author-info'>
+                    <Image
+                      src={topic.author.avatar}
+                      className='avatar'
+                      mode='aspectFill'
+                    />
+                    <Text className='nickname'>{topic.author.nickname}</Text>
                   </View>
 
-                  {/* 类型标签 */}
-                  <View
-                    className='type-tag'
-                    style={{ background: getTypeTag(topic.contentType).color }}
-                  >
-                    {getTypeTag(topic.contentType).text}
+                  <View className='actions'>
+                    <View
+                      className='action-item'
+                      onClick={(e) => handleLike(e, topic.id)}
+                    >
+                      <View className='iconify-icon' data-icon='mdi:heart-outline' />
+                      <Text>{topic.likesCount}</Text>
+                    </View>
+                    <View className='action-item'>
+                      <View className='iconify-icon' data-icon='mdi:comment-outline' />
+                      <Text>{topic.commentsCount}</Text>
+                    </View>
                   </View>
                 </View>
+
+                {/* 类型标签 */}
+                <View
+                  className='type-tag'
+                  style={{ background: getTypeTag(topic.contentType).color }}
+                >
+                  {getTypeTag(topic.contentType).text}
+                </View>
               </View>
-            ))}
-          </View>
-        ) : (
-          <View className='empty-container'>
-            <View className='empty-icon'>📭</View>
-            <Text className='empty-text'>暂无话题</Text>
-            <Text className='empty-hint'>快来发布第一个话题吧</Text>
-          </View>
+            </View>
+          ))}
+        </View>
+
+        {loading && (
+          <View className='loading-more'>加载中...</View>
         )}
       </ScrollView>
     </View>

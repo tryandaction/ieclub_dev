@@ -1,7 +1,6 @@
 export default {
   pages: [
-    'pages/login/index',           // 登录页作为首页
-    'pages/square/index',
+    'pages/square/index',           // 广场首页
     'pages/community/index',
     'pages/publish/index',
     'pages/activities/index',
@@ -10,6 +9,7 @@ export default {
     'pages/notifications/index',
     'pages/topics/detail/index',
     'pages/topics/create/index',
+    'pages/login/index'             // 登录页放最后
   ],
   
   window: {

@@ -3,34 +3,36 @@
   background: #f5f5f5;
 
   .search-bar {
-    position: fixed;
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
-    height: 88px;
     background: #ffffff;
     display: flex;
     align-items: center;
-    padding: 0 32px;
+    padding: 24px;
     gap: 16px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     z-index: 999;
 
     .back-btn {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
       .iconify-icon {
-        font-size: 44px;
+        font-size: 48px;
         color: #333;
       }
     }
 
-    .search-input-wrapper {
+    .search-input {
       flex: 1;
-      height: 64px;
-      background: #f5f5f5;
-      border-radius: 32px;
       display: flex;
       align-items: center;
-      padding: 0 24px;
+      background: #f5f5f5;
+      border-radius: 24px;
+      padding: 16px 24px;
       gap: 12px;
 
       .iconify-icon {
@@ -38,101 +40,79 @@
         color: #999;
       }
 
-      .search-input {
+      input {
         flex: 1;
-        font-size: 26px;
+        font-size: 28px;
+        color: #333;
+      }
+
+      .placeholder {
+        color: #999;
+      }
+    }
+
+    .search-btn {
+      font-size: 28px;
+      color: #5B7FFF;
+      font-weight: 600;
+    }
+  }
+
+  .section {
+    background: #ffffff;
+    margin-top: 16px;
+    padding: 32px;
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+
+      .section-title {
+        font-size: 30px;
+        font-weight: 600;
         color: #333;
       }
 
       .clear-btn {
         .iconify-icon {
           font-size: 36px;
-          color: #ccc;
+          color: #999;
         }
       }
     }
 
-    .search-btn {
-      text {
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+
+      .tag-item {
+        background: #f5f5f5;
+        padding: 12px 24px;
+        border-radius: 24px;
         font-size: 26px;
-        color: #5B7FFF;
-        font-weight: 600;
+        color: #666;
+        transition: all 0.2s;
+
+        &:active {
+          transform: scale(0.95);
+          background: #e8e8e8;
+        }
       }
-    }
-  }
 
-  .content {
-    margin-top: 88px;
-    height: calc(100vh - 88px);
-    padding: 32px;
-
-    .section {
-      margin-bottom: 48px;
-
-      .section-header {
+      &.hot .tag-item {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        margin-bottom: 24px;
+        gap: 8px;
+        background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 107, 107, 0.05) 100%);
+        color: #ff6b6b;
 
-        .section-title {
-          font-size: 28px;
-          font-weight: 600;
-          color: #333;
-        }
-
-        .clear-history {
+        .hot-icon {
           .iconify-icon {
-            font-size: 36px;
-            color: #999;
-          }
-        }
-      }
-
-      .tag-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-
-        .tag {
-          padding: 16px 32px;
-          background: #ffffff;
-          border-radius: 24px;
-          font-size: 24px;
-          color: #666;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        &.hot {
-          .tag {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            .rank {
-              width: 32px;
-              height: 32px;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: #ffffff;
-              border-radius: 50%;
-              font-size: 20px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-weight: 600;
-            }
-          }
-
-          .tag:nth-child(1) .rank {
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-          }
-
-          .tag:nth-child(2) .rank {
-            background: linear-gradient(135deg, #C0C0C0 0%, #999999 100%);
-          }
-
-          .tag:nth-child(3) .rank {
-            background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+            font-size: 28px;
+            color: #ff6b6b;
           }
         }
       }
@@ -146,66 +126,59 @@
     margin: 0 auto;
 
     .search-bar {
-      height: 64px;
+      padding: 16px;
 
-      .back-btn .iconify-icon {
-        font-size: 28px;
+      .back-btn {
+        width: 32px;
+        height: 32px;
+
+        .iconify-icon {
+          font-size: 32px;
+        }
       }
 
-      .search-input-wrapper {
-        height: 44px;
+      .search-input {
+        padding: 10px 16px;
 
         .iconify-icon {
           font-size: 24px;
         }
 
-        .search-input {
-          font-size: 14px;
+        input {
+          font-size: 16px;
         }
       }
 
-      .search-btn text {
-        font-size: 14px;
+      .search-btn {
+        font-size: 16px;
       }
     }
 
-    .content {
-      margin-top: 64px;
-      height: calc(100vh - 64px);
+    .section {
       padding: 20px;
 
-      .section {
-        margin-bottom: 32px;
+      .section-header {
+        margin-bottom: 16px;
 
-        .section-header {
-          margin-bottom: 16px;
-
-          .section-title {
-            font-size: 16px;
-          }
-
-          .clear-history .iconify-icon {
-            font-size: 20px;
-          }
+        .section-title {
+          font-size: 18px;
         }
 
-        .tag-list {
-          gap: 12px;
+        .clear-btn .iconify-icon {
+          font-size: 24px;
+        }
+      }
 
-          .tag {
-            padding: 10px 20px;
-            font-size: 13px;
-          }
+      .tag-list {
+        gap: 12px;
 
-          &.hot .tag {
-            gap: 8px;
+        .tag-item {
+          padding: 8px 16px;
+          font-size: 14px;
+        }
 
-            .rank {
-              width: 20px;
-              height: 20px;
-              font-size: 11px;
-            }
-          }
+        &.hot .tag-item .hot-icon .iconify-icon {
+          font-size: 16px;
         }
       }
     }

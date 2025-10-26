@@ -60,8 +60,15 @@ export default function Login() {
       Taro.showLoading({ title: '登录中...' })
       
       try {
-        // TODO: 实际登录逻辑
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        // Mock登录成功
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // 保存登录信息
+        Taro.setStorageSync('token', 'mock-token-' + Date.now())
+        Taro.setStorageSync('userInfo', {
+          nickname: '测试用户',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'
+        })
         
         Taro.hideLoading()
         Taro.showToast({
@@ -71,7 +78,7 @@ export default function Login() {
         
         setTimeout(() => {
           Taro.switchTab({ url: '/pages/square/index' })
-        }, 1500)
+        }, 500)
       } catch (error) {
         Taro.hideLoading()
         Taro.showToast({
@@ -98,6 +105,10 @@ export default function Login() {
     // 设置游客标识
     Taro.setStorageSync('isGuest', true)
     Taro.setStorageSync('token', 'guest-token-' + Date.now())
+    Taro.setStorageSync('userInfo', {
+      nickname: '游客',
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=guest'
+    })
     
     Taro.showToast({
       title: '以游客身份进入',
@@ -106,7 +117,7 @@ export default function Login() {
     
     setTimeout(() => {
       Taro.switchTab({ url: '/pages/square/index' })
-    }, 1000)
+    }, 500)
   }
 
   return (

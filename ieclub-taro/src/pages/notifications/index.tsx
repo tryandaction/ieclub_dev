@@ -1,78 +1,113 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import Icon from '../../components/Icon'
-import { IconConfig } from '../../config/icon.config'
 import './index.scss'
 
 interface Notification {
   id: string
   type: 'like' | 'comment' | 'follow' | 'system'
-  user?: {
-    nickname: string
-    avatar: string
-  }
+  title: string
   content: string
-  targetTitle?: string
+  avatar?: string
   time: string
   isRead: boolean
+  link?: string
 }
 
 export default function Notifications() {
-  const [activeTab, setActiveTab] = useState('all')
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      type: 'like',
-      user: {
-        nickname: '张三',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user1'
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    loadNotifications()
+  }, [])
+
+  const loadNotifications = async () => {
+    const mockNotifications: Notification[] = [
+      {
+        id: '1',
+        type: 'like',
+        title: '收到新的赞',
+        content: '数学小天才 赞了你的话题 "线性代数复习资料整理"',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=1',
+        time: '2024-10-26T10:30:00Z',
+        isRead: false,
+        link: '/pages/topics/detail/index?id=1'
       },
-      content: '赞了你的话题',
-      targetTitle: '高等数学期末重点串讲',
-      time: '2024-10-25T10:30:00Z',
-      isRead: false
-    },
-    {
-      id: '2',
-      type: 'comment',
-      user: {
-        nickname: '李四',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user2'
+      {
+        id: '2',
+        type: 'comment',
+        title: '收到新的评论',
+        content: '代码侠 评论了你的话题："这个讲解太棒了，期待线下分享！"',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=2',
+        time: '2024-10-26T09:15:00Z',
+        isRead: false,
+        link: '/pages/topics/detail/index?id=1'
       },
-      content: '评论了你的话题：讲得很清楚，太有帮助了！',
-      targetTitle: '高等数学期末重点串讲',
-      time: '2024-10-25T09:15:00Z',
-      isRead: false
-    },
-    {
-      id: '3',
-      type: 'follow',
-      user: {
-        nickname: '王五',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user3'
+      {
+        id: '3',
+        type: 'follow',
+        title: '新的关注',
+        content: '创业者Leo 关注了你',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=3',
+        time: '2024-10-25T18:20:00Z',
+        isRead: true,
+        link: '/pages/community/profile/index?id=3'
       },
-      content: '关注了你',
-      time: '2024-10-24T16:20:00Z',
-      isRead: true
-    },
-    {
-      id: '4',
-      type: 'system',
-      content: '欢迎加入IEClub！开始你的知识分享之旅吧',
-      time: '2024-10-24T10:00:00Z',
-      isRead: true
-    }
-  ])
+      {
+        id: '4',
+        type: 'system',
+        title: '系统通知',
+        content: '你发布的话题 "高等数学期末串讲" 已达到15人想听，快去创建活动吧！',
+        time: '2024-10-25T16:00:00Z',
+        isRead: true,
+        link: '/pages/activities/create/index?topicId=1'
+      }
+    ]
+    
+    setNotifications(mockNotifications)
+    setUnreadCount(mockNotifications.filter(n => !n.isRead).length)
+  }
+
+  const handleNotificationClick = (notification: Notification) => {
+    setNotifications(prev => 
+      prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
+    )
+    setUnreadCount(prev => Math.max(0, prev - 1))
+
+    Taro.showToast({
+      title: '查看详情',
+      icon: 'none'
+    })
+  }
+
+  const markAllAsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })))
+    setUnreadCount(0)
+    Taro.showToast({
+      title: '已全部标记为已读',
+      icon: 'success'
+    })
+  }
 
   const getTypeIcon = (type: string) => {
     const iconMap = {
-      like: { icon: IconConfig.interaction.like, color: '#FF6B9D' },
-      comment: { icon: IconConfig.interaction.comment, color: '#5B7FFF' },
-      follow: { icon: IconConfig.user.follow, color: '#FFA500' },
-      system: { icon: IconConfig.interaction.notification, color: '#7C4DFF' }
+      like: 'mdi:heart',
+      comment: 'mdi:comment',
+      follow: 'mdi:account-plus',
+      system: 'mdi:bell'
     }
-    return iconMap[type] || iconMap.system
+    return iconMap[type] || 'mdi:bell'
+  }
+
+  const getTypeColor = (type: string) => {
+    const colorMap = {
+      like: '#ff6b9d',
+      comment: '#5B7FFF',
+      follow: '#FFA500',
+      system: '#999'
+    }
+    return colorMap[type] || '#999'
   }
 
   const formatTime = (time: string) => {
@@ -88,106 +123,79 @@ export default function Notifications() {
       return `${Math.floor(diff / minute)}分钟前`
     } else if (diff < day) {
       return `${Math.floor(diff / hour)}小时前`
-    } else {
+    } else if (diff < 7 * day) {
       return `${Math.floor(diff / day)}天前`
+    } else {
+      const date = new Date(time)
+      return `${date.getMonth() + 1}-${date.getDate()}`
     }
-  }
-
-  const markAllRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, isRead: true })))
-    Taro.showToast({
-      title: '已全部标为已读',
-      icon: 'success'
-    })
-  }
-
-  const goBack = () => {
-    Taro.navigateBack()
   }
 
   return (
     <View className='notifications-page'>
-      {/* 顶部导航栏 */}
       <View className='nav-bar'>
-        <View className='nav-left' onClick={goBack}>
-          <Icon icon={IconConfig.nav.back} size={24} color="#333" />
+        <View className='nav-left' onClick={() => Taro.navigateBack()}>
+          <View className='iconify-icon' data-icon='mdi:arrow-left' />
         </View>
         <Text className='title'>通知</Text>
-        <View className='nav-right' onClick={markAllRead}>
+        <View className='nav-right' onClick={markAllAsRead}>
           <Text>全部已读</Text>
         </View>
       </View>
 
-      {/* 标签栏 */}
-      <View className='tab-bar'>
-        <View 
-          className={`tab-item ${activeTab === 'all' ? 'active' : ''}`}
-          onClick={() => setActiveTab('all')}
-        >
-          <Text>全部</Text>
+      {unreadCount > 0 && (
+        <View className='unread-banner'>
+          <Text>你有 {unreadCount} 条未读通知</Text>
         </View>
-        <View 
-          className={`tab-item ${activeTab === 'interaction' ? 'active' : ''}`}
-          onClick={() => setActiveTab('interaction')}
-        >
-          <Text>互动</Text>
-        </View>
-        <View 
-          className={`tab-item ${activeTab === 'system' ? 'active' : ''}`}
-          onClick={() => setActiveTab('system')}
-        >
-          <Text>系统</Text>
-        </View>
-      </View>
+      )}
 
-      {/* 通知列表 */}
       <ScrollView className='content' scrollY>
-        <View className='notification-list'>
-          {notifications.map(notification => (
-            <View 
-              key={notification.id}
-              className={`notification-item ${!notification.isRead ? 'unread' : ''}`}
-            >
-              <View className='left'>
-                {notification.user ? (
-                  <Image 
-                    src={notification.user.avatar}
-                    className='avatar'
-                    mode='aspectFill'
-                  />
-                ) : (
-                  <View 
-                    className='type-icon'
-                    style={{ background: getTypeIcon(notification.type).color }}
-                  >
-                    <Icon 
-                      icon={getTypeIcon(notification.type).icon}
-                      size={20}
-                      color="#fff"
+        {notifications.length > 0 ? (
+          <View className='notification-list'>
+            {notifications.map(notification => (
+              <View 
+                key={notification.id}
+                className={`notification-item ${!notification.isRead ? 'unread' : ''}`}
+                onClick={() => handleNotificationClick(notification)}
+              >
+                <View className='left'>
+                  {notification.avatar ? (
+                    <Image 
+                      src={notification.avatar} 
+                      className='avatar'
+                      mode='aspectFill'
                     />
-                  </View>
+                  ) : (
+                    <View 
+                      className='type-icon'
+                      style={{ background: getTypeColor(notification.type) }}
+                    >
+                      <View 
+                        className='iconify-icon' 
+                        data-icon={getTypeIcon(notification.type)}
+                      />
+                    </View>
+                  )}
+                </View>
+
+                <View className='center'>
+                  <View className='notification-title'>{notification.title}</View>
+                  <View className='notification-content'>{notification.content}</View>
+                  <View className='notification-time'>{formatTime(notification.time)}</View>
+                </View>
+
+                {!notification.isRead && (
+                  <View className='unread-dot' />
                 )}
               </View>
-
-              <View className='center'>
-                {notification.user && (
-                  <Text className='nickname'>{notification.user.nickname} </Text>
-                )}
-                <Text className='content'>{notification.content}</Text>
-                {notification.targetTitle && (
-                  <View className='target'>
-                    <Text>「{notification.targetTitle}」</Text>
-                  </View>
-                )}
-                <Text className='time'>{formatTime(notification.time)}</Text>
-              </View>
-
-              {!notification.isRead && (
-                <View className='unread-dot' />
-              )}
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
+        ) : (
+          <View className='empty-state'>
+            <View className='iconify-icon' data-icon='mdi:bell-outline' />
+            <Text>暂无通知</Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   )

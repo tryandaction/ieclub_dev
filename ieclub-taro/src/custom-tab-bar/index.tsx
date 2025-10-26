@@ -41,6 +41,28 @@ export default class CustomTabBar extends Component {
     ]
   }
 
+  componentDidMount() {
+    this.updateSelected()
+  }
+
+  componentDidShow() {
+    this.updateSelected()
+  }
+
+  updateSelected = () => {
+    const pages = Taro.getCurrentPages()
+    const currentPage = pages[pages.length - 1]
+    const currentRoute = currentPage?.route || ''
+    
+    const index = this.state.list.findIndex(item => 
+      item.pagePath.includes(currentRoute)
+    )
+    
+    if (index !== -1 && index !== this.state.selected) {
+      this.setState({ selected: index })
+    }
+  }
+
   switchTab = (index: number, url: string) => {
     this.setState({ selected: index })
     Taro.switchTab({ url })

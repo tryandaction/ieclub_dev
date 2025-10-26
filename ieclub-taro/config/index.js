@@ -93,6 +93,10 @@ const config = {
         errors: true
       })
 
+      // 关闭性能提示（开发环境下文件较大是正常的）
+      chain.performance
+        .hints(false)  // 关闭性能提示
+
       // 生产环境优化
       if (process.env.NODE_ENV === 'production') {
         // 🔥 优化代码分割 - 解决vendors.js过大问题
@@ -207,6 +211,27 @@ const config = {
         .maxEntrypointSize(1600000) // 1.6MB (基于实际1.48MB调整)
         .maxAssetSize(600000) // 600KB (基于实际537KB调整)
         .hints('warning'); // 只显示警告，不阻止构建
+
+      // 开发环境也启用代码分割，减少初始加载大小
+      if (process.env.NODE_ENV === 'development') {
+        chain.optimization.splitChunks({
+          chunks: 'all',
+          cacheGroups: {
+            vendors: {
+              name: 'vendors',
+              test: /[\\/]node_modules[\\/]/,
+              priority: 10,
+              reuseExistingChunk: true,
+            },
+            common: {
+              name: 'common',
+              minChunks: 2,
+              priority: 5,
+              reuseExistingChunk: true,
+            }
+          }
+        });
+      }
     },
 
     // PostCSS 配置
@@ -247,10 +272,10 @@ const config = {
 
     // 开发服务器配置
     devServer: {
-      host: 'localhost',
-      port: 10086,
+      host: '0.0.0.0', // 允许外部访问
+      port: 10087,
       hot: true,
-      open: true,
+      open: false, // 不自动打开浏览器
       historyApiFallback: true, // SPA 路由支持
       proxy: {
         '/api': {
@@ -265,8 +290,11 @@ const config = {
         overlay: {
           warnings: false,
           errors: true
-        }
-      }
+        },
+        progress: true // 显示编译进度
+      },
+      // 压缩传输
+      compress: true
     },
 
     // 图片资源配置

@@ -1,23 +1,19 @@
-import { useState } from 'react'
-import { View, Text, ScrollView, Image } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import Icon from '../../../components/Icon'
-import { IconConfig } from '../../../config/icon.config'
 import './index.scss'
 
 export default function TopicDetail() {
-  const [topicId, setTopicId] = useState('')
-
-  const goBack = () => {
-    Taro.navigateBack()
-  }
-
   return (
-    <View className='topic-detail-page'>
-      <View className='back-btn' onClick={goBack}>
-        <Icon icon={IconConfig.nav.back} size={24} color="#333" />
+    <View className='page'>
+      <View className='nav-bar'>
+        <View className='back-btn' onClick={() => Taro.navigateBack()}>
+          <View className='iconify-icon' data-icon='mdi:arrow-left' />
+        </View>
+        <Text className='title'>话题详情</Text>
       </View>
-      <Text>话题详情页（开发中）</Text>
+      <View className='content'>
+        <Text className='coming-soon'>话题详情开发中...</Text>
+      </View>
     </View>
   )
 }

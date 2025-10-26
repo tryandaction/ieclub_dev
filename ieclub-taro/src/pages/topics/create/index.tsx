@@ -1,20 +1,19 @@
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import Icon from '../../../components/Icon'
-import { IconConfig } from '../../../config/icon.config'
 import './index.scss'
 
-export default function TopicCreate() {
-  const goBack = () => {
-    Taro.navigateBack()
-  }
-
+export default function CreateTopic() {
   return (
-    <View className='topic-create-page'>
-      <View className='back-btn' onClick={goBack}>
-        <Icon icon={IconConfig.nav.back} size={24} color="#333" />
+    <View className='page'>
+      <View className='nav-bar'>
+        <View className='back-btn' onClick={() => Taro.navigateBack()}>
+          <View className='iconify-icon' data-icon='mdi:arrow-left' />
+        </View>
+        <Text className='title'>发布话题</Text>
       </View>
-      <Text>创建话题页（开发中）</Text>
+      <View className='content'>
+        <Text className='coming-soon'>发布话题开发中...</Text>
+      </View>
     </View>
   )
 }

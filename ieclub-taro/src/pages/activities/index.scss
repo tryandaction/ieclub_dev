@@ -18,15 +18,23 @@
     z-index: 999;
 
     .title {
-      font-size: 32px;
-      font-weight: 600;
+      font-size: 36px;
+      font-weight: bold;
       color: #333;
     }
 
     .nav-right {
-      .iconify-icon {
-        font-size: 48px;
-        color: #5B7FFF;
+      .nav-icon {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .iconify-icon {
+          font-size: 44px;
+          color: #333;
+        }
       }
     }
   }
@@ -43,6 +51,7 @@
     padding: 0 32px;
     gap: 48px;
     z-index: 998;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
 
     .tab-item {
       position: relative;
@@ -53,7 +62,7 @@
       &.active {
         color: #5B7FFF;
         font-weight: 600;
-        
+
         &::after {
           content: '';
           position: absolute;
@@ -82,40 +91,27 @@
         overflow: hidden;
         margin-bottom: 24px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        position: relative;
 
         .cover {
           width: 100%;
-          height: 360px;
-        }
-
-        .status-badge {
-          position: absolute;
-          top: 24px;
-          right: 24px;
-          padding: 12px 24px;
-          border-radius: 24px;
-          color: #ffffff;
-          font-size: 22px;
-          font-weight: 600;
+          height: 400px;
         }
 
         .card-content {
-          padding: 32px;
+          padding: 24px;
 
-          .title {
+          .card-title {
             font-size: 32px;
             font-weight: 600;
             color: #333;
-            margin-bottom: 16px;
-            line-height: 1.4;
+            margin-bottom: 12px;
           }
 
-          .description {
+          .card-desc {
             font-size: 26px;
             color: #666;
-            line-height: 1.6;
-            margin-bottom: 24px;
+            line-height: 1.5;
+            margin-bottom: 20px;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -125,43 +121,26 @@
           .info-row {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
             margin-bottom: 24px;
 
             .info-item {
               display: flex;
               align-items: center;
               gap: 12px;
+              color: #999;
               font-size: 24px;
-              color: #666;
 
               .iconify-icon {
                 font-size: 32px;
-                color: #999;
               }
             }
           }
 
-          .tags {
+          .card-footer {
             display: flex;
-            gap: 12px;
-            margin-bottom: 24px;
-
-            .tag {
-              font-size: 22px;
-              color: #5B7FFF;
-              background: rgba(91, 127, 255, 0.1);
-              padding: 8px 16px;
-              border-radius: 20px;
-            }
-          }
-
-          .footer {
-            display: flex;
-            align-items: center;
             justify-content: space-between;
-            padding-top: 24px;
-            border-top: 1px solid #f0f0f0;
+            align-items: center;
 
             .organizer {
               display: flex;
@@ -169,29 +148,35 @@
               gap: 12px;
 
               .avatar {
-                width: 48px;
-                height: 48px;
+                width: 56px;
+                height: 56px;
                 border-radius: 50%;
               }
 
-              text {
-                font-size: 24px;
+              .nickname {
+                font-size: 26px;
                 color: #666;
               }
             }
 
             .participants {
-              font-size: 24px;
-              color: #999;
-            }
+              display: flex;
+              align-items: center;
+              gap: 16px;
 
-            .join-btn {
-              padding: 16px 32px;
-              background: #5B7FFF;
-              color: #ffffff;
-              font-size: 26px;
-              border-radius: 24px;
-              font-weight: 600;
+              .count {
+                font-size: 24px;
+                color: #999;
+              }
+
+              .join-btn {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: #fff;
+                padding: 12px 32px;
+                border-radius: 24px;
+                font-size: 26px;
+                font-weight: 600;
+              }
             }
           }
         }
@@ -209,10 +194,10 @@
       height: 64px;
 
       .title {
-        font-size: 20px;
+        font-size: 24px;
       }
 
-      .nav-right .iconify-icon {
+      .nav-icon .iconify-icon {
         font-size: 32px;
       }
     }
@@ -220,7 +205,6 @@
     .tab-bar {
       top: 64px;
       height: 60px;
-      gap: 32px;
 
       .tab-item {
         font-size: 16px;
@@ -229,7 +213,6 @@
 
     .content {
       margin-top: 124px;
-      height: calc(100vh - 124px - 80px);
 
       .activity-list {
         display: grid;
@@ -237,57 +220,52 @@
         gap: 20px;
 
         .activity-card {
+          margin-bottom: 0;
+
           .cover {
-            height: 200px;
+            height: 250px;
           }
 
           .card-content {
-            padding: 20px;
+            padding: 16px;
 
-            .title {
+            .card-title {
               font-size: 18px;
             }
 
-            .description {
+            .card-desc {
               font-size: 14px;
             }
 
-            .info-row {
-              .info-item {
-                font-size: 13px;
+            .info-row .info-item {
+              font-size: 13px;
 
-                .iconify-icon {
-                  font-size: 20px;
-                }
+              .iconify-icon {
+                font-size: 18px;
               }
             }
 
-            .tags .tag {
-              font-size: 12px;
-              padding: 4px 10px;
-            }
-
-            .footer {
-              padding-top: 16px;
-
+            .card-footer {
               .organizer {
                 .avatar {
-                  width: 32px;
-                  height: 32px;
+                  width: 36px;
+                  height: 36px;
                 }
 
-                text {
-                  font-size: 13px;
+                .nickname {
+                  font-size: 14px;
                 }
               }
 
               .participants {
-                font-size: 13px;
-              }
+                .count {
+                  font-size: 13px;
+                }
 
-              .join-btn {
-                padding: 10px 20px;
-                font-size: 14px;
+                .join-btn {
+                  padding: 8px 20px;
+                  font-size: 14px;
+                }
               }
             }
           }

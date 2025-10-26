@@ -1,39 +1,47 @@
 import { useState } from 'react'
-import { View, Text, Input, ScrollView } from '@tarojs/components'
+import { View, Text, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import Icon from '../../components/Icon'
-import { IconConfig } from '../../config/icon.config'
 import './index.scss'
 
 export default function Search() {
   const [keyword, setKeyword] = useState('')
-  const [searchHistory, setSearchHistory] = useState(['创业项目', '高数复习', '前端开发'])
+  const [searchHistory, setSearchHistory] = useState([
+    '高等数学',
+    'Python',
+    '创业项目',
+    '期末复习'
+  ])
   const [hotKeywords] = useState([
-    '期末复习',
-    '创业团队',
-    '技术交流',
-    '实习招聘',
-    '社团活动',
-    '考研经验'
+    '线性代数',
+    '数据结构',
+    '机器学习',
+    '考研经验',
+    '实验室',
+    '竞赛组队'
   ])
 
   const handleSearch = () => {
-    if (!keyword.trim()) {
-      return
-    }
+    if (!keyword.trim()) return
     
-    // 添加到搜索历史
     if (!searchHistory.includes(keyword)) {
       setSearchHistory([keyword, ...searchHistory.slice(0, 9)])
     }
-    
-    console.log('搜索', keyword)
+
+    console.log('搜索:', keyword)
+  }
+
+  const handleHotKeywordClick = (kw: string) => {
+    setKeyword(kw)
+    Taro.showToast({
+      title: `搜索 "${kw}"`,
+      icon: 'none'
+    })
   }
 
   const clearHistory = () => {
     Taro.showModal({
-      title: '确认清空',
-      content: '确定要清空搜索历史吗？',
+      title: '提示',
+      content: '确认清空搜索历史？',
       success: (res) => {
         if (res.confirm) {
           setSearchHistory([])
@@ -42,88 +50,67 @@ export default function Search() {
     })
   }
 
-  const goBack = () => {
-    Taro.navigateBack()
-  }
-
   return (
     <View className='search-page'>
-      {/* 搜索栏 */}
       <View className='search-bar'>
-        <View className='back-btn' onClick={goBack}>
-          <Icon icon={IconConfig.nav.back} size={24} color="#333" />
+        <View className='back-btn' onClick={() => Taro.navigateBack()}>
+          <View className='iconify-icon' data-icon='mdi:arrow-left' />
         </View>
-        
-        <View className='search-input-wrapper'>
-          <Icon icon={IconConfig.action.search} size={20} color="#999" />
+        <View className='search-input'>
+          <View className='iconify-icon' data-icon='mdi:magnify' />
           <Input
-            className='search-input'
-            placeholder='搜索话题、活动、用户'
             value={keyword}
             onInput={(e) => setKeyword(e.detail.value)}
             onConfirm={handleSearch}
-            focus
+            placeholder='搜索话题、用户'
+            placeholderClass='placeholder'
+            confirmType='search'
           />
-          {keyword && (
-            <View 
-              className='clear-btn'
-              onClick={() => setKeyword('')}
-            >
-              <Icon icon={IconConfig.action.close} size={18} color="#999" />
-            </View>
-          )}
         </View>
-        
-        <View className='search-btn' onClick={handleSearch}>
-          <Text>搜索</Text>
-        </View>
+        <Text className='search-btn' onClick={handleSearch}>搜索</Text>
       </View>
 
-      <ScrollView className='content' scrollY>
-        {/* 搜索历史 */}
-        {searchHistory.length > 0 && (
-          <View className='section'>
-            <View className='section-header'>
-              <Text className='section-title'>搜索历史</Text>
-              <View className='clear-history' onClick={clearHistory}>
-                <Icon icon={IconConfig.action.delete} size={20} color="#999" />
-              </View>
-            </View>
-            
-            <View className='tag-list'>
-              {searchHistory.map((item, index) => (
-                <View 
-                  key={index}
-                  className='tag'
-                  onClick={() => setKeyword(item)}
-                >
-                  {item}
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* 热门搜索 */}
+      {searchHistory.length > 0 && (
         <View className='section'>
           <View className='section-header'>
-            <Text className='section-title'>热门搜索</Text>
+            <Text className='section-title'>搜索历史</Text>
+            <View className='clear-btn' onClick={clearHistory}>
+              <View className='iconify-icon' data-icon='mdi:delete-outline' />
+            </View>
           </View>
-          
-          <View className='tag-list hot'>
-            {hotKeywords.map((item, index) => (
+          <View className='tag-list'>
+            {searchHistory.map((item, index) => (
               <View 
-                key={index}
-                className='tag'
-                onClick={() => setKeyword(item)}
+                key={index} 
+                className='tag-item'
+                onClick={() => handleHotKeywordClick(item)}
               >
-                <Text className='rank'>{index + 1}</Text>
-                <Text>{item}</Text>
+                {item}
               </View>
             ))}
           </View>
         </View>
-      </ScrollView>
+      )}
+
+      <View className='section'>
+        <View className='section-header'>
+          <Text className='section-title'>热门搜索</Text>
+        </View>
+        <View className='tag-list hot'>
+          {hotKeywords.map((item, index) => (
+            <View 
+              key={index} 
+              className='tag-item'
+              onClick={() => handleHotKeywordClick(item)}
+            >
+              <View className='hot-icon'>
+                <View className='iconify-icon' data-icon='mdi:fire' />
+              </View>
+              {item}
+            </View>
+          ))}
+        </View>
+      </View>
     </View>
   )
 }
