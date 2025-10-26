@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 
+// 导入 AuthProvider
+import { AuthProvider } from './store/AuthContext.jsx';
+
 // 导入移动端优化的UI组件
 import MobileOptimizedUI from './MobileOptimizedUI.jsx';
 
@@ -99,38 +102,40 @@ function App() {
   }, []);
 
   return (
-    <BrowserRouter> {/* 启用路由功能 */}
-      {isMobile ? (
-        // 移动端使用优化的UI
-        <MobileOptimizedUI />
-      ) : (
-        // 桌面端使用现有的布局
-        <Routes> {/* 路由规则列表 */}
+    <AuthProvider> {/* 包裹整个应用以提供认证状态 */}
+      <BrowserRouter> {/* 启用路由功能 */}
+        {isMobile ? (
+          // 移动端使用优化的UI
+          <MobileOptimizedUI />
+        ) : (
+          // 桌面端使用现有的布局
+          <Routes> {/* 路由规则列表 */}
 
-          {/* a. 不需要布局的页面 (登录页, 注册页) */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+            {/* a. 不需要布局的页面 (登录页, 注册页) */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
-          {/* b. 使用主布局的页面 */}
-          <Route path="/" element={<MainLayout />}>
-            {/* 默认子路由，访问'/'时显示 */}
-            <Route index element={<HomePage />} />
-            {/* 其他子路由 */}
-            <Route path="trending" element={<HomePage />} /> {/* 热门页也暂时使用首页组件 */}
-            <Route path="events" element={<EventsPage />} />
-            <Route path="match" element={<MatchPage />} />
-            <Route path="profile" element={<ProfilePage />} />
-            <Route path="leaderboard" element={<LeaderboardPage />} />
-            <Route path="bookmarks" element={<BookmarksPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-          </Route>
+            {/* b. 使用主布局的页面 */}
+            <Route path="/" element={<MainLayout />}>
+              {/* 默认子路由，访问'/'时显示 */}
+              <Route index element={<HomePage />} />
+              {/* 其他子路由 */}
+              <Route path="trending" element={<HomePage />} /> {/* 热门页也暂时使用首页组件 */}
+              <Route path="events" element={<EventsPage />} />
+              <Route path="match" element={<MatchPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="leaderboard" element={<LeaderboardPage />} />
+              <Route path="bookmarks" element={<BookmarksPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
 
-          {/* c. 如果用户访问了不存在的页面，自动跳转回首页 */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+            {/* c. 如果用户访问了不存在的页面，自动跳转回首页 */}
+            <Route path="*" element={<Navigate to="/" replace />} />
 
-        </Routes>
-      )}
-    </BrowserRouter>
+          </Routes>
+        )}
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

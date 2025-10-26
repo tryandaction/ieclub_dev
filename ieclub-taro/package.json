@@ -26,10 +26,9 @@
 		"build:analyze": "npm run analyze"
 	},
 	"dependencies": {
+		"@tailwindcss/postcss": "^4.1.16",
 		"@tarojs/components": "4.1.7",
 		"@tarojs/helper": "4.1.7",
-		"lucide-react": "^0.294.0",
-		"react-router-dom": "^6.26.0",
 		"@tarojs/plugin-framework-react": "4.1.7",
 		"@tarojs/plugin-html": "4.1.7",
 		"@tarojs/plugin-platform-h5": "4.1.7",
@@ -38,8 +37,11 @@
 		"@tarojs/runtime": "4.1.7",
 		"@tarojs/taro": "^4.1.7",
 		"dayjs": "^1.11.10",
+		"lucide-react": "^0.294.0",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
+		"react-router-dom": "^6.26.0",
+		"tailwindcss": "^4.1.16",
 		"ws": "^8.18.3",
 		"zustand": "^4.4.7"
 	},
