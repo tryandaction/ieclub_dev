@@ -1,27 +1,52 @@
 /**
  * 瀑布流布局组件 - 小红书风格
  * 实现多列自适应的瀑布流布局
+ * 
+ * 响应式规则：
+ * - 移动端 (<640px): 2列
+ * - 平板端 (640-1023px): 3列  
+ * - 桌面端 (1024-1279px): 4列
+ * - 大屏幕 (≥1280px): 4-5列
  */
 import React, { useState, useEffect, useRef } from 'react';
 import './MasonryGrid.scss';
 
-const MasonryGrid = ({ children, gap = 16, minColumnWidth = 280 }) => {
+const MasonryGrid = ({ children, gap = 16 }) => {
   const containerRef = useRef(null);
-  const [columns, setColumns] = useState(3);
+  const [columns, setColumns] = useState(2);
 
   useEffect(() => {
     const updateColumns = () => {
       if (!containerRef.current) return;
       
-      const containerWidth = containerRef.current.offsetWidth;
-      const newColumns = Math.max(1, Math.floor(containerWidth / (minColumnWidth + gap)));
+      const width = window.innerWidth;
+      let newColumns;
+      
+      // 响应式断点
+      if (width < 640) {
+        // 移动端：双列
+        newColumns = 2;
+      } else if (width < 1024) {
+        // 平板端：3列
+        newColumns = 3;
+      } else if (width < 1280) {
+        // 桌面端：4列
+        newColumns = 4;
+      } else if (width < 1536) {
+        // 大屏幕：4列
+        newColumns = 4;
+      } else {
+        // 超大屏：5列
+        newColumns = 5;
+      }
+      
       setColumns(newColumns);
     };
 
     updateColumns();
     window.addEventListener('resize', updateColumns);
     return () => window.removeEventListener('resize', updateColumns);
-  }, [gap, minColumnWidth]);
+  }, []);
 
   // 将子元素分配到各列
   const distributeItems = () => {

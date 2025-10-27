@@ -136,10 +136,16 @@ const config = {
 
       // 生产环境优化
       if (process.env.NODE_ENV === 'production') {
-        chain.optimization.minimize(true);
+        // 禁用压缩，避免卡死
+        // WXSS文件由 fix-wxss.js 脚本后处理
+        chain.optimization.minimize(false);
         chain.optimization.usedExports(true);
         // Tree Shaking
         chain.optimization.sideEffects(true);
+        
+        // 限制并行构建数量，避免内存溢出
+        chain.performance.hints(false);
+        chain.stats('minimal');
       }
     }
   }
