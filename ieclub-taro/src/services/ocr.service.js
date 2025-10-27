@@ -1,10 +1,21 @@
 /**
  * OCR识别服务
- * 使用Tesseract.js进行前端文字识别
- * 免费、无限制、本地处理
+ * H5环境：使用Tesseract.js进行前端文字识别
+ * 小程序环境：仅使用后端API
  */
-import { createWorker } from 'tesseract.js';
+import Taro from '@tarojs/taro';
 import api from './api.js';
+
+// 动态导入 tesseract.js（仅在H5环境）
+let createWorker = null;
+if (process.env.TARO_ENV === 'h5') {
+  try {
+    const tesseract = require('tesseract.js');
+    createWorker = tesseract.createWorker;
+  } catch (e) {
+    console.warn('Tesseract.js not available in this environment');
+  }
+}
 
 class OCRService {
   constructor() {
@@ -13,10 +24,17 @@ class OCRService {
   }
 
   /**
-   * 初始化Tesseract Worker
+   * 初始化Tesseract Worker（仅H5环境）
    */
   async initialize() {
     if (this.isInitialized) return;
+    
+    // 小程序环境不支持 Tesseract
+    if (process.env.TARO_ENV !== 'h5' || !createWorker) {
+      console.log('当前环境不支持前端OCR，将使用云端API');
+      this.isInitialized = true;
+      return;
+    }
     
     try {
       console.log('初始化OCR服务...');
@@ -36,13 +54,19 @@ class OCRService {
   }
 
   /**
-   * 快速识别（前端Tesseract）
+   * 快速识别（前端Tesseract，仅H5环境）
    * @param {File|Blob|string} imageFile - 图片文件或URL
    * @param {Function} onProgress - 进度回调
    * @returns {Promise<Object>} 识别结果
    */
   async quickRecognize(imageFile, onProgress) {
     await this.initialize();
+    
+    // 小程序环境降级到云端API
+    if (process.env.TARO_ENV !== 'h5' || !this.worker) {
+      console.log('前端OCR不可用，使用云端API');
+      return await this.preciseRecognize(imageFile);
+    }
     
     try {
       const result = await this.worker.recognize(imageFile, {

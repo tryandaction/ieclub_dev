@@ -3,15 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <!-- SEO 优化 -->
   <title>IEClub - 国贸俱乐部</title>
+  <meta name="description" content="国贸俱乐部 - 学习、交流、成长的社区平台">
+  <meta name="keywords" content="国贸,俱乐部,学习,社区,话题,活动">
+  <meta name="author" content="IEClub">
+  
+  <!-- PWA 支持 -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#667eea">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="IEClub">
+  
+  <!-- 图标 -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/logo192.png">
+  
+  <!-- DNS 预解析 -->
+  <link rel="dns-prefetch" href="//ieclub.online">
+  <link rel="preconnect" href="//ieclub.online">
+  
   <script>
     // 注入 Taro 环境变量
     window.__TARO_ENV = 'h5';
+    
+    // 注册 Service Worker（PWA）
+    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(registration => {
+            console.log('SW registered:', registration);
+          })
+          .catch(err => {
+            console.log('SW registration failed:', err);
+          });
+      });
+    }
+    
+    // 全局错误捕获
+    window.addEventListener('error', (event) => {
+      console.error('Global error:', event.error);
+      // 可以在这里上报错误到监控平台
+    });
+    
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error('Unhandled rejection:', event.reason);
+      // 可以在这里上报错误到监控平台
+    });
   </script>
 </head>
 <body>
   <div id="app"></div>
+  
+  <noscript>
+    <div style="text-align: center; padding: 50px;">
+      <h2>请启用 JavaScript</h2>
+      <p>此应用需要 JavaScript 才能正常运行</p>
+    </div>
+  </noscript>
 </body>
 </html>
 

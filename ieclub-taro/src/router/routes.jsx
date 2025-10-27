@@ -10,6 +10,7 @@ const HomePage = React.lazy(() => import('../pages/home/HomePage.jsx').then(m =>
 const TopicDetailPage = React.lazy(() => import('../pages/TopicDetailPage.jsx'));
 const SearchPage = React.lazy(() => import('../pages/SearchPage.jsx'));
 const EventsPage = React.lazy(() => import('../pages/events/EventsPage.jsx').then(m => ({ default: m.EventsPage })));
+const EventDetailPage = React.lazy(() => import('../pages/events/EventDetailPage.jsx').then(m => ({ default: m.EventDetailPage })));
 const MatchPage = React.lazy(() => import('../pages/match/MatchPage.jsx').then(m => ({ default: m.MatchPage })));
 const CommunityPage = React.lazy(() => import('../pages/community/CommunityPage.jsx').then(m => ({ default: m.CommunityPage })));
 const ProfilePage = React.lazy(() => import('../pages/profile/ProfilePage.jsx').then(m => ({ default: m.ProfilePage })));
@@ -81,6 +82,13 @@ export const routes = [
     title: '活动广场 - IEClub',
     requireAuth: false,
     layout: true,
+  },
+  {
+    path: '/events/:id',
+    element: <EventDetailPage />,
+    title: '活动详情 - IEClub',
+    requireAuth: false,
+    layout: false, // 活动详情页使用自定义布局
   },
   {
     path: '/community',

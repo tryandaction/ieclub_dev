@@ -27,7 +27,7 @@ const config = {
   framework: 'react',
   compiler: 'webpack5',
   cache: {
-    enable: false
+    enable: true  // 开启缓存提升编译速度
   },
   h5: {
     publicPath: '/',
@@ -55,6 +55,63 @@ const config = {
         autoprefixer: {
           enable: true
         }
+      }
+    },
+    // Webpack 配置
+    webpackChain(chain) {
+      // 代码分割优化
+      chain.optimization.splitChunks({
+        chunks: 'all',
+        cacheGroups: {
+          // React 核心库
+          react: {
+            name: 'vendors',
+            test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+            priority: 30
+          },
+          // Taro 框架
+          taro: {
+            name: 'taro',
+            test: /[\\/]node_modules[\\/]@tarojs[\\/]/,
+            priority: 25
+          },
+          // 图标库单独打包
+          icons: {
+            name: 'icons',
+            test: /[\\/]node_modules[\\/](lucide-react|@iconify)[\\/]/,
+            priority: 20
+          },
+          // 工具库
+          utils: {
+            name: 'utils',
+            test: /[\\/]node_modules[\\/](dayjs|zustand)[\\/]/,
+            priority: 15
+          },
+          // 公共代码
+          common: {
+            name: 'common',
+            minChunks: 2,
+            priority: 5,
+            reuseExistingChunk: true
+          }
+        }
+      });
+
+      // 排除小程序不支持的库
+      chain.externals([
+        // tesseract.js 在小程序中通过环境判断不加载
+        function ({ request }, callback) {
+          if (/^tesseract\.js/.test(request)) {
+            return callback(null, 'commonjs ' + request);
+          }
+          callback();
+        }
+      ]);
+
+      // 生产环境优化
+      if (process.env.NODE_ENV === 'production') {
+        chain.optimization.minimize(true);
+        chain.optimization.usedExports(true);
       }
     }
   }

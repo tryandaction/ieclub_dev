@@ -1,48 +1,90 @@
 /**
- * 通知中心页面
- * 显示用户的所有通知
+ * 通知中心页面 - 优化版
+ * 功能：
+ * - 通知列表展示
+ * - 按类型筛选（全部/互动/系统/活动）
+ * - 未读/已读状态管理
+ * - 批量操作（全部已读/删除）
+ * - 通知详情跳转
+ * - 实时推送（可选）
  */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Icon } from '@iconify/react';
 import { Avatar } from '../../components/common/Avatar.jsx';
-import Loading from '../../components/common/Loading.jsx';
-import Icon from '../../components/common/Icon.jsx';
+import { Button } from '../../components/common/Button.jsx';
+import { Tag } from '../../components/common/Tag.jsx';
 import api from '../../services/api.js';
-import { Bell, CheckCheck, Trash2, MessageCircle, Heart, UserPlus, Award } from 'lucide-react';
 
 /**
- * 通知类型图标映射
+ * 通知类型配置
  */
-const getNotificationIcon = (type) => {
-  const icons = {
-    comment: { icon: MessageCircle, color: '#3B82F6' },
-    like: { icon: Heart, color: '#EF4444' },
-    follow: { icon: UserPlus, color: '#8B5CF6' },
-    achievement: { icon: Award, color: '#F59E0B' },
-    system: { icon: Bell, color: '#6B7280' }
+const getNotificationConfig = (type) => {
+  const configs = {
+    comment: { 
+      icon: 'mdi:comment-text',
+      color: '#3B82F6',
+      bgColor: '#EFF6FF',
+      label: '评论'
+    },
+    like: { 
+      icon: 'mdi:heart',
+      color: '#EF4444',
+      bgColor: '#FEF2F2',
+      label: '点赞'
+    },
+    follow: { 
+      icon: 'mdi:account-plus',
+      color: '#8B5CF6',
+      bgColor: '#F5F3FF',
+      label: '关注'
+    },
+    achievement: { 
+      icon: 'mdi:trophy',
+      color: '#F59E0B',
+      bgColor: '#FFFBEB',
+      label: '成就'
+    },
+    system: { 
+      icon: 'mdi:bell',
+      color: '#6B7280',
+      bgColor: '#F9FAFB',
+      label: '系统'
+    },
+    event: {
+      icon: 'mdi:calendar-check',
+      color: '#10B981',
+      bgColor: '#ECFDF5',
+      label: '活动'
+    },
+    topic: {
+      icon: 'mdi:message-star',
+      color: '#6366F1',
+      bgColor: '#EEF2FF',
+      label: '话题'
+    }
   };
-  return icons[type] || icons.system;
+  return configs[type] || configs.system;
 };
 
 /**
  * 通知项组件
  */
 const NotificationItem = ({ notification, onRead, onDelete, onClick }) => {
-  const iconConfig = getNotificationIcon(notification.type);
-  const IconComponent = iconConfig.icon;
+  const config = getNotificationConfig(notification.type);
 
   return (
     <div
       onClick={() => onClick(notification)}
-      className={`relative p-4 rounded-xl border transition-all cursor-pointer ${
+      className={`relative p-4 rounded-xl border transition-all cursor-pointer group ${
         notification.isRead
-          ? 'bg-white border-gray-200 hover:bg-gray-50'
+          ? 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
           : 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 hover:shadow-md'
       }`}
     >
       {/* 未读标识 */}
       {!notification.isRead && (
-        <div className="absolute top-4 right-4 w-2 h-2 bg-red-500 rounded-full"></div>
+        <div className="absolute top-4 right-4 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></div>
       )}
 
       <div className="flex items-start gap-3">
@@ -56,10 +98,10 @@ const NotificationItem = ({ notification, onRead, onDelete, onClick }) => {
             />
           ) : (
             <div
-              className="w-10 h-10 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: `${iconConfig.color}20` }}
+              className="w-10 h-10 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
+              style={{ backgroundColor: config.bgColor }}
             >
-              <IconComponent size={20} color={iconConfig.color} />
+              <Icon icon={config.icon} style={{ color: config.color }} className="text-xl" />
             </div>
           )}
         </div>
@@ -67,12 +109,15 @@ const NotificationItem = ({ notification, onRead, onDelete, onClick }) => {
         {/* 通知内容 */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <p className="text-sm font-medium text-gray-900">
-              {notification.sender?.name && (
-                <span className="font-bold">{notification.sender.name} </span>
-              )}
-              {notification.title}
-            </p>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">
+                {notification.sender?.name && (
+                  <span className="font-bold text-purple-600">{notification.sender.name} </span>
+                )}
+                {notification.title}
+              </p>
+              <Tag variant="gray" size="sm" className="mt-1">{config.label}</Tag>
+            </div>
           </div>
 
           {notification.content && (
@@ -81,8 +126,9 @@ const NotificationItem = ({ notification, onRead, onDelete, onClick }) => {
             </p>
           )}
 
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-400">
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-xs text-gray-400 flex items-center gap-1">
+              <Icon icon="mdi:clock-outline" className="text-sm" />
               {formatTime(notification.createdAt)}
             </span>
 
@@ -97,7 +143,7 @@ const NotificationItem = ({ notification, onRead, onDelete, onClick }) => {
                   className="p-1.5 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
                   title="标记为已读"
                 >
-                  <CheckCheck size={16} />
+                  <Icon icon="mdi:check-all" className="text-lg" />
                 </button>
               )}
               <button
@@ -108,7 +154,7 @@ const NotificationItem = ({ notification, onRead, onDelete, onClick }) => {
                 className="p-1.5 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
                 title="删除"
               >
-                <Trash2 size={16} />
+                <Icon icon="mdi:delete" className="text-lg" />
               </button>
             </div>
           </div>
@@ -117,6 +163,28 @@ const NotificationItem = ({ notification, onRead, onDelete, onClick }) => {
     </div>
   );
 };
+
+/**
+ * 筛选按钮组件
+ */
+const FilterButton = ({ active, onClick, icon, count, children }) => (
+  <button
+    onClick={onClick}
+    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+      active
+        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
+        : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+    }`}
+  >
+    <Icon icon={icon} className="text-lg" />
+    <span>{children}</span>
+    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+      active ? 'bg-white/20' : 'bg-gray-100'
+    }`}>
+      {count}
+    </span>
+  </button>
+);
 
 /**
  * 格式化时间
@@ -148,7 +216,7 @@ const NotificationsPage = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // 'all' | 'unread'
+  const [filter, setFilter] = useState('all'); // 'all' | 'unread' | 'comment' | 'like' | 'follow' | 'system'
   const [unreadCount, setUnreadCount] = useState(0);
 
   // 加载通知列表
@@ -226,7 +294,11 @@ const NotificationsPage = () => {
   // 筛选通知
   const filteredNotifications = notifications.filter(n => {
     if (filter === 'unread') return !n.isRead;
-    return true;
+    if (filter === 'all') return true;
+    // 按类型筛选
+    if (filter === 'interaction') return ['comment', 'like', 'follow'].includes(n.type);
+    if (filter === 'activity') return ['event', 'topic'].includes(n.type);
+    return n.type === filter;
   });
 
   return (
@@ -237,7 +309,7 @@ const NotificationsPage = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <Bell size={24} className="text-purple-600" />
+                <Icon icon="mdi:bell" className="text-3xl text-purple-600" />
                 通知中心
               </h1>
               {unreadCount > 0 && (
@@ -261,27 +333,47 @@ const NotificationsPage = () => {
 
       {/* 筛选标签 */}
       <div className="max-w-4xl mx-auto px-4 py-4">
-        <div className="flex gap-2">
-          <button
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
+          <FilterButton
+            active={filter === 'all'}
             onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              filter === 'all'
-                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
-                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-            }`}
+            icon="mdi:inbox-multiple"
+            count={notifications.length}
           >
-            全部 ({notifications.length})
-          </button>
-          <button
+            全部
+          </FilterButton>
+          <FilterButton
+            active={filter === 'unread'}
             onClick={() => setFilter('unread')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              filter === 'unread'
-                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
-                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-            }`}
+            icon="mdi:bell-badge"
+            count={unreadCount}
           >
-            未读 ({unreadCount})
-          </button>
+            未读
+          </FilterButton>
+          <FilterButton
+            active={filter === 'interaction'}
+            onClick={() => setFilter('interaction')}
+            icon="mdi:heart"
+            count={notifications.filter(n => ['comment', 'like', 'follow'].includes(n.type)).length}
+          >
+            互动
+          </FilterButton>
+          <FilterButton
+            active={filter === 'activity'}
+            onClick={() => setFilter('activity')}
+            icon="mdi:calendar-star"
+            count={notifications.filter(n => ['event', 'topic'].includes(n.type)).length}
+          >
+            活动
+          </FilterButton>
+          <FilterButton
+            active={filter === 'system'}
+            onClick={() => setFilter('system')}
+            icon="mdi:cog"
+            count={notifications.filter(n => n.type === 'system').length}
+          >
+            系统
+          </FilterButton>
         </div>
       </div>
 
@@ -289,7 +381,7 @@ const NotificationsPage = () => {
       <div className="max-w-4xl mx-auto px-4">
         {loading ? (
           <div className="flex justify-center py-12">
-            <Loading size="lg" text="加载中..." />
+            <Icon icon="eos-icons:loading" className="text-4xl text-purple-600 animate-spin" />
           </div>
         ) : filteredNotifications.length > 0 ? (
           <div className="space-y-3">
@@ -306,7 +398,7 @@ const NotificationsPage = () => {
         ) : (
           <div className="text-center py-16">
             <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
-              <Bell size={32} className="text-gray-400" />
+              <Icon icon="mdi:bell-outline" className="text-5xl text-gray-400" />
             </div>
             <h3 className="text-lg font-bold text-gray-800 mb-2">
               {filter === 'unread' ? '没有未读通知' : '暂无通知'}

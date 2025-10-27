@@ -1,10 +1,14 @@
 {
-  "miniprogramRoot": "dist/weapp",
+  "miniprogramRoot": "dist",
   "projectname": "ieclub-taro",
   "description": "IEClub Taro Project",
   "appid": "__UNI__12345678",
   "setting": {
-    "urlCheck": false
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true
   },
   "compileType": "miniprogram"
 }

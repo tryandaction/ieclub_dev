@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 // 导入所有需要的通用组件
 import { Button } from '../../components/common/Button.jsx';
 import { Input } from '../../components/common/Input.jsx';
@@ -9,13 +10,16 @@ import { Tag } from '../../components/common/Tag.jsx';
 import { Plus, User, Clock, MapPin } from 'lucide-react';
 
 // ==================== 活动页面组件 (暂时放在这里) ====================
-const EventCard = ({ event }) => {
+const EventCard = ({ event, onClick }) => {
   const [registered, setRegistered] = useState(false);
   const progress = (event.participants / event.maxParticipants) * 100;
   const isFull = event.participants >= event.maxParticipants;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border hover:shadow-lg transition-all overflow-hidden group hover:-translate-y-1 active:scale-98">
+    <div 
+      onClick={onClick}
+      className="bg-white rounded-2xl shadow-sm border hover:shadow-lg transition-all overflow-hidden group hover:-translate-y-1 active:scale-98 cursor-pointer"
+    >
       <div className="relative h-32 md:h-40 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center overflow-hidden">
         <span className="text-white text-4xl md:text-5xl z-10">{event.icon || '📅'}</span>
         <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity"></div>
@@ -48,7 +52,10 @@ const EventCard = ({ event }) => {
         <Button 
           variant={registered ? 'success' : isFull ? 'secondary' : 'primary'} 
           className="w-full text-sm md:text-base py-2 md:py-3" 
-          onClick={() => !isFull && setRegistered(!registered)} 
+          onClick={(e) => {
+            e.stopPropagation(); // 阻止事件冒泡
+            !isFull && setRegistered(!registered);
+          }} 
           disabled={isFull && !registered}
         >
           {registered ? '✓ 已报名' : isFull ? '活动已满' : '立即报名'}
@@ -104,6 +111,7 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
 
 // ==================== 活动页面 (主导出组件) ====================
 export const EventsPage = () => {
+  const navigate = useNavigate();
   const [events, setEvents] = useState([
     { id: 1, title: '跨学科创新论坛：AI时代的教育变革', organizer: '王教授团队', date: '2025-10-15 14:00', location: '慧园行政楼报告厅', participants: 45, maxParticipants: 100, tags: ['学术讲座', '跨学科', 'AI'], description: '邀请教育学、计算机科学、心理学等多领域专家，探讨AI如何重塑教育形态', icon: '🎤' },
     { id: 2, title: '机器学习读书会 Vol.8', organizer: 'ML研究小组', date: '2025-10-08 19:00', location: '图书馆研讨室 304', participants: 18, maxParticipants: 20, tags: ['读书会', '机器学习', '深度学习'], description: '本周讨论《深度学习》第三章：优化算法。欢迎带着问题来交流！', icon: '📚' },
@@ -174,7 +182,13 @@ export const EventsPage = () => {
 
       {/* 活动列表 - 响应式网格 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 px-4 md:px-0 mt-4 md:mt-6">
-        {events.map(event => (<EventCard key={event.id} event={event} />))}
+        {events.map(event => (
+          <EventCard 
+            key={event.id} 
+            event={event} 
+            onClick={() => navigate(`/events/${event.id}`)}
+          />
+        ))}
       </div>
 
       <CreateEventModal isOpen={showCreateEvent} onClose={() => setShowCreateEvent(false)} onSubmit={handleCreateEvent} />
