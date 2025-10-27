@@ -66,7 +66,7 @@ class ErrorBoundary extends React.Component {
             </p>
 
             {/* 错误详情（开发模式） */}
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {(typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') && this.state.error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-sm font-semibold text-red-800 mb-2">
                   错误信息：

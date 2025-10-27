@@ -23,7 +23,8 @@ export const LazyImage = ({
 
   useEffect(() => {
     // 小程序环境直接加载
-    if (process.env.TARO_ENV !== 'h5') {
+    const taroEnv = (typeof process !== 'undefined' && process.env && process.env.TARO_ENV) || 'h5';
+    if (taroEnv !== 'h5') {
       loadImage();
       return;
     }

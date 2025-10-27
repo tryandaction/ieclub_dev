@@ -79,16 +79,20 @@ export const Sidebar = () => {
               }`
             }
           >
-            <div className="inline-flex items-center gap-2.5">
-              <Icon icon={item.icon} size="sm" color={isActive ? '#ffffff' : item.color} />
-              <span className="leading-none text-sm">{item.label}</span>
-            </div>
-            {item.badge && (
-              <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
-                isActive ? 'bg-white/20 text-white' : 'bg-gray-100 text-purple-600'
-              } leading-none`}>
-                {item.badge}
-              </span>
+            {({ isActive }) => (
+              <>
+                <div className="inline-flex items-center gap-2.5">
+                  <Icon icon={item.icon} size="sm" color={isActive ? '#ffffff' : item.color} />
+                  <span className="leading-none text-sm">{item.label}</span>
+                </div>
+                {item.badge && (
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-gray-100 text-purple-600'
+                  } leading-none`}>
+                    {item.badge}
+                  </span>
+                )}
+              </>
             )}
           </NavLink>
         ))}
@@ -108,8 +112,12 @@ export const Sidebar = () => {
                   }`
                 }
               >
-                <Icon icon={item.icon} size="sm" color={isActive ? '#8b5cf6' : item.color} />
-                <span className="leading-none text-sm">{item.label}</span>
+                {({ isActive }) => (
+                  <>
+                    <Icon icon={item.icon} size="sm" color={isActive ? '#8b5cf6' : item.color} />
+                    <span className="leading-none text-sm">{item.label}</span>
+                  </>
+                )}
               </NavLink>
             ))}
             <button

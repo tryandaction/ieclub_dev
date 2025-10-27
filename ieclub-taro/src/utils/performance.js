@@ -6,7 +6,7 @@
 class PerformanceMonitor {
   constructor() {
     this.metrics = {};
-    this.enabled = process.env.NODE_ENV === 'production';
+    this.enabled = (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'production') || false;
   }
 
   /**

@@ -30,7 +30,8 @@ class OCRService {
     if (this.isInitialized) return;
     
     // 小程序环境不支持 Tesseract
-    if (process.env.TARO_ENV !== 'h5' || !createWorker) {
+    const taroEnv = (typeof process !== 'undefined' && process.env && process.env.TARO_ENV) || 'h5';
+    if (taroEnv !== 'h5' || !createWorker) {
       console.log('当前环境不支持前端OCR，将使用云端API');
       this.isInitialized = true;
       return;
@@ -63,7 +64,8 @@ class OCRService {
     await this.initialize();
     
     // 小程序环境降级到云端API
-    if (process.env.TARO_ENV !== 'h5' || !this.worker) {
+    const taroEnv = (typeof process !== 'undefined' && process.env && process.env.TARO_ENV) || 'h5';
+    if (taroEnv !== 'h5' || !this.worker) {
       console.log('前端OCR不可用，使用云端API');
       return await this.preciseRecognize(imageFile);
     }
