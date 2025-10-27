@@ -4,7 +4,7 @@
  */
 import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
+import { useAuth } from '../store/AuthContext.jsx';
 
 /**
  * 路由守卫
@@ -14,7 +14,7 @@ import { useAuthStore } from '../store/authStore';
  */
 export const RouteGuard = ({ children, requireAuth = false, title }) => {
   const location = useLocation();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuth();
 
   // 更新页面标题
   useEffect(() => {

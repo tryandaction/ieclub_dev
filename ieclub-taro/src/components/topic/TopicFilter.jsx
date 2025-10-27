@@ -69,102 +69,68 @@ const TopicFilter = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-5">
-      {/* 类型筛选 - 横向滚动 */}
-      <div className="mb-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Icon icon="filter" size="md" color="#667eea" />
-          <span className="text-sm font-bold text-gray-900 leading-none">话题类型</span>
-        </div>
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {typeOptions.map((option) => (
-            <button
-              key={option.value || 'all'}
-              onClick={() => handleTypeChange(option.value)}
-              className={`
-                inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold whitespace-nowrap text-sm
-                transition-all flex-shrink-0
-                ${type === option.value
-                  ? 'bg-gradient-primary text-white shadow-lg scale-105'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-800 hover:scale-105'
-                }
-              `}
-            >
-              <Icon
-                icon={option.icon}
-                size="sm"
-                color={type === option.value ? '#ffffff' : (option.color || 'currentColor')}
-              />
-              <span className="leading-none">{option.label}</span>
-            </button>
-          ))}
-        </div>
+    <div className="flex items-center justify-between flex-wrap gap-4">
+      {/* 左侧：类型/分类筛选 */}
+      <div className="flex gap-2 flex-wrap flex-1">
+        {typeOptions.map((option) => (
+          <button
+            key={option.value || 'all'}
+            onClick={() => handleTypeChange(option.value)}
+            className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+              type === option.value
+                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+        
+        {/* 分类筛选按钮 */}
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="px-4 py-2 rounded-lg font-semibold transition-all border-2 border-gray-300 text-gray-700 hover:bg-gray-50"
+        >
+          {category !== TopicCategory.ALL ? categoryOptions.find(c => c.value === category)?.label : '分类'} ▼
+        </button>
       </div>
 
-      {/* 展开/收起更多筛选 */}
-      <button
-        onClick={() => setShowFilters(!showFilters)}
-        className="inline-flex items-center justify-center gap-2 text-sm text-purple-600 hover:text-purple-700 font-bold mb-3 hover:underline"
+      {/* 右侧：排序选择 */}
+      <select
+        value={sortBy}
+        onChange={(e) => handleSortChange(e.target.value)}
+        className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700 font-medium"
       >
-        <Icon icon={showFilters ? 'chevronUp' : 'chevronDown'} size="sm" color="#8B5CF6" />
-        <span className="leading-none">{showFilters ? '收起筛选' : '更多筛选'}</span>
-      </button>
+        {sortOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
 
-      {/* 更多筛选选项 */}
+      {/* 展开的分类筛选 */}
       {showFilters && (
-        <div className="space-y-5 border-t-2 border-gray-100 pt-4">
-          {/* 分类筛选 */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Icon icon="category" size="md" color="#667eea" />
-              <span className="text-sm font-bold text-gray-900 leading-none">内容分类</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {categoryOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleCategoryChange(option.value)}
-                  className={`
-                    inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold
-                    transition-all hover:scale-105
-                    ${category === option.value
-                      ? 'bg-purple-600 text-white shadow-lg'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
-                    }
-                  `}
-                >
-                  <Icon icon={option.icon} size="xs" color={category === option.value ? '#ffffff' : 'currentColor'} />
-                  <span className="leading-none">{option.label}</span>
-                </button>
-              ))}
-            </div>
+        <div className="w-full border-t pt-4 mt-2 animate-slideDown">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-sm font-semibold text-gray-700">内容分类：</span>
           </div>
-
-          {/* 排序方式 */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Icon icon="sort" size="md" color="#667eea" />
-              <span className="text-sm font-bold text-gray-900 leading-none">排序方式</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {sortOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleSortChange(option.value)}
-                  className={`
-                    inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold
-                    transition-all hover:scale-105
-                    ${sortBy === option.value
-                      ? 'bg-purple-600 text-white shadow-lg'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
-                    }
-                  `}
-                >
-                  <Icon icon={option.icon} size="xs" color={sortBy === option.value ? '#ffffff' : 'currentColor'} />
-                  <span className="leading-none">{option.label}</span>
-                </button>
-              ))}
-            </div>
+          <div className="flex flex-wrap gap-2">
+            {categoryOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => {
+                  handleCategoryChange(option.value);
+                  setShowFilters(false);
+                }}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  category === option.value
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
         </div>
       )}

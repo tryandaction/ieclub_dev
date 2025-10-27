@@ -1,5 +1,256 @@
-.index {
+/**
+ * IEClub 首页样式
+ * 采用现代化设计，优化视觉体验和交互反馈
+ */
+
+.index-container {
+  position: relative;
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  // 背景装饰圆点
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.1) 1px,
+      transparent 1px
+    );
+    background-size: 30px 30px;
+    opacity: 0.5;
+    animation: drift 60s linear infinite;
+  }
+
+  // 顶部装饰气泡
+  &::after {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    filter: blur(40px);
+    animation: float 8s ease-in-out infinite;
+  }
+
+  .header {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    margin-bottom: 60px;
+    padding-top: 60px;
+    animation: fadeInDown 0.8s ease-out;
+
+    .title {
+      display: block;
+      font-size: 36px;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      display: block;
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.95);
+      font-weight: 400;
+      letter-spacing: 0.5px;
+    }
+
+    .user-greeting {
+      display: block;
+      margin-top: 16px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.85);
+      font-weight: 300;
+    }
+  }
+
+  .menu-list {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    max-width: 420px;
+    margin: 0 auto;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+
+    .menu-item {
+      position: relative;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 32px 20px;
+      text-align: center;
+      box-shadow: 
+        0 8px 16px rgba(0, 0, 0, 0.1),
+        0 2px 4px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      overflow: hidden;
+
+      // 悬浮渐变背景
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #667eea15, #764ba215);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      &:active {
+        transform: scale(0.96) translateY(2px);
+        box-shadow: 
+          0 4px 8px rgba(0, 0, 0, 0.15),
+          0 1px 2px rgba(0, 0, 0, 0.1);
+        
+        &::before {
+          opacity: 1;
+        }
+      }
+
+      .menu-icon {
+        position: relative;
+        z-index: 1;
+        display: block;
+        font-size: 52px;
+        margin-bottom: 12px;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .menu-text {
+        position: relative;
+        z-index: 1;
+        display: block;
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        transition: color 0.3s ease;
+      }
+
+      // Hover 效果增强（小程序不支持，但为 H5 保留）
+      @media (hover: hover) {
+        &:hover {
+          transform: translateY(-4px);
+          box-shadow: 
+            0 12px 24px rgba(0, 0, 0, 0.15),
+            0 4px 8px rgba(0, 0, 0, 0.08);
+
+          &::before {
+            opacity: 1;
+          }
+
+          .menu-icon {
+            transform: scale(1.1) rotate(5deg);
+          }
+        }
+      }
+    }
+
+    // 为不同菜单项添加渐入动画延迟
+    .menu-item:nth-child(1) {
+      animation: fadeInUp 0.6s ease-out 0.1s both;
+    }
+    .menu-item:nth-child(2) {
+      animation: fadeInUp 0.6s ease-out 0.2s both;
+    }
+    .menu-item:nth-child(3) {
+      animation: fadeInUp 0.6s ease-out 0.3s both;
+    }
+    .menu-item:nth-child(4) {
+      animation: fadeInUp 0.6s ease-out 0.4s both;
+    }
+  }
+
+  // 菜单项的点击态样式
+  .menu-item-hover {
+    transform: scale(0.96);
+    opacity: 0.9;
+  }
+
+  .footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    margin-top: 60px;
+    padding-bottom: 20px;
+    animation: fadeIn 1s ease-out 0.5s both;
+
+    .footer-text {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.75);
+      font-weight: 300;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+// ==================== 动画定义 ====================
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(-20px) translateX(20px);
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 

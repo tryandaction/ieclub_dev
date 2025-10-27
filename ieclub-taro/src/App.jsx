@@ -62,21 +62,46 @@ import { Sidebar } from './components/layout/Sidebar.jsx';
 
 // ==================== 主应用 ====================
 
-// 主布局组件 - 包含导航栏和侧边栏
+// 主布局组件 - 参考小红书左侧固定导航
 const MainLayout = () => {
+  const [showPublishModal, setShowPublishModal] = useState(false);
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex gap-6">
-          <Sidebar />
-          <main className="flex-1 min-w-0">
-            <PageTransition>
-              <Outlet />
-            </PageTransition>
-          </main>
-        </div>
+      {/* 移动端顶部导航栏 */}
+      <div className="lg:hidden">
+        <Navbar />
       </div>
+      
+      {/* 桌面端左侧固定导航 */}
+      <Sidebar onPublishClick={() => setShowPublishModal(true)} />
+      
+      {/* 主内容区域 - 适配左侧导航 */}
+      <main className="lg:ml-64 min-h-screen">
+        <div className="max-w-5xl mx-auto px-4 py-6 lg:px-8">
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
+        </div>
+      </main>
+
+      {/* 发布模态框（TODO: 实现） */}
+      {showPublishModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">发布内容</h2>
+              <button 
+                onClick={() => setShowPublishModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-gray-600">发布功能正在开发中...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,24 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../store/AuthContext.jsx';
 import { Avatar } from '../common/Avatar.jsx';
 import { Button } from '../common/Button.jsx';
 import Icon from '../common/Icon.jsx';
 
-export const Sidebar = () => {
+export const Sidebar = ({ onPublishClick }) => {
   const { isAuthenticated, logout, user } = useAuth();
   const navigate = useNavigate();
 
+  // 参考小红书和README：广场、社区、发布、活动、我的
   const menuItems = [
-    { id: 'home', path: '/', icon: 'home', label: '首页', badge: null, color: '#667eea' },
-    { id: 'trending', path: '/trending', icon: 'trending', label: '热门', badge: 'HOT', color: '#f43f5e' },
+    { id: 'plaza', path: '/', icon: 'home', label: '广场', badge: null, color: '#3b82f6' },
+    { id: 'community', path: '/community', icon: 'users', label: '社区', badge: null, color: '#ec4899' },
+    { id: 'publish', path: '#', icon: 'publish', label: '发布', isAction: true, color: '#8b5cf6' },
     { id: 'events', path: '/events', icon: 'calendar', label: '活动', badge: null, color: '#10b981' },
-    { id: 'match', path: '/match', icon: 'users', label: '兴趣匹配', badge: 'NEW', color: '#f59e0b' },
-    { id: 'leaderboard', path: '/leaderboard', icon: 'trophy', label: '排行榜', badge: null, color: '#8b5cf6' },
+    { id: 'profile', path: '/profile', icon: 'user', label: '我的', badge: null, color: '#f59e0b' },
   ];
 
-  const userMenuItems = [
-    { id: 'profile', path: '/profile', icon: 'user', label: '我的主页', color: '#3b82f6' },
+  const extraMenuItems = [
+    { id: 'trending', path: '/trending', icon: 'trending', label: '热门', badge: 'HOT', color: '#f43f5e' },
+    { id: 'leaderboard', path: '/leaderboard', icon: 'trophy', label: '排行榜', badge: null, color: '#8b5cf6' },
     { id: 'bookmarks', path: '/bookmarks', icon: 'bookmark', label: '我的收藏', color: '#eab308' },
     { id: 'settings', path: '/settings', icon: 'settings', label: '设置', color: '#64748b' },
   ];
@@ -28,116 +30,138 @@ export const Sidebar = () => {
     navigate('/login');
   };
 
+  const handlePublish = () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    onPublishClick?.();
+  };
+
   return (
-    <aside className="hidden lg:block w-56 xl:w-60 space-y-2">
-      <div className="bg-white rounded-xl p-4 shadow-sm border mb-4">
-        {isAuthenticated && user ? (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2.5">
-              <Avatar src={user.avatar} size="md" status="online" />
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-gray-900 truncate text-sm leading-none mb-1">{user.username}</p>
-                <p className="text-xs text-gray-500 truncate leading-none">{user.major}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-1 pt-2.5 border-t">
-              <div className="text-center">
-                <p className="font-bold text-gray-900 text-sm leading-none mb-1">{user.followers || 0}</p>
-                <p className="text-xs text-gray-500 leading-none">粉丝</p>
-              </div>
-              <div className="text-center border-l border-r">
-                <p className="font-bold text-gray-900 text-sm leading-none mb-1">{user.following || 0}</p>
-                <p className="text-xs text-gray-500 leading-none">关注</p>
-              </div>
-              <div className="text-center">
-                <p className="font-bold text-gray-900 text-sm leading-none mb-1">{user.reputation || 0}</p>
-                <p className="text-xs text-gray-500 leading-none">声望</p>
-              </div>
-            </div>
+    <aside className="hidden lg:flex lg:flex-col fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 z-40">
+      {/* Logo 区域 */}
+      <div className="p-6 border-b border-gray-100">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+            <span className="text-white font-bold text-xl">IE</span>
           </div>
-        ) : (
-          <div className="text-center py-4">
-            <p className="text-gray-600 mb-3">加入IEclub社区</p>
-            <Button variant="primary" onClick={() => navigate('/register')} className="w-full">
-              立即注册
-            </Button>
+          <div>
+            <h1 className="font-bold text-gray-900 text-lg leading-none">IEclub</h1>
+            <p className="text-xs text-gray-500 mt-0.5">创新与交流</p>
           </div>
-        )}
+        </div>
       </div>
 
-      <div className="space-y-1">
-        {menuItems.map(item => (
-          <NavLink
-            key={item.id}
-            to={item.path}
-            end={item.path === '/'}
-            className={({ isActive }) =>
-              `w-full inline-flex items-center justify-between px-3 py-2.5 rounded-lg font-medium transition-all group ${
-                isActive 
-                  ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-sm' 
-                  : 'bg-white hover:bg-gray-50 text-gray-700'
-              }`
+      {/* 主导航菜单 - 参考小红书 */}
+      <nav className="flex-1 overflow-y-auto py-4 px-3">
+        <div className="space-y-1">
+          {menuItems.map(item => {
+            // 发布按钮特殊处理
+            if (item.isAction) {
+              return (
+                <button
+                  key={item.id}
+                  onClick={handlePublish}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm hover:shadow-md transition-all group"
+                >
+                  <Icon icon={item.icon} size="md" color="#ffffff" />
+                  <span className="text-sm leading-none">{item.label}</span>
+                </button>
+              );
             }
-          >
-            {({ isActive }) => (
-              <>
-                <div className="inline-flex items-center gap-2.5">
-                  <Icon icon={item.icon} size="sm" color={isActive ? '#ffffff' : item.color} />
-                  <span className="leading-none text-sm">{item.label}</span>
-                </div>
-                {item.badge && (
-                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
-                    isActive ? 'bg-white/20 text-white' : 'bg-gray-100 text-purple-600'
-                  } leading-none`}>
-                    {item.badge}
-                  </span>
-                )}
-              </>
-            )}
-          </NavLink>
-        ))}
-      </div>
 
-      {isAuthenticated && (
-        <>
-          <div className="border-t my-4"></div>
-          <div className="space-y-1">
-            {userMenuItems.map(item => (
+            // 普通导航项
+            return (
               <NavLink
                 key={item.id}
                 to={item.path}
-                className={({ isActive }) => 
-                  `w-full inline-flex items-center gap-2.5 px-3 py-2.5 rounded-lg font-medium bg-white transition-all ${
-                    isActive ? 'text-purple-600' : 'text-gray-700 hover:bg-gray-50'
+                end={item.path === '/'}
+                className={({ isActive }) =>
+                  `w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all group ${
+                    isActive 
+                      ? 'bg-purple-50 text-purple-600' 
+                      : 'text-gray-700 hover:bg-gray-50'
                   }`
                 }
               >
                 {({ isActive }) => (
                   <>
-                    <Icon icon={item.icon} size="sm" color={isActive ? '#8b5cf6' : item.color} />
-                    <span className="leading-none text-sm">{item.label}</span>
+                    <Icon icon={item.icon} size="md" color={isActive ? item.color : '#6b7280'} />
+                    <span className="text-sm leading-none">{item.label}</span>
+                    {item.badge && (
+                      <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-bold ${
+                        isActive ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {item.badge}
+                      </span>
+                    )}
                   </>
                 )}
               </NavLink>
-            ))}
+            );
+          })}
+        </div>
+
+        {/* 额外菜单 */}
+        <div className="mt-6 pt-6 border-t border-gray-100 space-y-1">
+          {extraMenuItems.map(item => (
+            <NavLink
+              key={item.id}
+              to={item.path}
+              className={({ isActive }) => 
+                `w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
+                  isActive ? 'bg-purple-50 text-purple-600' : 'text-gray-700 hover:bg-gray-50'
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <Icon icon={item.icon} size="md" color={isActive ? item.color : '#6b7280'} />
+                  <span className="text-sm leading-none">{item.label}</span>
+                  {item.badge && (
+                    <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-bold ${
+                      isActive ? 'bg-purple-100 text-purple-700' : 'bg-red-100 text-red-600'
+                    }`}>
+                      {item.badge}
+                    </span>
+                  )}
+                </>
+              )}
+            </NavLink>
+          ))}
+        </div>
+      </nav>
+
+      {/* 用户信息区域 - 底部 */}
+      <div className="p-4 border-t border-gray-100">
+        {isAuthenticated && user ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 px-2">
+              <Avatar src={user.avatar} size="sm" status="online" />
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-gray-900 truncate text-sm leading-none">{user.username}</p>
+                <p className="text-xs text-gray-500 truncate mt-1">{user.major || '学生'}</p>
+              </div>
+            </div>
             <button
               onClick={handleLogout}
-              className="w-full inline-flex items-center gap-2.5 px-3 py-2.5 rounded-lg font-medium bg-white hover:bg-red-50 text-red-600 transition-all"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium bg-gray-50 hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all"
             >
-              <Icon icon="logout" size="sm" color="#dc2626" />
-              <span className="leading-none text-sm">退出登录</span>
+              <Icon icon="logout" size="sm" color="currentColor" />
+              <span className="text-sm">退出登录</span>
             </button>
           </div>
-        </>
-      )}
-
-      <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-3 border border-purple-100 mt-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Icon icon="school" size="sm" color="#8b5cf6" />
-          <p className="font-bold text-gray-900 leading-none text-sm">校区交流</p>
-        </div>
-        <p className="text-xs text-gray-600 mb-2 leading-relaxed">即将支持跨校区、跨学校交流功能</p>
-        <Button variant="outline" className="w-full text-xs py-1.5">了解更多</Button>
+        ) : (
+          <div className="space-y-2">
+            <Button variant="primary" onClick={() => navigate('/login')} className="w-full">
+              登录
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/register')} className="w-full">
+              注册
+            </Button>
+          </div>
+        )}
       </div>
     </aside>
   );

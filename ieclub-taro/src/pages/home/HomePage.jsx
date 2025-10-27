@@ -191,69 +191,47 @@ export const HomePage = () => {
   };
 
   return (
-    <div className="home-page">
-      {/* 精简的欢迎区 - IE品牌风格 */}
-      <div className="mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-purple-700 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
-        {/* 装饰元素 - 柔和的光晕 */}
-        <div className="absolute top-0 right-0 w-40 h-40 bg-white opacity-10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white opacity-10 rounded-full -ml-16 -mb-16 blur-3xl"></div>
-        
-        <div className="relative z-10">
-          <h1 className="text-2xl font-bold mb-2 flex items-center gap-2">
-            <span>欢迎来到 IEclub</span>
-            <span className="text-xl">👋</span>
-          </h1>
-          <p className="text-sm opacity-90 font-medium">南科大跨学科交流社区 · 学习分享 · 资源对接</p>
-        </div>
-      </div>
-
+    <div className="space-y-4">
       {/* 话题筛选器 */}
-      <div style={{ marginBottom: '40rpx' }}>
+      <div className="bg-white p-4 rounded-xl border shadow-sm">
         <TopicFilter
           filters={filters}
           onChange={handleFilterChange}
         />
       </div>
 
-      {/* 话题列表 - 瀑布流 */}
-      <TopicList
-        topics={sortedTopics}
-        loading={isLoading}
-        hasMore={pagination.hasMore}
-        onLoadMore={handleLoadMore}
-        onTopicClick={handleTopicClick}
-        onLike={handleLike}
-        onBookmark={handleBookmark}
-        onComment={handleComment}
-        emptyType={filters.type}
-      />
-
-      {/* 悬浮发布按钮 - IE品牌风格 */}
-      <button
-        onClick={() => !isAuthenticated ? navigate('/login') : setShowCreateModal(true)}
-        className="fixed bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-2xl hover:shadow-3xl hover:scale-110 transition-all flex-center-perfect z-50 group gpu-accelerated"
-        style={{
-          bottom: '64rpx',
-          right: '64rpx',
-          width: '112rpx',
-          height: '112rpx',
-          borderRadius: 'var(--radius-full)',
-          boxShadow: '0 16rpx 64rpx rgba(102, 126, 234, 0.5)',
-          minWidth: 'var(--touch-target-min)',
-          minHeight: 'var(--touch-target-min)'
-        }}
-      >
-        <div className="icon-wrapper-lg">
-          <Icon icon="publish" size="lg" color="#ffffff" />
-        </div>
-        <span className="sr-only">发布话题</span>
-      </button>
+      {/* 话题列表 */}
+      <div className="space-y-4">
+        <TopicList
+          topics={sortedTopics}
+          loading={isLoading}
+          hasMore={pagination.hasMore}
+          onLoadMore={handleLoadMore}
+          onTopicClick={handleTopicClick}
+          onLike={handleLike}
+          onBookmark={handleBookmark}
+          onComment={handleComment}
+          emptyType={filters.type}
+        />
+      </div>
 
       {/* 发布话题模态框（待实现） */}
-      {/* <CreateTopicModal 
-        isOpen={showCreateModal} 
-        onClose={() => setShowCreateModal(false)} 
-      /> */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">发布话题</h2>
+              <button 
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-gray-600">发布功能正在开发中...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

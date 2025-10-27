@@ -62,6 +62,10 @@ const config = {
         }
       }
     },
+    // 运行时配置
+    runtime: {
+      framework: 'react'
+    },
     // Webpack 配置
     webpackChain(chain) {
       // 集成 weapp-tailwindcss 插件

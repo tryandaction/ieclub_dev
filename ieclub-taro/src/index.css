@@ -1,20 +1,76 @@
-/* 1. Tailwind 指令必须在最前面 - Tailwind CSS v3 语法 */
+/**
+ * IEClub 全局样式
+ * 优化的层级顺序：imports -> Tailwind -> 自定义样式
+ */
+
+/* ==================== 1. Import 必须在最前面 ==================== */
+@import "./styles/responsive.scss";
+@import "./styles/animations.scss";
+
+/* ==================== 2. Tailwind CSS 指令 ==================== */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 2. 导入响应式适配系统（rpx单位） */
-@import "./styles/responsive.scss";
+/* ==================== 3. 自定义全局样式 ==================== */
 
-/* 3. 导入动画样式 */
-@import "./styles/animations.scss";
+/* CSS 变量定义 */
+:root {
+  /* 品牌颜色 */
+  --color-primary: #667eea;
+  --color-primary-dark: #5a67d8;
+  --color-secondary: #764ba2;
+  --color-accent: #a855f7;
+  
+  /* 中性色 */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-600: #4b5563;
+  --color-gray-900: #111827;
+  
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  /* 圆角 */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  
+  /* 阴影 */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  
+  /* 过渡 */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-/* 3. 在指令之后，添加我们自定义的全局样式 */
+/* 实用工具类 */
 .bg-grid-pattern {
   background-image: 
-    linear-gradient(to right, rgba(0,0,0,0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0,0,0,0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
   background-size: 20px 20px;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .line-clamp-2 {
@@ -63,13 +119,55 @@
   display: none;  /* Chrome, Safari and Opera */
 }
 
+/* ==================== 基础样式重置 ==================== */
+
 /* 页面整体优化 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
-    'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif, 'Apple Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #f9fafb;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-gray-900);
+  background: var(--color-gray-50);
+  overflow-x: hidden;
+}
+
+/* 链接样式重置 */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 按钮样式重置 */
+button {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 图片优化 */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  image-rendering: -webkit-optimize-contrast;
 }
 
 /* 选中文本样式 */
@@ -95,11 +193,18 @@ img {
   image-rendering: -webkit-optimize-contrast;
 }
 
-/* 过渡效果 */
-* {
-  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-  transition-duration: 150ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+/* ==================== 性能优化 ==================== */
+
+/* GPU 加速 */
+.gpu-accelerate {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* 禁用点击高亮 */
+.no-tap-highlight {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* 隐藏滚动条但保留滚动功能 */
