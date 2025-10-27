@@ -1,4 +1,5 @@
 const path = require('path')
+const { UnifiedWebpackPluginV5 } = require('weapp-tailwindcss/webpack')
 
 const config = {
   projectName: 'ieclub-taro',
@@ -12,8 +13,12 @@ const config = {
   sourceRoot: 'src',
   outputRoot: 'dist',
   plugins: [
-    '@tarojs/plugin-platform-h5'
+    '@tarojs/plugin-platform-h5',
+    '@tarojs/plugin-html'  // 启用 Sass/Less/PostCSS 支持
   ],
+  sass: {
+    // 全局 Sass 配置（可选）
+  },
   defineConstants: {
   },
   copy: {
@@ -59,6 +64,13 @@ const config = {
     },
     // Webpack 配置
     webpackChain(chain) {
+      // 集成 weapp-tailwindcss 插件
+      chain.plugin('weapp-tailwindcss')
+        .use(UnifiedWebpackPluginV5, [{
+          appType: 'taro',
+          rem2rpx: true
+        }]);
+
       // 代码分割优化 - 更激进的策略
       chain.optimization.splitChunks({
         chunks: 'all',
