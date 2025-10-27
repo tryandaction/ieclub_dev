@@ -4,7 +4,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import Icon from '../common/Icon.jsx';
-import Avatar from '../common/Avatar.jsx';
+import { Avatar } from '../common/Avatar.jsx';
 import { Button } from '../common/Button.jsx';
 import { useAuthStore } from '../../store/authStore';
 import api from '../../services/api.js';

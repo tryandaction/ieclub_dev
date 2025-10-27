@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Icon from '../components/common/Icon.jsx';
 import { Button } from '../components/common/Button.jsx';
-import Avatar from '../components/common/Avatar.jsx';
+import { Avatar } from '../components/common/Avatar.jsx';
 import Loading from '../components/common/Loading.jsx';
 import CommentSection from '../components/topic/CommentSection.jsx';
 import { useTopicStore, TopicType } from '../store/topicStore';

@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from './Icon.jsx';
-import Avatar from './Avatar.jsx';
+import { Avatar } from './Avatar.jsx';
 import api from '../../services/api.js';
 
 /**

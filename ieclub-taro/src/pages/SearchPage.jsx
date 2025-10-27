@@ -7,7 +7,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import Icon from '../components/common/Icon.jsx';
 import SearchBar from '../components/common/SearchBar.jsx';
 import TopicCard from '../components/topic/TopicCard.jsx';
-import Avatar from '../components/common/Avatar.jsx';
+import { Avatar } from '../components/common/Avatar.jsx';
 import Loading from '../components/common/Loading.jsx';
 import { TopicType } from '../store/topicStore';
 import api from '../services/api.js';
