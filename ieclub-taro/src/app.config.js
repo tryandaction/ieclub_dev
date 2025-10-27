@@ -1,8 +1,35 @@
-// Taro H5 应用配置
-// 由于我们使用 React Router 进行路由管理，这里只保留一个占位页面
+// Taro 应用配置
+// H5环境使用 React Router，小程序环境使用分包配置
 export default {
   pages: [
-    'pages/index/index' // Taro 要求的占位页面
+    'pages/index/index' // 主包入口页面
+  ],
+  // 小程序分包配置（H5环境会忽略）
+  subPackages: [
+    {
+      root: 'pages/events',
+      pages: [
+        'EventDetailPage'
+      ]
+    },
+    {
+      root: 'pages/profile',
+      pages: [
+        'ProfilePage'
+      ]
+    },
+    {
+      root: 'pages/settings',
+      pages: [
+        'SettingsPage'
+      ]
+    },
+    {
+      root: 'pages/notifications',
+      pages: [
+        'NotificationsPage'
+      ]
+    }
   ],
   window: {
     backgroundTextStyle: 'light',

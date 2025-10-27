@@ -59,33 +59,59 @@ const config = {
     },
     // Webpack 配置
     webpackChain(chain) {
-      // 代码分割优化
+      // 代码分割优化 - 更激进的策略
       chain.optimization.splitChunks({
         chunks: 'all',
+        maxInitialRequests: 10,
+        minSize: 10000,
         cacheGroups: {
           // React 核心库
           react: {
             name: 'vendors',
-            test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
-            priority: 30
+            test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+            priority: 40,
+            enforce: true
           },
           // Taro 框架
           taro: {
             name: 'taro',
             test: /[\\/]node_modules[\\/]@tarojs[\\/]/,
-            priority: 25
+            priority: 35,
+            enforce: true
           },
-          // 图标库单独打包
-          icons: {
-            name: 'icons',
-            test: /[\\/]node_modules[\\/](lucide-react|@iconify)[\\/]/,
-            priority: 20
+          // React Router
+          router: {
+            name: 'router',
+            test: /[\\/]node_modules[\\/](react-router|react-router-dom)[\\/]/,
+            priority: 30,
+            enforce: true
+          },
+          // 图标库单独打包（最大的依赖）
+          iconify: {
+            name: 'iconify',
+            test: /[\\/]node_modules[\\/]@iconify[\\/]/,
+            priority: 25,
+            enforce: true
+          },
+          lucide: {
+            name: 'lucide',
+            test: /[\\/]node_modules[\\/]lucide-react[\\/]/,
+            priority: 24,
+            enforce: true
           },
           // 工具库
           utils: {
             name: 'utils',
-            test: /[\\/]node_modules[\\/](dayjs|zustand)[\\/]/,
-            priority: 15
+            test: /[\\/]node_modules[\\/](dayjs|zustand|lodash)[\\/]/,
+            priority: 20
+          },
+          // 组件库
+          components: {
+            name: 'components',
+            test: /[\\/]src[\\/]components[\\/]/,
+            minChunks: 2,
+            priority: 15,
+            reuseExistingChunk: true
           },
           // 公共代码
           common: {
@@ -112,6 +138,8 @@ const config = {
       if (process.env.NODE_ENV === 'production') {
         chain.optimization.minimize(true);
         chain.optimization.usedExports(true);
+        // Tree Shaking
+        chain.optimization.sideEffects(true);
       }
     }
   }

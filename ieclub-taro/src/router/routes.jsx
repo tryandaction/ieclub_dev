@@ -18,6 +18,8 @@ const LeaderboardPage = React.lazy(() => import('../pages/leaderboard/Leaderboar
 const BookmarksPage = React.lazy(() => import('../pages/bookmarks/BookmarksPage.jsx').then(m => ({ default: m.BookmarksPage })));
 const SettingsPage = React.lazy(() => import('../pages/settings/SettingsPage.jsx').then(m => ({ default: m.SettingsPage })));
 const NotificationsPage = React.lazy(() => import('../pages/notifications/NotificationsPage.jsx'));
+const MessagesListPage = React.lazy(() => import('../pages/messages/MessagesPage.jsx').then(m => ({ default: m.MessagesListPage })));
+const ChatPage = React.lazy(() => import('../pages/messages/MessagesPage.jsx').then(m => ({ default: m.ChatPage })));
 const LoginPage = React.lazy(() => import('../pages/auth/LoginPage.jsx').then(m => ({ default: m.LoginPage })));
 const RegisterPage = React.lazy(() => import('../pages/auth/RegisterPage.jsx').then(m => ({ default: m.RegisterPage })));
 
@@ -131,6 +133,20 @@ export const routes = [
     title: '通知中心 - IEClub',
     requireAuth: true,
     layout: false, // 通知中心使用自定义布局
+  },
+  {
+    path: '/messages',
+    element: <MessagesListPage />,
+    title: '消息 - IEClub',
+    requireAuth: true,
+    layout: false, // 消息列表使用自定义布局
+  },
+  {
+    path: '/messages/:conversationId',
+    element: <ChatPage />,
+    title: '聊天 - IEClub',
+    requireAuth: true,
+    layout: false, // 聊天页面使用自定义布局
   },
 
   // ===== 404页面 =====

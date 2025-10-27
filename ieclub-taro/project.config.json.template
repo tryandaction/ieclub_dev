@@ -2,15 +2,14 @@
   "miniprogramRoot": "dist",
   "projectname": "ieclub-taro",
   "description": "IEClub Taro Project",
-  "appid": "wxf6389db55319e51c",
+  "appid": "YOUR_APPID_HERE",
   "setting": {
     "urlCheck": false,
     "es6": true,
     "enhance": true,
     "postcss": true,
     "minified": true,
-    "condition": true,
-    "compileHotReLoad": false
+    "condition": true
   },
   "compileType": "miniprogram",
   "projectArchitecture": "multiPlatform",
@@ -18,3 +17,4 @@
     "wxext14566970e7e9f62": "2.27.3"
   }
 }
+

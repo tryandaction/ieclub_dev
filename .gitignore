@@ -184,3 +184,9 @@ backup_*/
 # Project specific - delegate to subdirectories
 # Frontend specific files are ignored in ieclub-taro/.gitignore
 # Backend specific files are ignored in ieclub-backend/.gitignore
+
+# 小程序配置（包含敏感信息，不要提交到git）
+ieclub-taro/project.config.json
+ieclub-taro/project.private.config.json
+
+

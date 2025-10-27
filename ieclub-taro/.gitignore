@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# 小程序配置（包含敏感信息，不要提交到git）
+project.config.json
+project.private.config.json

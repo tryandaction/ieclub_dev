@@ -1,18 +1,11 @@
-// export default { 
-//   plugins: { 
-//     tailwindcss: {}, 
-//     autoprefixer: {}, 
-//   }, 
-// } 
 export default {
   plugins: {
-    '@tailwindcss/postcss': {}, // <-- 使用新的插件包
-    autoprefixer: {},
+    '@tailwindcss/postcss': {},
+    autoprefixer: {
+      overrideBrowserslist: [
+        'Android >= 4.0',
+        'iOS >= 8'
+      ]
+    }
   },
 }
-// export default {
-//   plugins: [
-//     require('@tailwindcss/postcss'),
-//     require('autoprefixer')
-//   ]
-// }
