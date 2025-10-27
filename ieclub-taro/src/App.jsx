@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 
 // 导入 AuthProvider
 import { AuthProvider } from './store/AuthContext.jsx';
@@ -94,7 +94,7 @@ function App() {
 
   return (
     <AuthProvider>
-      <HashRouter>
+      <BrowserRouter>
         {isMobile ? (
           // 移动端使用优化的UI
           <MobileOptimizedUI />
@@ -151,7 +151,7 @@ function App() {
             </Route>
           </Routes>
         )}
-      </HashRouter>
+      </BrowserRouter>
     </AuthProvider>
   );
 }

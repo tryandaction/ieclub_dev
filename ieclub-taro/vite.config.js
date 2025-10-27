@@ -14,7 +14,10 @@ export default defineConfig({
   },
   server: {
     // 开发服务器配置
-    port: 5173,
+    port: 10086,
+    host: true, // 允许外部访问
+    // Vite 默认已启用 HTML5 History API fallback
+    // 所有 404 请求都会返回 index.html，支持 BrowserRouter
     proxy: {
       // 代理API请求到后端服务器
       '/api': {

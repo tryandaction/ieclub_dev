@@ -1,9 +1,31 @@
 // ===== API基础配置 =====
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (
-  import.meta.env.MODE === 'development'
-    ? 'http://localhost:5000/api/v1'
-    : 'https://www.ieclub.online/api/v1'
-);
+const getApiBaseUrl = () => {
+  // 尝试从环境变量获取
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    if (import.meta.env.VITE_API_BASE_URL) {
+      return import.meta.env.VITE_API_BASE_URL;
+    }
+    if (import.meta.env.MODE === 'development') {
+      return 'http://localhost:5000/api/v1';
+    }
+  }
+  
+  // 尝试从process.env获取（Taro环境）
+  if (typeof process !== 'undefined' && process.env) {
+    if (process.env.TARO_ENV === 'h5') {
+      // H5环境：根据当前域名判断
+      if (typeof window !== 'undefined') {
+        const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        return isDev ? 'http://localhost:5000/api/v1' : 'https://www.ieclub.online/api/v1';
+      }
+    }
+  }
+  
+  // 默认生产环境
+  return 'https://www.ieclub.online/api/v1';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // ===== 请求缓存 =====
 const requestCache = new Map();

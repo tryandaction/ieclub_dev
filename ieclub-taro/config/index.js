@@ -36,7 +36,7 @@ const config = {
       filename: 'js/[name].js'
     },
     router: {
-      mode: 'hash'  // 使用 hash 模式，适合静态部署
+      mode: 'browser'  // 使用 browser 模式，去除URL中的#号
     },
     esnextModules: ['taro-ui'],
     postcss: {
