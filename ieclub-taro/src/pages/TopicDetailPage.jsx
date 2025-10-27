@@ -49,10 +49,12 @@ const TopicDetailPage = () => {
         }
 
         // 从API获取最新数据
-        const response = await api.get(`/topics/${id}`);
-        setTopic(response.data);
-        setIsLiked(response.data.isLiked || false);
-        setIsFavorited(response.data.isFavorited || false);
+        const response = await api.topics.getById(id);
+        if (response.success) {
+          setTopic(response.data);
+          setIsLiked(response.data.isLiked || false);
+          setIsFavorited(response.data.isFavorited || false);
+        }
       } catch (err) {
         console.error('获取话题详情失败:', err);
         setError(err.message || '加载失败，请重试');
@@ -82,7 +84,7 @@ const TopicDetailPage = () => {
         likes: newLikedState ? prev.likes + 1 : prev.likes - 1
       }));
 
-      await api.post(`/topics/${id}/like`);
+      await api.topics.like(id);
       likeTopic(parseInt(id));
     } catch (err) {
       console.error('点赞失败:', err);
@@ -111,7 +113,7 @@ const TopicDetailPage = () => {
         favorites: newFavoritedState ? prev.favorites + 1 : prev.favorites - 1
       }));
 
-      await api.post(`/topics/${id}/favorite`);
+      await api.topics.bookmark(id);
       favoriteTopic(parseInt(id));
     } catch (err) {
       console.error('收藏失败:', err);
@@ -158,7 +160,7 @@ const TopicDetailPage = () => {
 
     try {
       setApplying(true);
-      await api.post(`/topics/${id}/signup`, formData);
+      await api.topics.applyDemand(id, formData);
       
       // 更新本地状态
       setTopic(prev => ({
@@ -187,7 +189,7 @@ const TopicDetailPage = () => {
 
     try {
       setApplying(true);
-      await api.post(`/topics/${id}/apply`, formData);
+      await api.topics.applyDemand(id, formData);
       
       // 更新本地状态
       setTopic(prev => ({

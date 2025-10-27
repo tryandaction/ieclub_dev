@@ -9,9 +9,12 @@ import { Button } from './Button.jsx';
 import { Input } from './Input.jsx';
 import { TextArea } from './TextArea.jsx';
 import FileUpload from './FileUpload.jsx';
+import OCRUploader from './OCRUploader.jsx';
 import api from '../../services/api.js';
+import { useToast } from './Toast.jsx';
 
 const PublishModal = ({ isOpen, onClose }) => {
+  const toast = useToast();
   const [step, setStep] = useState('select'); // 'select' | 'offer' | 'demand' | 'project'
   const [formData, setFormData] = useState({
     // 通用字段
@@ -141,6 +144,46 @@ const PublishModal = ({ isOpen, onClose }) => {
     setFormData({
       ...formData,
       availableTimes: formData.availableTimes.filter((_, i) => i !== index)
+    });
+  };
+
+  // OCR识别结果处理
+  const handleOCRExtracted = (extracted) => {
+    const updates = {};
+    
+    // 填充标题
+    if (extracted.title && !formData.title) {
+      updates.title = extracted.title;
+    }
+    
+    // 填充描述
+    if (extracted.description) {
+      const descParts = [];
+      if (extracted.speaker) descParts.push(`主讲人：${extracted.speaker}`);
+      if (extracted.organizer) descParts.push(`主办方：${extracted.organizer}`);
+      if (extracted.contact) descParts.push(`联系方式：${extracted.contact}`);
+      if (extracted.description) descParts.push(extracted.description);
+      updates.description = descParts.join('\n\n');
+    }
+    
+    // 填充地点（我来讲）
+    if (extracted.location && step === 'offer' && !formData.location) {
+      updates.location = extracted.location;
+    }
+    
+    // 填充时间信息（尝试解析）
+    if (extracted.time && step === 'offer') {
+      // 这里可以添加更智能的时间解析逻辑
+      // 暂时添加到描述中
+      if (updates.description) {
+        updates.description = `时间：${extracted.time}\n\n` + updates.description;
+      }
+    }
+    
+    setFormData(prev => ({ ...prev, ...updates }));
+    
+    toast.success('已自动填充表单！请检查并调整内容', {
+      duration: 3000
     });
   };
 
@@ -311,6 +354,14 @@ const PublishModal = ({ isOpen, onClose }) => {
           <Icon icon="arrowLeft" size="md" />
         </button>
       </div>
+
+      {/* OCR智能填写助手 */}
+      {step !== 'select' && (
+        <OCRUploader 
+          onExtracted={handleOCRExtracted}
+          className="mb-4"
+        />
+      )}
 
       {/* 基本信息 */}
       <div className="space-y-4">

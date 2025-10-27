@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 import Icon from '../common/Icon.jsx';
 import { Avatar } from '../common/Avatar.jsx';
 import { Button } from '../common/Button.jsx';
+import OCRCommentHelper from '../common/OCRCommentHelper.jsx';
 import { useAuthStore } from '../../store/authStore';
 import api from '../../services/api.js';
 
@@ -199,6 +200,7 @@ const CommentSection = ({ topicId }) => {
   const [commentContent, setCommentContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [sortBy, setSortBy] = useState('hot'); // 'hot' | 'latest'
+  const [showOCRHelper, setShowOCRHelper] = useState(false);
 
   // 获取评论列表
   useEffect(() => {
@@ -352,6 +354,16 @@ const CommentSection = ({ topicId }) => {
     }
   };
 
+  // OCR识别后插入文本
+  const handleOCRInsert = (text) => {
+    setCommentContent(prev => {
+      if (prev) {
+        return prev + '\n\n' + text;
+      }
+      return text;
+    });
+  };
+
   return (
     <div className="bg-white rounded-3xl p-6 shadow-lg">
       {/* 标题栏 */}
@@ -405,8 +417,18 @@ const CommentSection = ({ topicId }) => {
                 rows="3"
               />
               <div className="flex justify-between items-center mt-2">
-                <div className="text-xs text-gray-500">
-                  {commentContent.length}/500
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowOCRHelper(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="识别图片文字"
+                  >
+                    <Icon icon="photo" size="sm" />
+                    <span>识别图片</span>
+                  </button>
+                  <div className="text-xs text-gray-500">
+                    {commentContent.length}/500
+                  </div>
                 </div>
                 <Button
                   variant="primary"
@@ -459,6 +481,13 @@ const CommentSection = ({ topicId }) => {
           ))}
         </div>
       )}
+
+      {/* OCR助手模态框 */}
+      <OCRCommentHelper
+        isOpen={showOCRHelper}
+        onClose={() => setShowOCRHelper(false)}
+        onInsert={handleOCRInsert}
+      />
     </div>
   );
 };

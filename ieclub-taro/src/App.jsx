@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 
 // 导入 AuthProvider
 import { AuthProvider } from './store/AuthContext.jsx';
+// 导入全局组件
+import { ToastProvider } from './components/common/Toast.jsx';
+import ErrorBoundary from './components/common/ErrorBoundary.jsx';
 
 // 导入移动端优化的UI组件
 import MobileOptimizedUI from './MobileOptimizedUI.jsx';
@@ -93,66 +96,70 @@ function App() {
   }, []);
 
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        {isMobile ? (
-          // 移动端使用优化的UI
-          <MobileOptimizedUI />
-        ) : (
-          // 桌面端使用配置化的路由
-          <Routes>
-            {routes.map((route, index) => {
-              const { path, element, title, requireAuth, layout } = route;
-              
-              // 包装元素：添加路由守卫和页面过渡
-              const guardedElement = (
-                <RouteGuard requireAuth={requireAuth} title={title}>
-                  {element}
-                </RouteGuard>
-              );
-
-              // 不需要布局的页面（如登录、注册）
-              if (!layout) {
-                return (
-                  <Route
-                    key={index}
-                    path={path}
-                    element={<PageTransition>{guardedElement}</PageTransition>}
-                  />
-                );
-              }
-
-              // 需要布局的页面
-              return null; // 将在下面的MainLayout中处理
-            })}
-
-            {/* 使用主布局的页面 */}
-            <Route path="/" element={<MainLayout />}>
-              {routes
-                .filter((route) => route.layout)
-                .map((route, index) => {
-                  const { path, element, title, requireAuth } = route;
+    <ErrorBoundary>
+      <ToastProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            {isMobile ? (
+              // 移动端使用优化的UI
+              <MobileOptimizedUI />
+            ) : (
+              // 桌面端使用配置化的路由
+              <Routes>
+                {routes.map((route, index) => {
+                  const { path, element, title, requireAuth, layout } = route;
                   
+                  // 包装元素：添加路由守卫和页面过渡
                   const guardedElement = (
                     <RouteGuard requireAuth={requireAuth} title={title}>
                       {element}
                     </RouteGuard>
                   );
 
-                  // 首页使用index route
-                  if (path === '/') {
-                    return <Route key={index} index element={guardedElement} />;
+                  // 不需要布局的页面（如登录、注册）
+                  if (!layout) {
+                    return (
+                      <Route
+                        key={index}
+                        path={path}
+                        element={<PageTransition>{guardedElement}</PageTransition>}
+                      />
+                    );
                   }
 
-                  return (
-                    <Route key={index} path={path} element={guardedElement} />
-                  );
+                  // 需要布局的页面
+                  return null; // 将在下面的MainLayout中处理
                 })}
-            </Route>
-          </Routes>
-        )}
-      </BrowserRouter>
-    </AuthProvider>
+
+                {/* 使用主布局的页面 */}
+                <Route path="/" element={<MainLayout />}>
+                  {routes
+                    .filter((route) => route.layout)
+                    .map((route, index) => {
+                      const { path, element, title, requireAuth } = route;
+                      
+                      const guardedElement = (
+                        <RouteGuard requireAuth={requireAuth} title={title}>
+                          {element}
+                        </RouteGuard>
+                      );
+
+                      // 首页使用index route
+                      if (path === '/') {
+                        return <Route key={index} index element={guardedElement} />;
+                      }
+
+                      return (
+                        <Route key={index} path={path} element={guardedElement} />
+                      );
+                    })}
+                </Route>
+              </Routes>
+            )}
+          </BrowserRouter>
+        </AuthProvider>
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }
 

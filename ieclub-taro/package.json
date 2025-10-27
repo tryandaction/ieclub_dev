@@ -44,6 +44,7 @@
 		"react-dom": "^18.2.0",
 		"react-router-dom": "^6.26.0",
 		"tailwindcss": "^4.1.16",
+		"tesseract.js": "^6.0.1",
 		"ws": "^8.18.3",
 		"zustand": "^4.4.7"
 	},

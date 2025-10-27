@@ -6,6 +6,8 @@ import { Tag } from '../../components/common/Tag.jsx';
 import { Avatar } from '../../components/common/Avatar.jsx';
 // 导入所有需要的图标
 import { Edit3, FileText, Users, Heart, Award, Camera, Shield, Star, Plus } from 'lucide-react';
+// 导入API
+import api from '../../services/api.js';
 
 // ==================== 个人主页 (主导出组件) ====================
 export const ProfilePage = () => {
@@ -25,21 +27,7 @@ export const ProfilePage = () => {
     { id: 2, title: '跨学科知识图谱', description: '连接不同学科知识点的可视化平台，获校级创新奖', status: 'completed', tags: ['知识图谱', 'D3.js', '可视化'], stars: 45 }
   ];
 
-  const [ocrFile, setOcrFile] = useState(null);
-  const [ocrProcessing, setOcrProcessing] = useState(false);
-
-  const handleOCRUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setOcrFile(file);
-      setOcrProcessing(true);
-      setTimeout(() => {
-        alert(`OCR识别完成！\n\n识别内容预览：\n━━━━━━━━━━━━━━\n深度学习基础\n\n第三章：优化算法\n\n1. 梯度下降法\n   • 批量梯度下降\n   • 随机梯度下降\n   • Mini-batch梯度下降\n\n2. 动量法\n   • 指数加权平均\n   • 动量优化\n━━━━━━━━━━━━━━\n\n✅ 已自动保存到笔记`);
-        setOcrFile(null);
-        setOcrProcessing(false);
-      }, 2000);
-    }
-  };
+  // OCR功能已移至发布和评论场景，这里不再需要
 
   return (
     <div className="pb-20 md:pb-6">
@@ -86,7 +74,7 @@ export const ProfilePage = () => {
       </div>
       <div className="bg-white rounded-xl md:rounded-xl mx-4 md:mx-0 shadow-sm border overflow-hidden mt-4 md:mt-6">
         <div className="flex border-b overflow-x-auto">
-          {['posts', 'projects', 'ocr'].map(tab => (
+          {['posts', 'projects'].map(tab => (
             <button 
               key={tab} 
               onClick={() => setActiveTab(tab)} 
@@ -97,8 +85,7 @@ export const ProfilePage = () => {
               }`}
             >
               {tab === 'posts' && '我的帖子'} 
-              {tab === 'projects' && '我的项目'} 
-              {tab === 'ocr' && 'OCR识别'}
+              {tab === 'projects' && '我的项目'}
             </button>
           ))}
         </div>
@@ -133,41 +120,6 @@ export const ProfilePage = () => {
                 </div>
               ))}
               <Button variant="outline" icon={Plus} className="w-full">添加新项目</Button>
-            </div>
-          )}
-          {activeTab === 'ocr' && (
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <Camera size={28} className="text-blue-500" />
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800">讲座资料 OCR识别</h3>
-                  <p className="text-sm text-gray-600">上传讲座PPT照片，AI自动识别文字内容</p>
-                </div>
-              </div>
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer">
-                <input type="file" accept="image/*" onChange={handleOCRUpload} className="hidden" id="ocr-upload" disabled={ocrProcessing} />
-                <label htmlFor="ocr-upload" className="cursor-pointer">
-                  {ocrProcessing ? (
-                    <div>
-                      <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                      <p className="text-blue-600 font-semibold">正在识别中...</p>
-                    </div>
-                  ) : (
-                    <div>
-                      <FileText size={64} className="mx-auto text-gray-400 mb-4" />
-                      <p className="text-gray-700 font-semibold mb-2">点击上传讲座照片</p>
-                      <p className="text-sm text-gray-500">支持 JPG, PNG 格式，单张最大5MB</p>
-                    </div>
-                  )}
-                </label>
-              </div>
-              <div className="mt-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <p className="text-sm text-blue-800"><strong>使用技巧：</strong> 拍照时保持文字清晰、光线充足，识别准确率更高</p>
-              </div>
-              <div className="mt-6">
-                <h4 className="font-semibold mb-3">识别历史</h4>
-                <div className="space-y-2 text-sm text-gray-600"><p>暂无识别记录</p></div>
-              </div>
             </div>
           )}
         </div>

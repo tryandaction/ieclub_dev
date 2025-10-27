@@ -16,6 +16,7 @@ const ProfilePage = React.lazy(() => import('../pages/profile/ProfilePage.jsx').
 const LeaderboardPage = React.lazy(() => import('../pages/leaderboard/LeaderboardPage.jsx').then(m => ({ default: m.LeaderboardPage })));
 const BookmarksPage = React.lazy(() => import('../pages/bookmarks/BookmarksPage.jsx').then(m => ({ default: m.BookmarksPage })));
 const SettingsPage = React.lazy(() => import('../pages/settings/SettingsPage.jsx').then(m => ({ default: m.SettingsPage })));
+const NotificationsPage = React.lazy(() => import('../pages/notifications/NotificationsPage.jsx'));
 const LoginPage = React.lazy(() => import('../pages/auth/LoginPage.jsx').then(m => ({ default: m.LoginPage })));
 const RegisterPage = React.lazy(() => import('../pages/auth/RegisterPage.jsx').then(m => ({ default: m.RegisterPage })));
 
@@ -115,6 +116,13 @@ export const routes = [
     title: '设置 - IEClub',
     requireAuth: true,
     layout: true,
+  },
+  {
+    path: '/notifications',
+    element: <NotificationsPage />,
+    title: '通知中心 - IEClub',
+    requireAuth: true,
+    layout: false, // 通知中心使用自定义布局
   },
 
   // ===== 404页面 =====
