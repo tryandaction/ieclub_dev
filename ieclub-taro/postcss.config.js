@@ -9,6 +9,10 @@ export default {
         'Android >= 4.0',
         'iOS >= 8'
       ]
+    },
+    // 修复微信小程序不支持 calc(1/2 * 100%) 的问题
+    'postcss-calc': {
+      precision: 10
     }
   }
 };

@@ -1,0 +1,328 @@
+/**
+ * 微信小程序专业响应式适配系统
+ * 基于rpx单位和Taro的设计稿配置
+ * 设计稿宽度：750rpx (iPhone 6/7/8)
+ */
+
+/* ============================================
+   1. 尺寸变量系统（rpx单位）
+   ============================================ */
+
+:root {
+  /* 间距系统 - 8rpx基准 */
+  --spacing-xs: 8rpx;      /* 4px */
+  --spacing-sm: 16rpx;     /* 8px */
+  --spacing-md: 24rpx;     /* 12px */
+  --spacing-lg: 32rpx;     /* 16px */
+  --spacing-xl: 48rpx;     /* 24px */
+  --spacing-2xl: 64rpx;    /* 32px */
+  
+  /* 字体大小 - 微信小程序推荐规范 */
+  --text-xs: 20rpx;        /* 10px - 辅助文字 */
+  --text-sm: 24rpx;        /* 12px - 次要文字 */
+  --text-base: 28rpx;      /* 14px - 正文 */
+  --text-lg: 32rpx;        /* 16px - 小标题 */
+  --text-xl: 36rpx;        /* 18px - 标题 */
+  --text-2xl: 40rpx;       /* 20px - 大标题 */
+  --text-3xl: 48rpx;       /* 24px - 特大标题 */
+  
+  /* 行高系统 */
+  --leading-none: 1;
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
+  
+  /* 圆角系统 */
+  --radius-sm: 8rpx;       /* 4px */
+  --radius-md: 16rpx;      /* 8px */
+  --radius-lg: 24rpx;      /* 12px */
+  --radius-xl: 32rpx;      /* 16px */
+  --radius-full: 9999rpx;  /* 完全圆形 */
+  
+  /* 触摸目标最小尺寸 - 微信小程序规范 */
+  --touch-target-min: 88rpx;  /* 44px */
+  
+  /* 图标尺寸 */
+  --icon-xs: 24rpx;        /* 12px */
+  --icon-sm: 32rpx;        /* 16px */
+  --icon-md: 40rpx;        /* 20px */
+  --icon-lg: 48rpx;        /* 24px */
+  --icon-xl: 64rpx;        /* 32px */
+}
+
+/* ============================================
+   2. 文字适配类
+   ============================================ */
+
+.text-responsive {
+  &-xs {
+    font-size: var(--text-xs);
+    line-height: var(--leading-normal);
+  }
+  
+  &-sm {
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+  }
+  
+  &-base {
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+  }
+  
+  &-lg {
+    font-size: var(--text-lg);
+    line-height: var(--leading-tight);
+  }
+  
+  &-xl {
+    font-size: var(--text-xl);
+    line-height: var(--leading-tight);
+  }
+  
+  &-2xl {
+    font-size: var(--text-2xl);
+    line-height: var(--leading-tight);
+  }
+}
+
+/* ============================================
+   3. 标签和徽章适配
+   ============================================ */
+
+.badge-responsive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48rpx;           /* 保证触摸友好 */
+  padding: 0 20rpx;
+  font-size: var(--text-xs);
+  line-height: 1;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  
+  &-sm {
+    height: 40rpx;
+    padding: 0 16rpx;
+    font-size: 20rpx;
+  }
+  
+  &-lg {
+    height: 56rpx;
+    padding: 0 24rpx;
+    font-size: var(--text-sm);
+  }
+}
+
+/* ============================================
+   4. 图标容器适配
+   ============================================ */
+
+.icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  
+  &-xs {
+    width: var(--icon-xs);
+    height: var(--icon-xs);
+  }
+  
+  &-sm {
+    width: var(--icon-sm);
+    height: var(--icon-sm);
+  }
+  
+  &-md {
+    width: var(--icon-md);
+    height: var(--icon-md);
+  }
+  
+  &-lg {
+    width: var(--icon-lg);
+    height: var(--icon-lg);
+  }
+}
+
+/* ============================================
+   5. 按钮触摸目标适配
+   ============================================ */
+
+.touch-target {
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  
+  /* 扩大触摸区域（不影响视觉） */
+  &::before {
+    content: '';
+    position: absolute;
+    top: -8rpx;
+    left: -8rpx;
+    right: -8rpx;
+    bottom: -8rpx;
+  }
+}
+
+/* ============================================
+   6. Flex布局垂直对齐优化
+   ============================================ */
+
+.flex-center-perfect {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* 解决图标和文字不对齐的问题 */
+  & > * {
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+.flex-align-baseline {
+  display: flex;
+  align-items: baseline;  /* 文字基线对齐 */
+}
+
+/* ============================================
+   7. 卡片和容器适配
+   ============================================ */
+
+.card-responsive {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  
+  &-content {
+    padding: var(--spacing-lg);
+  }
+  
+  &-compact {
+    padding: var(--spacing-md);
+  }
+}
+
+/* ============================================
+   8. 间距工具类（rpx单位）
+   ============================================ */
+
+.gap-responsive {
+  &-xs { gap: var(--spacing-xs); }
+  &-sm { gap: var(--spacing-sm); }
+  &-md { gap: var(--spacing-md); }
+  &-lg { gap: var(--spacing-lg); }
+  &-xl { gap: var(--spacing-xl); }
+}
+
+.p-responsive {
+  &-xs { padding: var(--spacing-xs); }
+  &-sm { padding: var(--spacing-sm); }
+  &-md { padding: var(--spacing-md); }
+  &-lg { padding: var(--spacing-lg); }
+  &-xl { padding: var(--spacing-xl); }
+}
+
+.m-responsive {
+  &-xs { margin: var(--spacing-xs); }
+  &-sm { margin: var(--spacing-sm); }
+  &-md { margin: var(--spacing-md); }
+  &-lg { margin: var(--spacing-lg); }
+  &-xl { margin: var(--spacing-xl); }
+}
+
+/* ============================================
+   9. 微信小程序特殊适配
+   ============================================ */
+
+/* 修复1px边框在不同dpr下的显示问题 */
+.hairline {
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 200%;
+    height: 200%;
+    border: 1px solid currentColor;
+    transform-origin: 0 0;
+    transform: scale(0.5);
+    box-sizing: border-box;
+    pointer-events: none;
+  }
+  
+  &-top::after {
+    border-width: 1px 0 0 0;
+  }
+  
+  &-bottom::after {
+    border-width: 0 0 1px 0;
+  }
+}
+
+/* 安全区域适配（iPhone X等） */
+.safe-area {
+  &-top {
+    padding-top: constant(safe-area-inset-top);
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  &-bottom {
+    padding-bottom: constant(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ============================================
+   10. 图片和背景适配
+   ============================================ */
+
+.aspect-ratio {
+  position: relative;
+  
+  &-3-4 {
+    padding-bottom: 133.333%;  /* 3:4 */
+  }
+  
+  &-16-9 {
+    padding-bottom: 56.25%;    /* 16:9 */
+  }
+  
+  &-1-1 {
+    padding-bottom: 100%;      /* 1:1 */
+  }
+  
+  &-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+/* ============================================
+   11. 性能优化
+   ============================================ */
+
+/* 使用GPU加速动画 */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* 优化渲染性能 */
+.contain-layout {
+  contain: layout;
+}
+
+.contain-paint {
+  contain: paint;
+}
+

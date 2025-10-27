@@ -1,7 +1,10 @@
 /* 1. Tailwind 指令必须在最前面 */
 @import "tailwindcss";
 
-/* 2. 导入动画样式 */
+/* 2. 导入响应式适配系统（rpx单位） */
+@import "./styles/responsive.scss";
+
+/* 3. 导入动画样式 */
 @import "./styles/animations.scss";
 
 /* 3. 在指令之后，添加我们自定义的全局样式 */

@@ -203,53 +203,80 @@ const TopicCard = ({
       onClick={handleCardClick}
       className="topic-card bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all cursor-pointer group active:scale-95"
     >
-      {/* 封面图区域 - 小红书风格 */}
+      {/* 封面图区域 - IE风格渐变 */}
       <div className="relative aspect-[3/4] overflow-hidden" style={{
         background: type === TopicType.OFFER 
           ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
           : type === TopicType.DEMAND
-          ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
-          : 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+          ? 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)'
+          : 'linear-gradient(135deg, #f59e0b 0%, #fb923c 100%)'
       }}>
         {/* 装饰性渐变叠加 - 增强底部对比度 */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50"></div>
         
         {/* 类型徽章 - 左上角 */}
-        <div className="absolute top-3 left-3 z-10">
-          <div className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-md bg-white shadow-md`}>
-            <Icon icon={typeConfig.icon} size="sm" color={type === TopicType.OFFER ? '#5B7FFF' : type === TopicType.DEMAND ? '#FF6B9D' : '#FFA500'} />
-            <span className={`leading-none ${type === TopicType.OFFER ? 'text-blue-700' : type === TopicType.DEMAND ? 'text-pink-700' : 'text-orange-700'}`}>{typeConfig.name}</span>
+        <div className="absolute z-10" style={{ top: '24rpx', left: '24rpx' }}>
+          <div className={`flex-center-perfect gap-responsive-xs badge-responsive bg-white shadow-md font-bold backdrop-blur-md`} style={{ 
+            borderRadius: 'var(--radius-full)',
+            padding: '0 24rpx',
+            height: '52rpx'
+          }}>
+            <div className="icon-wrapper-sm">
+              <Icon icon={typeConfig.icon} size="sm" color={type === TopicType.OFFER ? '#5B7FFF' : type === TopicType.DEMAND ? '#FF6B9D' : '#FFA500'} />
+            </div>
+            <span className={`text-responsive-xs ${type === TopicType.OFFER ? 'text-blue-700' : type === TopicType.DEMAND ? 'text-pink-700' : 'text-orange-700'}`} style={{ lineHeight: 1 }}>{typeConfig.name}</span>
           </div>
         </div>
 
         {/* 收藏按钮 - 右上角 */}
         <button
           onClick={handleBookmark}
-          className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center hover:bg-white transition-all shadow-md hover:scale-110"
+          className="touch-target absolute z-10 flex-center-perfect bg-white/90 backdrop-blur-md hover:bg-white transition-all shadow-md hover:scale-110"
+          style={{
+            top: '24rpx',
+            right: '24rpx',
+            width: '72rpx',
+            height: '72rpx',
+            borderRadius: 'var(--radius-full)',
+            minWidth: '72rpx',
+            minHeight: '72rpx'
+          }}
         >
-          <Icon
-            icon={isBookmarked ? 'bookmarked' : 'bookmark'}
-            size="sm"
-            color={isBookmarked ? '#eab308' : '#64748b'}
-          />
+          <div className="icon-wrapper-md">
+            <Icon
+              icon={isBookmarked ? 'bookmarked' : 'bookmark'}
+              size="sm"
+              color={isBookmarked ? '#eab308' : '#64748b'}
+            />
+          </div>
         </button>
 
         {/* 内容预览区域 */}
-        <div className="absolute inset-0 p-4 flex flex-col justify-end z-10">
+        <div className="absolute inset-0 flex flex-col justify-end z-10" style={{ padding: '32rpx' }}>
           {/* 标题 */}
-          <h3 className="text-xl font-black text-white mb-2 line-clamp-2 leading-tight" style={{
-            textShadow: '0 2px 12px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.8)'
+          <h3 className="text-white line-clamp-2 font-black" style={{
+            fontSize: 'var(--text-2xl)',
+            lineHeight: 'var(--leading-tight)',
+            marginBottom: '16rpx',
+            textShadow: '0 4rpx 24rpx rgba(0,0,0,0.6), 0 2rpx 6rpx rgba(0,0,0,0.8)'
           }}>
             {title}
           </h3>
           
           {/* 标签 */}
           {tags && tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-3">
+            <div className="flex flex-wrap gap-responsive-sm" style={{ marginBottom: '24rpx' }}>
               {tags.slice(0, 3).map((tag, index) => (
                 <span
                   key={index}
-                  className="inline-flex items-center justify-center px-2.5 py-1 bg-white backdrop-blur-sm text-gray-800 rounded-full text-xs font-bold shadow-lg leading-none"
+                  className="badge-responsive-sm flex-center-perfect bg-white backdrop-blur-sm text-gray-800 font-bold shadow-lg"
+                  style={{
+                    borderRadius: 'var(--radius-full)',
+                    padding: '0 20rpx',
+                    height: '48rpx',
+                    fontSize: 'var(--text-xs)',
+                    lineHeight: 1
+                  }}
                 >
                   #{tag}
                 </span>
@@ -258,22 +285,40 @@ const TopicCard = ({
           )}
 
           {/* 类型特有标签 - 底部 */}
-          <div className="flex gap-2 text-xs">
+          <div className="flex gap-responsive-sm">
             {type === TopicType.OFFER && format && (
-              <span className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-white/95 backdrop-blur-md rounded-full font-bold text-gray-800 shadow-lg leading-none">
-                <span>{format === 'online' ? '🌐' : '📍'}</span>
+              <span className="flex-center-perfect gap-responsive-xs bg-white/95 backdrop-blur-md font-bold text-gray-800 shadow-lg" style={{
+                borderRadius: 'var(--radius-full)',
+                padding: '0 24rpx',
+                height: '56rpx',
+                fontSize: 'var(--text-xs)',
+                lineHeight: 1
+              }}>
+                <span style={{ fontSize: '24rpx', lineHeight: 1 }}>{format === 'online' ? '🌐' : '📍'}</span>
                 <span>{format === 'online' ? '线上' : '线下'}</span>
               </span>
             )}
             {type === TopicType.DEMAND && wantToHearCount && (
-              <span className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-pink-600 backdrop-blur-md text-white rounded-full font-bold shadow-lg leading-none">
-                <span>👥</span>
+              <span className="flex-center-perfect gap-responsive-xs bg-pink-600 backdrop-blur-md text-white font-bold shadow-lg" style={{
+                borderRadius: 'var(--radius-full)',
+                padding: '0 24rpx',
+                height: '56rpx',
+                fontSize: 'var(--text-xs)',
+                lineHeight: 1
+              }}>
+                <span style={{ fontSize: '24rpx', lineHeight: 1 }}>👥</span>
                 <span>{wantToHearCount}人想听</span>
               </span>
             )}
             {type === TopicType.PROJECT && recruiting && (
-              <span className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-orange-600 backdrop-blur-md text-white rounded-full font-bold shadow-lg leading-none">
-                <span>🔥</span>
+              <span className="flex-center-perfect gap-responsive-xs bg-orange-600 backdrop-blur-md text-white font-bold shadow-lg" style={{
+                borderRadius: 'var(--radius-full)',
+                padding: '0 24rpx',
+                height: '56rpx',
+                fontSize: 'var(--text-xs)',
+                lineHeight: 1
+              }}>
+                <span style={{ fontSize: '24rpx', lineHeight: 1 }}>🔥</span>
                 <span>招募中</span>
               </span>
             )}
@@ -282,53 +327,83 @@ const TopicCard = ({
       </div>
 
       {/* 卡片底部信息 */}
-      <div className="p-4 bg-white">
+      <div className="bg-white" style={{ padding: '32rpx' }}>
         {/* 作者信息 */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between" style={{ marginBottom: '24rpx' }}>
           <div 
-            className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+            className="flex-center-perfect gap-responsive-sm cursor-pointer hover:opacity-80 transition-opacity touch-target"
             onClick={(e) => {
               e.stopPropagation();
               // TODO: 跳转到用户主页
               console.log('跳转到用户主页:', author);
             }}
+            style={{ minHeight: '56rpx', paddingRight: '16rpx' }}
           >
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0">
+            <div className="flex-center-perfect bg-gradient-to-br from-purple-400 to-pink-400 text-white font-bold shadow-sm flex-shrink-0" style={{
+              width: '56rpx',
+              height: '56rpx',
+              borderRadius: 'var(--radius-full)',
+              fontSize: 'var(--text-xs)',
+              lineHeight: 1
+            }}>
               {avatar || author?.charAt(0) || 'U'}
             </div>
-            <span className="text-sm font-bold text-gray-900 hover:text-purple-600 transition-colors leading-none">{author || '匿名用户'}</span>
+            <span className="font-bold text-gray-900 hover:text-purple-600 transition-colors" style={{
+              fontSize: 'var(--text-sm)',
+              lineHeight: 1
+            }}>{author || '匿名用户'}</span>
           </div>
-          <span className="text-xs font-medium text-gray-500 leading-none flex-shrink-0">{formattedTime}</span>
+          <span className="font-medium text-gray-500 flex-shrink-0" style={{
+            fontSize: 'var(--text-xs)',
+            lineHeight: 1
+          }}>{formattedTime}</span>
         </div>
 
         {/* 互动数据 */}
-        <div className="flex items-center gap-5 text-gray-700">
+        <div className="flex items-center text-gray-700" style={{ gap: '40rpx' }}>
           {/* 点赞 */}
           <button
             onClick={handleLike}
-            className="flex items-center justify-center gap-1.5 hover:text-red-500 transition-colors group"
+            className="flex-center-perfect gap-responsive-xs hover:text-red-500 transition-colors group touch-target"
+            style={{ minHeight: '64rpx', padding: '0 8rpx' }}
           >
-            <Icon
-              icon={isLiked ? 'liked' : 'like'}
-              size="sm"
-              color={isLiked ? '#f43f5e' : 'currentColor'}
-            />
-            <span className="text-sm font-semibold leading-none">{likesCount > 0 ? likesCount : 0}</span>
+            <div className="icon-wrapper-md">
+              <Icon
+                icon={isLiked ? 'liked' : 'like'}
+                size="sm"
+                color={isLiked ? '#f43f5e' : 'currentColor'}
+              />
+            </div>
+            <span className="font-semibold" style={{
+              fontSize: 'var(--text-sm)',
+              lineHeight: 1
+            }}>{likesCount > 0 ? likesCount : 0}</span>
           </button>
 
           {/* 评论 */}
           <button
             onClick={handleComment}
-            className="flex items-center justify-center gap-1.5 hover:text-blue-500 transition-colors group"
+            className="flex-center-perfect gap-responsive-xs hover:text-blue-500 transition-colors group touch-target"
+            style={{ minHeight: '64rpx', padding: '0 8rpx' }}
           >
-            <Icon icon="comment" size="sm" />
-            <span className="text-sm font-semibold leading-none">{commentsCount > 0 ? commentsCount : 0}</span>
+            <div className="icon-wrapper-md">
+              <Icon icon="comment" size="sm" />
+            </div>
+            <span className="font-semibold" style={{
+              fontSize: 'var(--text-sm)',
+              lineHeight: 1
+            }}>{commentsCount > 0 ? commentsCount : 0}</span>
           </button>
 
           {/* 浏览 */}
-          <div className="flex items-center justify-center gap-1.5 text-gray-500">
-            <Icon icon="view" size="sm" />
-            <span className="text-sm font-semibold leading-none">{viewsCount}</span>
+          <div className="flex-center-perfect gap-responsive-xs text-gray-500" style={{ minHeight: '64rpx' }}>
+            <div className="icon-wrapper-md">
+              <Icon icon="view" size="sm" />
+            </div>
+            <span className="font-semibold" style={{
+              fontSize: 'var(--text-sm)',
+              lineHeight: 1
+            }}>{viewsCount}</span>
           </div>
         </div>
       </div>

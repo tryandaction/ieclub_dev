@@ -4,6 +4,7 @@ import { useAuth } from '../../store/AuthContext.jsx';
 import { useTopicStore, TopicType, TopicCategory, TopicSortBy } from '../../store/topicStore';
 import { TopicFilter, TopicList } from '../../components/topic';
 import Icon from '../../components/common/Icon.jsx';
+import '../../styles/responsive.scss';
 
 // 模拟话题数据
 const mockTopics = [
@@ -191,23 +192,23 @@ export const HomePage = () => {
 
   return (
     <div className="home-page">
-      {/* 精简的欢迎区 - 小红书风格 */}
-      <div className="mb-6 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 text-white p-6 rounded-3xl shadow-xl relative overflow-hidden">
-        {/* 装饰元素 */}
-        <div className="absolute top-0 right-0 w-40 h-40 bg-white opacity-10 rounded-full -mr-20 -mt-20 blur-2xl"></div>
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white opacity-10 rounded-full -ml-16 -mb-16 blur-2xl"></div>
+      {/* 精简的欢迎区 - IE品牌风格 */}
+      <div className="mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-purple-700 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
+        {/* 装饰元素 - 柔和的光晕 */}
+        <div className="absolute top-0 right-0 w-40 h-40 bg-white opacity-10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white opacity-10 rounded-full -ml-16 -mb-16 blur-3xl"></div>
         
         <div className="relative z-10">
-          <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
+          <h1 className="text-2xl font-bold mb-2 flex items-center gap-2">
             <span>欢迎来到 IEclub</span>
-            <span className="text-2xl">👋</span>
+            <span className="text-xl">👋</span>
           </h1>
-          <p className="text-sm opacity-90">南科大跨学科交流社区 · 学习分享 · 资源对接</p>
+          <p className="text-sm opacity-90 font-medium">南科大跨学科交流社区 · 学习分享 · 资源对接</p>
         </div>
       </div>
 
       {/* 话题筛选器 */}
-      <div className="mb-5">
+      <div style={{ marginBottom: '40rpx' }}>
         <TopicFilter
           filters={filters}
           onChange={handleFilterChange}
@@ -227,13 +228,24 @@ export const HomePage = () => {
         emptyType={filters.type}
       />
 
-      {/* 悬浮发布按钮 - 小红书风格 */}
+      {/* 悬浮发布按钮 - IE品牌风格 */}
       <button
         onClick={() => !isAuthenticated ? navigate('/login') : setShowCreateModal(true)}
-        className="fixed bottom-8 right-8 w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 transition-all flex items-center justify-center z-50 group"
-        style={{ boxShadow: '0 8px 32px rgba(168, 85, 247, 0.4)' }}
+        className="fixed bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-2xl hover:shadow-3xl hover:scale-110 transition-all flex-center-perfect z-50 group gpu-accelerated"
+        style={{
+          bottom: '64rpx',
+          right: '64rpx',
+          width: '112rpx',
+          height: '112rpx',
+          borderRadius: 'var(--radius-full)',
+          boxShadow: '0 16rpx 64rpx rgba(102, 126, 234, 0.5)',
+          minWidth: 'var(--touch-target-min)',
+          minHeight: 'var(--touch-target-min)'
+        }}
       >
-        <Icon icon="publish" size="lg" color="#ffffff" />
+        <div className="icon-wrapper-lg">
+          <Icon icon="publish" size="lg" color="#ffffff" />
+        </div>
         <span className="sr-only">发布话题</span>
       </button>
 

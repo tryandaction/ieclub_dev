@@ -30,52 +30,52 @@ export const Navbar = () => {
   }, [showNotifications]);
 
   return (
-    <nav className="bg-white shadow-sm border-b sticky top-0 z-40 backdrop-blur-sm bg-opacity-95">
+    <nav className="bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          {/* MODIFICATION: Using <Link> for navigation, removed onClick */}
-          <Link to="/" className="flex items-center gap-4 cursor-pointer group">
-            <div className="text-3xl transform group-hover:scale-110 transition-transform">🎓</div>
+          {/* Logo区域 - IE品牌风格 */}
+          <Link to="/" className="flex items-center gap-3 cursor-pointer group">
+            <div className="text-2xl transform group-hover:scale-110 transition-transform">🎓</div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 IEclub
               </h1>
-              <p className="text-xs text-gray-500 hidden sm:block">南方科技大学学生社区</p>
+              <p className="text-xs text-gray-500 hidden sm:block font-medium">南科大学生社区</p>
             </div>
           </Link>
 
           <div className="hidden md:flex flex-1 max-w-xl mx-8">
             <div className="relative w-full">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="搜索帖子、活动、用户..."
-                className="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 hover:bg-white transition-all"
+                placeholder="搜索话题、活动、用户..."
+                className="w-full pl-11 pr-4 py-2 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 hover:bg-white transition-all text-sm"
               />
             </div>
           </div>
 
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
             {isAuthenticated ? (
               <>
                 <Tooltip content="通知">
                   <button 
-                    className="relative p-2.5 hover:bg-gray-100 rounded-full transition-colors notification-panel"
+                    className="relative p-2 hover:bg-gray-100 rounded-full transition-colors notification-panel"
                     onClick={() => setShowNotifications(!showNotifications)}
                   >
-                    <Bell size={22} />
-                    <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+                    <Bell size={20} />
+                    <span className="absolute top-0.5 right-0.5 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold text-[10px]">
                       2
                     </span>
                   </button>
                 </Tooltip>
 
                 {showNotifications && (
-                  <div className="absolute top-16 right-4 w-80 bg-white rounded-xl shadow-2xl border overflow-hidden z-50 notification-panel">
-                    <div className="p-4 border-b bg-gradient-to-r from-blue-50 to-purple-50">
-                      <h3 className="font-bold text-lg">通知</h3>
+                  <div className="absolute top-14 right-4 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 notification-panel">
+                    <div className="p-3 border-b bg-gradient-to-r from-blue-600 to-purple-600">
+                      <h3 className="font-bold text-base text-white">通知</h3>
                     </div>
                     <div className="max-h-96 overflow-y-auto">
                       {notifications.map(notif => (

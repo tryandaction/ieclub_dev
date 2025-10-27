@@ -8,6 +8,7 @@ import TopicCard from './TopicCard.jsx';
 import MasonryGrid from './MasonryGrid.jsx';
 import Icon from '../common/Icon.jsx';
 import { SkeletonCard } from '../common/SkeletonCard.jsx';
+import '../../styles/responsive.scss';
 
 /**
  * 空状态组件
@@ -23,13 +24,28 @@ const EmptyState = ({ type }) => {
   const message = emptyMessages[type] || emptyMessages.default;
 
   return (
-    <div className="flex flex-col items-center justify-center py-16">
-      <div className="w-24 h-24 mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+    <div className="flex flex-col items-center justify-center" style={{ padding: '128rpx 0' }}>
+      <div className="flex-center-perfect bg-gray-100 mb-4" style={{
+        width: '192rpx',
+        height: '192rpx',
+        borderRadius: 'var(--radius-full)'
+      }}>
         <Icon icon="search" size="3xl" color="#d1d5db" />
       </div>
-      <p className="text-gray-500 text-center mb-4">{message}</p>
-      <button className="px-6 py-2 bg-gradient-primary text-white rounded-lg font-medium hover:shadow-primary transition-all">
-        <Icon icon="publish" size="sm" color="#ffffff" className="mr-2" />
+      <p className="text-gray-500 text-center" style={{
+        marginBottom: '32rpx',
+        fontSize: 'var(--text-base)'
+      }}>{message}</p>
+      <button className="bg-gradient-primary text-white font-medium hover:shadow-primary transition-all touch-target" style={{
+        padding: '0 48rpx',
+        height: 'var(--touch-target-min)',
+        borderRadius: 'var(--radius-lg)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16rpx',
+        fontSize: 'var(--text-base)'
+      }}>
+        <Icon icon="publish" size="sm" color="#ffffff" />
         立即发布
       </button>
     </div>
@@ -41,7 +57,7 @@ const EmptyState = ({ type }) => {
  */
 const LoadingState = () => {
   return (
-    <MasonryGrid gap={16} minColumnWidth={260}>
+    <MasonryGrid gap={32} minColumnWidth={520}>
       {[1, 2, 3, 4, 5, 6].map((i) => (
         <SkeletonCard key={i} variant="topic" />
       ))}
@@ -84,8 +100,8 @@ const TopicList = ({
 
   return (
     <div className="topic-list">
-      {/* 瀑布流布局 - 小红书风格 */}
-      <MasonryGrid gap={16} minColumnWidth={260}>
+      {/* 瀑布流布局 - rpx适配 */}
+      <MasonryGrid gap={32} minColumnWidth={520}>
         {topics.map((topic) => (
           <TopicCard
             key={topic.id}
@@ -100,15 +116,29 @@ const TopicList = ({
 
       {/* 加载更多按钮 */}
       {hasMore && (
-        <div className="flex justify-center py-8 mt-4">
+        <div className="flex justify-center" style={{ padding: '64rpx 0', marginTop: '32rpx' }}>
           <button
             onClick={onLoadMore}
             disabled={loading}
-            className="flex items-center gap-2 px-8 py-3 bg-white border-2 border-primary-500 text-primary-500 rounded-full font-medium hover:bg-primary-50 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-center-perfect bg-white border-2 border-primary-500 text-primary-500 font-medium hover:bg-primary-50 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed touch-target"
+            style={{
+              gap: '16rpx',
+              padding: '0 64rpx',
+              height: 'var(--touch-target-min)',
+              borderRadius: 'var(--radius-full)',
+              fontSize: 'var(--text-base)'
+            }}
           >
             {loading ? (
               <>
-                <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+                <div className="animate-spin" style={{
+                  width: '32rpx',
+                  height: '32rpx',
+                  border: '4rpx solid',
+                  borderColor: 'currentColor',
+                  borderTopColor: 'transparent',
+                  borderRadius: 'var(--radius-full)'
+                }}></div>
                 <span>加载中...</span>
               </>
             ) : (
@@ -123,8 +153,12 @@ const TopicList = ({
 
       {/* 没有更多了 */}
       {!hasMore && topics.length > 0 && (
-        <div className="flex items-center justify-center py-8 text-gray-400 text-sm">
-          <Icon icon="check" size="sm" className="mr-1" />
+        <div className="flex-center-perfect text-gray-400" style={{
+          padding: '64rpx 0',
+          fontSize: 'var(--text-sm)',
+          gap: '8rpx'
+        }}>
+          <Icon icon="check" size="sm" />
           <span>已经到底了～</span>
         </div>
       )}
