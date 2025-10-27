@@ -119,4 +119,16 @@ router.get('/announcements', announcementController.getAnnouncements);
 router.get('/announcements/:id', announcementController.getAnnouncementDetail);
 router.put('/announcements/:id/read', authenticate, announcementController.markAsRead);
 
+// ===== 排行榜路由 =====
+router.use('/leaderboard', require('./leaderboard'));
+
+// ===== 徽章路由 =====
+router.use('/badges', require('./badges'));
+
+// ===== 统计路由 =====
+router.use('/stats', require('./stats'));
+
+// ===== 搜索路由 =====
+router.use('/search', require('./search'));
+
 module.exports = router;

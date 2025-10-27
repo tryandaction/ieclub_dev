@@ -5,6 +5,7 @@ const { PrismaClient } = require('@prisma/client');
 const response = require('../utils/response');
 const logger = require('../utils/logger');
 const redis = require('../utils/redis');
+const searchService = require('../services/searchService');
 
 const prisma = new PrismaClient();
 
@@ -259,6 +260,113 @@ class SearchController {
       });
     } catch (error) {
       logger.error('搜索用户失败:', error);
+      return response.serverError(res);
+    }
+  }
+
+  /**
+   * 获取搜索建议
+   * GET /api/v1/search/suggestions
+   */
+  static async getSearchSuggestions(req, res) {
+    try {
+      const { q, limit = 10 } = req.query;
+
+      if (!q) {
+        // 返回热门搜索
+        const popularSearches = await searchService.getPopularSearches(limit);
+        return response.success(res, {
+          suggestions: popularSearches,
+          type: 'popular'
+        });
+      }
+
+      // 智能纠错
+      const correction = searchService.correctSpelling(q);
+      
+      // 获取搜索建议
+      const suggestions = await searchService.getSearchSuggestions(q, limit);
+
+      // 获取相关搜索
+      const related = await searchService.getRelatedSearches(q, 5);
+
+      return response.success(res, {
+        keyword: q,
+        correction: correction.corrected ? correction : null,
+        suggestions,
+        related,
+        type: 'suggestions'
+      });
+    } catch (error) {
+      logger.error('获取搜索建议失败:', error);
+      return response.serverError(res);
+    }
+  }
+
+  /**
+   * 获取自动补全
+   * GET /api/v1/search/autocomplete
+   */
+  static async getAutoComplete(req, res) {
+    try {
+      const { q, limit = 8 } = req.query;
+
+      if (!q) {
+        return response.success(res, { completions: [] });
+      }
+
+      const completions = await searchService.getAutoComplete(q, limit);
+
+      return response.success(res, { completions });
+    } catch (error) {
+      logger.error('自动补全失败:', error);
+      return response.serverError(res);
+    }
+  }
+
+  /**
+   * 获取用户搜索历史
+   * GET /api/v1/search/history
+   */
+  static async getSearchHistory(req, res) {
+    try {
+      const userId = req.userId;
+      const { limit = 10 } = req.query;
+
+      if (!userId) {
+        return response.success(res, { history: [] });
+      }
+
+      const history = await searchService.getUserSearchHistory(userId, limit);
+
+      return response.success(res, { history });
+    } catch (error) {
+      logger.error('获取搜索历史失败:', error);
+      return response.serverError(res);
+    }
+  }
+
+  /**
+   * 清除搜索历史
+   * DELETE /api/v1/search/history
+   */
+  static async clearSearchHistory(req, res) {
+    try {
+      const userId = req.userId;
+
+      if (!userId) {
+        return response.error(res, '请先登录');
+      }
+
+      const success = await searchService.clearUserSearchHistory(userId);
+
+      if (success) {
+        return response.success(res, { message: '清除成功' });
+      } else {
+        return response.error(res, '清除失败');
+      }
+    } catch (error) {
+      logger.error('清除搜索历史失败:', error);
       return response.serverError(res);
     }
   }

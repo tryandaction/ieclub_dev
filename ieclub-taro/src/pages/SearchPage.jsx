@@ -1,14 +1,17 @@
 /**
  * 搜索结果页
  * 显示话题、用户、活动的搜索结果
+ * 支持高级搜索、结果高亮、导出功能
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Icon from '../components/common/Icon.jsx';
 import SearchBar from '../components/common/SearchBar.jsx';
 import TopicCard from '../components/topic/TopicCard.jsx';
 import { Avatar } from '../components/common/Avatar.jsx';
 import Loading from '../components/common/Loading.jsx';
+import { Button } from '../components/common/Button.jsx';
+import AdvancedSearchModal from '../components/search/AdvancedSearchModal.jsx';
 import { TopicType } from '../store/topicStore';
 import api from '../services/api.js';
 
@@ -17,11 +20,13 @@ import api from '../services/api.js';
  */
 const SearchPage = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
 
   const [activeTab, setActiveTab] = useState('all'); // 'all' | 'topics' | 'users' | 'events'
   const [loading, setLoading] = useState(false);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState({});
   const [results, setResults] = useState({
     topics: [],
     users: [],
@@ -37,11 +42,14 @@ const SearchPage = () => {
   }, [query]);
 
   // 执行搜索
-  const performSearch = async (searchQuery) => {
+  const performSearch = async (searchQuery, filters = {}) => {
     try {
       setLoading(true);
       const response = await api.get('/search', {
-        params: { q: searchQuery }
+        params: { 
+          q: searchQuery,
+          ...filters
+        }
       });
       setResults(response.data || getMockSearchResults(searchQuery));
     } catch (err) {
@@ -55,6 +63,82 @@ const SearchPage = () => {
   // 处理新搜索
   const handleNewSearch = (newQuery) => {
     navigate(`/search?q=${encodeURIComponent(newQuery)}`);
+  };
+
+  // 处理高级搜索
+  const handleAdvancedSearch = (filters) => {
+    setAdvancedFilters(filters);
+    performSearch(filters.keyword || query, filters);
+  };
+
+  // 高亮关键词
+  const highlightText = (text, keyword) => {
+    if (!keyword || !text) return text;
+    
+    const regex = new RegExp(`(${keyword})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => 
+      regex.test(part) ? (
+        <mark key={index} className="bg-yellow-200 text-gray-900 font-semibold">
+          {part}
+        </mark>
+      ) : (
+        part
+      )
+    );
+  };
+
+  // 导出搜索结果
+  const exportResults = () => {
+    const csvContent = generateCSV();
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `搜索结果_${query}_${new Date().toLocaleDateString()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // 生成CSV内容
+  const generateCSV = () => {
+    let csv = '\uFEFF'; // UTF-8 BOM
+    
+    // 导出话题
+    if (results.topics.length > 0) {
+      csv += '话题结果\n';
+      csv += '标题,类型,作者,分类,点赞数,评论数,浏览数,发布时间\n';
+      results.topics.forEach(topic => {
+        csv += `"${topic.title}","${topic.type}","${topic.author.name}","${topic.category}",${topic.likes},${topic.comments},${topic.views},"${new Date(topic.createdAt).toLocaleDateString()}"\n`;
+      });
+      csv += '\n';
+    }
+    
+    // 导出用户
+    if (results.users.length > 0) {
+      csv += '用户结果\n';
+      csv += '姓名,等级,院系,年级,简介,技能\n';
+      results.users.forEach(user => {
+        const skills = user.skills ? user.skills.join(';') : '';
+        csv += `"${user.name}",${user.level},"${user.department}","${user.grade}","${user.bio || ''}","${skills}"\n`;
+      });
+      csv += '\n';
+    }
+    
+    // 导出活动
+    if (results.events.length > 0) {
+      csv += '活动结果\n';
+      csv += '标题,时间,地点,主办方,标签\n';
+      results.events.forEach(event => {
+        const tags = event.tags ? event.tags.join(';') : '';
+        csv += `"${event.title}","${event.time || ''}","${event.location || ''}","${event.organizer || ''}","${tags}"\n`;
+      });
+    }
+    
+    return csv;
   };
 
   // 获取当前Tab的结果数量
@@ -173,7 +257,7 @@ const SearchPage = () => {
 
                 {user.bio && (
                   <p className="text-sm text-gray-600 line-clamp-1 mb-2">
-                    {user.bio}
+                    {highlightText(user.bio, query)}
                   </p>
                 )}
 
@@ -443,6 +527,14 @@ const SearchPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 pb-20">
+      {/* 高级搜索模态框 */}
+      <AdvancedSearchModal
+        isOpen={showAdvancedSearch}
+        onClose={() => setShowAdvancedSearch(false)}
+        onSearch={handleAdvancedSearch}
+        initialFilters={{ keyword: query, ...advancedFilters }}
+      />
+
       {/* 顶部搜索栏 */}
       <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-3">
@@ -460,6 +552,14 @@ const SearchPage = () => {
                 autoFocus={!query}
               />
             </div>
+            {/* 高级搜索按钮 */}
+            <button
+              onClick={() => setShowAdvancedSearch(true)}
+              className="p-2 hover:bg-purple-50 rounded-lg transition-colors group"
+              title="高级搜索"
+            >
+              <Icon icon="filter" size="lg" className="text-gray-600 group-hover:text-purple-600" />
+            </button>
           </div>
         </div>
 
@@ -512,6 +612,43 @@ const SearchPage = () => {
 
       {/* 内容区域 */}
       <div className="max-w-4xl mx-auto px-4 py-6">
+        {/* 工具栏 */}
+        {query && results.total > 0 && (
+          <div className="flex items-center justify-between mb-4 p-3 bg-white rounded-xl shadow-sm">
+            <div className="text-sm text-gray-600">
+              找到 <span className="font-bold text-purple-600">{results.total}</span> 个结果
+              {Object.keys(advancedFilters).length > 0 && (
+                <span className="ml-2 text-xs text-gray-500">(高级搜索)</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {/* 清除筛选 */}
+              {Object.keys(advancedFilters).length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setAdvancedFilters({});
+                    performSearch(query);
+                  }}
+                >
+                  <Icon icon="x" size="sm" />
+                  <span className="hidden sm:inline">清除筛选</span>
+                </Button>
+              )}
+              {/* 导出结果 */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportResults}
+              >
+                <Icon icon="download" size="sm" />
+                <span className="hidden sm:inline">导出</span>
+              </Button>
+            </div>
+          </div>
+        )}
+
         {renderContent()}
       </div>
     </div>
