@@ -2,6 +2,7 @@
 // H5环境使用 React Router，小程序环境使用分包配置
 export default {
   pages: [
+    'pages/test/TestPage', // 测试页面 - 最简单的实现
     'pages/index/index' // 主包入口页面
   ],
   // 小程序分包配置（H5环境会忽略）

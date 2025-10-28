@@ -1,61 +1,13 @@
-import React, { Component } from 'react'
+import { Component } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import './index.scss'
 
-/**
- * 小程序首页
- * 展示 IEClub 主要功能入口和导航
- */
 export default class Index extends Component {
-
   state = {
     userInfo: null
   }
 
-  /**
-   * 页面加载时执行
-   */
-  componentDidMount() {
-    const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development'
-    if (isDev) {
-      console.log('[Index] Page mounted')
-    }
-    this.loadUserInfo()
-  }
-
-  /**
-   * 页面显示时执行
-   */
-  componentDidShow() {
-    const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development'
-    if (isDev) {
-      console.log('[Index] Page show')
-    }
-  }
-
-  /**
-   * 加载用户信息
-   */
-  async loadUserInfo() {
-    try {
-      const { data } = await Taro.getStorage({ key: 'userInfo' })
-      if (data) {
-        this.setState({ userInfo: data })
-      }
-    } catch (error) {
-      // 用户未登录
-      const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development'
-      if (isDev) {
-        console.log('[Index] No user info found')
-      }
-    }
-  }
-
-  /**
-   * 通用导航方法
-   * @param {string} url 目标页面路径
-   */
   navigateTo = (url) => {
     Taro.navigateTo({ url }).catch(err => {
       console.error('[Index] Navigation failed:', err)
@@ -67,10 +19,13 @@ export default class Index extends Component {
     })
   }
 
-  /**
-   * 菜单项配置
-   */
   menuItems = [
+    {
+      id: 'test',
+      icon: '🧪',
+      text: '测试页',
+      url: '/pages/test/TestPage'
+    },
     {
       id: 'events',
       icon: '📅',
@@ -97,9 +52,6 @@ export default class Index extends Component {
     }
   ]
 
-  /**
-   * 渲染菜单项
-   */
   renderMenuItem = (item) => {
     return (
       <View 
@@ -115,25 +67,17 @@ export default class Index extends Component {
   }
 
   render() {
-    const { userInfo } = this.state
-
     return (
       <View className="index-container">
-        {/* 页面头部 */}
         <View className="header">
           <Text className="title">欢迎来到 IEClub</Text>
           <Text className="subtitle">连接兴趣，发现精彩</Text>
-          {userInfo && (
-            <Text className="user-greeting">你好，{userInfo.nickname || '用户'}</Text>
-          )}
         </View>
 
-        {/* 功能菜单 */}
         <View className="menu-list">
           {this.menuItems.map(this.renderMenuItem)}
         </View>
 
-        {/* 页面底部 */}
         <View className="footer">
           <Text className="footer-text">Powered by Taro</Text>
         </View>
