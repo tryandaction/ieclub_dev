@@ -1,0 +1,114 @@
+.notifications-container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+
+  .header {
+    padding: 40px;
+    background: white;
+    border-bottom: 1px solid #eee;
+
+    .title {
+      font-size: 48px;
+      font-weight: bold;
+      color: #333;
+    }
+  }
+
+  .loading,
+  .empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 40px;
+
+    .loading-text,
+    .empty-text {
+      font-size: 32px;
+      color: #999;
+    }
+  }
+
+  .content {
+    flex: 1;
+    padding: 20px;
+
+    .notification-item {
+      position: relative;
+      background: white;
+      padding: 32px;
+      margin-bottom: 20px;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+      &.unread {
+        border-left: 4px solid #8b5cf6;
+      }
+
+      &.notification-item-hover {
+        opacity: 0.8;
+      }
+
+      .notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+
+        .notification-title {
+          font-size: 32px;
+          font-weight: bold;
+          color: #333;
+        }
+
+        .notification-time {
+          font-size: 24px;
+          color: #999;
+        }
+      }
+
+      .notification-content {
+        display: block;
+        font-size: 28px;
+        color: #666;
+        line-height: 1.5;
+      }
+
+      .unread-dot {
+        position: absolute;
+        top: 32px;
+        right: 32px;
+        width: 16px;
+        height: 16px;
+        background: #f56565;
+        border-radius: 50%;
+      }
+    }
+  }
+
+  .footer {
+    padding: 20px 40px 40px;
+    background: white;
+    border-top: 1px solid #eee;
+
+    .back-button {
+      background: #8b5cf6;
+      padding: 24px;
+      border-radius: 12px;
+      text-align: center;
+
+      &.button-hover {
+        opacity: 0.8;
+      }
+
+      .button-text {
+        font-size: 32px;
+        color: white;
+        font-weight: 500;
+      }
+    }
+  }
+}
+

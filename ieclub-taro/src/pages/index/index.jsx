@@ -5,14 +5,9 @@ import './index.scss'
 
 /**
  * 小程序首页
- * 显示 IEClub 主要功能入口
+ * 展示 IEClub 主要功能入口和导航
  */
 export default class Index extends Component {
-  config = {
-    navigationBarTitleText: 'IEClub',
-    enablePullDownRefresh: false,
-    backgroundTextStyle: 'dark'
-  }
 
   state = {
     userInfo: null
@@ -22,7 +17,8 @@ export default class Index extends Component {
    * 页面加载时执行
    */
   componentDidMount() {
-    if (process.env.NODE_ENV === 'development') {
+    const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development'
+    if (isDev) {
       console.log('[Index] Page mounted')
     }
     this.loadUserInfo()
@@ -32,7 +28,8 @@ export default class Index extends Component {
    * 页面显示时执行
    */
   componentDidShow() {
-    if (process.env.NODE_ENV === 'development') {
+    const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development'
+    if (isDev) {
       console.log('[Index] Page show')
     }
   }
@@ -48,7 +45,8 @@ export default class Index extends Component {
       }
     } catch (error) {
       // 用户未登录
-      if (process.env.NODE_ENV === 'development') {
+      const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development'
+      if (isDev) {
         console.log('[Index] No user info found')
       }
     }
@@ -142,4 +140,12 @@ export default class Index extends Component {
       </View>
     )
   }
+}
+
+// Taro 4.x 配置必须独立导出
+Index.config = {
+  navigationBarTitleText: 'IEClub',
+  enablePullDownRefresh: false,
+  navigationBarBackgroundColor: '#ffffff',
+  navigationBarTextStyle: 'black'
 }

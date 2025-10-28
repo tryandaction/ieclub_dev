@@ -1,4 +1,4 @@
-import { Component } from 'react'
+import React, { Component } from 'react'
 import Taro from '@tarojs/taro'
 import './index.css'
 
@@ -21,7 +21,8 @@ class App extends Component {
    * @param {Object} options 启动参数
    */
   onLaunch(options) {
-    if (process.env.NODE_ENV === 'development') {
+    const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development'
+    if (isDev) {
       console.log('[App] Launch with options:', options)
     }
     
@@ -43,7 +44,8 @@ class App extends Component {
       const systemInfo = Taro.getSystemInfoSync()
       this.globalData.systemInfo = systemInfo
       
-      if (process.env.NODE_ENV === 'development') {
+      const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development'
+      if (isDev) {
         console.log('[App] System info:', systemInfo)
       }
     } catch (error) {
@@ -98,7 +100,8 @@ class App extends Component {
       }
     } catch (error) {
       // 用户未登录或数据不存在
-      if (process.env.NODE_ENV === 'development') {
+      const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development'
+      if (isDev) {
         console.log('[App] No cached user info')
       }
     }
@@ -108,7 +111,8 @@ class App extends Component {
    * 应用显示时触发
    */
   onShow(options) {
-    if (process.env.NODE_ENV === 'development') {
+    const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development'
+    if (isDev) {
       console.log('[App] Show with options:', options)
     }
   }
@@ -117,7 +121,8 @@ class App extends Component {
    * 应用隐藏时触发
    */
   onHide() {
-    if (process.env.NODE_ENV === 'development') {
+    const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development'
+    if (isDev) {
       console.log('[App] Hide')
     }
   }
