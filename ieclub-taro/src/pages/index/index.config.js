@@ -1,7 +1,0 @@
-// 首页配置
-export default {
-  navigationBarTitleText: 'IEClub',
-  navigationBarBackgroundColor: '#ffffff',
-  navigationBarTextStyle: 'black',
-  enablePullDownRefresh: false
-}
