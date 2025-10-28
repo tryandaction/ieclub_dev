@@ -1,7 +1,7 @@
-// 首页配置
+// 通知中心配置
 export default {
-  navigationBarTitleText: 'IEClub',
+  navigationBarTitleText: '通知中心',
   navigationBarBackgroundColor: '#ffffff',
   navigationBarTextStyle: 'black',
-  enablePullDownRefresh: false
+  enablePullDownRefresh: true
 }

@@ -1,7 +1,7 @@
-// 首页配置
+// 个人主页配置
 export default {
-  navigationBarTitleText: 'IEClub',
+  navigationBarTitleText: '个人主页',
   navigationBarBackgroundColor: '#ffffff',
   navigationBarTextStyle: 'black',
-  enablePullDownRefresh: false
+  enablePullDownRefresh: true
 }

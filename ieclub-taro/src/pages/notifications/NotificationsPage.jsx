@@ -164,7 +164,7 @@ export default class NotificationsPage extends Component {
       )
     }
 
-  return (
+    return (
       <View className="notifications-page">
         {/* 页面头部 */}
         <View className="page-header">
@@ -185,7 +185,7 @@ export default class NotificationsPage extends Component {
           </View>
         </View>
 
-      {/* 通知列表 */}
+        {/* 通知列表 */}
         {notifications.length === 0 ? (
           <View className="empty-state">
             <Text className="empty-icon">📭</Text>
@@ -235,12 +235,4 @@ export default class NotificationsPage extends Component {
       </View>
     )
   }
-}
-
-// Taro 4.x 配置必须独立导出
-NotificationsPage.config = {
-  navigationBarTitleText: '通知中心',
-  enablePullDownRefresh: true,
-  navigationBarBackgroundColor: '#ffffff',
-  navigationBarTextStyle: 'black'
 }

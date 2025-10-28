@@ -1,79 +1,237 @@
-.event-detail-container {
+// 活动详情页样式
+.event-detail-page {
   min-height: 100vh;
   background-color: #f5f5f5;
-  padding: 40px;
+  padding: 20px;
 
   &.loading {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 20px;
+  }
+
+  &.error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    padding: 60px 20px;
+  }
+
+  .loading-spinner {
+    width: 80px;
+    height: 80px;
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #8b5cf6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
   }
 
   .loading-text {
+    font-size: 28px;
+    color: #666;
+  }
+
+  .error-icon {
+    font-size: 100px;
+  }
+
+  .error-text {
     font-size: 32px;
     color: #666;
   }
 
-  .header {
-    background: white;
+  .event-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 40px;
-    border-radius: 16px;
-    margin-bottom: 32px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-
-    .title {
-      display: block;
-      font-size: 48px;
-      font-weight: bold;
-      color: #333;
-      margin-bottom: 16px;
-    }
-
-    .subtitle {
-      display: block;
-      font-size: 28px;
-      color: #666;
-    }
+    border-radius: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
   }
 
-  .content {
+  .event-icon {
+    font-size: 80px;
+  }
+
+  .event-title {
+    font-size: 36px;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .event-info {
     background: white;
-    padding: 40px;
+    padding: 30px;
     border-radius: 16px;
-    margin-bottom: 32px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+  }
 
-    .description {
-      display: block;
-      font-size: 32px;
-      color: #333;
-      margin-bottom: 16px;
-    }
+  .info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 20px;
 
-    .hint {
-      display: block;
-      font-size: 28px;
-      color: #999;
+    &:last-child {
+      margin-bottom: 0;
     }
   }
 
-  .footer {
-    .back-button {
-      background: #8b5cf6;
-      padding: 24px;
-      border-radius: 12px;
-      text-align: center;
+  .info-label {
+    font-size: 28px;
+    color: #666;
+    min-width: 150px;
+  }
 
-      &.button-hover {
-        opacity: 0.8;
-      }
+  .info-value {
+    font-size: 28px;
+    color: #333;
+    flex: 1;
+  }
 
-      .button-text {
-        font-size: 32px;
-        color: white;
-        font-weight: 500;
-      }
+  .event-progress {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+  }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  .progress-label {
+    font-size: 30px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .progress-count {
+    font-size: 28px;
+    color: #666;
+  }
+
+  .progress-bar {
+    height: 16px;
+    background: #f0f0f0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    transition: width 0.3s ease;
+
+    &.full {
+      background: linear-gradient(90deg, #f56565 0%, #ed8936 100%);
     }
   }
+
+  .event-description {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+  }
+
+  .description-title {
+    font-size: 32px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+    display: block;
+  }
+
+  .description-text {
+    font-size: 28px;
+    color: #666;
+    line-height: 1.6;
+    display: block;
+  }
+
+  .event-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+  }
+
+  .tag {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 12px 24px;
+    border-radius: 20px;
+  }
+
+  .tag-text {
+    font-size: 24px;
+    color: white;
+  }
+
+  .event-actions {
+    display: flex;
+    gap: 15px;
+    padding: 20px 0;
+  }
+
+  .register-btn {
+    flex: 2;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 28px;
+    border-radius: 16px;
+    text-align: center;
+
+    &.disabled {
+      background: #ddd;
+      opacity: 0.6;
+    }
+
+    &.btn-hover {
+      opacity: 0.9;
+    }
+  }
+
+  .back-btn {
+    flex: 1;
+    background: white;
+    border: 2px solid #8b5cf6;
+    padding: 28px;
+    border-radius: 16px;
+    text-align: center;
+
+    &.btn-hover {
+      background: #f5f3ff;
+    }
+  }
+
+  .btn-text {
+    font-size: 32px;
+    font-weight: 600;
+    color: white;
+
+    .back-btn & {
+      color: #8b5cf6;
+    }
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 

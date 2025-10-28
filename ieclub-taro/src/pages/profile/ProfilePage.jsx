@@ -178,11 +178,3 @@ export default class ProfilePage extends Component {
     )
   }
 }
-
-// Taro 4.x 配置必须独立导出
-ProfilePage.config = {
-  navigationBarTitleText: '个人主页',
-  enablePullDownRefresh: true,
-  navigationBarBackgroundColor: '#ffffff',
-  navigationBarTextStyle: 'black'
-}

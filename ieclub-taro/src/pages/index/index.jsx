@@ -1,4 +1,4 @@
-import { Component } from 'react'
+import React, { Component } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import './index.scss'
@@ -140,12 +140,4 @@ export default class Index extends Component {
       </View>
     )
   }
-}
-
-// Taro 4.x 配置必须独立导出
-Index.config = {
-  navigationBarTitleText: 'IEClub',
-  enablePullDownRefresh: false,
-  navigationBarBackgroundColor: '#ffffff',
-  navigationBarTextStyle: 'black'
 }

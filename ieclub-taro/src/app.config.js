@@ -35,7 +35,6 @@ export default {
     backgroundTextStyle: 'light',
     navigationBarBackgroundColor: '#ffffff',
     navigationBarTitleText: 'IEClub',
-    navigationBarTextStyle: 'black',
-    navigationStyle: 'custom' // 使用自定义导航栏
+    navigationBarTextStyle: 'black'
   }
 }

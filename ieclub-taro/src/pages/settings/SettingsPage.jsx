@@ -65,7 +65,7 @@ export default class SettingsPage extends Component {
   render() {
     const { pushEnabled } = this.state
 
-  return (
+    return (
       <View className="settings-page">
         <View className="page-header">
           <Text className="header-icon">⚙️</Text>
@@ -134,12 +134,4 @@ export default class SettingsPage extends Component {
       </View>
     )
   }
-}
-
-// Taro 4.x 配置必须独立导出
-SettingsPage.config = {
-  navigationBarTitleText: '设置',
-  enablePullDownRefresh: false,
-  navigationBarBackgroundColor: '#ffffff',
-  navigationBarTextStyle: 'black'
 }

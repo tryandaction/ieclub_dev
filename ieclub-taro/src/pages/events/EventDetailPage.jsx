@@ -70,17 +70,17 @@ export default class EventDetailPage extends Component {
   render() {
     const { loading, event } = this.state
 
-  if (loading) {
-    return (
+    if (loading) {
+      return (
         <View className="event-detail-page loading">
           <View className="loading-spinner"></View>
           <Text className="loading-text">加载中...</Text>
         </View>
       )
-  }
+    }
 
-  if (!event) {
-    return (
+    if (!event) {
+      return (
         <View className="event-detail-page error">
           <Text className="error-icon">😕</Text>
           <Text className="error-text">活动不存在</Text>
@@ -94,7 +94,7 @@ export default class EventDetailPage extends Component {
     const progress = (event.participants / event.maxParticipants) * 100
     const isFull = event.participants >= event.maxParticipants
 
-  return (
+    return (
       <View className="event-detail-page">
         {/* 活动头部 */}
         <View className="event-header">
@@ -147,7 +147,7 @@ export default class EventDetailPage extends Component {
           ))}
         </View>
 
-            {/* 操作按钮 */}
+        {/* 操作按钮 */}
         <View className="event-actions">
           <View 
             className={`register-btn ${isFull ? 'disabled' : ''}`}
@@ -163,12 +163,4 @@ export default class EventDetailPage extends Component {
       </View>
     )
   }
-}
-
-// Taro 4.x 配置必须独立导出
-EventDetailPage.config = {
-  navigationBarTitleText: '活动详情',
-  enablePullDownRefresh: false,
-  navigationBarBackgroundColor: '#ffffff',
-  navigationBarTextStyle: 'black'
 }

@@ -14,7 +14,8 @@ const config = {
   outputRoot: 'dist',
   plugins: [
     '@tarojs/plugin-platform-h5',
-    '@tarojs/plugin-html'  // 启用 Sass/Less/PostCSS 支持
+    '@tarojs/plugin-html',  // 启用 Sass/Less/PostCSS 支持
+    '@tarojs/plugin-framework-react'  // Taro 4.x React 框架必需插件
   ],
   sass: {
     // 全局 Sass 配置（可选）
@@ -150,15 +151,13 @@ const config = {
         }
       ]);
 
-      // 生产环境优化
+      // 完全禁用优化以避免Tree Shaking问题
+      // ⚠️ 禁用所有优化，确保页面组件正确导出
+      chain.optimization.minimize(false);
+      chain.optimization.usedExports(false);
+      chain.optimization.sideEffects(false);
+      
       if (process.env.NODE_ENV === 'production') {
-        // 禁用压缩，避免卡死
-        // WXSS文件由 fix-wxss.js 脚本后处理
-        chain.optimization.minimize(false);
-        chain.optimization.usedExports(true);
-        // Tree Shaking
-        chain.optimization.sideEffects(true);
-        
         // 限制并行构建数量，避免内存溢出
         chain.performance.hints(false);
         chain.stats('minimal');

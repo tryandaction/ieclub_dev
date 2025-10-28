@@ -1,6 +1,6 @@
-// 首页配置
+// 设置页配置
 export default {
-  navigationBarTitleText: 'IEClub',
+  navigationBarTitleText: '设置',
   navigationBarBackgroundColor: '#ffffff',
   navigationBarTextStyle: 'black',
   enablePullDownRefresh: false
