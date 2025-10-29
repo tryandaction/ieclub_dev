@@ -4,8 +4,6 @@
  */
 import React from 'react'
 import Taro from '@tarojs/taro'
-import Icon from '../common/Icon'
-import { ICONS } from '../../constants'
 
 const Navbar = ({ 
   title = 'IEClub',
@@ -58,9 +56,9 @@ const Navbar = ({
           {showBack && (
             <button
               onClick={handleBack}
-              className="mr-3 p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              className="mr-3 px-3 py-2 hover:bg-purple-50 rounded-xl transition-all duration-200 text-gray-700 text-lg font-medium"
             >
-              <Icon icon="mdi:arrow-left" size="lg" color="#374151" />
+              ←
             </button>
           )}
           
