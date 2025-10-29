@@ -1,105 +1,121 @@
 /**
- * IEClub TabBar 组件
- * 底部导航栏组件
+ * IEClub TabBar 底部导航栏组件
+ * 完全按照设计文档实现 - 中间突出的圆形发布按钮
  */
 import React from 'react'
 import Taro from '@tarojs/taro'
-import Icon from '../common/Icon'
-import { ICONS } from '../../constants'
 
 const TabBar = () => {
   const isH5 = Taro.getEnv() === Taro.ENV_TYPE.WEB
   const [currentPath, setCurrentPath] = React.useState('plaza')
   
+  // 导航标签
   const tabs = [
-    {
-      key: 'plaza',
-      label: '广场',
-      icon: ICONS.square,
-      path: 'pages/plaza/index',
-      h5Path: '/plaza',
-      activeIcon: ICONS.square
-    },
-    {
-      key: 'community',
-      label: '社区',
-      icon: ICONS.community,
-      path: 'pages/community/index',
-      h5Path: '/community',
-      activeIcon: ICONS.community
-    },
-    {
-      key: 'activities',
-      label: '活动',
-      icon: ICONS.activities,
-      path: 'pages/activities/index',
-      h5Path: '/activities',
-      activeIcon: ICONS.activities
-    },
-    {
-      key: 'profile',
-      label: '我的',
-      icon: ICONS.profile,
-      path: 'pages/profile/index',
-      h5Path: '/profile',
-      activeIcon: ICONS.profile
-    }
+    { key: 'plaza', label: '广场', path: 'pages/plaza/index', h5Path: '#/plaza' },
+    { key: 'community', label: '社区', path: 'pages/community/index', h5Path: '#/community' },
+    { key: 'publish', label: '发布', path: null, h5Path: null }, // 中间发布按钮
+    { key: 'activities', label: '活动', path: 'pages/activities/index', h5Path: '#/activities' },
+    { key: 'profile', label: '我的', path: 'pages/profile/index', h5Path: '#/profile' }
   ]
   
+  // 获取当前路径
   React.useEffect(() => {
-    // 获取当前路径
     const pages = Taro.getCurrentPages()
     if (pages.length > 0) {
       const currentPage = pages[pages.length - 1]
       const route = currentPage.route || ''
-      const matchTab = tabs.find(tab => route.includes(tab.key))
-      if (matchTab) {
-        setCurrentPath(matchTab.key)
-      }
+      
+      if (route.includes('plaza')) setCurrentPath('plaza')
+      else if (route.includes('community')) setCurrentPath('community')
+      else if (route.includes('activities')) setCurrentPath('activities')
+      else if (route.includes('profile')) setCurrentPath('profile')
     }
   }, [])
   
-  const isActive = (key) => {
-    return currentPath === key
-  }
+  // 判断是否激活
+  const isActive = (key) => currentPath === key
   
+  // Tab点击处理
   const handleTabClick = (tab) => {
+    if (tab.key === 'publish') {
+      handlePublishClick()
+      return
+    }
+    
     setCurrentPath(tab.key)
     if (isH5 && window.__POWERED_BY_TARO__) {
-      // H5 模式下需要特殊处理
       window.location.hash = tab.h5Path
     } else {
-      // 小程序模式使用 Taro switchTab
       Taro.switchTab({
         url: `/${tab.path}`
       })
     }
   }
   
+  // 发布按钮点击
   const handlePublishClick = () => {
-    // TODO: 打开发布页面
-    console.log('发布功能')
+    Taro.showToast({
+      title: '发布功能开发中',
+      icon: 'none'
+    })
+    // TODO: 打开发布页面或模态框
   }
   
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 safe-area-bottom z-50 shadow-2xl">
-      <div className="flex items-center justify-around py-3">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => handleTabClick(tab)}
-            className={`flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-300 ${
-              isActive(tab.key) 
-                ? 'text-purple-600 font-bold scale-110' 
-                : 'text-gray-500 font-medium'
-            }`}
-          >
-            <span className="text-[15px]">{tab.label}</span>
-            {isActive(tab.key) && (
-              <div className="mt-1 w-4 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" />
-            )}
-          </button>
-        ))}
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 safe-area-bottom z-50 shadow-2xl" style={{height: '100px'}}>
+      <div className="flex items-center justify-around h-full relative">
+        {tabs.map((tab, index) => {
+          // 中间发布按钮特殊处理
+          if (tab.key === 'publish') {
+            return (
+              <button
+                key={tab.key}
+                onClick={handlePublishClick}
+                className="flex flex-col items-center justify-center relative"
+                style={{
+                  position: 'absolute',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  top: '-20px', // 向上突出20px
+                  zIndex: 10
+                }}
+              >
+                <div 
+                  className="bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500 rounded-full flex items-center justify-center text-white shadow-2xl hover:scale-105 transition-all duration-300"
+                  style={{
+                    width: '80px',
+                    height: '80px',
+                    boxShadow: '0 4px 20px rgba(139, 92, 246, 0.5)'
+                  }}
+                >
+                  <span className="text-4xl font-light leading-none">+</span>
+                </div>
+              </button>
+            )
+          }
+          
+          // 普通Tab按钮
+          return (
+            <button
+              key={tab.key}
+              onClick={() => handleTabClick(tab)}
+              className={`flex flex-col items-center justify-center transition-all duration-300 ${
+                index < 2 ? 'flex-1' : index > 2 ? 'flex-1' : ''
+              }`}
+            >
+              <span className={`text-base font-bold transition-all duration-300 ${
+                isActive(tab.key) 
+                  ? 'text-purple-600 scale-110' 
+                  : 'text-gray-500'
+              }`}>
+                {tab.label}
+              </span>
+              {isActive(tab.key) && (
+                <div className="mt-1.5 w-5 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" />
+              )}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

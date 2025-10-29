@@ -1,229 +1,247 @@
 /**
  * IEClub 活动页面
- * 展示活动列表、报名等功能
+ * 完全按照设计文档实现 - 活动卡片完整信息
  */
 import React, { useState, useEffect } from 'react'
+import Taro from '@tarojs/taro'
 import MainLayout from '../../components/layout/MainLayout'
 import Card from '../../components/common/Card'
-import Button from '../../components/common/Button'
 import { formatTime, formatNumber } from '../../utils'
 
 const ActivitiesPage = () => {
   const [activities, setActivities] = useState([])
   const [isLoading, setIsLoading] = useState(false)
-  const [hasMore, setIsMore] = useState(true)
+  const [hasMore, setHasMore] = useState(true)
   
-  // 模拟活动数据
+  // 模拟数据
   const mockActivities = [
     {
       id: 1,
       title: '跨学科创新论坛',
       subtitle: 'AI时代的教育变革',
-      time: '2024-11-01 14:00',
-      endTime: '2024-11-01 17:00',
+      emoji: '🎤',
+      time: '2025-10-15 14:00',
+      endTime: '2025-10-15 17:00',
       location: '慧园报告厅',
       participants: 45,
       maxParticipants: 100,
-      organizer: '张明',
-      category: '学术讲座',
-      description: '探讨人工智能在教育领域的应用与挑战',
-      isJoined: false
+      organizer: '学生会',
+      description: '探讨人工智能对教育领域的影响，邀请多位专家学者分享见解',
+      isJoined: false,
+      status: 'upcoming' // upcoming, ongoing, finished
     },
     {
       id: 2,
       title: 'Python数据分析工作坊',
       subtitle: '从入门到实战',
-      time: '2024-11-02 10:00',
-      endTime: '2024-11-02 12:00',
+      emoji: '💻',
+      time: '2025-10-20 19:00',
+      endTime: '2025-10-20 21:00',
       location: '图书馆204',
       participants: 28,
       maxParticipants: 30,
-      organizer: '李思',
-      category: '技能培训',
-      description: '学习使用Python进行数据分析和可视化',
-      isJoined: false
+      organizer: '计算机系',
+      description: '实战演练数据处理、可视化和机器学习基础',
+      isJoined: true,
+      status: 'upcoming'
     },
     {
       id: 3,
       title: 'UI设计工作坊',
-      subtitle: '用户体验设计',
-      time: '2024-11-03 15:00',
-      endTime: '2024-11-03 17:00',
+      subtitle: '用户体验设计实践',
+      emoji: '🎨',
+      time: '2025-10-25 15:00',
+      endTime: '2025-10-25 18:00',
       location: '设计学院',
       participants: 15,
       maxParticipants: 20,
-      organizer: '王浩',
-      category: '技能培训',
-      description: '学习现代UI设计理念和工具使用',
-      isJoined: true
+      organizer: '设计协会',
+      description: '学习Figma工具使用，完成一个完整的APP设计',
+      isJoined: false,
+      status: 'upcoming'
     },
     {
       id: 4,
-      title: '科研项目展示',
-      subtitle: '成果分享会',
-      time: '2024-11-04 19:00',
-      endTime: '2024-11-04 21:00',
-      location: '实验室',
+      title: '科研项目展示会',
+      subtitle: '学生创新成果分享',
+      emoji: '🔬',
+      time: '2025-10-30 16:00',
+      endTime: '2025-10-30 18:00',
+      location: '实验室大厅',
       participants: 8,
       maxParticipants: 15,
-      organizer: '赵六',
-      category: '科研分享',
-      description: '展示最新的科研成果和项目进展',
-      isJoined: false
+      organizer: '科研处',
+      description: '展示本学期优秀学生科研项目和创新成果',
+      isJoined: false,
+      status: 'upcoming'
+    },
+    {
+      id: 5,
+      title: '校园音乐分享会',
+      subtitle: '音乐与生活',
+      emoji: '🎵',
+      time: '2025-11-01 20:00',
+      endTime: '2025-11-01 22:00',
+      location: '音乐厅',
+      participants: 20,
+      maxParticipants: 30,
+      organizer: '音乐社',
+      description: '分享音乐创作心得，现场演奏交流',
+      isJoined: false,
+      status: 'upcoming'
+    },
+    {
+      id: 6,
+      title: '晨跑健身团',
+      subtitle: '健康生活从早晨开始',
+      emoji: '🏃‍♂️',
+      time: '2025-11-05 06:30',
+      endTime: '2025-11-05 07:30',
+      location: '学校操场',
+      participants: 12,
+      maxParticipants: 20,
+      organizer: '体育部',
+      description: '每周定期晨跑活动，强身健体结交朋友',
+      isJoined: false,
+      status: 'upcoming'
     }
   ]
   
-  // 页面加载时获取活动
   useEffect(() => {
-    fetchActivities(true)
+    setActivities(mockActivities)
   }, [])
   
-  // 获取活动列表
-  const fetchActivities = async (reset = false) => {
-    setIsLoading(true)
-    
-    // 模拟API调用
-    setTimeout(() => {
-      if (reset) {
-        setActivities(mockActivities)
-      } else {
-        setActivities(prev => [...prev, ...mockActivities])
+  // 活动点击
+  const handleActivityClick = (activity) => {
+    Taro.showToast({
+      title: `查看活动：${activity.title}`,
+      icon: 'none'
+    })
+  }
+  
+  // 报名
+  const handleJoin = (e, activityId) => {
+    e.stopPropagation()
+    setActivities(activities.map(activity => {
+      if (activity.id === activityId) {
+        return {
+          ...activity,
+          isJoined: !activity.isJoined,
+          participants: activity.isJoined ? activity.participants - 1 : activity.participants + 1
+        }
       }
-      setIsMore(false)
-      setIsLoading(false)
-    }, 1000)
+      return activity
+    }))
+    Taro.showToast({
+      title: activities.find(a => a.id === activityId)?.isJoined ? '已取消报名' : '报名成功',
+      icon: 'success'
+    })
   }
   
   // 加载更多
   const handleLoadMore = () => {
     if (!isLoading && hasMore) {
-      fetchActivities(false)
+      setIsLoading(true)
+      setTimeout(() => {
+        setIsLoading(false)
+        setHasMore(false)
+      }, 1000)
     }
-  }
-  
-  // 报名/取消报名
-  const handleJoin = (activityId, isJoined) => {
-    setActivities(prev => 
-      prev.map(activity => 
-        activity.id === activityId 
-          ? { 
-              ...activity, 
-              isJoined: !isJoined,
-              participants: isJoined 
-                ? activity.participants - 1 
-                : activity.participants + 1
-            }
-          : activity
-      )
-    )
-  }
-  
-  // 活动点击
-  const handleActivityClick = (activity) => {
-    console.log('点击活动:', activity.title)
-    // TODO: 跳转到活动详情页
   }
   
   return (
     <MainLayout title="活动">
       <div className="max-w-screen-2xl mx-auto p-4 lg:p-6">
-        {/* 活动列表 - 响应式网格布局 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+        {/* 活动列表 - 响应式网格 */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
           {activities.map((activity) => (
-            <Card
+            <div
               key={activity.id}
-              className="hover:shadow-lg transition-all duration-200 cursor-pointer"
+              className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
               onClick={() => handleActivityClick(activity)}
             >
-              {/* 活动头部 */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-1">
-                    {activity.title}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-2">
-                    {activity.subtitle}
-                  </p>
-                  <div className="flex items-center text-xs text-gray-500">
-                    <Icon icon={ICONS.event} size="sm" className="mr-1" />
-                    {activity.category}
+              {/* 活动头部 - 带emoji的渐变背景 */}
+              <div className="relative h-32 bg-gradient-to-br from-purple-400 via-purple-500 to-pink-500 flex items-center justify-center">
+                <span className="text-6xl opacity-90">{activity.emoji}</span>
+                {activity.isJoined && (
+                  <div className="absolute top-2 right-2 px-2 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-bold text-purple-600">
+                    已报名
+                  </div>
+                )}
+              </div>
+              
+              {/* 活动内容 */}
+              <div className="p-4">
+                {/* 标题 */}
+                <h3 className="text-base font-bold text-gray-900 mb-1 line-clamp-1">
+                  {activity.title}
+                </h3>
+                <p className="text-xs text-gray-600 mb-3 line-clamp-1">
+                  {activity.subtitle}
+                </p>
+                
+                {/* 活动信息 - 按文档要求 */}
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-xs text-gray-600">
+                    <span className="mr-2">🕐</span>
+                    <span className="line-clamp-1">
+                      {formatTime(activity.time, 'MM-DD HH:mm')}
+                    </span>
+                  </div>
+                  <div className="flex items-center text-xs text-gray-600">
+                    <span className="mr-2">📍</span>
+                    <span className="line-clamp-1">{activity.location}</span>
+                  </div>
+                  <div className="flex items-center text-xs text-gray-600">
+                    <span className="mr-2">👥</span>
+                    <span>
+                      {activity.participants}/{activity.maxParticipants}人
+                    </span>
                   </div>
                 </div>
-                <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  activity.isJoined 
-                    ? 'bg-green-100 text-green-600' 
-                    : 'bg-blue-100 text-blue-600'
-                }`}>
-                  {activity.isJoined ? '已报名' : '可报名'}
-                </div>
-              </div>
-              
-              {/* 活动信息 */}
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center text-sm text-gray-600">
-                  <span className="mr-2">🕐</span>
-                  {formatTime(activity.time, 'MM-DD HH:mm')} - {formatTime(activity.endTime, 'HH:mm')}
-                </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <span className="mr-2">📍</span>
-                  {activity.location}
-                </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <span className="mr-2">👥</span>
-                  {activity.participants}/{activity.maxParticipants}人
-                </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <span className="mr-2">👤</span>
-                  组织者：{activity.organizer}
-                </div>
-              </div>
-              
-              {/* 活动描述 */}
-              <p className="text-gray-700 text-sm mb-4 line-clamp-2">
-                {activity.description}
-              </p>
-              
-              {/* 报名按钮 */}
-              <Button
-                variant={activity.isJoined ? 'secondary' : 'primary'}
-                size="sm"
-                className="w-full"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleJoin(activity.id, activity.isJoined)
-                }}
-                disabled={!activity.isJoined && activity.participants >= activity.maxParticipants}
-              >
-                {activity.isJoined 
-                  ? '取消报名' 
-                  : activity.participants >= activity.maxParticipants 
+                
+                {/* 报名按钮 - 按文档设计 */}
+                <button
+                  onClick={(e) => handleJoin(e, activity.id)}
+                  className={`w-full py-3 rounded-xl font-bold text-sm transition-all duration-300 ${
+                    activity.isJoined
+                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : activity.participants >= activity.maxParticipants
+                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500 text-white hover:shadow-lg hover:shadow-purple-500/30'
+                  }`}
+                  disabled={!activity.isJoined && activity.participants >= activity.maxParticipants}
+                >
+                  {activity.isJoined 
+                    ? '已报名' 
+                    : activity.participants >= activity.maxParticipants 
                     ? '已满员' 
-                    : '立即报名'
-                }
-              </Button>
-            </Card>
+                    : '立即报名'}
+                </button>
+              </div>
+            </div>
           ))}
         </div>
         
         {/* 加载更多 */}
-        {hasMore && (
-          <div className="col-span-full text-center mt-6">
-            <Button
-              variant="outline"
-              loading={isLoading}
+        {hasMore && activities.length > 0 && (
+          <div className="mt-8 text-center">
+            <button
               onClick={handleLoadMore}
-              className="w-full lg:w-auto lg:px-12"
+              disabled={isLoading}
+              className="px-12 py-3.5 bg-white border-2 border-purple-200 text-purple-600 rounded-2xl font-bold text-base hover:bg-purple-50 hover:border-purple-300 hover:shadow-lg transition-all duration-300 disabled:opacity-50"
             >
               {isLoading ? '加载中...' : '加载更多'}
-            </Button>
+            </button>
           </div>
         )}
         
         {/* 空状态 */}
-        {!isLoading && activities.length === 0 && (
-          <div className="col-span-full text-center py-12">
-            <p className="text-gray-500 text-lg mb-2">暂无活动</p>
-            <p className="text-gray-400 text-sm">快来发现更多精彩活动吧！</p>
+        {activities.length === 0 && !isLoading && (
+          <div className="text-center py-20">
+            <div className="text-7xl mb-6">📅</div>
+            <p className="text-xl font-bold text-gray-900 mb-2">暂无活动</p>
+            <p className="text-gray-500">快来发现更多精彩活动吧！</p>
           </div>
         )}
       </div>
