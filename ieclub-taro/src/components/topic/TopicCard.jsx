@@ -1,363 +1,229 @@
 /**
- * 话题卡片组件
- * 支持三种类型：我来讲(offer)、想听(demand)、项目宣传(project)
- * 参考 ieclub-frontend 的设计风格优化
+ * IEClub TopicCard 组件
+ * 话题卡片组件，支持三种类型：我来讲、想听、项目
  */
-import React from 'react';
-import { View, Text, Image } from '@tarojs/components';
-import Icon from '../common/Icon.jsx';
-import { TopicType } from '../../store/topicStore';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import 'dayjs/locale/zh-cn';
+import React from 'react'
+import Card from './Card'
+import Button from './Button'
+import Icon from './Icon'
+import { TOPIC_TYPES, ICONS } from '../../constants'
+import { formatRelativeTime, formatNumber } from '../../utils'
 
-dayjs.extend(relativeTime);
-dayjs.locale('zh-cn');
-
-/**
- * 话题类型配置
- */
-const TopicTypeConfig = {
-  [TopicType.OFFER]: {
-    name: '我来讲',
-    icon: 'topicOffer',
-    bgGradient: 'bg-gradient-offer',
-    borderColor: 'border-topic-offer',
-    textColor: 'text-topic-offer',
-    badgeClass: 'bg-blue-100 text-blue-700',
-  },
-  [TopicType.DEMAND]: {
-    name: '想听',
-    icon: 'topicDemand',
-    bgGradient: 'bg-gradient-demand',
-    borderColor: 'border-topic-demand',
-    textColor: 'text-topic-demand',
-    badgeClass: 'bg-pink-100 text-pink-700',
-  },
-  [TopicType.PROJECT]: {
-    name: '项目',
-    icon: 'project',
-    bgGradient: 'bg-gradient-project',
-    borderColor: 'border-topic-project',
-    textColor: 'text-topic-project',
-    badgeClass: 'bg-orange-100 text-orange-700',
-  },
-};
-
-/**
- * 话题卡片组件
- * @param {object} topic - 话题数据
- * @param {function} onClick - 点击事件
- * @param {function} onLike - 点赞事件
- * @param {function} onBookmark - 收藏事件
- * @param {function} onComment - 评论事件
- */
-const TopicCard = ({
-  topic,
+const TopicCard = ({ 
+  topic, 
   onClick,
   onLike,
-  onBookmark,
-  onComment,
+  onFavorite,
+  onJoin,
+  className = '' 
 }) => {
   const {
     id,
-    type = TopicType.OFFER,
+    type,
     title,
     content,
     author,
-    avatar,
+    authorAvatar,
     category,
     tags = [],
     likesCount = 0,
     commentsCount = 0,
     viewsCount = 0,
-    bookmarksCount = 0,
-    isLiked = false,
-    isBookmarked = false,
+    participantsCount = 0,
+    maxParticipants = 0,
     createdAt,
-    // 我来讲特有字段
-    availableTimes,
-    format, // online/offline/hybrid
-    maxParticipants,
-    // 想听特有字段
-    wantToHearCount, // 想听人数
-    isTeamFormed, // 是否已成团
-    // 项目特有字段
-    projectStage, // 项目阶段
-    teamSize, // 团队人数
-    recruiting, // 是否招募中
-  } = topic;
-
-  const typeConfig = TopicTypeConfig[type] || TopicTypeConfig[TopicType.OFFER];
-
-  // 格式化时间
-  const formattedTime = dayjs(createdAt).fromNow();
-
-  // 处理卡片点击
-  const handleCardClick = () => {
-    onClick?.(topic);
-  };
-
+    isLiked = false,
+    isFavorited = false,
+    isJoined = false
+  } = topic
+  
+  // 根据类型获取样式和图标
+  const getTypeConfig = (type) => {
+    switch (type) {
+      case TOPIC_TYPES.OFFER:
+        return {
+          icon: ICONS.topicOffer,
+          label: '我来讲',
+          color: 'text-blue-600',
+          bgColor: 'bg-blue-50',
+          borderColor: 'border-blue-200'
+        }
+      case TOPIC_TYPES.DEMAND:
+        return {
+          icon: ICONS.topicDemand,
+          label: '想听',
+          color: 'text-pink-600',
+          bgColor: 'bg-pink-50',
+          borderColor: 'border-pink-200'
+        }
+      case TOPIC_TYPES.PROJECT:
+        return {
+          icon: ICONS.project,
+          label: '项目',
+          color: 'text-orange-600',
+          bgColor: 'bg-orange-50',
+          borderColor: 'border-orange-200'
+        }
+      default:
+        return {
+          icon: ICONS.topicOffer,
+          label: '话题',
+          color: 'text-gray-600',
+          bgColor: 'bg-gray-50',
+          borderColor: 'border-gray-200'
+        }
+    }
+  }
+  
+  const typeConfig = getTypeConfig(type)
+  
+  // 处理点击事件
+  const handleClick = () => {
+    onClick?.(topic)
+  }
+  
   // 处理点赞
   const handleLike = (e) => {
-    e.stopPropagation();
-    onLike?.(id);
-  };
-
+    e.stopPropagation()
+    onLike?.(topic.id, !isLiked)
+  }
+  
   // 处理收藏
-  const handleBookmark = (e) => {
-    e.stopPropagation();
-    onBookmark?.(id);
-  };
-
-  // 处理评论
-  const handleComment = (e) => {
-    e.stopPropagation();
-    onComment?.(id);
-  };
-
-  // 渲染类型徽章
-  const renderTypeBadge = () => (
-    <div className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${typeConfig.badgeClass}`}>
-      <Icon icon={typeConfig.icon} size="sm" />
-      <span className="leading-none">{typeConfig.name}</span>
-    </div>
-  );
-
-  // 渲染"想听"特有信息
-  const renderDemandInfo = () => {
-    if (type !== TopicType.DEMAND) return null;
-
-    return (
-      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
-        <div className="flex items-center gap-1.5 text-sm">
-          <Icon icon="users" size="sm" color="#FF6B9D" />
-          <span className="text-gray-600">
-            <span className="font-semibold text-topic-demand">{wantToHearCount || 0}</span>
-            人想听
-          </span>
-        </div>
-        {isTeamFormed && (
-          <div className="flex items-center gap-1.5 px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-medium">
-            <Icon icon="success" size="xs" />
-            已成团
-          </div>
-        )}
-        {!isTeamFormed && wantToHearCount >= 15 && (
-          <div className="flex items-center gap-1.5 px-2 py-1 bg-yellow-50 text-yellow-700 rounded text-xs font-medium">
-            <Icon icon="fire" size="xs" />
-            即将成团
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // 渲染"我来讲"特有信息
-  const renderOfferInfo = () => {
-    if (type !== TopicType.OFFER) return null;
-
-    return (
-      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 text-sm text-gray-600">
-        {format && (
-          <div className="flex items-center gap-1.5">
-            <Icon icon={format === 'online' ? 'online' : 'offline'} size="sm" color="#5B7FFF" />
-            <span>{format === 'online' ? '线上' : format === 'offline' ? '线下' : '混合'}</span>
-          </div>
-        )}
-        {maxParticipants && (
-          <div className="flex items-center gap-1.5">
-            <Icon icon="participants" size="sm" color="#5B7FFF" />
-            <span>最多{maxParticipants}人</span>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // 渲染"项目"特有信息
-  const renderProjectInfo = () => {
-    if (type !== TopicType.PROJECT) return null;
-
-    return (
-      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
-        <div className="flex items-center gap-1.5 text-sm">
-          <Icon icon="team" size="sm" color="#FFA500" />
-          <span className="text-gray-600">团队{teamSize || 0}人</span>
-        </div>
-        {projectStage && (
-          <div className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-            {projectStage}
-          </div>
-        )}
-        {recruiting && (
-          <div className="flex items-center gap-1.5 px-2 py-1 bg-orange-50 text-orange-700 rounded text-xs font-medium">
-            <Icon icon="users" size="xs" />
-            招募中
-          </div>
-        )}
-      </div>
-    );
-  };
-
+  const handleFavorite = (e) => {
+    e.stopPropagation()
+    onFavorite?.(topic.id, !isFavorited)
+  }
+  
+  // 处理加入/申请
+  const handleJoin = (e) => {
+    e.stopPropagation()
+    onJoin?.(topic.id, !isJoined)
+  }
+  
   return (
-    <div
-      onClick={handleCardClick}
-      className="bg-white rounded-xl shadow-sm border hover:shadow-lg transition-all overflow-hidden cursor-pointer"
+    <Card 
+      className={`hover:shadow-lg transition-all duration-200 ${className}`}
+      onClick={handleClick}
     >
-      {/* 卡片主体内容 */}
-      <div className="p-6">
-        {/* 头部：类型徽章和收藏按钮 */}
-        <div className="flex items-center justify-between mb-4">
-          {/* 类型徽章 */}
-          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold ${typeConfig.badgeClass}`}>
-            <Icon icon={typeConfig.icon} size="sm" />
-            <span>{typeConfig.name}</span>
+      {/* 头部：类型标签 */}
+      <div className="flex items-center justify-between mb-3">
+        <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${typeConfig.bgColor} ${typeConfig.color}`}>
+          <Icon icon={typeConfig.icon} size="sm" className="mr-1" />
+          {typeConfig.label}
         </div>
-
-          {/* 收藏按钮 */}
-        <button
-          onClick={handleBookmark}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-        >
-          <Icon
-            icon={isBookmarked ? 'bookmarked' : 'bookmark'}
-            size="sm"
-            color={isBookmarked ? '#eab308' : '#64748b'}
-          />
-        </button>
+        <span className="text-sm text-gray-500">
+          {formatRelativeTime(createdAt)}
+        </span>
+      </div>
+      
+      {/* 标题 */}
+      <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
+        {title}
+      </h3>
+      
+      {/* 内容预览 */}
+      <p className="text-gray-600 text-sm mb-3 line-clamp-3">
+        {content}
+      </p>
+      
+      {/* 作者信息 */}
+      <div className="flex items-center mb-3">
+        <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-3">
+          {authorAvatar || author?.charAt(0)?.toUpperCase()}
         </div>
-
-        {/* 作者信息 */}
-        <div className="flex items-start gap-4 mb-4">
-          {/* 头像 */}
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold flex-shrink-0">
-            {avatar || author?.charAt(0) || 'U'}
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span className="font-bold text-lg text-gray-800 hover:text-blue-600 cursor-pointer">
-                {author || '匿名用户'}
-              </span>
-              <span className="text-gray-400 text-sm">· {formattedTime}</span>
-            </div>
-          </div>
+        <div>
+          <p className="text-sm font-medium text-gray-800">{author}</p>
+          <p className="text-xs text-gray-500">{category}</p>
         </div>
-
-          {/* 标题 */}
-        <h3 className="text-xl font-bold mb-2 text-gray-800 hover:text-blue-600 cursor-pointer leading-tight line-clamp-2">
-            {title}
-          </h3>
-
-        {/* 内容预览 */}
-        <p className="text-gray-700 mb-3 leading-relaxed whitespace-pre-wrap line-clamp-3">
-          {content}
-        </p>
-          
-          {/* 标签 */}
-          {tags && tags.length > 0 && (
-          <div className="flex gap-2 mb-4 flex-wrap">
-              {tags.slice(0, 3).map((tag, index) => (
-                <span
-                  key={index}
-                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 cursor-pointer transition-colors"
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
+      </div>
+      
+      {/* 标签 */}
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-3">
+          {tags.slice(0, 3).map((tag, index) => (
+            <span 
+              key={index}
+              className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-lg"
+            >
+              #{tag}
+            </span>
+          ))}
+          {tags.length > 3 && (
+            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-lg">
+              +{tags.length - 3}
+            </span>
           )}
-
-        {/* 类型特有信息 */}
-        {type === TopicType.OFFER && (format || maxParticipants) && (
-          <div className="flex items-center gap-4 mb-4 p-3 bg-blue-50 rounded-lg text-sm text-gray-700">
-            {format && (
-              <div className="flex items-center gap-1.5">
-                <Icon icon={format === 'online' ? 'online' : 'offline'} size="sm" color="#3b82f6" />
-                <span className="font-medium">{format === 'online' ? '线上' : '线下'}</span>
-              </div>
-            )}
-            {maxParticipants && (
-              <div className="flex items-center gap-1.5">
-                <Icon icon="participants" size="sm" color="#3b82f6" />
-                <span className="font-medium">最多 {maxParticipants} 人</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {type === TopicType.DEMAND && wantToHearCount !== undefined && (
-          <div className="flex items-center gap-4 mb-4 p-3 bg-pink-50 rounded-lg">
-            <div className="flex items-center gap-2 text-sm">
-              <Icon icon="users" size="sm" color="#ec4899" />
-              <span className="text-gray-700">
-                <span className="font-semibold text-pink-600">{wantToHearCount}</span> 人想听
-              </span>
-            </div>
-            {isTeamFormed && (
-              <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-semibold">
-                已成团
-              </span>
-            )}
-          </div>
-        )}
-
-        {type === TopicType.PROJECT && (teamSize || projectStage || recruiting) && (
-          <div className="flex items-center gap-4 mb-4 p-3 bg-orange-50 rounded-lg text-sm">
-            {teamSize && (
-              <div className="flex items-center gap-1.5 text-gray-700">
-                <Icon icon="team" size="sm" color="#f59e0b" />
-                <span className="font-medium">团队 {teamSize} 人</span>
-              </div>
-            )}
-            {projectStage && (
-              <span className="px-2 py-1 bg-white text-gray-700 rounded text-xs font-medium">
-                {projectStage}
-              </span>
-            )}
-            {recruiting && (
-              <span className="px-2 py-1 bg-orange-600 text-white rounded text-xs font-semibold">
-                招募中
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* 互动按钮 */}
-        <div className="flex items-center justify-between text-gray-600 pt-3 border-t">
-          <div className="flex gap-6">
-          {/* 点赞 */}
+        </div>
+      )}
+      
+      {/* 统计信息 */}
+      <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+        <div className="flex items-center space-x-4">
+          <span className="flex items-center">
+            <Icon icon={ICONS.view} size="sm" className="mr-1" />
+            {formatNumber(viewsCount)}
+          </span>
+          <span className="flex items-center">
+            <Icon icon={ICONS.comment} size="sm" className="mr-1" />
+            {formatNumber(commentsCount)}
+          </span>
+          {type === TOPIC_TYPES.DEMAND && (
+            <span className="flex items-center">
+              <Icon icon={ICONS.participants} size="sm" className="mr-1" />
+              {participantsCount}/{maxParticipants || 15}
+            </span>
+          )}
+        </div>
+        
+        <div className="flex items-center space-x-2">
           <button
             onClick={handleLike}
-              className={`flex items-center gap-2 transition-all hover:scale-110 ${
-                isLiked ? 'text-red-500' : 'hover:text-red-500'
-              }`}
-            >
-              <Icon icon={isLiked ? 'liked' : 'like'} size="sm" />
-              <span className="font-semibold">{likesCount}</span>
-          </button>
-
-          {/* 评论 */}
-          <button
-            onClick={handleComment}
-              className="flex items-center gap-2 hover:text-blue-500 transition-all hover:scale-110"
+            className={`flex items-center ${isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'}`}
           >
-            <Icon icon="comment" size="sm" />
-              <span className="font-semibold">{commentsCount}</span>
+            <Icon 
+              icon={isLiked ? ICONS.liked : ICONS.like} 
+              size="sm" 
+              className="mr-1" 
+            />
+            {formatNumber(likesCount)}
           </button>
-
-            {/* 浏览量 */}
-            <div className="flex items-center gap-2 text-gray-500">
-            <Icon icon="view" size="sm" />
-              <span className="font-semibold">{viewsCount}</span>
-            </div>
-          </div>
+          
+          <button
+            onClick={handleFavorite}
+            className={`${isFavorited ? 'text-yellow-500' : 'text-gray-500 hover:text-yellow-500'}`}
+          >
+            <Icon 
+              icon={isFavorited ? ICONS.bookmarked : ICONS.bookmark} 
+              size="sm" 
+            />
+          </button>
         </div>
       </div>
-    </div>
-  );
-};
+      
+      {/* 操作按钮 */}
+      {type === TOPIC_TYPES.DEMAND && (
+        <Button
+          variant={isJoined ? 'secondary' : 'primary'}
+          size="sm"
+          className="w-full"
+          onClick={handleJoin}
+        >
+          {isJoined ? '已申请' : '申请加入'}
+        </Button>
+      )}
+      
+      {type === TOPIC_TYPES.PROJECT && (
+        <Button
+          variant={isJoined ? 'secondary' : 'primary'}
+          size="sm"
+          className="w-full"
+          onClick={handleJoin}
+        >
+          {isJoined ? '已加入' : '加入项目'}
+        </Button>
+      )}
+    </Card>
+  )
+}
 
-export default TopicCard;
-
+export default TopicCard

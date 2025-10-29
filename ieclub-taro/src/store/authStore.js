@@ -1,122 +1,133 @@
 /**
- * 认证状态管理 Store
+ * IEClub 认证状态管理
  * 使用 Zustand 管理用户认证状态
  */
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { storage } from '../utils'
 
 export const useAuthStore = create(
   persist(
     (set, get) => ({
-      // ===== 状态 =====
-      user: null,              // 当前用户信息
-      token: null,             // 认证令牌
-      isAuthenticated: false,  // 是否已认证
-      isLoading: false,        // 是否加载中
-      error: null,             // 错误信息
-
-      // ===== Actions =====
+      // 状态
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isLoading: false,
       
-      /**
-       * 登录
-       * @param {object} userData - 用户数据
-       * @param {string} token - 认证令牌
-       */
-      login: (userData, token) => {
-        set({
-          user: userData,
-          token: token,
-          isAuthenticated: true,
-          error: null,
-        });
-        // 保存token到localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('token', token);
+      // 登录
+      login: async (credentials) => {
+        set({ isLoading: true })
+        try {
+          // TODO: 调用登录API
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(credentials)
+          })
+          
+          if (!response.ok) throw new Error('登录失败')
+          
+          const data = await response.json()
+          
+          set({
+            user: data.user,
+            token: data.token,
+            isAuthenticated: true,
+            isLoading: false
+          })
+          
+          return { success: true, data }
+        } catch (error) {
+          set({ isLoading: false })
+          return { success: false, error: error.message }
         }
       },
-
-      /**
-       * 登出
-       */
+      
+      // 注册
+      register: async (userData) => {
+        set({ isLoading: true })
+        try {
+          const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+          })
+          
+          if (!response.ok) throw new Error('注册失败')
+          
+          const data = await response.json()
+          
+          set({
+            user: data.user,
+            token: data.token,
+            isAuthenticated: true,
+            isLoading: false
+          })
+          
+          return { success: true, data }
+        } catch (error) {
+          set({ isLoading: false })
+          return { success: false, error: error.message }
+        }
+      },
+      
+      // 登出
       logout: () => {
         set({
           user: null,
           token: null,
-          isAuthenticated: false,
-          error: null,
-        });
-        // 清除localStorage中的token
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('token');
-        }
+          isAuthenticated: false
+        })
+        storage.remove('auth')
       },
-
-      /**
-       * 更新用户信息
-       * @param {object} userData - 更新的用户数据
-       */
+      
+      // 更新用户信息
       updateUser: (userData) => {
-        set((state) => ({
-          user: { ...state.user, ...userData },
-        }));
+        const { user } = get()
+        if (user) {
+          set({
+            user: { ...user, ...userData }
+          })
+        }
       },
-
-      /**
-       * 设置加载状态
-       * @param {boolean} isLoading - 是否加载中
-       */
-      setLoading: (isLoading) => {
-        set({ isLoading });
-      },
-
-      /**
-       * 设置错误信息
-       * @param {string|null} error - 错误信息
-       */
-      setError: (error) => {
-        set({ error });
-      },
-
-      /**
-       * 清除错误
-       */
-      clearError: () => {
-        set({ error: null });
-      },
-
-      /**
-       * 检查认证状态
-       * @returns {boolean} 是否已认证
-       */
-      checkAuth: () => {
-        if (typeof window === 'undefined') return false;
+      
+      // 检查认证状态
+      checkAuth: async () => {
+        const { token } = get()
+        if (!token) return false
         
-        const token = localStorage.getItem('token');
-        if (!token) {
-          get().logout();
-          return false;
+        try {
+          const response = await fetch('/api/auth/me', {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          
+          if (response.ok) {
+            const user = await response.json()
+            set({ user, isAuthenticated: true })
+            return true
+          } else {
+            get().logout()
+            return false
+          }
+        } catch (error) {
+          get().logout()
+          return false
         }
-
-        // 如果有token但没有用户信息，则需要重新获取用户信息
-        if (!get().user) {
-          // 这里可以调用API获取用户信息
-          // 暂时先设置isAuthenticated为true
-          set({ token, isAuthenticated: true });
-        }
-
-        return true;
-      },
+      }
     }),
     {
-      name: 'ieclub-auth', // localStorage中的key
+      name: 'auth-storage',
+      storage: {
+        getItem: (name) => storage.get(name),
+        setItem: (name, value) => storage.set(name, value),
+        removeItem: (name) => storage.remove(name),
+      },
       partialize: (state) => ({
         user: state.user,
         token: state.token,
-        isAuthenticated: state.isAuthenticated,
-      }),
+        isAuthenticated: state.isAuthenticated
+      })
     }
   )
-);
-
-export default useAuthStore;
-
+)
