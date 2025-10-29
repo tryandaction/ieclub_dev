@@ -6,9 +6,7 @@ import React, { useState, useEffect } from 'react'
 import MainLayout from '../../components/layout/MainLayout'
 import Card from '../../components/common/Card'
 import Button from '../../components/common/Button'
-import Icon from '../../components/common/Icon'
 import { formatTime, formatNumber } from '../../utils'
-import { ICONS } from '../../constants'
 
 const ActivitiesPage = () => {
   const [activities, setActivities] = useState([])
@@ -128,9 +126,9 @@ const ActivitiesPage = () => {
   
   return (
     <MainLayout title="活动">
-      <div className="p-4 space-y-4">
-        {/* 活动列表 */}
-        <div className="space-y-4">
+      <div className="max-w-screen-2xl mx-auto p-4 lg:p-6">
+        {/* 活动列表 - 响应式网格布局 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {activities.map((activity) => (
             <Card
               key={activity.id}
@@ -163,19 +161,19 @@ const ActivitiesPage = () => {
               {/* 活动信息 */}
               <div className="space-y-2 mb-4">
                 <div className="flex items-center text-sm text-gray-600">
-                  <Icon icon={ICONS.time} size="sm" className="mr-2" />
+                  <span className="mr-2">🕐</span>
                   {formatTime(activity.time, 'MM-DD HH:mm')} - {formatTime(activity.endTime, 'HH:mm')}
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
-                  <Icon icon={ICONS.location} size="sm" className="mr-2" />
+                  <span className="mr-2">📍</span>
                   {activity.location}
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
-                  <Icon icon={ICONS.participants} size="sm" className="mr-2" />
+                  <span className="mr-2">👥</span>
                   {activity.participants}/{activity.maxParticipants}人
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
-                  <Icon icon="mdi:account" size="sm" className="mr-2" />
+                  <span className="mr-2">👤</span>
                   组织者：{activity.organizer}
                 </div>
               </div>
@@ -209,12 +207,12 @@ const ActivitiesPage = () => {
         
         {/* 加载更多 */}
         {hasMore && (
-          <div className="text-center">
+          <div className="col-span-full text-center mt-6">
             <Button
               variant="outline"
               loading={isLoading}
               onClick={handleLoadMore}
-              className="w-full"
+              className="w-full lg:w-auto lg:px-12"
             >
               {isLoading ? '加载中...' : '加载更多'}
             </Button>
@@ -223,8 +221,7 @@ const ActivitiesPage = () => {
         
         {/* 空状态 */}
         {!isLoading && activities.length === 0 && (
-          <div className="text-center py-12">
-            <Icon icon="mdi:calendar-outline" size="2xl" color="#9ca3af" className="mx-auto mb-4" />
+          <div className="col-span-full text-center py-12">
             <p className="text-gray-500 text-lg mb-2">暂无活动</p>
             <p className="text-gray-400 text-sm">快来发现更多精彩活动吧！</p>
           </div>

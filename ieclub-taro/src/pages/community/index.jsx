@@ -66,7 +66,7 @@ const CommunityPage = () => {
   
   return (
     <MainLayout title="社区">
-      <div className="p-4 space-y-4">
+      <div className="max-w-screen-2xl mx-auto p-4 lg:p-6 space-y-4">
         {/* 筛选栏 */}
         <Card>
           <div className="flex items-center justify-between">
@@ -76,14 +76,14 @@ const CommunityPage = () => {
                 size="sm"
                 onClick={() => setViewMode('grid')}
               >
-                <Icon icon="mdi:view-grid" size="sm" />
+                网格
               </Button>
               <Button
                 variant={viewMode === 'list' ? 'primary' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('list')}
               >
-                <Icon icon="mdi:view-list" size="sm" />
+                列表
               </Button>
             </div>
             
@@ -99,9 +99,9 @@ const CommunityPage = () => {
           </div>
         </Card>
         
-        {/* 用户列表 */}
+        {/* 用户列表 - 响应式网格布局 */}
         {viewMode === 'grid' ? (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
             {sortedUsers.map((user) => {
               const userLevel = getUserLevel(user.score || 0)
               return (

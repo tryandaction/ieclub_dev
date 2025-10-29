@@ -82,37 +82,21 @@ const TabBar = () => {
   }
   
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-bottom">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-bottom z-50">
       <div className="flex items-center justify-around py-2">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => handleTabClick(tab)}
-            className={`flex flex-col items-center py-2 px-3 transition-colors duration-200 ${
+            className={`flex flex-col items-center py-2 px-2 transition-colors duration-200 ${
               isActive(tab.key) 
                 ? 'text-purple-600' 
-                : 'text-gray-500 hover:text-gray-700'
+                : 'text-gray-500'
             }`}
           >
-            <Icon 
-              icon={tab.icon} 
-              size="lg" 
-              color={isActive(tab.key) ? '#8b5cf6' : '#9ca3af'}
-            />
-            <span className="text-xs mt-1 font-medium">{tab.label}</span>
+            <span className="text-base font-medium">{tab.label}</span>
           </button>
         ))}
-        
-        {/* 发布按钮 */}
-        <button
-          onClick={handlePublishClick}
-          className="flex flex-col items-center py-2 px-3"
-        >
-          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
-            <Icon icon={ICONS.publish} size="lg" color="white" />
-          </div>
-          <span className="text-xs mt-1 font-medium text-gray-500">发布</span>
-        </button>
       </div>
     </div>
   )

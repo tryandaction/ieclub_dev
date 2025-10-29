@@ -51,8 +51,8 @@ const Navbar = ({
   }
   
   return (
-    <div className="sticky top-0 z-50 bg-white border-b border-gray-200 safe-area-top">
-      <div className="flex items-center justify-between px-4 py-3">
+    <div className="sticky top-0 z-40 bg-white border-b border-gray-200 safe-area-top">
+      <div className="flex items-center justify-between px-4 py-3 max-w-screen-2xl mx-auto">
         {/* 左侧 */}
         <div className="flex items-center">
           {showBack && (
@@ -74,25 +74,25 @@ const Navbar = ({
           {showSearch && (
             <button
               onClick={handleSearch}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              className="px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 text-gray-700 text-sm"
             >
-              <Icon icon={ICONS.search} size="lg" color="#6b7280" />
+              搜索
             </button>
           )}
           
           {showNotification && (
             <button
               onClick={handleNotification}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 relative"
+              className="px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 relative text-gray-700 text-sm"
             >
-              <Icon icon={ICONS.notification} size="lg" color="#6b7280" />
+              通知
               {/* 未读通知红点 */}
               <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></div>
             </button>
           )}
           
-          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200">
-            <Icon icon={ICONS.settings} size="lg" color="#6b7280" />
+          <button className="px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 text-gray-700 text-sm hidden lg:block">
+            设置
           </button>
         </div>
       </div>

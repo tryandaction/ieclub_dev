@@ -8,7 +8,6 @@ import { View } from '@tarojs/components'
 import MainLayout from '../../components/layout/MainLayout'
 import Card from '../../components/common/Card'
 import Button from '../../components/common/Button'
-import Icon from '../../components/common/Icon'
 import { useAuthStore } from '../../store/authStore'
 import { getUserLevel } from '../../utils'
 
@@ -37,37 +36,37 @@ const ProfilePage = () => {
   // 菜单项
   const menuItems = [
     {
-      icon: 'mdi:post',
+      emoji: '📝',
       label: '我的帖子',
       path: '/my-posts',
       count: userData.postsCount
     },
     {
-      icon: 'mdi:teach',
+      emoji: '💬',
       label: '我的话题',
       path: '/my-topics',
       count: 8
     },
     {
-      icon: 'mdi:calendar-star',
+      emoji: '📅',
       label: '我的活动',
       path: '/my-activities',
       count: 15
     },
     {
-      icon: 'mdi:bookmark-check',
+      emoji: '⭐',
       label: '我的收藏',
       path: '/my-bookmarks',
       count: 32
     },
     {
-      icon: 'mdi:trophy',
+      emoji: '🏆',
       label: '我的成就',
       path: '/my-achievements',
       count: 12
     },
     {
-      icon: 'mdi:cog',
+      emoji: '⚙️',
       label: '设置',
       path: '/settings'
     }
@@ -91,8 +90,6 @@ const ProfilePage = () => {
       title: '编辑资料功能开发中',
       icon: 'none'
     })
-    // TODO: 实现编辑资料
-    // Taro.navigateTo({ url: '/pages/edit-profile/index' })
   }
   
   // 处理登出
@@ -114,7 +111,8 @@ const ProfilePage = () => {
   
   return (
     <MainLayout title="我的" showSearch={false}>
-      <div className="p-4 space-y-4">
+      <div className="max-w-screen-2xl mx-auto p-4 lg:p-6">
+        <div className="max-w-3xl mx-auto space-y-4">
         {/* 用户信息卡片 */}
         <Card className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
           <div className="text-center py-6">
@@ -151,7 +149,6 @@ const ProfilePage = () => {
               onClick={handleEditProfile}
               className="bg-white bg-opacity-20 border-white text-white hover:bg-opacity-30"
             >
-              <Icon icon="mdi:pencil" size="sm" className="mr-2" />
               编辑资料
             </Button>
           </div>
@@ -188,12 +185,7 @@ const ProfilePage = () => {
                 className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors duration-200"
               >
                 <div className="flex items-center">
-                  <Icon 
-                    icon={item.icon} 
-                    size="lg" 
-                    color="#6b7280" 
-                    className="mr-3" 
-                  />
+                  <span className="text-2xl mr-3">{item.emoji}</span>
                   <span className="text-gray-800 font-medium">{item.label}</span>
                   {item.count !== undefined && (
                     <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
@@ -201,11 +193,7 @@ const ProfilePage = () => {
                     </span>
                   )}
                 </div>
-                <Icon 
-                  icon="mdi:chevron-right" 
-                  size="sm" 
-                  color="#9ca3af" 
-                />
+                <span className="text-gray-400">›</span>
               </button>
               {index < menuItems.length - 1 && (
                 <div className="border-b border-gray-100 mx-4"></div>
@@ -220,9 +208,9 @@ const ProfilePage = () => {
           className="w-full"
           onClick={handleLogout}
         >
-          <Icon icon="mdi:logout" size="sm" className="mr-2" />
           退出登录
         </Button>
+        </div>
       </div>
     </MainLayout>
   )
