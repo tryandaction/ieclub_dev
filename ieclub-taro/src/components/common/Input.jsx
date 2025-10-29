@@ -3,7 +3,6 @@
  * 统一的输入框组件
  */
 import React, { useState } from 'react'
-import Icon from './Icon'
 
 const Input = ({
   type = 'text',
@@ -14,8 +13,6 @@ const Input = ({
   onBlur,
   error,
   label,
-  icon,
-  iconPosition = 'left',
   size = 'md',
   disabled = false,
   className = '',
@@ -58,40 +55,17 @@ const Input = ({
         </label>
       )}
       
-      <div className="relative">
-        {icon && iconPosition === 'left' && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-            <Icon 
-              icon={icon} 
-              size="sm" 
-              color={isFocused ? '#8b5cf6' : '#9ca3af'} 
-            />
-          </div>
-        )}
-        
-        <input
-          type={type}
-          placeholder={placeholder}
-          value={value}
-          onChange={onChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          disabled={disabled}
-          className={baseStyles}
-          style={{ paddingLeft: icon && iconPosition === 'left' ? '2.5rem' : undefined }}
-          {...props}
-        />
-        
-        {icon && iconPosition === 'right' && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <Icon 
-              icon={icon} 
-              size="sm" 
-              color={isFocused ? '#8b5cf6' : '#9ca3af'} 
-            />
-          </div>
-        )}
-      </div>
+      <input
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        disabled={disabled}
+        className={baseStyles}
+        {...props}
+      />
       
       {error && (
         <p className="mt-1 text-sm text-red-600">{error}</p>

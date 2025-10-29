@@ -3,14 +3,11 @@
  * 统一的按钮组件，支持多种变体和状态
  */
 import React from 'react'
-import Icon from './Icon'
 
 const Button = ({
   children,
   variant = 'primary',
   size = 'md',
-  icon,
-  iconPosition = 'left',
   loading = false,
   disabled = false,
   className = '',
@@ -61,30 +58,10 @@ const Button = ({
       {...props}
     >
       {loading && (
-        <Icon 
-          icon="mdi:loading" 
-          size="sm" 
-          className="animate-spin mr-2" 
-        />
-      )}
-      
-      {!loading && icon && iconPosition === 'left' && (
-        <Icon 
-          icon={icon} 
-          size="sm" 
-          className="mr-2" 
-        />
+        <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
       )}
       
       {children}
-      
-      {!loading && icon && iconPosition === 'right' && (
-        <Icon 
-          icon={icon} 
-          size="sm" 
-          className="ml-2" 
-        />
-      )}
     </button>
   )
 }

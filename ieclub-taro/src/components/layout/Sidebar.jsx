@@ -4,7 +4,6 @@
  */
 import React from 'react'
 import Taro from '@tarojs/taro'
-import { ICONS } from '../../constants'
 
 const Sidebar = () => {
   const [currentPath, setCurrentPath] = React.useState('plaza')

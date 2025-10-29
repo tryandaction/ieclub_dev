@@ -11,11 +11,11 @@ const TabBar = () => {
   
   // 导航标签
   const tabs = [
-    { key: 'plaza', label: '广场', path: 'pages/plaza/index', h5Path: '#/plaza' },
-    { key: 'community', label: '社区', path: 'pages/community/index', h5Path: '#/community' },
+    { key: 'plaza', label: '广场', path: '/pages/plaza/index', h5Path: '/plaza' },
+    { key: 'community', label: '社区', path: '/pages/community/index', h5Path: '/community' },
     { key: 'publish', label: '发布', path: null, h5Path: null }, // 中间发布按钮
-    { key: 'activities', label: '活动', path: 'pages/activities/index', h5Path: '#/activities' },
-    { key: 'profile', label: '我的', path: 'pages/profile/index', h5Path: '#/profile' }
+    { key: 'activities', label: '活动', path: '/pages/activities/index', h5Path: '/activities' },
+    { key: 'profile', label: '我的', path: '/pages/profile/index', h5Path: '/profile' }
   ]
   
   // 获取当前路径
@@ -43,11 +43,16 @@ const TabBar = () => {
     }
     
     setCurrentPath(tab.key)
-    if (isH5 && window.__POWERED_BY_TARO__) {
-      window.location.hash = tab.h5Path
+    
+    // H5环境使用hash路由
+    if (isH5) {
+      if (typeof window !== 'undefined') {
+        window.location.hash = `#${tab.h5Path}`
+      }
     } else {
+      // 小程序环境使用Taro导航
       Taro.switchTab({
-        url: `/${tab.path}`
+        url: tab.path
       })
     }
   }
