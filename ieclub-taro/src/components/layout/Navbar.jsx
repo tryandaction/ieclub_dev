@@ -4,6 +4,7 @@
  */
 import React from 'react'
 import Taro from '@tarojs/taro'
+import { View } from '@tarojs/components'
 
 const Navbar = ({ 
   title = 'IEClub',
@@ -49,48 +50,48 @@ const Navbar = ({
   }
   
   return (
-    <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 safe-area-top shadow-sm">
-      <div className="flex items-center justify-between px-4 lg:px-6 py-4 max-w-screen-2xl mx-auto">
+    <View className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 safe-area-top shadow-sm">
+      <View className="flex items-center justify-between px-4 lg:px-6 py-4 max-w-screen-2xl mx-auto">
         {/* 左侧 */}
-        <div className="flex items-center">
+        <View className="flex items-center">
           {showBack && (
-            <button
+            <View
               onClick={handleBack}
               className="mr-3 px-3 py-2 hover:bg-purple-50 rounded-xl transition-all duration-200 text-gray-700 text-lg font-medium"
             >
               ←
-            </button>
+            </View>
           )}
           
-          <h1 className="text-xl font-extrabold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <View className="text-xl font-extrabold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             {title}
-          </h1>
-        </div>
+          </View>
+        </View>
         
         {/* 右侧 */}
-        <div className="flex items-center space-x-1">
+        <View className="flex items-center space-x-1">
           {showSearch && (
-            <button
+            <View
               onClick={handleSearch}
               className="px-4 py-2 hover:bg-purple-50 rounded-xl transition-all duration-200 text-gray-700 text-sm font-medium"
             >
               🔍
-            </button>
+            </View>
           )}
           
           {showNotification && (
-            <button
+            <View
               onClick={handleNotification}
               className="px-4 py-2 hover:bg-purple-50 rounded-xl transition-all duration-200 relative text-gray-700 text-sm font-medium"
             >
               🔔
               {/* 未读通知红点 */}
-              <div className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-            </button>
+              <View className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></View>
+            </View>
           )}
-        </div>
-      </div>
-    </div>
+        </View>
+      </View>
+    </View>
   )
 }
 

@@ -4,6 +4,7 @@
  */
 import React from 'react'
 import Taro from '@tarojs/taro'
+import { View } from '@tarojs/components'
 
 const Sidebar = () => {
   const [currentPath, setCurrentPath] = React.useState('plaza')
@@ -46,18 +47,18 @@ const Sidebar = () => {
   }
   
   return (
-    <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:left-0 lg:top-0 lg:h-screen lg:bg-white lg:border-r lg:border-gray-100 lg:shadow-sm">
+    <View className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:left-0 lg:top-0 lg:h-screen lg:bg-white lg:border-r lg:border-gray-100 lg:shadow-sm">
       {/* Logo */}
-      <div className="flex items-center justify-center h-20 px-6 border-b border-gray-100">
-        <div className="text-3xl font-extrabold bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 bg-clip-text text-transparent">
+      <View className="flex items-center justify-center h-20 px-6 border-b border-gray-100">
+        <View className="text-3xl font-extrabold bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 bg-clip-text text-transparent">
           IEClub
-        </div>
-      </div>
+        </View>
+      </View>
       
       {/* 主导航 */}
-      <nav className="flex-1 py-8 px-4 space-y-2">
+      <View className="flex-1 py-8 px-4 space-y-2">
         {mainMenus.map((menu) => (
-          <button
+          <View
             key={menu.key}
             onClick={() => handleMenuClick(menu)}
             className={`w-full px-6 py-3.5 rounded-2xl text-left font-bold text-[15px] transition-all duration-300 transform ${
@@ -67,25 +68,25 @@ const Sidebar = () => {
             }`}
           >
             {menu.label}
-          </button>
+          </View>
         ))}
         
         {/* 发布按钮 */}
-        <button
+        <View
           onClick={handlePublishClick}
           className="w-full mt-6 px-6 py-4 bg-gradient-to-r from-pink-500 via-rose-500 to-red-500 text-white rounded-2xl font-bold text-[15px] hover:shadow-xl hover:shadow-pink-500/30 transition-all duration-300 transform hover:scale-105"
         >
           ✨ 发布
-        </button>
-      </nav>
+        </View>
+      </View>
       
       {/* 底部信息 */}
-      <div className="p-6 border-t border-gray-100">
-        <div className="text-xs text-gray-400 text-center font-medium">
+      <View className="p-6 border-t border-gray-100">
+        <View className="text-xs text-gray-400 text-center font-medium">
           IEClub v2.0
-        </div>
-      </div>
-    </div>
+        </View>
+      </View>
+    </View>
   )
 }
 

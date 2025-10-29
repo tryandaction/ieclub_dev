@@ -4,6 +4,7 @@
  */
 import React from 'react'
 import Taro from '@tarojs/taro'
+import { View } from '@tarojs/components'
 
 const TabBar = () => {
   const isH5 = Taro.getEnv() === Taro.ENV_TYPE.WEB
@@ -67,13 +68,13 @@ const TabBar = () => {
   }
   
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 safe-area-bottom z-50 shadow-2xl" style={{height: '100px'}}>
-      <div className="flex items-center justify-around h-full relative">
+    <View className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 safe-area-bottom z-50 shadow-2xl" style={{height: '100px'}}>
+      <View className="flex items-center justify-around h-full relative">
         {tabs.map((tab, index) => {
           // 中间发布按钮特殊处理
           if (tab.key === 'publish') {
             return (
-              <button
+              <View
                 key={tab.key}
                 onClick={handlePublishClick}
                 className="flex flex-col items-center justify-center relative"
@@ -85,7 +86,7 @@ const TabBar = () => {
                   zIndex: 10
                 }}
               >
-                <div 
+                <View 
                   className="bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500 rounded-full flex items-center justify-center text-white shadow-2xl hover:scale-105 transition-all duration-300"
                   style={{
                     width: '80px',
@@ -93,36 +94,36 @@ const TabBar = () => {
                     boxShadow: '0 4px 20px rgba(139, 92, 246, 0.5)'
                   }}
                 >
-                  <span className="text-4xl font-light leading-none">+</span>
-                </div>
-              </button>
+                  <View className="text-4xl font-light leading-none">+</View>
+                </View>
+              </View>
             )
           }
           
           // 普通Tab按钮
           return (
-            <button
+            <View
               key={tab.key}
               onClick={() => handleTabClick(tab)}
               className={`flex flex-col items-center justify-center transition-all duration-300 ${
                 index < 2 ? 'flex-1' : index > 2 ? 'flex-1' : ''
               }`}
             >
-              <span className={`text-base font-bold transition-all duration-300 ${
+              <View className={`text-base font-bold transition-all duration-300 ${
                 isActive(tab.key) 
                   ? 'text-purple-600 scale-110' 
                   : 'text-gray-500'
               }`}>
                 {tab.label}
-              </span>
+              </View>
               {isActive(tab.key) && (
-                <div className="mt-1.5 w-5 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" />
+                <View className="mt-1.5 w-5 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" />
               )}
-            </button>
+            </View>
           )
         })}
-      </div>
-    </div>
+      </View>
+    </View>
   )
 }
 
