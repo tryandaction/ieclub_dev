@@ -114,45 +114,54 @@ const ProfilePage = () => {
       <div className="max-w-screen-2xl mx-auto p-4 lg:p-6">
         <div className="max-w-3xl mx-auto space-y-4">
         {/* 用户信息卡片 */}
-        <Card className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-          <div className="text-center py-6">
+        <div className="bg-gradient-to-br from-purple-500 via-purple-600 to-pink-500 rounded-3xl text-white shadow-2xl shadow-purple-500/30 overflow-hidden">
+          <div className="relative text-center py-8 px-6">
+            {/* 装饰性背景 */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full blur-3xl"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-white rounded-full blur-2xl"></div>
+            </div>
+            
             {/* 头像 */}
-            <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+            <div className="relative w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 backdrop-blur-sm border-4 border-white/30 shadow-xl">
               {userData.avatar}
             </div>
             
             {/* 用户信息 */}
-            <h2 className="text-2xl font-bold mb-2">{userData.name}</h2>
-            <p className="text-white text-opacity-90 mb-1">
-              {userData.school} · {userData.major}
-            </p>
-            <p className="text-white text-opacity-80 text-sm mb-4">
-              {userData.grade}
-            </p>
-            
-            {/* 等级和积分 */}
-            <div className="flex items-center justify-center space-x-4 mb-4">
-              <div className="text-center">
-                <div className="text-lg font-bold">LV{userData.level}</div>
-                <div className="text-xs text-white text-opacity-80">{userLevel.name}</div>
-              </div>
-              <div className="text-center">
-                <div className="text-lg font-bold">{userData.score}</div>
-                <div className="text-xs text-white text-opacity-80">积分</div>
+            <div className="relative">
+              <h2 className="text-2xl font-extrabold mb-3 drop-shadow-lg">{userData.name}</h2>
+              <p className="text-white opacity-95 mb-1.5 font-medium">
+                {userData.school} · {userData.major}
+              </p>
+              <p className="text-white opacity-85 text-sm mb-4 font-medium">
+                {userData.grade}
+              </p>
+              
+              {/* 等级和积分 */}
+              <div className="flex items-center justify-center space-x-6 mb-4">
+                <div className="text-center">
+                  <div className="text-xl font-extrabold drop-shadow-lg">LV{userData.level}</div>
+                  <div className="text-xs text-white opacity-80 font-medium">{userLevel.name}</div>
+                </div>
+                <div className="w-px h-10 bg-white/30"></div>
+                <div className="text-center">
+                  <div className="text-xl font-extrabold drop-shadow-lg">{userData.score}</div>
+                  <div className="text-xs text-white opacity-80 font-medium">积分</div>
+                </div>
               </div>
             </div>
             
             {/* 编辑按钮 */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleEditProfile}
-              className="bg-white bg-opacity-20 border-white text-white hover:bg-opacity-30"
-            >
-              编辑资料
-            </Button>
+            <div className="relative mt-6">
+              <button
+                onClick={handleEditProfile}
+                className="px-6 py-2.5 bg-white/20 backdrop-blur-sm border-2 border-white/40 text-white rounded-full font-bold text-sm hover:bg-white/30 transition-all duration-300 shadow-lg"
+              >
+                ✏️ 编辑资料
+              </button>
+            </div>
           </div>
-        </Card>
+        </div>
         
         {/* 统计数据 */}
         <Card>
@@ -177,39 +186,38 @@ const ProfilePage = () => {
         </Card>
         
         {/* 菜单列表 */}
-        <Card padding="none">
+        <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
           {menuItems.map((item, index) => (
             <div key={index}>
               <button
                 onClick={() => handleMenuClick(item)}
-                className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors duration-200"
+                className="w-full flex items-center justify-between p-5 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 transition-all duration-300 group"
               >
                 <div className="flex items-center">
-                  <span className="text-2xl mr-3">{item.emoji}</span>
-                  <span className="text-gray-800 font-medium">{item.label}</span>
+                  <span className="text-2xl mr-4 transform group-hover:scale-110 transition-transform duration-300">{item.emoji}</span>
+                  <span className="text-gray-800 font-bold text-[15px]">{item.label}</span>
                   {item.count !== undefined && (
-                    <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                    <span className="ml-3 px-2.5 py-1 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 text-xs rounded-full font-bold">
                       {item.count}
                     </span>
                   )}
                 </div>
-                <span className="text-gray-400">›</span>
+                <span className="text-gray-300 text-2xl group-hover:text-purple-500 transition-colors">›</span>
               </button>
               {index < menuItems.length - 1 && (
-                <div className="border-b border-gray-100 mx-4"></div>
+                <div className="border-b border-gray-50 mx-5"></div>
               )}
             </div>
           ))}
-        </Card>
+        </div>
         
         {/* 登出按钮 */}
-        <Button
-          variant="danger"
-          className="w-full"
+        <button
           onClick={handleLogout}
+          className="w-full py-4 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-2xl font-bold text-[15px] shadow-lg shadow-red-500/20 hover:shadow-xl hover:shadow-red-500/30 transition-all duration-300"
         >
-          退出登录
-        </Button>
+          🚪 退出登录
+        </button>
         </div>
       </div>
     </MainLayout>

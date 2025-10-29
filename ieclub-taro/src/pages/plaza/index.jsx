@@ -80,16 +80,16 @@ const PlazaPage = () => {
     <MainLayout title="话题广场">
       <div className="max-w-screen-2xl mx-auto p-4 lg:p-6">
         {/* Tab切换栏 */}
-        <div className="bg-white rounded-xl p-1 mb-4 shadow-sm">
-          <div className="flex space-x-1">
+        <div className="bg-white rounded-2xl p-1.5 mb-6 shadow-sm">
+          <div className="flex space-x-2">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => handleTabChange(tab.key)}
-                className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
+                className={`flex-1 py-3.5 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${
                   activeTab === tab.key
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                    ? 'bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500 text-white shadow-lg shadow-purple-500/30 transform scale-105'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
                 {tab.label}
@@ -99,7 +99,7 @@ const PlazaPage = () => {
         </div>
         
         {/* 话题列表 - 响应式网格布局 */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
           {filteredTopics.map((topic) => (
             <TopicCard
               key={topic.id}

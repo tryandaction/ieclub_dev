@@ -82,19 +82,22 @@ const TabBar = () => {
   }
   
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-bottom z-50">
-      <div className="flex items-center justify-around py-2">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 safe-area-bottom z-50 shadow-2xl">
+      <div className="flex items-center justify-around py-3">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => handleTabClick(tab)}
-            className={`flex flex-col items-center py-2 px-2 transition-colors duration-200 ${
+            className={`flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-300 ${
               isActive(tab.key) 
-                ? 'text-purple-600' 
-                : 'text-gray-500'
+                ? 'text-purple-600 font-bold scale-110' 
+                : 'text-gray-500 font-medium'
             }`}
           >
-            <span className="text-base font-medium">{tab.label}</span>
+            <span className="text-[15px]">{tab.label}</span>
+            {isActive(tab.key) && (
+              <div className="mt-1 w-4 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" />
+            )}
           </button>
         ))}
       </div>

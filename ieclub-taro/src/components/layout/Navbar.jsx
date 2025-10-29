@@ -51,8 +51,8 @@ const Navbar = ({
   }
   
   return (
-    <div className="sticky top-0 z-40 bg-white border-b border-gray-200 safe-area-top">
-      <div className="flex items-center justify-between px-4 py-3 max-w-screen-2xl mx-auto">
+    <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 safe-area-top shadow-sm">
+      <div className="flex items-center justify-between px-4 lg:px-6 py-4 max-w-screen-2xl mx-auto">
         {/* 左侧 */}
         <div className="flex items-center">
           {showBack && (
@@ -64,36 +64,32 @@ const Navbar = ({
             </button>
           )}
           
-          <h1 className="text-xl font-bold text-gray-800">
+          <h1 className="text-xl font-extrabold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             {title}
           </h1>
         </div>
         
         {/* 右侧 */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1">
           {showSearch && (
             <button
               onClick={handleSearch}
-              className="px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 text-gray-700 text-sm"
+              className="px-4 py-2 hover:bg-purple-50 rounded-xl transition-all duration-200 text-gray-700 text-sm font-medium"
             >
-              搜索
+              🔍
             </button>
           )}
           
           {showNotification && (
             <button
               onClick={handleNotification}
-              className="px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 relative text-gray-700 text-sm"
+              className="px-4 py-2 hover:bg-purple-50 rounded-xl transition-all duration-200 relative text-gray-700 text-sm font-medium"
             >
-              通知
+              🔔
               {/* 未读通知红点 */}
-              <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></div>
+              <div className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
             </button>
           )}
-          
-          <button className="px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 text-gray-700 text-sm hidden lg:block">
-            设置
-          </button>
         </div>
       </div>
     </div>
