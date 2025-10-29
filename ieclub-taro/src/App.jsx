@@ -8,7 +8,10 @@ import './app.scss'
 
 class App extends Component {
   componentDidMount() {
-    console.log('IEClub 应用启动成功！')
+    // 仅在开发环境输出日志
+    if (process.env.NODE_ENV === 'development') {
+      console.log('IEClub 应用启动成功！')
+    }
   }
 
   componentDidShow() {}
