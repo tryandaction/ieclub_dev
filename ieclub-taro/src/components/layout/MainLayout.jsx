@@ -35,8 +35,8 @@ const MainLayout = ({
           onNotification={onNotification}
         />
         
-        {/* 内容区域 */}
-        <main className="pb-20 lg:pb-6">
+        {/* 内容区域 - 增加最大宽度和居中 */}
+        <main className="pb-20 lg:pb-6 min-h-screen">
           {children}
         </main>
       </div>

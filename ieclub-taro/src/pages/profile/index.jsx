@@ -110,9 +110,9 @@ const ProfilePage = () => {
   }
   
   return (
-    <MainLayout title="我的" showSearch={false}>
-      <div className="max-w-screen-2xl mx-auto p-4 lg:p-6">
-        <div className="max-w-3xl mx-auto space-y-4">
+      <MainLayout title="我的" showSearch={false}>
+        <div className="w-full mx-auto px-3 py-4 lg:px-8 lg:py-6">
+          <div className="max-w-4xl mx-auto space-y-4">
         {/* 用户信息卡片 */}
         <div className="bg-gradient-to-br from-purple-500 via-purple-600 to-pink-500 rounded-3xl text-white shadow-2xl shadow-purple-500/30 overflow-hidden">
           <div className="relative text-center py-8 px-6">

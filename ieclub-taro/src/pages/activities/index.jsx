@@ -150,10 +150,10 @@ const ActivitiesPage = () => {
   }
   
   return (
-    <MainLayout title="活动">
-      <div className="max-w-screen-2xl mx-auto p-4 lg:p-6">
+      <MainLayout title="活动">
+        <div className="w-full mx-auto px-3 py-4 lg:px-8 lg:py-6">
         {/* 活动列表 - 响应式网格 */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {activities.map((activity) => (
             <div
               key={activity.id}

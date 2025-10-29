@@ -186,7 +186,7 @@ const CommunityPage = () => {
   
   return (
     <MainLayout title="社区">
-      <div className="max-w-screen-2xl mx-auto p-4 lg:p-6">
+      <div className="w-full mx-auto px-3 py-4 lg:px-8 lg:py-6">
         {/* 欢迎横幅 */}
         <div className="bg-gradient-to-br from-purple-500 via-purple-600 to-pink-500 rounded-3xl p-6 lg:p-8 mb-6 text-white shadow-2xl shadow-purple-500/30 overflow-hidden relative">
           <div className="absolute top-0 right-0 w-40 h-40 bg-white opacity-10 rounded-full blur-3xl"></div>
@@ -286,7 +286,7 @@ const CommunityPage = () => {
         
         {/* 用户视图 */}
         {viewMode === 'users' && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
             {displayUsers.map((user) => (
               <div
                 key={user.id}

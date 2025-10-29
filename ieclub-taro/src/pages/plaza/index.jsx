@@ -169,8 +169,8 @@ const PlazaPage = () => {
   })
   
   return (
-    <MainLayout title="话题广场">
-      <div className="max-w-screen-2xl mx-auto p-4 lg:p-6">
+      <MainLayout title="话题广场">
+        <div className="w-full mx-auto px-3 py-4 lg:px-8 lg:py-6">
         {/* Tab切换栏 - 按文档设计 */}
         <div className="bg-white rounded-2xl p-2 mb-6 shadow-sm border border-gray-100">
           <div className="grid grid-cols-4 gap-2">
@@ -195,7 +195,7 @@ const PlazaPage = () => {
         
         {/* 话题列表 - 响应式网格布局 */}
         {/* 手机端: 2列 (48%宽), PC端: 4列 (23%宽) */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
           {displayTopics.map((topic) => (
             <TopicCard
               key={topic.id}
