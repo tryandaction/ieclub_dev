@@ -3,6 +3,7 @@
  */
 import React, { Component } from 'react'
 import { View, Text } from '@tarojs/components'
+import './index.scss'
 
 class ActivitiesPage extends Component {
   componentDidMount() {
