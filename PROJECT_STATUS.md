@@ -25,14 +25,14 @@ IEClub 是一个面向学习、科研、创业的综合性智能社区平台，�
 
 **日期**: 2025-10-29
 
-**变更**: 从 Taro 框架迁移到原生微信小程序
+**变更**: 采用原生微信小程序开发
 
 **原因**:
-1. ❌ Taro 存在 `mount` 等稳定性问题
-2. ❌ 跨平台编译增加调试复杂度
-3. ✅ 原生小程序性能更优
-4. ✅ 官方支持更完善
-5. ✅ 代码简单易维护
+1. ✅ 原生小程序性能最优
+2. ✅ 官方支持完善
+3. ✅ 代码简单易维护
+4. ✅ 调试方便高效
+5. ✅ 稳定性有保障
 
 **成果**:
 - ✅ 项目结构重建
@@ -48,21 +48,21 @@ IEClub 是一个面向学习、科研、创业的综合性智能社区平台，�
 
 ```
 IEclub_dev/
-├── ieclub-taro/              ✅ 微信小程序（原生）
+├── ieclub-frontend/          ✅ 微信小程序（原生）
+├── ieclub-web/               ✅ Web前端（React）
 ├── ieclub-backend/           ✅ 后端服务（Node.js）
-├── ieclub-frontend/          ⚠️ Web前端（待更新）
 ├── ieclub_v2_demo.tsx        📄 设计原型（保留）
-├── README.md                 📚 项目总览（已更新）
-├── CHANGELOG.md              📚 更新日志（新建）
-├── PROJECT_STATUS.md         📚 项目状态（本文件）
-├── 功能使用指南.md           📄 功能文档
-└── 部署文档.md               📄 部署指南
+├── README.md                 📚 项目总览
+├── Changelog.md              📚 更新日志
+├── Project_status.md         📚 项目状态（本文件）
+├── Feature_guide.md          📄 功能文档
+└── Deployment_guide.md       📄 部署指南
 ```
 
-### 小程序目录（ieclub-taro）
+### 小程序目录（ieclub-frontend）
 
 ```
-ieclub-taro/
+ieclub-frontend/
 ├── app.js                    ✅ 小程序入口
 ├── app.json                  ✅ 全局配置
 ├── app.wxss                  ✅ 全局样式
@@ -245,18 +245,18 @@ Phase 5: 测试上线    ░░░░░░░░░░░░░░░░░░�
 ### 已完成文档
 
 #### 根目录
-- ✅ `README.md` - 项目总览（已更新）
-- ✅ `CHANGELOG.md` - 更新日志（新建）
-- ✅ `PROJECT_STATUS.md` - 项目状态（本文件）
-- ✅ `部署文档.md` - 部署指南（已存在）
-- ✅ `功能使用指南.md` - 功能文档（已存在）
+- ✅ `README.md` - 项目总览
+- ✅ `Changelog.md` - 更新日志
+- ✅ `Project_status.md` - 项目状态（本文件）
+- ✅ `Deployment_guide.md` - 部署指南
+- ✅ `Feature_guide.md` - 功能文档
 
 #### 小程序目录
-- ✅ `ieclub-taro/README.md` - 小程序文档（新建）
-- ✅ `ieclub-taro/开发规划.md` - 开发计划（新建）
-- ✅ `ieclub-taro/使用说明.md` - 使用指南（新建）
-- ✅ `ieclub-taro/前端界面设计文档.md` - 设计文档（保留）
-- ✅ `ieclub-taro/界面布局图.md` - 布局文档（保留）
+- ✅ `ieclub-frontend/README.md` - 小程序文档
+- ✅ `ieclub-frontend/开发规划.md` - 开发计划
+- ✅ `ieclub-frontend/使用说明.md` - 使用指南
+- ✅ `ieclub-frontend/前端界面设计文档.md` - 设计文档
+- ✅ `ieclub-frontend/界面布局图.md` - 布局文档
 
 ### 文档覆盖率
 
@@ -355,12 +355,12 @@ Phase 5: 测试上线    ░░░░░░░░░░░░░░░░░░�
 1. **测试小程序** ✅
    ```bash
    # 打开微信开发者工具
-   # 导入 ieclub-taro 目录
+   # 导入 ieclub-frontend 目录
    # 点击编译运行
    ```
 
 2. **熟悉代码结构**
-   - 阅读 `ieclub-taro/README.md`
+   - 阅读 `ieclub-frontend/README.md`
    - 查看页面代码
    - 了解数据流
 

@@ -1,7 +1,7 @@
 {
   "name": "ieclub-backend",
   "version": "2.0.0",
-  "description": "IEclub 企业级后端服务 - 专为 Taro 多端应用设计",
+  "description": "IEclub 企业级后端服务 - 支持网页和小程序双端",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -33,7 +33,7 @@
   "keywords": [
     "ieclub",
     "forum",
-    "taro",
+    "web",
     "miniprogram",
     "express",
     "prisma"

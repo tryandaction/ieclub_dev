@@ -5,7 +5,7 @@
 **负责人**: 产品 + 技术团队  
 **项目代号**: Phoenix（凤凰）
 
-> "从 Taro 的灰烬中重生，打造最优秀的学术创业社区平台"
+> "打造最优秀的学术创业社区平台"
 
 ---
 
@@ -42,7 +42,7 @@
 **双端项目框架**:
 ```
 ✅ ieclub-web/          - React 18 + Vite + Tailwind CSS
-✅ ieclub-taro/         - 原生微信小程序
+✅ ieclub-frontend/     - 原生微信小程序
 ✅ ieclub-backend/      - Node.js + Express + MySQL
 ```
 
@@ -65,13 +65,13 @@
 
 **文档体系**:
 ```
-✅ README.md           - 项目总览
-✅ 双端开发指南.md      - 架构说明
-✅ 产品开发路线图.md    - 产品规划
-✅ 本周开发任务.md      - 周任务
-✅ 快速启动.md         - 启动指南
-✅ CHANGELOG.md        - 更新日志
-✅ PROJECT_STATUS.md   - 项目状态
+✅ README.md                      - 项目总览
+✅ Dual_platform_guide.md         - 架构说明
+✅ Product_roadmap.md             - 产品规划
+✅ Weekly_tasks.md                - 周任务
+✅ Quick_start.md                 - 启动指南
+✅ Changelog.md                   - 更新日志
+✅ Project_status.md              - 项目状态
 ```
 
 #### 评估结果
@@ -348,7 +348,7 @@ export default function Login() {
 
 文件结构：
 ```
-ieclub-taro/pages/
+ieclub-frontend/pages/
 ├── login/
 │   ├── index.js        ← 新建
 │   ├── index.wxml      ← 新建

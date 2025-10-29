@@ -3,24 +3,19 @@
 # IEClub 服务器端部署脚本 v3.0
 # ==========================================================
 #
-# 功能: 在服务器上部署网页、小程序、后端
-#
+# 功能: 在服务器上部署网页、小程序、后�?#
 # 使用方法:
-#   ./deploy-server.sh all      # 部署网页和后端
-#   ./deploy-server.sh web      # 仅部署网页
-#   ./deploy-server.sh backend  # 仅部署后端
-#
+#   ./deploy-server.sh all      # 部署网页和后�?#   ./deploy-server.sh web      # 仅部署网�?#   ./deploy-server.sh backend  # 仅部署后�?#
 # v3.0 更新 (2025-10-29):
-#   - 支持 React 网页版部署
-#   - 优化部署流程
+#   - 支持 React 网页版部�?#   - 优化部署流程
 #   - 统一错误处理
 # ==========================================================
 
-set -e  # 遇到错误立即退出
-
+set -e  # 遇到错误立即退�?
 # --- 配置 ---
 PROJECT_ROOT="/root/IEclub_dev"
 WEB_DIR="${PROJECT_ROOT}/ieclub-web"
+FRONTEND_DIR="${PROJECT_ROOT}/ieclub-frontend"
 BACKEND_DIR="${PROJECT_ROOT}/ieclub-backend"
 WEB_TEMP_ZIP="/tmp/web-dist.zip"
 WEB_TEMP_EXTRACT="/tmp/web-dist"
@@ -37,7 +32,7 @@ log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-# --- 部署网页版 ---
+# --- 部署网页�?---
 deploy_web() {
     log_info "========== 开始部署网页版 =========="
     
@@ -45,8 +40,7 @@ deploy_web() {
     if [ -f "${WEB_TEMP_ZIP}" ]; then
         log_info "发现上传的网页压缩包，使用上传的文件..."
         
-        # 清理并创建解压目录
-        rm -rf "${WEB_TEMP_EXTRACT}"
+        # 清理并创建解压目�?        rm -rf "${WEB_TEMP_EXTRACT}"
         mkdir -p "${WEB_TEMP_EXTRACT}"
         
         # 解压
@@ -55,12 +49,11 @@ deploy_web() {
         
         # 验证解压结果
         if [ ! -d "${WEB_TEMP_EXTRACT}" ] || [ -z "$(ls -A ${WEB_TEMP_EXTRACT})" ]; then
-            log_error "解压失败或压缩包为空！"
+            log_error "解压失败或压缩包为空�?
             exit 1
         fi
         
-        # 同步到网页目录
-        log_info "同步网页文件..."
+        # 同步到网页目�?        log_info "同步网页文件..."
         rm -rf "${WEB_DIR}/dist"
         mkdir -p "${WEB_DIR}/dist"
         cp -r "${WEB_TEMP_EXTRACT}/"* "${WEB_DIR}/dist/"
@@ -69,9 +62,9 @@ deploy_web() {
         rm -rf "${WEB_TEMP_EXTRACT}"
         rm -f "${WEB_TEMP_ZIP}"
         
-        log_success "网页部署完成（使用上传的文件）"
+        log_success "网页部署完成（使用上传的文件�?
     else
-        log_info "未发现上传的压缩包，从源码构建..."
+        log_info "未发现上传的压缩包，从源码构�?.."
         
         cd "${WEB_DIR}"
         
@@ -85,7 +78,7 @@ deploy_web() {
         log_info "构建网页..."
         npm run build
         
-        log_success "网页部署完成（从源码构建）"
+        log_success "网页部署完成（从源码构建�?
     fi
     
     # 配置 Nginx
@@ -93,17 +86,16 @@ deploy_web() {
     
     # 使用新的 Nginx 配置
     if [ -f "${PROJECT_ROOT}/nginx-dual-platform.conf" ]; then
-        log_info "使用双平台 Nginx 配置..."
+        log_info "使用双平�?Nginx 配置..."
         cp "${PROJECT_ROOT}/nginx-dual-platform.conf" /etc/nginx/sites-available/ieclub
     elif [ -f "${PROJECT_ROOT}/nginx-http-only.conf" ]; then
         log_info "使用 HTTP-only 配置..."
         cp "${PROJECT_ROOT}/nginx-http-only.conf" /etc/nginx/sites-available/ieclub
     fi
     
-    # 创建软链接
-    ln -sf /etc/nginx/sites-available/ieclub /etc/nginx/sites-enabled/ieclub
+    # 创建软链�?    ln -sf /etc/nginx/sites-available/ieclub /etc/nginx/sites-enabled/ieclub
     
-    # 测试并重启 Nginx
+    # 测试并重�?Nginx
     log_info "测试 Nginx 配置..."
     if nginx -t 2>/dev/null; then
         systemctl reload nginx
@@ -119,31 +111,31 @@ deploy_web() {
 
 # --- 部署后端 ---
 deploy_backend() {
-    log_info "========== 开始部署后端 =========="
+    log_info "========== 开始部署后�?=========="
     
     cd "${BACKEND_DIR}"
     
-    # 检查 .env 文件
+    # 检�?.env 文件
     if [ ! -f ".env" ]; then
         log_error ".env 文件不存在！"
-        log_error "请先上传 .env 文件到: ${BACKEND_DIR}/.env"
+        log_error "请先上传 .env 文件�? ${BACKEND_DIR}/.env"
         exit 1
     fi
     
-    log_success ".env 文件已存在"
+    log_success ".env 文件已存�?
     
     # 安装依赖
     log_info "安装后端依赖..."
     npm install --production
     
-    # 检查是否缺少 date-fns
+    # 检查是否缺�?date-fns
     if ! npm list date-fns > /dev/null 2>&1; then
-        log_info "安装缺失的依赖 date-fns..."
+        log_info "安装缺失的依�?date-fns..."
         npm install date-fns
     fi
     
     # Prisma 迁移
-    log_info "执行数据库迁移..."
+    log_info "执行数据库迁�?.."
     npx prisma generate
     
     # 重启 PM2
@@ -160,11 +152,11 @@ deploy_backend() {
     log_success "========== 后端部署完成 =========="
 }
 
-# --- 主流程 ---
+# --- 主流�?---
 
 MODE="${1:-all}"
 
-log_info "🚀 IEClub 服务器端部署开始 (模式: ${MODE})"
+log_info "🚀 IEClub 服务器端部署开�?(模式: ${MODE})"
 
 case "${MODE}" in
     web)
@@ -180,14 +172,15 @@ case "${MODE}" in
     *)
         log_error "无效的参数！"
         echo "使用方法:"
-        echo "  $0 all      # 部署网页和后端"
-        echo "  $0 web      # 仅部署网页"
-        echo "  $0 backend  # 仅部署后端"
+        echo "  $0 all      # 部署网页和后�?
+        echo "  $0 web      # 仅部署网�?
+        echo "  $0 backend  # 仅部署后�?
         exit 1
         ;;
 esac
 
-log_success "🎉 部署完成！"
+log_success "🎉 部署完成�?
 log_info "网页访问: https://ieclub.online"
 log_info "API 地址: https://ieclub.online/api"
+
 

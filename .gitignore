@@ -59,9 +59,9 @@ out/
 # Node modules (if any at root level)
 node_modules/
 ieclub-backend/node_modules/
-ieclub-taro/node_modules/
+ieclub-frontend/node_modules/
 
-# Environment files (project-wide) - 这些文件包含敏感信息，必须忽略
+# Environment files (project-wide) - 这些文件包含敏感信息，必须忽�?
 .env
 .env.local
 .env.development.local
@@ -69,13 +69,13 @@ ieclub-taro/node_modules/
 .env.production.local
 .env.*.local
 
-# 子目录下的环境文件也要忽略
+# 子目录下的环境文件也要忽�?
 ieclub-backend/.env
-ieclub-taro/.env
-ieclub-taro/.env.beta
-ieclub-taro/.env.production
+ieclub-frontend/.env
+ieclub-frontend/.env.beta
+ieclub-frontend/.env.production
 
-# 敏感的配置文件
+# 敏感的配置文�?
 *.key
 *.pem
 *.crt
@@ -182,11 +182,11 @@ deploy_*.log
 backup_*/
 
 # Project specific - delegate to subdirectories
-# Frontend specific files are ignored in ieclub-taro/.gitignore
+# Frontend specific files are ignored in ieclub-frontend/.gitignore
 # Backend specific files are ignored in ieclub-backend/.gitignore
 
-# 小程序配置（包含敏感信息，不要提交到git）
-ieclub-taro/project.config.json
-ieclub-taro/project.private.config.json
+# 小程序配置（包含敏感信息，不要提交到git�?
+ieclub-frontend/project.config.json
+ieclub-frontend/project.private.config.json
 
 

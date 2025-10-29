@@ -65,17 +65,17 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Node.js
         uses: actions/setup-node@v3
-        with: { node-version: '18', cache: 'npm', cache-dependency-path: 'ieclub-taro/package-lock.json' }
+        with: { node-version: '18', cache: 'npm', cache-dependency-path: 'ieclub-frontend/package-lock.json' }
       - name: Install Frontend Dependencies
-        working-directory: ./ieclub-taro
+        working-directory: ./ieclub-frontend
         run: npm ci
       - name: Run Frontend Lint & Type Check
-        working-directory: ./ieclub-taro
+        working-directory: ./ieclub-frontend
         run: |
           npm run lint -- --max-warnings=0
           npm run type-check
       - name: Build Frontend (H5 & WeApp)
-        working-directory: ./ieclub-taro
+        working-directory: ./ieclub-frontend
         run: |
           npm run build:h5
           npm run build:weapp
@@ -114,7 +114,7 @@ jobs:
             pm2 reload ieclub-api
             cd ..
             echo "🚀 3/5 Deploying frontend..."
-            cd ieclub-taro
+            cd ieclub-frontend
             npm install
             npm run build:h5
             cd ..
