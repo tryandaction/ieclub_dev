@@ -23,6 +23,8 @@ export const useNotificationStore = create((set, get) => ({
     set({ isLoading: true })
     
     try {
+      // 延迟导入避免循环依赖
+      const { useAuthStore } = await import('./authStore')
       const { token } = useAuthStore.getState()
       const params = new URLSearchParams({
         page: reset ? 1 : page,
@@ -55,6 +57,8 @@ export const useNotificationStore = create((set, get) => ({
   // 标记为已读
   markAsRead: async (notificationId) => {
     try {
+      // 延迟导入避免循环依赖
+      const { useAuthStore } = await import('./authStore')
       const { token } = useAuthStore.getState()
       const response = await fetch(`/api/notifications/${notificationId}/read`, {
         method: 'POST',
@@ -85,6 +89,8 @@ export const useNotificationStore = create((set, get) => ({
   // 标记全部已读
   markAllAsRead: async () => {
     try {
+      // 延迟导入避免循环依赖
+      const { useAuthStore } = await import('./authStore')
       const { token } = useAuthStore.getState()
       const response = await fetch('/api/notifications/read-all', {
         method: 'POST',
@@ -114,6 +120,8 @@ export const useNotificationStore = create((set, get) => ({
   // 删除通知
   deleteNotification: async (notificationId) => {
     try {
+      // 延迟导入避免循环依赖
+      const { useAuthStore } = await import('./authStore')
       const { token } = useAuthStore.getState()
       const response = await fetch(`/api/notifications/${notificationId}`, {
         method: 'DELETE',

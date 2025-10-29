@@ -3,7 +3,7 @@
  * 顶部导航栏组件
  */
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import Taro from '@tarojs/taro'
 import Icon from '../common/Icon'
 import { ICONS } from '../../constants'
 
@@ -16,13 +16,11 @@ const Navbar = ({
   onSearch,
   onNotification
 }) => {
-  const navigate = useNavigate()
-  
   const handleBack = () => {
     if (onBack) {
       onBack()
     } else {
-      navigate(-1)
+      Taro.navigateBack()
     }
   }
   
@@ -30,7 +28,12 @@ const Navbar = ({
     if (onSearch) {
       onSearch()
     } else {
-      navigate('/search')
+      Taro.showToast({
+        title: '搜索功能开发中',
+        icon: 'none'
+      })
+      // TODO: 实现搜索功能
+      // Taro.navigateTo({ url: '/pages/search/index' })
     }
   }
   
@@ -38,7 +41,12 @@ const Navbar = ({
     if (onNotification) {
       onNotification()
     } else {
-      navigate('/notifications')
+      Taro.showToast({
+        title: '通知功能开发中',
+        icon: 'none'
+      })
+      // TODO: 实现通知功能
+      // Taro.navigateTo({ url: '/pages/notifications/index' })
     }
   }
   

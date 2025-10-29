@@ -82,6 +82,8 @@ export const useTopicStore = create((set, get) => ({
     set({ isLoading: true })
     
     try {
+      // 延迟导入避免循环依赖
+      const { useAuthStore } = await import('./authStore')
       const { token } = useAuthStore.getState()
       const response = await fetch('/api/topics', {
         method: 'POST',
@@ -124,6 +126,8 @@ export const useTopicStore = create((set, get) => ({
   // 点赞话题
   likeTopic: async (id) => {
     try {
+      // 延迟导入避免循环依赖
+      const { useAuthStore } = await import('./authStore')
       const { token } = useAuthStore.getState()
       const response = await fetch(`/api/topics/${id}/like`, {
         method: 'POST',
@@ -151,6 +155,8 @@ export const useTopicStore = create((set, get) => ({
   // 收藏话题
   favoriteTopic: async (id) => {
     try {
+      // 延迟导入避免循环依赖
+      const { useAuthStore } = await import('./authStore')
       const { token } = useAuthStore.getState()
       const response = await fetch(`/api/topics/${id}/favorite`, {
         method: 'POST',

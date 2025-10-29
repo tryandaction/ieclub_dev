@@ -3,6 +3,7 @@
  * 支持小程序和H5多端运行
  */
 import { Component } from 'react'
+import './index.css'
 import './app.scss'
 
 class App extends Component {

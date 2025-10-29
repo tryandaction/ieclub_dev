@@ -3,51 +3,77 @@
  * 底部导航栏组件
  */
 import React from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import Taro from '@tarojs/taro'
 import Icon from '../common/Icon'
 import { ICONS } from '../../constants'
 
 const TabBar = () => {
-  const navigate = useNavigate()
-  const location = useLocation()
+  const isH5 = Taro.getEnv() === Taro.ENV_TYPE.WEB
+  const [currentPath, setCurrentPath] = React.useState('plaza')
   
   const tabs = [
     {
       key: 'plaza',
       label: '广场',
       icon: ICONS.square,
-      path: '/plaza',
+      path: 'pages/plaza/index',
+      h5Path: '/plaza',
       activeIcon: ICONS.square
     },
     {
       key: 'community',
       label: '社区',
       icon: ICONS.community,
-      path: '/community',
+      path: 'pages/community/index',
+      h5Path: '/community',
       activeIcon: ICONS.community
     },
     {
       key: 'activities',
       label: '活动',
       icon: ICONS.activities,
-      path: '/activities',
+      path: 'pages/activities/index',
+      h5Path: '/activities',
       activeIcon: ICONS.activities
     },
     {
       key: 'profile',
       label: '我的',
       icon: ICONS.profile,
-      path: '/profile',
+      path: 'pages/profile/index',
+      h5Path: '/profile',
       activeIcon: ICONS.profile
     }
   ]
   
-  const isActive = (path) => {
-    return location.pathname === path || location.pathname.startsWith(path + '/')
+  React.useEffect(() => {
+    // 获取当前路径
+    const pages = Taro.getCurrentPages()
+    if (pages.length > 0) {
+      const currentPage = pages[pages.length - 1]
+      const route = currentPage.route || ''
+      const matchTab = tabs.find(tab => route.includes(tab.key))
+      if (matchTab) {
+        setCurrentPath(matchTab.key)
+      }
+    }
+  }, [])
+  
+  const isActive = (key) => {
+    return currentPath === key
   }
   
   const handleTabClick = (tab) => {
-    navigate(tab.path)
+    setCurrentPath(tab.key)
+    if (isH5 && window.__POWERED_BY_TARO__) {
+      // H5 模式下需要特殊处理
+      window.location.hash = tab.h5Path
+    } else {
+      // 小程序模式使用 Taro switchTab
+      Taro.switchTab({
+        url: `/${tab.path}`
+      })
+    }
   }
   
   const handlePublishClick = () => {
@@ -63,7 +89,7 @@ const TabBar = () => {
             key={tab.key}
             onClick={() => handleTabClick(tab)}
             className={`flex flex-col items-center py-2 px-3 transition-colors duration-200 ${
-              isActive(tab.path) 
+              isActive(tab.key) 
                 ? 'text-purple-600' 
                 : 'text-gray-500 hover:text-gray-700'
             }`}
@@ -71,7 +97,7 @@ const TabBar = () => {
             <Icon 
               icon={tab.icon} 
               size="lg" 
-              color={isActive(tab.path) ? '#8b5cf6' : '#9ca3af'}
+              color={isActive(tab.key) ? '#8b5cf6' : '#9ca3af'}
             />
             <span className="text-xs mt-1 font-medium">{tab.label}</span>
           </button>

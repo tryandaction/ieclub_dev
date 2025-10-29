@@ -3,9 +3,9 @@
  * 话题卡片组件，支持三种类型：我来讲、想听、项目
  */
 import React from 'react'
-import Card from './Card'
-import Button from './Button'
-import Icon from './Icon'
+import Card from '../common/Card'
+import Button from '../common/Button'
+import Icon from '../common/Icon'
 import { TOPIC_TYPES, ICONS } from '../../constants'
 import { formatRelativeTime, formatNumber } from '../../utils'
 

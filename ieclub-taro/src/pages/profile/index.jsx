@@ -3,7 +3,8 @@
  * 展示用户信息、统计数据、菜单等
  */
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import Taro from '@tarojs/taro'
+import { View } from '@tarojs/components'
 import MainLayout from '../../components/layout/MainLayout'
 import Card from '../../components/common/Card'
 import Button from '../../components/common/Button'
@@ -12,7 +13,6 @@ import { useAuthStore } from '../../store/authStore'
 import { getUserLevel } from '../../utils'
 
 const ProfilePage = () => {
-  const navigate = useNavigate()
   const { user, logout } = useAuthStore()
   
   // 模拟用户数据
@@ -76,19 +76,40 @@ const ProfilePage = () => {
   // 处理菜单点击
   const handleMenuClick = (item) => {
     if (item.path) {
-      navigate(item.path)
+      Taro.showToast({
+        title: `跳转到${item.label}`,
+        icon: 'none'
+      })
+      // TODO: 实现页面跳转
+      // Taro.navigateTo({ url: item.path })
     }
   }
   
   // 处理编辑资料
   const handleEditProfile = () => {
-    navigate('/edit-profile')
+    Taro.showToast({
+      title: '编辑资料功能开发中',
+      icon: 'none'
+    })
+    // TODO: 实现编辑资料
+    // Taro.navigateTo({ url: '/pages/edit-profile/index' })
   }
   
   // 处理登出
   const handleLogout = () => {
-    logout()
-    navigate('/login')
+    Taro.showModal({
+      title: '确认退出',
+      content: '确定要退出登录吗？',
+      success: (res) => {
+        if (res.confirm) {
+          logout()
+          Taro.showToast({
+            title: '已退出登录',
+            icon: 'success'
+          })
+        }
+      }
+    })
   }
   
   return (

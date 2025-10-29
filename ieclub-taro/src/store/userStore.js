@@ -74,6 +74,8 @@ export const useUserStore = create((set, get) => ({
   // 关注用户
   followUser: async (userId) => {
     try {
+      // 延迟导入避免循环依赖
+      const { useAuthStore } = await import('./authStore')
       const { token } = useAuthStore.getState()
       const response = await fetch(`/api/users/${userId}/follow`, {
         method: 'POST',
@@ -101,6 +103,8 @@ export const useUserStore = create((set, get) => ({
   // 取消关注
   unfollowUser: async (userId) => {
     try {
+      // 延迟导入避免循环依赖
+      const { useAuthStore } = await import('./authStore')
       const { token } = useAuthStore.getState()
       const response = await fetch(`/api/users/${userId}/unfollow`, {
         method: 'POST',
