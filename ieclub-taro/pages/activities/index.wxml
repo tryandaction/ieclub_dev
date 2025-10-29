@@ -1,0 +1,24 @@
+<!--pages/activities/index.wxml-->
+<view class="activities-page">
+  <view class="header">
+    <text class="title">精彩活动</text>
+  </view>
+
+  <scroll-view scroll-y class="content">
+    <view class="activity-grid">
+      <view wx:for="{{activities}}" wx:key="id" class="activity-card">
+        <view class="cover">
+          <text class="emoji">{{item.cover}}</text>
+        </view>
+        <view class="info">
+          <text class="activity-title">{{item.title}}</text>
+          <text class="activity-time">🕐 {{item.time}}</text>
+          <text class="activity-location">📍 {{item.location}}</text>
+          <text class="activity-participants">👥 {{item.participants.current}}/{{item.participants.max}}人</text>
+          <button class="register-btn" bindtap="register">立即报名</button>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>
+

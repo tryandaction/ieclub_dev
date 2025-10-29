@@ -1,0 +1,58 @@
+<!--pages/publish/index.wxml-->
+<view class="publish-page">
+  <view class="header">
+    <text class="title">发布内容</text>
+  </view>
+
+  <view class="type-selector">
+    <view 
+      class="type-item {{publishType === 'offer' ? 'active offer' : ''}}"
+      data-type="offer"
+      bindtap="switchType"
+    >
+      <text class="type-icon">🎤</text>
+      <text class="type-label">我来讲</text>
+    </view>
+    <view 
+      class="type-item {{publishType === 'demand' ? 'active demand' : ''}}"
+      data-type="demand"
+      bindtap="switchType"
+    >
+      <text class="type-icon">👂</text>
+      <text class="type-label">想听</text>
+    </view>
+    <view 
+      class="type-item {{publishType === 'project' ? 'active project' : ''}}"
+      data-type="project"
+      bindtap="switchType"
+    >
+      <text class="type-icon">🚀</text>
+      <text class="type-label">项目</text>
+    </view>
+  </view>
+
+  <view class="form">
+    <view class="form-item">
+      <text class="form-label">标题</text>
+      <input 
+        class="form-input" 
+        placeholder="请输入标题"
+        value="{{title}}"
+        bindinput="onTitleInput"
+      />
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">详细描述</text>
+      <textarea 
+        class="form-textarea" 
+        placeholder="详细说明你的内容..."
+        value="{{description}}"
+        bindinput="onDescInput"
+      />
+    </view>
+
+    <button class="publish-btn" bindtap="publish">发布</button>
+  </view>
+</view>
+

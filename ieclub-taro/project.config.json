@@ -1,20 +1,49 @@
 {
-  "miniprogramRoot": "dist",
-  "projectname": "ieclub-taro",
-  "description": "IEClub Taro Project",
-  "appid": "wxf6389db55319e51c",
+  "description": "IEClub 微信小程序项目配置文件",
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
   "setting": {
-    "urlCheck": false,
-    "es6": false,
-    "enhance": false,
-    "postcss": false,
-    "minified": false,
-    "condition": true,
-    "compileHotReLoad": false
+    "bundle": false,
+    "userConfirmedBundleSwitch": false,
+    "urlCheck": true,
+    "scopeDataCheck": false,
+    "coverView": true,
+    "es6": true,
+    "postcss": true,
+    "compileHotReLoad": true,
+    "lazyloadPlaceholderEnable": false,
+    "preloadBackgroundData": false,
+    "minified": true,
+    "autoAudits": false,
+    "newFeature": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "useIsolateContext": true,
+    "nodeModules": false,
+    "enhance": true,
+    "useMultiFrameRuntime": true,
+    "useApiHook": true,
+    "useApiHostProcess": true,
+    "showShadowRootInWxmlPanel": true,
+    "packNpmManually": false,
+    "enableEngineNative": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "showES6CompileOption": false,
+    "minifyWXML": true,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    },
+    "condition": false
   },
   "compileType": "miniprogram",
-  "projectArchitecture": "multiPlatform",
-  "simulatorPluginLibVersion": {
-    "wxext14566970e7e9f62": "2.27.3"
-  }
+  "libVersion": "3.10.3",
+  "appid": "wxYourAppId",
+  "projectname": "ieclub",
+  "condition": {},
+  "editorType": "stable"
 }

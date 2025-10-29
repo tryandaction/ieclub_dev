@@ -1,0 +1,189 @@
+/* pages/login/index.wxss */
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f3ff 0%, #fce7f3 100%);
+  padding: 100rpx 40rpx 40rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Logo 区域 */
+.logo-section {
+  text-align: center;
+  margin-bottom: 120rpx;
+}
+
+.logo {
+  width: 160rpx;
+  height: 160rpx;
+  margin: 0 auto 30rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 72rpx;
+  font-weight: bold;
+  box-shadow: 0 20rpx 40rpx rgba(102, 126, 234, 0.3);
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20rpx);
+  }
+}
+
+.app-name {
+  font-size: 56rpx;
+  font-weight: bold;
+  background: linear-gradient(135deg, #667eea 0%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 16rpx;
+}
+
+.app-slogan {
+  font-size: 28rpx;
+  color: #6b7280;
+  opacity: 0.8;
+}
+
+/* 说明文字 */
+.description {
+  margin-bottom: 100rpx;
+}
+
+.desc-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32rpx;
+}
+
+.desc-icon {
+  font-size: 40rpx;
+  margin-right: 20rpx;
+}
+
+.desc-text {
+  font-size: 28rpx;
+  color: #4b5563;
+}
+
+/* 登录区域 */
+.login-section {
+  position: fixed;
+  bottom: 80rpx;
+  left: 40rpx;
+  right: 40rpx;
+}
+
+.login-btn {
+  width: 100%;
+  height: 96rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 16rpx 32rpx rgba(102, 126, 234, 0.4);
+  transition: all 0.3s;
+  border: none;
+  margin-bottom: 30rpx;
+}
+
+.login-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 8rpx 16rpx rgba(102, 126, 234, 0.3);
+}
+
+.login-btn.loading {
+  opacity: 0.7;
+}
+
+.login-icon {
+  font-size: 36rpx;
+  margin-right: 16rpx;
+}
+
+.login-text {
+  font-size: 32rpx;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* 用户协议 */
+.agreement {
+  text-align: center;
+  font-size: 22rpx;
+  color: #9ca3af;
+}
+
+.agreement-text {
+  color: #9ca3af;
+}
+
+.agreement-link {
+  color: #8b5cf6;
+}
+
+/* 底部装饰 */
+.decoration {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 300rpx;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.decoration-circle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.1;
+}
+
+.decoration-1 {
+  width: 200rpx;
+  height: 200rpx;
+  background: #667eea;
+  bottom: -50rpx;
+  left: -50rpx;
+  animation: pulse 4s ease-in-out infinite;
+}
+
+.decoration-2 {
+  width: 150rpx;
+  height: 150rpx;
+  background: #ec4899;
+  bottom: 100rpx;
+  right: 50rpx;
+  animation: pulse 5s ease-in-out infinite;
+}
+
+.decoration-3 {
+  width: 100rpx;
+  height: 100rpx;
+  background: #764ba2;
+  bottom: 50rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.2;
+  }
+}
