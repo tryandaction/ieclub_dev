@@ -17,11 +17,62 @@ export const wechatLogin = (data) => {
 }
 
 /**
+ * 邮箱密码登录
+ * @param {string} email - 邮箱
+ * @param {string} password - 密码
+ * @returns {Promise<{token: string, user: object}>}
+ */
+export const emailLogin = (email, password) => {
+  return request('/auth/login', {
+    method: 'POST',
+    data: { email, password }
+  })
+}
+
+/**
+ * 发送验证码
+ * @param {string} email - 邮箱
+ * @param {string} type - 验证码类型 (register, login, reset_password, bind_email)
+ * @returns {Promise}
+ */
+export const sendCode = (email, type = 'login') => {
+  return request('/auth/send-code', {
+    method: 'POST',
+    data: { email, type }
+  })
+}
+
+/**
+ * 绑定邮箱
+ * @param {string} email - 邮箱
+ * @param {string} code - 验证码
+ * @returns {Promise}
+ */
+export const bindEmail = (email, code) => {
+  return request('/auth/bind-email', {
+    method: 'POST',
+    data: { email, code }
+  })
+}
+
+/**
+ * 绑定微信
+ * @param {object} data - 微信信息 { openid, unionid, nickname, avatar }
+ * @returns {Promise}
+ */
+export const bindWechat = (data) => {
+  return request('/auth/bind-wechat', {
+    method: 'POST',
+    data
+  })
+}
+
+/**
  * 获取当前用户信息
  * @returns {Promise<object>}
  */
 export const getCurrentUser = () => {
-  return request('/auth/me')
+  return request('/auth/profile')
 }
 
 /**

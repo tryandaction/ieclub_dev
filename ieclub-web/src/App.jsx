@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import ErrorBoundary from './components/ErrorBoundary'
 import Layout from './components/Layout'
 import Login from './pages/Login'
+import Register from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
 import Plaza from './pages/Plaza'
 import Community from './pages/Community'
 import Activities from './pages/Activities'
@@ -12,8 +14,10 @@ function App() {
   return (
     <ErrorBoundary>
       <Routes>
-        {/* 登录页（无布局） */}
+        {/* 认证页面（无布局） */}
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         
         {/* 主应用（带布局） */}
         <Route path="/" element={<Layout />}>

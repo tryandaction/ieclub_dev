@@ -79,6 +79,8 @@ model User {
   activityParticipants ActivityParticipant[]
   activityLikes   ActivityLike[]
   activityComments ActivityComment[]
+  userBindings    UserBinding[]
+  loginLogs       LoginLog[]
 
   @@map("users")
 }
@@ -492,4 +494,91 @@ model ActivityComment {
   @@index([activityId])
   @@index([createdAt])
   @@map("activity_comments")
+}
+
+// ==================== 新增：用户绑定表（阶段一） ====================
+model UserBinding {
+  id          String   @id @default(cuid())
+  
+  // 绑定类型
+  type        String   @db.VarChar(20) // wechat, phone, email
+  
+  // 绑定值
+  bindValue   String   @db.VarChar(100)
+  
+  // 额外信息（如微信昵称、头像等）
+  metadata    String?  @db.Text // JSON字符串
+  
+  // 时间戳
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // 关联关系
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([type, bindValue])
+  @@index([userId])
+  @@map("user_bindings")
+}
+
+// ==================== 新增：验证码表（阶段一） ====================
+model VerificationCode {
+  id          String   @id @default(cuid())
+  
+  // 邮箱/手机号
+  email       String   @db.VarChar(100)
+  
+  // 验证码
+  code        String   @db.VarChar(6)
+  
+  // 类型
+  type        String   @db.VarChar(20) // register, login, reset_password, bind_email, bind_phone
+  
+  // 状态
+  used        Boolean  @default(false)
+  usedAt      DateTime?
+  
+  // 过期时间
+  expiresAt   DateTime
+  
+  // 创建时间
+  createdAt   DateTime @default(now())
+  
+  @@index([email])
+  @@index([code])
+  @@index([expiresAt])
+  @@map("verification_codes")
+}
+
+// ==================== 新增：登录日志表（阶段一） ====================
+model LoginLog {
+  id          String   @id @default(cuid())
+  
+  // IP地址
+  ipAddress   String?  @db.VarChar(45)
+  
+  // User Agent
+  userAgent   String?  @db.Text
+  
+  // 登录方式
+  loginMethod String   @db.VarChar(20) // password, code, wechat
+  
+  // 登录状态
+  status      String   @db.VarChar(20) // success, failed
+  
+  // 失败原因
+  failReason  String?  @db.Text
+  
+  // 登录时间
+  loginTime   DateTime @default(now())
+  
+  // 关联关系
+  userId      String?  // 登录失败时可能没有userId
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([ipAddress])
+  @@index([loginTime])
+  @@map("login_logs")
 }

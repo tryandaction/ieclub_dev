@@ -20,8 +20,8 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// 验证码存储（生产环境用Redis）
-const verifyCodeStore = new Map();
+// 验证码存储（现在使用数据库）
+// const verifyCodeStore = new Map(); // 已弃用
 
 // 辅助函数
 function validateEmail(email) {
@@ -102,13 +102,16 @@ class AuthController {
 
       // 生成验证码
       const code = generateVerificationCode();
-      // const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10分钟后过期
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10分钟后过期
 
-      // 保存验证码到内存存储（临时方案）
-      verifyCodeStore.set(email, {
-        code,
-        expireAt: Date.now() + 10 * 60 * 1000,
-        type
+      // 保存验证码到数据库
+      await prisma.verificationCode.create({
+        data: {
+          email,
+          code,
+          type,
+          expiresAt
+        }
       });
 
       // 发送邮件
@@ -150,17 +153,26 @@ class AuthController {
     try {
       const { email, code } = req.body;
 
-      const stored = verifyCodeStore.get(email);
+      // 从数据库查询验证码
+      const stored = await prisma.verificationCode.findFirst({
+        where: {
+          email,
+          code,
+          used: false
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
       
       if (!stored) {
         return res.status(400).json({
           success: false,
-          message: '验证码不存在或已过期'
+          message: '验证码不存在或已使用'
         });
       }
 
-      if (stored.expireAt < Date.now()) {
-        verifyCodeStore.delete(email);
+      if (stored.expiresAt < new Date()) {
         return res.status(400).json({
           success: false,
           message: '验证码已过期'
@@ -173,6 +185,15 @@ class AuthController {
           message: '验证码错误'
         });
       }
+
+      // 标记验证码为已使用
+      await prisma.verificationCode.update({
+        where: { id: stored.id },
+        data: { 
+          used: true,
+          usedAt: new Date()
+        }
+      });
 
       res.json({
         success: true,
@@ -198,8 +219,19 @@ class AuthController {
       }
 
       // 验证验证码
-      const stored = verifyCodeStore.get(email);
-      if (!stored || stored.code !== verifyCode || stored.expireAt < Date.now()) {
+      const stored = await prisma.verificationCode.findFirst({
+        where: {
+          email,
+          code: verifyCode,
+          type: 'register',
+          used: false
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+
+      if (!stored || stored.expiresAt < new Date()) {
         return res.status(400).json({
           success: false,
           message: '验证码错误或已过期'
@@ -226,12 +258,31 @@ class AuthController {
           email,
           password: hashedPassword,
           nickname: nickname || email.split('@')[0],
-          avatar: `https://ui-avatars.com/api/?name=${nickname || 'User'}&background=667eea&color=fff`
+          avatar: `https://ui-avatars.com/api/?name=${nickname || 'User'}&background=667eea&color=fff`,
+          lastLoginAt: new Date(),
+          lastActiveAt: new Date()
         }
       });
 
-      // 清除验证码
-      verifyCodeStore.delete(email);
+      // 标记验证码为已使用
+      await prisma.verificationCode.update({
+        where: { id: stored.id },
+        data: { 
+          used: true,
+          usedAt: new Date()
+        }
+      });
+
+      // 记录登录日志
+      await prisma.loginLog.create({
+        data: {
+          userId: user.id,
+          ipAddress: req.ip || req.connection.remoteAddress,
+          userAgent: req.get('user-agent'),
+          loginMethod: 'register',
+          status: 'success'
+        }
+      });
 
       // 生成token
       const token = jwt.sign(
@@ -279,9 +330,39 @@ class AuthController {
       });
 
       if (!user) {
+        // 记录失败日志（无用户ID）
+        await prisma.loginLog.create({
+          data: {
+            ipAddress: req.ip || req.connection.remoteAddress,
+            userAgent: req.get('user-agent'),
+            loginMethod: 'password',
+            status: 'failed',
+            failReason: '用户不存在'
+          }
+        });
+
         return res.status(401).json({
           success: false,
           message: '邮箱或密码错误'
+        });
+      }
+
+      // 检查登录失败次数（最近15分钟内）
+      const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+      const failedAttempts = await prisma.loginLog.count({
+        where: {
+          userId: user.id,
+          status: 'failed',
+          loginTime: {
+            gte: fifteenMinutesAgo
+          }
+        }
+      });
+
+      if (failedAttempts >= 5) {
+        return res.status(429).json({
+          success: false,
+          message: '登录失败次数过多，请15分钟后重试'
         });
       }
 
@@ -296,6 +377,18 @@ class AuthController {
       // 验证密码
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
+        // 记录失败日志
+        await prisma.loginLog.create({
+          data: {
+            userId: user.id,
+            ipAddress: req.ip || req.connection.remoteAddress,
+            userAgent: req.get('user-agent'),
+            loginMethod: 'password',
+            status: 'failed',
+            failReason: '密码错误'
+          }
+        });
+
         return res.status(401).json({
           success: false,
           message: '邮箱或密码错误'
@@ -308,6 +401,17 @@ class AuthController {
         data: { 
           lastLoginAt: new Date(),
           lastActiveAt: new Date()
+        }
+      });
+
+      // 记录成功日志
+      await prisma.loginLog.create({
+        data: {
+          userId: user.id,
+          ipAddress: req.ip || req.connection.remoteAddress,
+          userAgent: req.get('user-agent'),
+          loginMethod: 'password',
+          status: 'success'
         }
       });
 
@@ -470,7 +574,7 @@ class AuthController {
   }
 
   // 获取用户信息
-  async getProfile(req, res, next) {
+  static async getProfile(req, res, next) {
     try {
       const userId = req.user.id;
       
@@ -487,7 +591,11 @@ class AuthController {
           grade: true,
           interests: true,
           skills: true,
-          isVerified: true,
+          verified: true,
+          level: true,
+          credits: true,
+          exp: true,
+          isCertified: true,
           createdAt: true,
           updatedAt: true
         }
@@ -507,6 +615,500 @@ class AuthController {
       });
     } catch (error) {
       console.error('获取用户信息失败:', error);
+      next(error);
+    }
+  }
+
+  // 更新个人信息
+  static async updateProfile(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const { nickname, bio, school, major, grade, skills, interests } = req.body;
+
+      // 构建更新数据
+      const updateData = {};
+      if (nickname !== undefined) updateData.nickname = nickname;
+      if (bio !== undefined) updateData.bio = bio;
+      if (school !== undefined) updateData.school = school;
+      if (major !== undefined) updateData.major = major;
+      if (grade !== undefined) updateData.grade = grade;
+      if (skills !== undefined) updateData.skills = JSON.stringify(skills);
+      if (interests !== undefined) updateData.interests = JSON.stringify(interests);
+
+      const user = await prisma.user.update({
+        where: { id: userId },
+        data: updateData,
+        select: {
+          id: true,
+          email: true,
+          nickname: true,
+          avatar: true,
+          bio: true,
+          school: true,
+          major: true,
+          grade: true,
+          skills: true,
+          interests: true
+        }
+      });
+
+      res.json({
+        success: true,
+        message: '个人信息更新成功',
+        data: user
+      });
+    } catch (error) {
+      console.error('更新个人信息失败:', error);
+      next(error);
+    }
+  }
+
+  // 验证码登录
+  static async loginWithCode(req, res, next) {
+    try {
+      const { email, code } = req.body;
+
+      // 验证邮箱格式
+      const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          message: '请使用南科大邮箱'
+        });
+      }
+
+      // 验证验证码
+      const stored = await prisma.verificationCode.findFirst({
+        where: {
+          email,
+          code,
+          type: 'login',
+          used: false
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+
+      if (!stored || stored.expiresAt < new Date()) {
+        return res.status(400).json({
+          success: false,
+          message: '验证码错误或已过期'
+        });
+      }
+
+      // 查找用户
+      const user = await prisma.user.findUnique({
+        where: { email }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: '该邮箱未注册'
+        });
+      }
+
+      // 检查用户状态
+      if (user.status !== 'active') {
+        return res.status(401).json({
+          success: false,
+          message: '账户已被禁用，请联系管理员'
+        });
+      }
+
+      // 标记验证码为已使用
+      await prisma.verificationCode.update({
+        where: { id: stored.id },
+        data: { 
+          used: true,
+          usedAt: new Date()
+        }
+      });
+
+      // 更新最后登录时间
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { 
+          lastLoginAt: new Date(),
+          lastActiveAt: new Date()
+        }
+      });
+
+      // 记录登录日志
+      await prisma.loginLog.create({
+        data: {
+          userId: user.id,
+          ipAddress: req.ip || req.connection.remoteAddress,
+          userAgent: req.get('user-agent'),
+          loginMethod: 'code',
+          status: 'success'
+        }
+      });
+
+      // 生成token
+      const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        config.jwt.secret,
+        { expiresIn: config.jwt.expiresIn }
+      );
+
+      res.json({
+        success: true,
+        message: '登录成功',
+        data: {
+          token,
+          user: {
+            id: user.id,
+            email: user.email,
+            nickname: user.nickname,
+            avatar: user.avatar,
+            level: user.level,
+            isCertified: user.isCertified
+          }
+        }
+      });
+    } catch (error) {
+      console.error('验证码登录失败:', error);
+      next(error);
+    }
+  }
+
+  // 修改密码
+  static async changePassword(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const { oldPassword, newPassword } = req.body;
+
+      if (!oldPassword || !newPassword) {
+        return res.status(400).json({
+          success: false,
+          message: '缺少必要参数'
+        });
+      }
+
+      // 验证新密码强度
+      if (newPassword.length < 6) {
+        return res.status(400).json({
+          success: false,
+          message: '新密码至少6位'
+        });
+      }
+
+      // 查找用户
+      const user = await prisma.user.findUnique({
+        where: { id: userId }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: '用户不存在'
+        });
+      }
+
+      // 验证旧密码
+      const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          success: false,
+          message: '原密码错误'
+        });
+      }
+
+      // 加密新密码
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // 更新密码
+      await prisma.user.update({
+        where: { id: userId },
+        data: { 
+          password: hashedPassword,
+          updatedAt: new Date()
+        }
+      });
+
+      res.json({
+        success: true,
+        message: '密码修改成功，请重新登录'
+      });
+    } catch (error) {
+      console.error('修改密码失败:', error);
+      next(error);
+    }
+  }
+
+  // 绑定微信
+  static async bindWechat(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const { openid, unionid, nickname, avatar } = req.body;
+
+      if (!openid) {
+        return res.status(400).json({
+          success: false,
+          message: '缺少微信openid'
+        });
+      }
+
+      // 检查openid是否已被绑定
+      const existingBinding = await prisma.userBinding.findUnique({
+        where: {
+          type_bindValue: {
+            type: 'wechat',
+            bindValue: openid
+          }
+        }
+      });
+
+      if (existingBinding && existingBinding.userId !== userId) {
+        return res.status(400).json({
+          success: false,
+          message: '该微信已被其他账号绑定'
+        });
+      }
+
+      // 创建或更新绑定
+      await prisma.userBinding.upsert({
+        where: {
+          type_bindValue: {
+            type: 'wechat',
+            bindValue: openid
+          }
+        },
+        update: {
+          metadata: JSON.stringify({ unionid, nickname, avatar }),
+          updatedAt: new Date()
+        },
+        create: {
+          userId,
+          type: 'wechat',
+          bindValue: openid,
+          metadata: JSON.stringify({ unionid, nickname, avatar })
+        }
+      });
+
+      // 同时更新用户的openid和unionid字段
+      await prisma.user.update({
+        where: { id: userId },
+        data: { openid, unionid }
+      });
+
+      res.json({
+        success: true,
+        message: '微信绑定成功'
+      });
+    } catch (error) {
+      console.error('绑定微信失败:', error);
+      next(error);
+    }
+  }
+
+  // 绑定手机号
+  static async bindPhone(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const { phone, code } = req.body;
+
+      if (!phone || !code) {
+        return res.status(400).json({
+          success: false,
+          message: '缺少必要参数'
+        });
+      }
+
+      // 验证手机号格式
+      const phoneRegex = /^1[3-9]\d{9}$/;
+      if (!phoneRegex.test(phone)) {
+        return res.status(400).json({
+          success: false,
+          message: '手机号格式不正确'
+        });
+      }
+
+      // 验证验证码
+      const stored = await prisma.verificationCode.findFirst({
+        where: {
+          email: phone, // 这里复用email字段存储手机号
+          code,
+          type: 'bind_phone',
+          used: false
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+
+      if (!stored || stored.expiresAt < new Date()) {
+        return res.status(400).json({
+          success: false,
+          message: '验证码错误或已过期'
+        });
+      }
+
+      // 检查手机号是否已被绑定
+      const existingUser = await prisma.user.findUnique({
+        where: { phone }
+      });
+
+      if (existingUser && existingUser.id !== userId) {
+        return res.status(400).json({
+          success: false,
+          message: '该手机号已被其他账号绑定'
+        });
+      }
+
+      // 标记验证码为已使用
+      await prisma.verificationCode.update({
+        where: { id: stored.id },
+        data: { 
+          used: true,
+          usedAt: new Date()
+        }
+      });
+
+      // 更新用户手机号
+      await prisma.user.update({
+        where: { id: userId },
+        data: { phone }
+      });
+
+      // 创建绑定记录
+      await prisma.userBinding.upsert({
+        where: {
+          type_bindValue: {
+            type: 'phone',
+            bindValue: phone
+          }
+        },
+        update: {
+          updatedAt: new Date()
+        },
+        create: {
+          userId,
+          type: 'phone',
+          bindValue: phone
+        }
+      });
+
+      res.json({
+        success: true,
+        message: '手机号绑定成功'
+      });
+    } catch (error) {
+      console.error('绑定手机号失败:', error);
+      next(error);
+    }
+  }
+
+  // 退出登录
+  static async logout(req, res, next) {
+    try {
+      // 由于使用JWT，退出登录主要在前端清除token
+      // 这里可以记录日志或进行其他操作
+      
+      res.json({
+        success: true,
+        message: '退出登录成功'
+      });
+    } catch (error) {
+      console.error('退出登录失败:', error);
+      next(error);
+    }
+  }
+
+  // 微信小程序登录
+  static async wechatLogin(req, res, next) {
+    try {
+      const { code, nickName, avatarUrl, gender } = req.body;
+
+      if (!code) {
+        return res.status(400).json({
+          success: false,
+          message: '缺少微信登录凭证'
+        });
+      }
+
+      // TODO: 调用微信服务器换取openid和session_key
+      // 这里需要配置微信小程序的appid和secret
+      // const wechatData = await wechatService.code2Session(code);
+      // const { openid, session_key, unionid } = wechatData;
+
+      // 临时方案：使用code作为openid（仅用于开发测试）
+      const openid = `wx_${code}_${Date.now()}`;
+      const unionid = null;
+
+      // 查找或创建用户
+      let user = await prisma.user.findUnique({
+        where: { openid }
+      });
+
+      if (!user) {
+        // 首次微信登录，创建新用户
+        user = await prisma.user.create({
+          data: {
+            openid,
+            unionid,
+            nickname: nickName || '微信用户',
+            avatar: avatarUrl || '',
+            gender: gender || 0,
+            email: `${openid}@temp.ieclub.online`, // 临时邮箱，等待用户绑定
+            password: '', // 微信登录无需密码
+            lastLoginAt: new Date(),
+            lastActiveAt: new Date()
+          }
+        });
+      } else {
+        // 已有用户，更新最后登录时间
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            lastLoginAt: new Date(),
+            lastActiveAt: new Date(),
+            // 更新微信信息
+            nickname: nickName || user.nickname,
+            avatar: avatarUrl || user.avatar
+          }
+        });
+      }
+
+      // 记录登录日志
+      await prisma.loginLog.create({
+        data: {
+          userId: user.id,
+          ipAddress: req.ip || req.connection.remoteAddress,
+          userAgent: req.get('user-agent'),
+          loginMethod: 'wechat',
+          status: 'success'
+        }
+      });
+
+      // 生成token
+      const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        config.jwt.secret,
+        { expiresIn: config.jwt.expiresIn }
+      );
+
+      res.json({
+        success: true,
+        message: '登录成功',
+        data: {
+          token,
+          user: {
+            id: user.id,
+            openid: user.openid,
+            nickname: user.nickname,
+            avatar: user.avatar,
+            email: user.email,
+            level: user.level,
+            isCertified: user.isCertified,
+            needBindEmail: !user.email || user.email.endsWith('@temp.ieclub.online') // 是否需要绑定邮箱
+          }
+        }
+      });
+    } catch (error) {
+      console.error('微信登录失败:', error);
       next(error);
     }
   }

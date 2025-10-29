@@ -15,18 +15,27 @@ const LocalUploadService = require('../services/localUploadService');
 
 const { authenticate } = require('../middleware/auth');
 
-// 创建控制器实例
-const authControllerInstance = new AuthController();
+// 创建控制器实例（UserController需要实例化）
 const userControllerInstance = new UserController();
 
 // ===== 认证路由 =====
+// 公开路由（不需要认证）
 router.post('/auth/send-code', AuthController.sendVerifyCode);
 router.post('/auth/verify-code', AuthController.verifyCode);
 router.post('/auth/register', AuthController.register);
 router.post('/auth/login', AuthController.login);
+router.post('/auth/login-code', AuthController.loginWithCode);
+router.post('/auth/wechat-login', AuthController.wechatLogin);
 router.post('/auth/forgot-password', AuthController.forgotPassword);
 router.post('/auth/reset-password', AuthController.resetPassword);
-router.get('/auth/profile', authenticate, authControllerInstance.getProfile.bind(authControllerInstance));
+
+// 需要认证的路由
+router.get('/auth/profile', authenticate, AuthController.getProfile);
+router.put('/auth/profile', authenticate, AuthController.updateProfile);
+router.post('/auth/change-password', authenticate, AuthController.changePassword);
+router.post('/auth/bind-wechat', authenticate, AuthController.bindWechat);
+router.post('/auth/bind-phone', authenticate, AuthController.bindPhone);
+router.post('/auth/logout', authenticate, AuthController.logout);
 
 // ===== 话题路由 =====
 router.get('/topics', topicController.getTopics);

@@ -74,8 +74,20 @@ function Build-Web {
     
     if (Test-Path "dist") {
         Write-Success "Web build completed"
+        
+        # 验证关键文件
+        if (Test-Path "dist\index.html") {
+            Write-Success "✅ index.html found"
+        } else {
+            Write-Error "❌ index.html not found in dist!"
+            exit 1
+        }
+        
+        # 显示构建产物
+        Write-Info "Build artifacts:"
+        Get-ChildItem dist | Select-Object Name | ForEach-Object { Write-Host "  - $($_.Name)" }
     } else {
-        Write-Error "Web build failed"
+        Write-Error "Web build failed - dist directory not found"
         exit 1
     }
 }
@@ -133,7 +145,7 @@ function Deploy-Web {
     
     # Execute server-side deployment script
     Write-Info "Executing server-side deployment..."
-    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "cd /root/IEclub_dev && ./Deploy_server.sh web"
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "cd /root/IEclub_dev; ./Deploy_server.sh web"
     
     Write-Success "Web deployment completed"
     Write-Info "Visit: https://ieclub.online"
@@ -147,11 +159,11 @@ function Deploy-Backend {
     
     # Upload backend code
     Write-Info "Uploading backend code..."
-    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "cd /root/IEclub_dev/ieclub-backend && git pull"
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "cd /root/IEclub_dev/ieclub-backend; git pull"
     
     # Execute server-side deployment
     Write-Info "Deploying backend..."
-    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "cd /root/IEclub_dev && ./Deploy_server.sh backend"
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "cd /root/IEclub_dev; ./Deploy_server.sh backend"
     
     Write-Success "Backend deployment completed"
     Write-Info "API: https://ieclub.online/api"

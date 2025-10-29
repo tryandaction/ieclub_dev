@@ -1,29 +1,55 @@
-# Project-wide configuration files
-# README.md
+# === IEClub Project .gitignore ===
 
-# GitHub workflows and configurations (保留workflows)
-!.github/
-!.github/workflows/
-!.github/workflows/*.yml
+# ============================
+# Node.js
+# ============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
 
-# Docker related files
-.dockerignore
-docker-compose*.yml
+# ============================
+# 构建产物
+# ============================
+dist/
+dist.zip
+*.tar.gz
+build/
+coverage/
 
-# Documentation and project files
-LICENSE
-remind.md
-版本控制.md
-部署文档.md
+# ============================
+# 环境变量
+# ============================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+ieclub-backend/.env
+ieclub-backend/.env.local
+ieclub-backend/.env.development.local
+ieclub-backend/.env.test.local
+ieclub-backend/.env.production.local
+ieclub-frontend/.env
+ieclub-frontend/.env.local
+ieclub-frontend/.env.development.local
+ieclub-frontend/.env.test.local
+ieclub-frontend/.env.production.local
 
-# IDE and editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# ============================
+# 日志文件
+# ============================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# OS generated files
+# ============================
+# 操作系统
+# ============================
 .DS_Store
 .DS_Store?
 ._*
@@ -31,162 +57,71 @@ remind.md
 .Trashes
 ehthumbs.db
 Thumbs.db
-Desktop.ini
 
-# Temporary files
-*.tmp
-*.temp
-*.bak
-*.backup
-
-# Archive files
-*.tgz
-*.tar.gz
-*.zip
-
-# Log files (project-wide)
-*.log
-
-# Coverage reports (project-wide)
-coverage-final.json
-coverage-report.html
-
-# Build outputs (project-wide)
-build/
-dist/
-out/
-
-# Node modules (if any at root level)
-node_modules/
-ieclub-backend/node_modules/
-ieclub-frontend/node_modules/
-
-# Environment files (project-wide) - 这些文件包含敏感信息，必须忽�?
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.*.local
-
-# 子目录下的环境文件也要忽�?
-ieclub-backend/.env
-ieclub-frontend/.env
-ieclub-frontend/.env.beta
-ieclub-frontend/.env.production
-
-# 敏感的配置文�?
-*.key
-*.pem
-*.crt
-secrets.json
-config/production.json
-config/secrets.json
-
-# 临时敏感文件
-.env.backup
-.env.old
-.env.save
-
-# SSL certificates (project-wide)
-*.pem
-*.key
-*.crt
-
-# Database files (project-wide)
-*.db
-*.sqlite
-*.sqlite3
-
-# Runtime data (project-wide)
-pids/
-*.pid
-*.seed
-*.pid.lock
-
-# Cache directories (project-wide)
-.cache/
-.npm/
-.yarn/
-
-# Testing (project-wide)
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
-
-# Backup files (project-wide)
-*.backup
-
-# Local development (project-wide)
-.local
-.vercel
-
-# Sentry (project-wide)
-.sentryclirc
-
-# PM2 (project-wide)
-.pm2/
-
-# Serverless (project-wide)
-.serverless/
-
-# Elastic Beanstalk (project-wide)
-.elasticbeanstalk/*
-!.elasticbeanstalk/*.cfg.yml
-!.elasticbeanstalk/*.global.yml
-
-# Cloud9 (project-wide)
-.c9/
-
-# Vim (project-wide)
+# ============================
+# IDE
+# ============================
+.vscode/
+.idea/
 *.swp
 *.swo
-Session.vim
-.netrwhist
-
-# Emacs (project-wide)
 *~
-\#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-*.elc
-auto-save-list
-tramp
-.\#*
-
-# SublimeText (project-wide)
-*.tmlanguage.cache
-*.tmPreferences.cache
-*.stTheme.cache
+.project
+.classpath
+.settings/
 *.sublime-workspace
 *.sublime-project
 
-# Finder (MacOS)
-.DS_Store
-
-# Windows
-Thumbs.db
-ehthumbs.db
-
-# VS Code
-.vscode/
-
-# Temporary folders
+# ============================
+# 临时文件
+# ============================
 tmp/
 temp/
+*.tmp
+*.bak
+*.swp
+.cache/
 
-# Deploy script temporary files
-.deploy/
-deploy_*.log
-backup_*/
+# ============================
+# 数据库
+# ============================
+*.sql
+*.sqlite
+*.db
 
-# Project specific - delegate to subdirectories
-# Frontend specific files are ignored in ieclub-frontend/.gitignore
-# Backend specific files are ignored in ieclub-backend/.gitignore
+# ============================
+# 上传文件
+# ============================
+ieclub-backend/uploads/images/*
+ieclub-backend/uploads/documents/*
+!ieclub-backend/uploads/images/.gitkeep
+!ieclub-backend/uploads/documents/.gitkeep
 
-# 小程序配置（包含敏感信息，不要提交到git�?
-ieclub-frontend/project.config.json
-ieclub-frontend/project.private.config.json
 
+# ============================
+# SSL证书
+# ============================
+ieclub-backend/ssl/*
+*.pem
+*.key
+*.crt
 
+# ============================
+# 微信小程序
+# ============================
+project.private.config.json
+.tea/
+
+# ============================
+# 测试
+# ============================
+coverage/
+.nyc_output/
+test-results/
+
+# ============================
+# 依赖锁定文件（保留package-lock.json）
+# ============================
+# 取消以下注释可忽略锁定文件
+# package-lock.json
+# yarn.lock
