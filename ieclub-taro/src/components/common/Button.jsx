@@ -3,6 +3,7 @@
  * 统一的按钮组件，支持多种变体和状态
  */
 import React from 'react'
+import { View } from '@tarojs/components'
 
 const Button = ({
   children,
@@ -51,18 +52,17 @@ const Button = ({
   }
   
   return (
-    <button
+    <View
       className={baseStyles}
       onClick={handleClick}
-      disabled={disabled || loading}
       {...props}
     >
       {loading && (
-        <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+        <View className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></View>
       )}
       
       {children}
-    </button>
+    </View>
   )
 }
 

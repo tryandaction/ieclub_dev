@@ -1,9 +1,10 @@
 /**
- * IEClub 社区页面
- * 按文档设计 - 帖子卡片瀑布流布局
+ * IEClub 社区页面 - Taro版本
+ * 支持小程序和H5
  */
 import React, { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'
+import { View, Text, Image, Picker } from '@tarojs/components'
 import MainLayout from '../../components/layout/MainLayout'
 import { useUserStore } from '../../store/userStore'
 import { getUserLevel, formatNumber } from '../../utils'
@@ -19,7 +20,10 @@ const CommunityPage = () => {
   } = useUserStore()
   
   const [viewMode, setViewMode] = useState('posts') // posts | users
-  const [sortBy, setSortBy] = useState('latest') // latest | hot
+  const [sortBy, setSortBy] = useState(0) // 0: latest, 1: hot
+  const [posts, setPosts] = useState([])
+  
+  const sortOptions = ['最新', '最热']
   
   // 模拟帖子数据
   const mockPosts = [
@@ -55,43 +59,8 @@ const CommunityPage = () => {
       likes: 67,
       comments: 22,
       isLiked: false
-    },
-    {
-      id: 4,
-      author: '刘强',
-      avatar: '👨‍💼',
-      major: '数据科学与大数据技术',
-      time: '3小时前',
-      content: '求推荐好用的数据可视化库，最近在做数据分析项目，需要制作交互式图表，有经验的同学分享一下吧',
-      likes: 12,
-      comments: 5,
-      isLiked: false
-    },
-    {
-      id: 5,
-      author: '陈佳',
-      avatar: '👩‍💻',
-      major: '软件工程',
-      time: '6小时前',
-      content: '有没有人一起学习机器学习算法？可以组建学习小组，一起刷题、做项目、分享心得',
-      likes: 34,
-      comments: 12,
-      isLiked: false
-    },
-    {
-      id: 6,
-      author: '林浩',
-      avatar: '👨‍🎓',
-      major: '电子工程',
-      time: '1天前',
-      content: '推荐几个好的在线编程平台，LeetCode、牛客、洛谷都很不错，大家还用过哪些？',
-      likes: 28,
-      comments: 8,
-      isLiked: true
     }
   ]
-  
-  const [posts, setPosts] = useState(mockPosts)
   
   // 模拟用户数据
   const mockUsers = [
@@ -127,19 +96,12 @@ const CommunityPage = () => {
       followersCount: 76,
       postsCount: 28,
       isFollowing: false
-    },
-    {
-      id: 4,
-      name: '刘强',
-      avatar: '👨‍🏫',
-      major: '数据科学与大数据技术',
-      level: 14,
-      score: 2210,
-      followersCount: 112,
-      postsCount: 38,
-      isFollowing: false
     }
   ]
+  
+  useEffect(() => {
+    setPosts(mockPosts)
+  }, [])
   
   const displayUsers = users.length > 0 ? users : mockUsers
   
@@ -186,23 +148,23 @@ const CommunityPage = () => {
   
   return (
     <MainLayout title="社区">
-      <div className="w-full mx-auto px-3 py-4 lg:px-8 lg:py-6">
+      <View className="w-full mx-auto px-3 py-4 lg:px-8 lg:py-6">
         {/* 欢迎横幅 */}
-        <div className="bg-gradient-to-br from-purple-500 via-purple-600 to-pink-500 rounded-3xl p-6 lg:p-8 mb-6 text-white shadow-2xl shadow-purple-500/30 overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-40 h-40 bg-white opacity-10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-          <div className="relative">
-            <h2 className="text-2xl lg:text-3xl font-extrabold mb-2">发现志同道合的伙伴 👋</h2>
-            <p className="text-sm lg:text-base opacity-90">连接思想 · 激发创新 · 共同成长</p>
-          </div>
-        </div>
+        <View className="bg-gradient-to-br from-purple-500 via-purple-600 to-pink-500 rounded-3xl p-6 lg:p-8 mb-6 text-white shadow-2xl shadow-purple-500/30 overflow-hidden relative">
+          <View className="absolute top-0 right-0 w-40 h-40 bg-white opacity-10 rounded-full blur-3xl"></View>
+          <View className="absolute bottom-0 left-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></View>
+          <View className="relative">
+            <Text className="text-2xl lg:text-3xl font-extrabold mb-2 block text-white">发现志同道合的伙伴 👋</Text>
+            <Text className="text-sm lg:text-base opacity-90 block text-white">连接思想 · 激发创新 · 共同成长</Text>
+          </View>
+        </View>
 
         {/* 视图切换和筛选 */}
-        <div className="bg-white rounded-2xl p-4 mb-6 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between flex-wrap gap-3">
+        <View className="bg-white rounded-2xl p-4 mb-6 shadow-sm border border-gray-100">
+          <View className="flex items-center justify-between flex-wrap gap-3">
             {/* 视图切换 */}
-            <div className="flex items-center space-x-2">
-              <button
+            <View className="flex items-center space-x-2">
+              <View
                 onClick={() => setViewMode('posts')}
                 className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
                   viewMode === 'posts'
@@ -210,9 +172,9 @@ const CommunityPage = () => {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                帖子
-              </button>
-              <button
+                <Text className={viewMode === 'posts' ? 'text-white' : 'text-gray-700'}>帖子</Text>
+              </View>
+              <View
                 onClick={() => setViewMode('users')}
                 className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
                   viewMode === 'users'
@@ -220,138 +182,142 @@ const CommunityPage = () => {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                用户
-              </button>
-            </div>
+                <Text className={viewMode === 'users' ? 'text-white' : 'text-gray-700'}>用户</Text>
+              </View>
+            </View>
             
             {/* 排序 */}
-            <select
+            <Picker
+              mode="selector"
+              range={sortOptions}
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              onChange={(e) => setSortBy(e.detail.value)}
             >
-              <option value="latest">最新</option>
-              <option value="hot">最热</option>
-            </select>
-          </div>
-        </div>
+              <View className="px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm font-medium">
+                <Text>{sortOptions[sortBy]}</Text>
+              </View>
+            </Picker>
+          </View>
+        </View>
         
         {/* 帖子视图 */}
         {viewMode === 'posts' && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+          <View className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
             {posts.map((post) => (
-              <div
+              <View
                 key={post.id}
                 className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
                 onClick={() => handlePostClick(post)}
               >
                 {/* 头部 - 用户信息 */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center text-lg">
-                      {post.avatar}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-gray-900 truncate">{post.author}</p>
-                    </div>
-                  </div>
-                  <span className="text-xs text-gray-400 whitespace-nowrap">{post.time}</span>
-                </div>
+                <View className="flex items-center justify-between mb-3">
+                  <View className="flex items-center space-x-2">
+                    <View className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center text-lg">
+                      <Text>{post.avatar}</Text>
+                    </View>
+                    <View className="flex-1 min-w-0">
+                      <Text className="text-sm font-bold text-gray-900 truncate block">{post.author}</Text>
+                    </View>
+                  </View>
+                  <Text className="text-xs text-gray-400 whitespace-nowrap">{post.time}</Text>
+                </View>
                 
                 {/* 内容 - 3行截断 */}
-                <p className="text-sm text-gray-700 mb-4 line-clamp-3 leading-relaxed">
+                <Text className="text-sm text-gray-700 mb-4 line-clamp-3 leading-relaxed block">
                   {post.content}
-                </p>
+                </Text>
                 
                 {/* 底部 - 点赞评论 */}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                  <button
+                <View className="flex items-center justify-between pt-3 border-t border-gray-100">
+                  <View
                     onClick={(e) => handleLikePost(e, post.id)}
                     className={`flex items-center space-x-1 transition-all duration-300 ${
                       post.isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
                     }`}
                   >
-                    <span className="text-base">{post.isLiked ? '❤️' : '🤍'}</span>
-                    <span className="text-sm font-medium">{post.likes}</span>
-                  </button>
-                  <div className="flex items-center space-x-1 text-gray-500">
-                    <span className="text-base">💬</span>
-                    <span className="text-sm font-medium">{post.comments}</span>
-                  </div>
-                </div>
-              </div>
+                    <Text className="text-base">{post.isLiked ? '❤️' : '🤍'}</Text>
+                    <Text className="text-sm font-medium">{post.likes}</Text>
+                  </View>
+                  <View className="flex items-center space-x-1 text-gray-500">
+                    <Text className="text-base">💬</Text>
+                    <Text className="text-sm font-medium">{post.comments}</Text>
+                  </View>
+                </View>
+              </View>
             ))}
-          </div>
+          </View>
         )}
         
         {/* 用户视图 */}
         {viewMode === 'users' && (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
+          <View className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
             {displayUsers.map((user) => (
-              <div
+              <View
                 key={user.id}
                 className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
                 onClick={() => handleUserClick(user)}
               >
                 {/* 头像 */}
-                <div className="text-center mb-4">
-                  <div className="w-20 h-20 bg-gradient-to-br from-purple-400 via-purple-500 to-pink-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-lg">
-                    {user.avatar}
-                  </div>
+                <View className="text-center mb-4">
+                  <View className="w-20 h-20 bg-gradient-to-br from-purple-400 via-purple-500 to-pink-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-lg">
+                    <Text>{user.avatar}</Text>
+                  </View>
                   
                   {/* 用户名 */}
-                  <h3 className="font-bold text-gray-900 mb-1 text-base">{user.name}</h3>
-                  <p className="text-xs text-gray-600 mb-3 line-clamp-1">{user.major}</p>
+                  <Text className="font-bold text-gray-900 mb-1 text-base block">{user.name}</Text>
+                  <Text className="text-xs text-gray-600 mb-3 line-clamp-1 block">{user.major}</Text>
                   
                   {/* 等级徽章 */}
-                  <div className="flex items-center justify-center space-x-2 mb-3">
-                    <span className="px-2.5 py-1 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 rounded-full text-xs font-bold">
-                      LV{user.level || 1}
-                    </span>
-                    <span className="text-xs text-gray-500 font-medium">
+                  <View className="flex items-center justify-center space-x-2 mb-3">
+                    <View className="px-2.5 py-1 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 rounded-full">
+                      <Text className="text-xs font-bold text-purple-700">LV{user.level || 1}</Text>
+                    </View>
+                    <Text className="text-xs text-gray-500 font-medium">
                       {formatNumber(user.score || 0)}分
-                    </span>
-                  </div>
-                </div>
+                    </Text>
+                  </View>
+                </View>
                 
                 {/* 统计 */}
-                <div className="flex items-center justify-around py-3 border-t border-gray-100 mb-3">
-                  <div className="text-center">
-                    <div className="text-sm font-extrabold text-gray-900">{formatNumber(user.followersCount || 0)}</div>
-                    <div className="text-[10px] text-gray-500">粉丝</div>
-                  </div>
-                  <div className="w-px h-6 bg-gray-200"></div>
-                  <div className="text-center">
-                    <div className="text-sm font-extrabold text-gray-900">{formatNumber(user.postsCount || 0)}</div>
-                    <div className="text-[10px] text-gray-500">帖子</div>
-                  </div>
-                </div>
+                <View className="flex items-center justify-around py-3 border-t border-gray-100 mb-3">
+                  <View className="text-center">
+                    <Text className="text-sm font-extrabold text-gray-900 block">{formatNumber(user.followersCount || 0)}</Text>
+                    <Text className="text-[10px] text-gray-500 block">粉丝</Text>
+                  </View>
+                  <View className="w-px h-6 bg-gray-200"></View>
+                  <View className="text-center">
+                    <Text className="text-sm font-extrabold text-gray-900 block">{formatNumber(user.postsCount || 0)}</Text>
+                    <Text className="text-[10px] text-gray-500 block">帖子</Text>
+                  </View>
+                </View>
                 
                 {/* 关注按钮 */}
-                <button
+                <View
                   onClick={(e) => handleFollow(e, user.id, user.isFollowing)}
-                  className={`w-full py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
+                  className={`w-full py-2.5 rounded-xl font-bold text-sm transition-all duration-300 text-center ${
                     user.isFollowing
                       ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-lg hover:shadow-purple-500/30'
                   }`}
                 >
-                  {user.isFollowing ? '已关注' : '+ 关注'}
-                </button>
-              </div>
+                  <Text className={user.isFollowing ? 'text-gray-700' : 'text-white'}>
+                    {user.isFollowing ? '已关注' : '+ 关注'}
+                  </Text>
+                </View>
+              </View>
             ))}
-          </div>
+          </View>
         )}
         
         {/* 空状态 */}
         {((viewMode === 'posts' && posts.length === 0) || (viewMode === 'users' && displayUsers.length === 0)) && !isLoading && (
-          <div className="text-center py-20">
-            <div className="text-7xl mb-6">{viewMode === 'posts' ? '💬' : '👥'}</div>
-            <p className="text-xl font-bold text-gray-900 mb-2">暂无内容</p>
-            <p className="text-gray-500">快来成为第一个吧！</p>
-          </div>
+          <View className="text-center py-20">
+            <Text className="text-7xl mb-6 block">{viewMode === 'posts' ? '💬' : '👥'}</Text>
+            <Text className="text-xl font-bold text-gray-900 mb-2 block">暂无内容</Text>
+            <Text className="text-gray-500 block">快来成为第一个吧！</Text>
+          </View>
         )}
-      </div>
+      </View>
     </MainLayout>
   )
 }

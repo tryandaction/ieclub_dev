@@ -3,6 +3,7 @@
  * 统一的卡片组件，支持多种变体
  */
 import React from 'react'
+import { View } from '@tarojs/components'
 
 const Card = ({
   children,
@@ -39,13 +40,13 @@ const Card = ({
   `.trim()
   
   return (
-    <div
+    <View
       className={baseStyles}
       onClick={onClick}
       {...props}
     >
       {children}
-    </div>
+    </View>
   )
 }
 
