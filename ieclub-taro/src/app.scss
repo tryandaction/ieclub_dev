@@ -1,169 +1,143 @@
-/**
- * IEClub 全局样式
- * 小红书风格的紫色渐变主题
- */
-
-/* 全局重置 */
+// 全局样式
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* 页面基础样式 */
 page {
-  background-color: #fafafa;
-  min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 
+    'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: #f5f5f5;
 }
 
-/* 全局滚动条优化（仅webkit浏览器） */
+// 基础变量
+:root {
+  --primary-color: #8b5cf6;
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --text-primary: #333;
+  --text-secondary: #666;
+  --text-tertiary: #999;
+  --border-color: #e0e0e0;
+  --bg-color: #f5f5f5;
+  --bg-white: #fff;
+}
+
+// 隐藏滚动条
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 0;
+  height: 0;
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
+// 通用工具类
+.container {
+  padding: 0 20px;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
+.text-center {
+  text-align: center;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+.text-left {
+  text-align: left;
 }
 
-/* 全局文字选择样式 */
-::selection {
-  background-color: rgba(139, 92, 246, 0.2);
-  color: inherit;
+.text-right {
+  text-align: right;
 }
 
-/* 全局动画 */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+// 渐变背景工具类
+.gradient-purple {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-blue {
+  background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+}
+
+.gradient-pink {
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+}
+
+.gradient-orange {
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+}
+
+// 卡片样式
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+// 按钮样式
+.btn {
+  padding: 18px 30px;
+  border-radius: 12px;
+  font-size: 28px;
+  font-weight: 500;
+  text-align: center;
+  transition: all 0.3s;
+
+  &:active {
+    transform: scale(0.98);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+.btn-secondary {
+  background: #f5f5f5;
+  color: #666;
 }
 
-/* 全局字体优化 */
-body {
-  font-size: 14px;
-  line-height: 1.5;
-  color: #333;
+// 标签样式
+.tag {
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 22px;
+  display: inline-block;
 }
 
-/* 链接样式 */
-a {
+.tag-primary {
+  background: #f3e8ff;
   color: #8b5cf6;
-  text-decoration: none;
-  transition: color 0.2s;
 }
 
-a:hover {
-  color: #7c3aed;
+.tag-secondary {
+  background: #f0f0f0;
+  color: #666;
 }
 
-/* 按钮基础样式优化 */
-button {
-  cursor: pointer;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-family: inherit;
-  -webkit-tap-highlight-color: transparent;
-}
-
-button:active {
-  transform: scale(0.98);
-}
-
-/* 输入框基础样式 */
-input,
-textarea {
-  font-family: inherit;
-  outline: none;
-}
-
-/* 图片优化 */
-img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* 渐变文字效果 */
-.gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* 渐变背景效果 */
-.gradient-bg {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-/* 卡片阴影效果 */
-.card-shadow {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.card-shadow-hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-}
-
-/* 安全区域适配 */
-.safe-area-top {
-  padding-top: env(safe-area-inset-top);
-}
-
-.safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-/* 隐藏滚动条但保持可滚动 */
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-/* 文本截断 */
+// 文本截断
 .line-clamp-1 {
   display: -webkit-box;
   -webkit-line-clamp: 1;
@@ -183,50 +157,4 @@ img {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-/* 小程序特定样式 */
-view {
-  box-sizing: border-box;
-}
-
-/* 页面淡入动画 */
-.page-enter {
-  animation: fadeIn 0.3s ease-out;
-}
-
-/* 加载动画 */
-.loading {
-  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* 毛玻璃效果 */
-.backdrop-blur {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-/* hover效果（仅PC端） */
-@media (min-width: 1024px) {
-  .hover-lift:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
-  }
-  
-  .hover-scale:hover {
-    transform: scale(1.05);
-  }
-}
-
-/* 响应式字体 */
-@media (max-width: 768px) {
-  body {
-    font-size: 13px;
-  }
-}
-
-@media (min-width: 1024px) {
-  body {
-    font-size: 15px;
-  }
 }
