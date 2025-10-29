@@ -133,20 +133,20 @@ const ProfilePage = () => {
           
           {/* 统计数据 */}
           <Card>
-            <View className="grid grid-cols-4 gap-4 py-4">
-              <View className="text-center">
+            <View className="flex flex-row gap-4 py-4">
+              <View className="flex-1 text-center">
                 <Text className="text-2xl font-bold text-purple-600 block">{userData.postsCount}</Text>
                 <Text className="text-sm text-gray-600 block">帖子</Text>
               </View>
-              <View className="text-center">
+              <View className="flex-1 text-center">
                 <Text className="text-2xl font-bold text-purple-600 block">{userData.followersCount}</Text>
                 <Text className="text-sm text-gray-600 block">粉丝</Text>
               </View>
-              <View className="text-center">
+              <View className="flex-1 text-center">
                 <Text className="text-2xl font-bold text-purple-600 block">{userData.followingCount}</Text>
                 <Text className="text-sm text-gray-600 block">关注</Text>
               </View>
-              <View className="text-center">
+              <View className="flex-1 text-center">
                 <Text className="text-2xl font-bold text-purple-600 block">{userData.likesCount}</Text>
                 <Text className="text-sm text-gray-600 block">获赞</Text>
               </View>

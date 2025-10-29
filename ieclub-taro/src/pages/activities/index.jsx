@@ -108,14 +108,14 @@ const ActivitiesPage = () => {
   return (
     <MainLayout title="活动">
       <View className="w-full mx-auto px-3 py-4 lg:px-8 lg:py-6">
-        {/* 活动列表 - 响应式网格 */}
-        <View className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+        {/* 活动列表 - Flex布局 */}
+        <View className="flex flex-row flex-wrap -mx-2">
           {activities.map((activity) => (
-            <View
-              key={activity.id}
-              className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
-              onClick={() => handleActivityClick(activity)}
-            >
+            <View key={activity.id} className="w-full sm:w-1/2 lg:w-1/3 px-2 mb-4">
+              <View
+                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+                onClick={() => handleActivityClick(activity)}
+              >
               {/* 活动头部 - 带emoji的渐变背景 */}
               <View className="relative h-32 bg-gradient-to-br from-purple-400 via-purple-500 to-pink-500 flex items-center justify-center">
                 <Text className="text-6xl opacity-90">{activity.emoji}</Text>
@@ -181,6 +181,7 @@ const ActivitiesPage = () => {
                       : '立即报名'}
                   </Text>
                 </View>
+              </View>
               </View>
             </View>
           ))}

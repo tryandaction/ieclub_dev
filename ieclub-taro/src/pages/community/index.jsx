@@ -200,15 +200,15 @@ const CommunityPage = () => {
           </View>
         </View>
         
-        {/* 帖子视图 */}
+        {/* 帖子视图 - Flex布局 */}
         {viewMode === 'posts' && (
-          <View className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+          <View className="flex flex-row flex-wrap -mx-2">
             {posts.map((post) => (
-              <View
-                key={post.id}
-                className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
-                onClick={() => handlePostClick(post)}
-              >
+              <View key={post.id} className="w-1/2 lg:w-1/4 px-2 mb-4">
+                <View
+                  className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+                  onClick={() => handlePostClick(post)}
+                >
                 {/* 头部 - 用户信息 */}
                 <View className="flex items-center justify-between mb-3">
                   <View className="flex items-center space-x-2">
@@ -243,20 +243,21 @@ const CommunityPage = () => {
                     <Text className="text-sm font-medium">{post.comments}</Text>
                   </View>
                 </View>
+                </View>
               </View>
             ))}
           </View>
         )}
         
-        {/* 用户视图 */}
+        {/* 用户视图 - Flex布局 */}
         {viewMode === 'users' && (
-          <View className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
+          <View className="flex flex-row flex-wrap -mx-1.5">
             {displayUsers.map((user) => (
-              <View
-                key={user.id}
-                className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
-                onClick={() => handleUserClick(user)}
-              >
+              <View key={user.id} className="w-1/2 lg:w-1/3 px-1.5 mb-3">
+                <View
+                  className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+                  onClick={() => handleUserClick(user)}
+                >
                 {/* 头像 */}
                 <View className="text-center mb-4">
                   <View className="w-20 h-20 bg-gradient-to-br from-purple-400 via-purple-500 to-pink-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-lg">
@@ -303,6 +304,7 @@ const CommunityPage = () => {
                   <Text className={user.isFollowing ? 'text-gray-700' : 'text-white'}>
                     {user.isFollowing ? '已关注' : '+ 关注'}
                   </Text>
+                </View>
                 </View>
               </View>
             ))}
