@@ -25,8 +25,10 @@ class ErrorBoundary extends Component {
       errorInfo
     })
 
-    // TODO: 发送错误日志到监控服务
-    // logErrorToService(error, errorInfo)
+    // 发送错误日志到监控服务
+    if (typeof window !== 'undefined' && window.__errorMonitor) {
+      window.__errorMonitor.logReactError(error, errorInfo)
+    }
   }
 
   handleReset = () => {

@@ -48,43 +48,68 @@ const request = (url, options = {}) => {
 
         // HTTP 成功
         if (statusCode === 200) {
-          const { code, data: responseData, message } = data
-
-          // 业务成功
-          if (code === 200) {
-            resolve(responseData)
-            return
+          // 处理后端返回的 {success, message, data} 格式
+          if (data.hasOwnProperty('success')) {
+            if (data.success) {
+              resolve(data.data || data)
+              return
+            } else {
+              wx.showToast({
+                title: data.message || '请求失败',
+                icon: 'none',
+                duration: 2000
+              })
+              const error = new Error(data.message || '请求失败')
+              error.code = data.code || 'BUSINESS_ERROR'
+              reject(error)
+              return
+            }
           }
 
-          // Token 过期
-          if (code === 401) {
-            wx.removeStorageSync('token')
-            wx.showToast({
-              title: '登录已过期',
-              icon: 'none',
-              duration: 1500
-            })
-            // 跳转到登录页
-            setTimeout(() => {
-              wx.reLaunch({
-                url: '/pages/login/index'
+          // 处理后端返回的 {code, data, message} 格式
+          if (data.hasOwnProperty('code')) {
+            const { code, data: responseData, message } = data
+
+            // 业务成功
+            if (code === 200) {
+              resolve(responseData)
+              return
+            }
+
+            // Token 过期
+            if (code === 401) {
+              wx.removeStorageSync('token')
+              wx.showToast({
+                title: '登录已过期',
+                icon: 'none',
+                duration: 1500
               })
-            }, 1500)
-            const error = new Error('登录已过期')
-            error.code = 401
+              // 跳转到登录页
+              setTimeout(() => {
+                wx.reLaunch({
+                  url: '/pages/login/index'
+                })
+              }, 1500)
+              const error = new Error('登录已过期')
+              error.code = 401
+              reject(error)
+              return
+            }
+
+            // 业务失败
+            wx.showToast({
+              title: message || '请求失败',
+              icon: 'none',
+              duration: 2000
+            })
+            const error = new Error(message || '请求失败')
+            error.code = code
             reject(error)
             return
           }
 
-          // 业务失败
-          wx.showToast({
-            title: message || '请求失败',
-            icon: 'none',
-            duration: 2000
-          })
-          const error = new Error(message || '请求失败')
-          error.code = code
-          reject(error)
+          // 直接返回数据
+          resolve(data)
           return
         }
 

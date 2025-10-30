@@ -1,4 +1,8 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { createTopic } from '../api/topic'
+import { showToast } from '../components/Toast'
+import ImageUpload from '../components/ImageUpload'
 
 const typeOptions = [
   { id: 'offer', label: '我来讲', icon: '🎤', bg: 'bg-gradient-offer' },
@@ -7,20 +11,67 @@ const typeOptions = [
 ]
 
 export default function Publish() {
+  const navigate = useNavigate()
   const [publishType, setPublishType] = useState('offer')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [tags, setTags] = useState('')
+  const [images, setImages] = useState([])
+  const [loading, setLoading] = useState(false)
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
+    // 验证
     if (!title.trim()) {
-      alert('请输入标题')
+      showToast('请输入标题', 'warning')
       return
     }
     if (!description.trim()) {
-      alert('请输入描述')
+      showToast('请输入描述', 'warning')
       return
     }
-    alert('发布成功！')
+
+    // 检查登录状态
+    const token = localStorage.getItem('token')
+    if (!token) {
+      showToast('需要登录后才能发布', 'warning')
+      setTimeout(() => navigate('/login'), 1500)
+      return
+    }
+
+    try {
+      setLoading(true)
+      
+      // 处理标签
+      const tagArray = tags
+        .split(/[,，\s]+/)
+        .filter(tag => tag.trim())
+        .map(tag => tag.trim())
+
+      // 调用API
+      await createTopic({
+        type: publishType,
+        title: title.trim(),
+        description: description.trim(),
+        tags: tagArray,
+        images: images.map(img => img.url), // 传递图片URL数组
+      })
+
+      showToast('发布成功！🎉', 'success')
+      
+      // 清空表单
+      setTitle('')
+      setDescription('')
+      setTags('')
+      setImages([])
+      
+      // 跳转到广场
+      setTimeout(() => navigate('/plaza'), 1000)
+    } catch (error) {
+      console.error('发布失败:', error)
+      showToast(error.response?.data?.message || '发布失败，请稍后重试', 'error')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -80,11 +131,56 @@ export default function Publish() {
           />
         </div>
 
+        <div>
+          <label className="block text-sm font-bold text-gray-900 mb-2">
+            标签
+            <span className="ml-2 text-xs text-gray-500 font-normal">（用逗号或空格分隔，选填）</span>
+          </label>
+          <input
+            type="text"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder="例如：Python, 机器学习, 期末复习"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+          {tags && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {tags.split(/[,，\s]+/).filter(tag => tag.trim()).map((tag, index) => (
+                <span
+                  key={index}
+                  className="text-xs bg-purple-100 text-purple-600 px-3 py-1 rounded-full"
+                >
+                  {tag.trim()}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 图片上传 */}
+        <div>
+          <label className="block text-sm font-bold text-gray-900 mb-2">
+            上传图片
+            <span className="ml-2 text-xs text-gray-500 font-normal">（选填，最多9张）</span>
+          </label>
+          <ImageUpload
+            value={images}
+            onChange={setImages}
+            maxCount={9}
+            maxSize={5}
+          />
+        </div>
+
         <button
           onClick={handlePublish}
-          className="w-full bg-gradient-primary text-white py-4 rounded-xl font-bold text-lg hover:shadow-lg hover:scale-105 transition-all"
+          disabled={loading}
+          className={`w-full bg-gradient-primary text-white py-4 rounded-xl font-bold text-lg transition-all ${
+            loading 
+              ? 'opacity-50 cursor-not-allowed' 
+              : 'hover:shadow-lg hover:scale-105'
+          }`}
         >
-          发布
+          {loading ? '发布中...' : '发布'}
         </button>
       </div>
     </div>

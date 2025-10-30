@@ -7,7 +7,7 @@ import request from '../utils/request'
  * @returns {Promise}
  */
 export const sendCode = (email, type = 'login') => {
-  return request.post('/auth/send-code', { email, type })
+  return request.post('/auth/send-verify-code', { email, type })
 }
 
 /**
@@ -38,7 +38,7 @@ export const register = (data) => {
  */
 export const login = (email, passwordOrCode, loginType = 'password') => {
   if (loginType === 'code') {
-    return request.post('/auth/login-code', { email, code: passwordOrCode })
+    return request.post('/auth/login-with-code', { email, code: passwordOrCode })
   }
   return request.post('/auth/login', { email, password: passwordOrCode })
 }

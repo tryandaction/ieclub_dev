@@ -1,85 +1,119 @@
-/**
- * Loading 加载组件
- * 支持全屏和内联两种模式
- */
-export default function Loading({ 
-  fullscreen = false, 
-  size = 'md',
-  text = '加载中...' 
-}) {
-  const sizeClasses = {
-    sm: 'w-6 h-6',
-    md: 'w-10 h-10',
-    lg: 'w-16 h-16'
-  }
+import { useEffect } from 'react'
 
-  const spinnerSize = sizeClasses[size] || sizeClasses.md
+/**
+ * 全局Loading组件
+ */
+export default function Loading({ show = false, text = '加载中...', fullscreen = false }) {
+  useEffect(() => {
+    if (show && fullscreen) {
+      // 防止页面滚动
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [show, fullscreen])
+
+  if (!show) return null
 
   if (fullscreen) {
     return (
-      <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
-        <div className="text-center">
-          {/* 旋转加载器 */}
-          <div className={`${spinnerSize} mx-auto mb-4 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin`}></div>
-          
-          {/* 加载文字 */}
-          {text && (
-            <p className="text-gray-600 text-sm font-medium">{text}</p>
-          )}
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl p-8 flex flex-col items-center shadow-2xl">
+          <div className="loader mb-4"></div>
+          <p className="text-gray-600 font-medium">{text}</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex items-center justify-center py-8">
-      <div className="text-center">
-        {/* 旋转加载器 */}
-        <div className={`${spinnerSize} mx-auto mb-2 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin`}></div>
-        
-        {/* 加载文字 */}
-        {text && (
-          <p className="text-gray-500 text-sm">{text}</p>
-        )}
+    <div className="flex items-center justify-center py-12">
+      <div className="flex flex-col items-center">
+        <div className="loader mb-3"></div>
+        <p className="text-gray-500 text-sm">{text}</p>
       </div>
     </div>
   )
 }
 
 /**
- * 骨架屏组件 - 用于内容加载占位
+ * 内联Loading - 用于按钮等小组件
  */
-export function Skeleton({ className = '', variant = 'rect' }) {
-  const variants = {
-    rect: 'rounded-lg',
-    circle: 'rounded-full',
-    text: 'rounded h-4'
+export function InlineLoading({ size = 'md', color = 'white' }) {
+  const sizeClasses = {
+    sm: 'w-4 h-4 border-2',
+    md: 'w-5 h-5 border-2',
+    lg: 'w-6 h-6 border-3'
+  }
+
+  const colorClasses = {
+    white: 'border-white/30 border-t-white',
+    primary: 'border-primary-200 border-t-primary-600',
+    gray: 'border-gray-300 border-t-gray-600'
   }
 
   return (
     <div 
-      className={`bg-gray-200 animate-pulse ${variants[variant]} ${className}`}
+      className={`inline-block rounded-full animate-spin ${sizeClasses[size]} ${colorClasses[color]}`}
+      style={{ borderTopColor: 'currentColor' }}
     />
   )
 }
 
 /**
- * 卡片骨架屏
+ * 骨架屏Loading - 用于列表加载
  */
-export function CardSkeleton() {
-  return (
-    <div className="card space-y-4">
-      <Skeleton variant="rect" className="h-48 w-full" />
-      <Skeleton variant="text" className="w-3/4" />
-      <Skeleton variant="text" className="w-1/2" />
-      <div className="flex gap-3">
-        <Skeleton variant="circle" className="w-10 h-10" />
-        <div className="flex-1 space-y-2">
-          <Skeleton variant="text" className="w-1/3" />
-          <Skeleton variant="text" className="w-1/4" />
-        </div>
+export function SkeletonLoading({ count = 3, type = 'card' }) {
+  const items = Array.from({ length: count }, (_, i) => i)
+
+  if (type === 'card') {
+    return (
+      <div className="space-y-4">
+        {items.map(i => (
+          <div key={i} className="bg-white rounded-2xl p-6 animate-pulse">
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+              <div className="flex-1">
+                <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-32"></div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-full"></div>
+              <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+              <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+            </div>
+          </div>
+        ))}
       </div>
+    )
+  }
+
+  if (type === 'activity') {
+    return (
+      <div className="space-y-4">
+        {items.map(i => (
+          <div key={i} className="bg-white rounded-2xl overflow-hidden animate-pulse">
+            <div className="h-48 bg-gray-200"></div>
+            <div className="p-6">
+              <div className="h-5 bg-gray-200 rounded w-3/4 mb-3"></div>
+              <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {items.map(i => (
+        <div key={i} className="h-16 bg-gray-200 rounded-xl animate-pulse"></div>
+      ))}
     </div>
   )
 }
-

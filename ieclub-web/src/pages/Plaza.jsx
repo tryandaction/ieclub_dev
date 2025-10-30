@@ -1,4 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { getTopics, toggleLike } from '../api/topic'
+import { showToast } from '../components/Toast'
+import { TopicListSkeleton } from '../components/Skeleton'
 
 const tabs = [
   { id: 'all', label: '推荐', icon: '✨' },
@@ -16,6 +20,7 @@ const mockTopics = [
     author: { name: '张三', avatar: '👨‍💻', level: 12 },
     tags: ['Python', '爬虫'],
     stats: { views: 456, likes: 89, comments: 34 },
+    isLiked: false,
   },
   {
     id: 2,
@@ -25,6 +30,7 @@ const mockTopics = [
     author: { name: '李四', avatar: '👩‍🎓', level: 8 },
     tags: ['数学', '期末'],
     stats: { views: 234, likes: 45, comments: 23, wantCount: 12 },
+    isLiked: false,
   },
   {
     id: 3,
@@ -34,6 +40,7 @@ const mockTopics = [
     author: { name: '王五', avatar: '🎯', level: 10 },
     tags: ['创业', 'AI'],
     stats: { views: 890, likes: 156, comments: 67 },
+    isLiked: false,
   },
 ]
 
@@ -44,7 +51,70 @@ const typeConfig = {
 }
 
 export default function Plaza() {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('all')
+  const [topics, setTopics] = useState(mockTopics)
+  const [loading, setLoading] = useState(false)
+
+  // 加载话题列表
+  useEffect(() => {
+    loadTopics()
+  }, [activeTab])
+
+  const loadTopics = async () => {
+    try {
+      setLoading(true)
+      const params = activeTab === 'all' ? {} : { type: activeTab }
+      const data = await getTopics(params)
+      
+      // 如果后端返回数据，使用后端数据；否则使用mock数据
+      if (data && Array.isArray(data)) {
+        setTopics(data)
+      } else if (data && data.topics && Array.isArray(data.topics)) {
+        setTopics(data.topics)
+      }
+    } catch (error) {
+      console.error('加载话题失败:', error)
+      // 发生错误时继续使用mock数据
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const displayTopics = activeTab === 'all' 
+    ? topics 
+    : topics.filter(t => t.type === activeTab)
+
+  const handleLike = async (e, topicId) => {
+    e.stopPropagation() // 阻止事件冒泡，避免跳转到详情页
+    
+    const token = localStorage.getItem('token')
+    if (!token) {
+      showToast('请先登录', 'warning')
+      return
+    }
+
+    try {
+      await toggleLike(topicId)
+      
+      // 更新本地状态
+      setTopics(topics.map(t =>
+        t.id === topicId
+          ? {
+              ...t,
+              isLiked: !t.isLiked,
+              stats: {
+                ...t.stats,
+                likes: t.isLiked ? t.stats.likes - 1 : t.stats.likes + 1
+              }
+            }
+          : t
+      ))
+    } catch (error) {
+      console.error('操作失败:', error)
+      showToast(error.response?.data?.message || '操作失败，请稍后重试', 'error')
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -68,11 +138,16 @@ export default function Plaza() {
         </div>
       </div>
 
+      {/* 加载状态 - 骨架屏 */}
+      {loading && <TopicListSkeleton count={6} />}
+
       {/* 话题列表 - 瀑布流布局 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {mockTopics.map((topic) => (
+      {!loading && displayTopics.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {displayTopics.map((topic) => (
           <div
             key={topic.id}
+            onClick={() => navigate(`/topic/${topic.id}`)}
             className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer hover:scale-105"
           >
             {/* 封面 */}
@@ -111,10 +186,22 @@ export default function Plaza() {
               </div>
 
               {/* 统计信息 */}
-              <div className="flex items-center space-x-4 text-sm text-gray-500">
-                <span>❤️ {topic.stats.likes}</span>
-                <span>💬 {topic.stats.comments}</span>
-                <span>👀 {topic.stats.views}</span>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center space-x-4 text-gray-500">
+                  <span>💬 {topic.stats.comments}</span>
+                  <span>👀 {topic.stats.views}</span>
+                </div>
+                <button
+                  onClick={(e) => handleLike(e, topic.id)}
+                  className={`flex items-center space-x-1 px-3 py-1.5 rounded-full transition-all duration-300 ${
+                    topic.isLiked
+                      ? 'bg-red-100 text-red-500 scale-110'
+                      : 'text-gray-500 hover:bg-red-50 hover:text-red-500 hover:scale-105'
+                  }`}
+                >
+                  <span className="text-base">{topic.isLiked ? '❤️' : '🤍'}</span>
+                  <span className="font-medium">{topic.stats.likes}</span>
+                </button>
               </div>
 
               {/* 想听进度条 */}
@@ -127,8 +214,18 @@ export default function Plaza() {
               )}
             </div>
           </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {/* 空状态 */}
+      {!loading && displayTopics.length === 0 && (
+        <div className="text-center py-20">
+          <div className="text-6xl mb-4">📭</div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">暂无内容</h3>
+          <p className="text-gray-500">快来发布第一个话题吧！</p>
+        </div>
+      )}
     </div>
   )
 }

@@ -2,11 +2,10 @@ import request from '../utils/request'
 
 /**
  * 获取话题列表
- * @param {object} params - 查询参数
- * @param {string} params.type - 话题类型 all|offer|demand|project
+ * @param {Object} params - 查询参数
+ * @param {string} params.type - 话题类型 (offer/demand/project)
  * @param {number} params.page - 页码
- * @param {number} params.limit - 每页数量
- * @returns {Promise<{list: array, total: number, page: number, pageSize: number}>}
+ * @param {number} params.pageSize - 每页数量
  */
 export const getTopics = (params) => {
   return request.get('/topics', { params })
@@ -14,22 +13,20 @@ export const getTopics = (params) => {
 
 /**
  * 获取话题详情
- * @param {number} id - 话题 ID
- * @returns {Promise<object>}
+ * @param {number} id - 话题ID
  */
-export const getTopic = (id) => {
+export const getTopicDetail = (id) => {
   return request.get(`/topics/${id}`)
 }
 
 /**
  * 创建话题
- * @param {object} data - 话题数据
- * @param {string} data.type - 话题类型 offer|demand|project
+ * @param {Object} data - 话题数据
+ * @param {string} data.type - 话题类型 (offer/demand/project)
  * @param {string} data.title - 标题
- * @param {string} data.content - 内容
- * @param {array} data.tags - 标签数组
- * @param {array} data.images - 图片数组
- * @returns {Promise<object>}
+ * @param {string} data.description - 描述
+ * @param {Array} data.tags - 标签数组
+ * @param {Array} data.images - 图片URL数组
  */
 export const createTopic = (data) => {
   return request.post('/topics', data)
@@ -37,9 +34,8 @@ export const createTopic = (data) => {
 
 /**
  * 更新话题
- * @param {number} id - 话题 ID
- * @param {object} data - 话题数据
- * @returns {Promise<object>}
+ * @param {number} id - 话题ID
+ * @param {Object} data - 更新的数据
  */
 export const updateTopic = (id, data) => {
   return request.put(`/topics/${id}`, data)
@@ -47,48 +43,67 @@ export const updateTopic = (id, data) => {
 
 /**
  * 删除话题
- * @param {number} id - 话题 ID
- * @returns {Promise}
+ * @param {number} id - 话题ID
  */
 export const deleteTopic = (id) => {
   return request.delete(`/topics/${id}`)
 }
 
 /**
- * 点赞话题
- * @param {number} id - 话题 ID
- * @returns {Promise<{isLiked: boolean, likeCount: number}>}
+ * 点赞/取消点赞话题
+ * @param {number} id - 话题ID
  */
-export const likeTopic = (id) => {
+export const toggleLike = (id) => {
   return request.post(`/topics/${id}/like`)
 }
 
 /**
- * 取消点赞
- * @param {number} id - 话题 ID
- * @returns {Promise<{isLiked: boolean, likeCount: number}>}
+ * 收藏/取消收藏话题
+ * @param {number} id - 话题ID
  */
-export const unlikeTopic = (id) => {
-  return request.delete(`/topics/${id}/like`)
+export const toggleBookmark = (id) => {
+  return request.post(`/topics/${id}/bookmark`)
 }
 
 /**
- * 获取话题评论列表
- * @param {number} id - 话题 ID
- * @param {object} params - 查询参数
- * @returns {Promise<array>}
+ * 快速操作（想听、我也会等）
+ * @param {number} id - 话题ID
+ * @param {string} action - 操作类型
  */
-export const getComments = (id, params) => {
-  return request.get(`/topics/${id}/comments`, { params })
+export const quickAction = (id, action) => {
+  return request.post(`/topics/${id}/quick-action`, { action })
 }
 
 /**
- * 发表评论
- * @param {number} id - 话题 ID
- * @param {string} content - 评论内容
- * @returns {Promise<object>}
+ * 获取推荐话题
  */
-export const addComment = (id, content) => {
-  return request.post(`/topics/${id}/comments`, { content })
+export const getRecommendTopics = () => {
+  return request.get('/topics/recommend')
 }
 
+/**
+ * 获取热门话题
+ */
+export const getTrendingTopics = () => {
+  return request.get('/topics/trending')
+}
+
+/**
+ * 获取匹配的话题
+ * @param {number} id - 话题ID
+ */
+export const getMatches = (id) => {
+  return request.get(`/topics/${id}/matches`)
+}
+
+/**
+ * 搜索话题
+ * @param {Object} params - 搜索参数
+ * @param {string} params.keyword - 搜索关键词
+ * @param {string} params.type - 话题类型（可选）
+ * @param {number} params.page - 页码
+ * @param {number} params.pageSize - 每页数量
+ */
+export const searchTopics = (params) => {
+  return request.get('/topics/search', { params })
+}

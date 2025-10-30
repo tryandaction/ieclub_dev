@@ -52,7 +52,7 @@ export const register = (data) => {
  * @returns {Promise}
  */
 export const sendVerifyCode = (email, type = 'register') => {
-  return request('/auth/send-verification-code', {
+  return request('/auth/send-verify-code', {
     method: 'POST',
     data: { email, type }
   })
@@ -65,7 +65,7 @@ export const sendVerifyCode = (email, type = 'register') => {
  * @returns {Promise}
  */
 export const sendCode = (email, type = 'login') => {
-  return request('/auth/send-code', {
+  return request('/auth/send-verify-code', {
     method: 'POST',
     data: { email, type }
   })
