@@ -87,7 +87,7 @@ const request = (url, options = {}) => {
               // 跳转到登录页
               setTimeout(() => {
                 wx.reLaunch({
-                  url: '/pages/login/index'
+                  url: '/pages/auth/index'  // 修正路径到auth页面
                 })
               }, 1500)
               const error = new Error('登录已过期')
@@ -125,7 +125,7 @@ const request = (url, options = {}) => {
             wx.removeStorageSync('token')
             setTimeout(() => {
               wx.reLaunch({
-                url: '/pages/login/index'
+                url: '/pages/auth/index'  // 修正路径到auth页面
               })
             }, 1500)
             break
@@ -133,7 +133,8 @@ const request = (url, options = {}) => {
             errorMessage = '没有权限访问'
             break
           case 404:
-            errorMessage = '请求的资源不存在'
+            errorMessage = data.message || '路由不存在，请检查API配置'
+            console.error('❌ 404 Error - URL:', baseURL + url)
             break
           case 500:
             errorMessage = '服务器错误，请稍后重试'

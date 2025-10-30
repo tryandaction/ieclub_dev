@@ -3,7 +3,11 @@ import useLoadingStore from '../stores/loadingStore'
 
 // 创建 axios 实例
 const request = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || (
+    import.meta.env.MODE === 'development' 
+      ? '/api'  // 开发环境使用代理
+      : 'https://ieclub.online/api'  // 生产环境使用完整URL
+  ),
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
