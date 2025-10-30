@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const config = require('../config');
+const logger = require('../utils/logger');
 
 const prisma = new PrismaClient();
 
@@ -61,15 +62,16 @@ async function sendEmail(to, subject, html) {
       subject,
       html
     });
+    logger.info('邮件发送成功:', { to, subject });
   } catch (error) {
-    console.error('邮件发送失败:', error);
+    logger.error('邮件发送失败:', { to, subject, error: error.message });
     throw error;
   }
 }
 
 class AuthController {
   // 发送邮箱验证码
-  static async sendVerifyCode(req, res, _next) {
+  static async sendVerifyCode(req, res, next) {
     try {
       const { email, type = 'register' } = req.body; // type: register, reset
 
@@ -177,12 +179,8 @@ class AuthController {
         }
       });
     } catch (error) {
-      console.error('发送验证码失败:', error);
-      res.status(500).json({
-        code: 500,
-        message: '发送验证码失败，请稍后重试',
-        error: error.message
-      });
+      logger.error('发送验证码失败:', { email: req.body.email, error: error.message });
+      next(error);
     }
   }
 
@@ -343,7 +341,7 @@ class AuthController {
         }
       });
     } catch (error) {
-      console.error('注册失败:', error);
+      logger.error('注册失败:', { email: req.body.email, error: error.message });
       next(error);
     }
   }
@@ -476,7 +474,7 @@ class AuthController {
         }
       });
     } catch (error) {
-      console.error('登录失败:', error);
+      logger.error('登录失败:', { email: req.body.email, error: error.message });
       next(error);
     }
   }
@@ -537,7 +535,7 @@ class AuthController {
         message: '重置链接已发送到您的邮箱，请查收'
       });
     } catch (error) {
-      console.error('密码找回失败:', error);
+      logger.error('密码找回失败:', { email: req.body.email, error: error.message });
       next(error);
     }
   }
@@ -607,7 +605,7 @@ class AuthController {
           message: '重置链接已过期或无效'
         });
       }
-      console.error('重置密码失败:', error);
+      logger.error('重置密码失败:', error.message);
       next(error);
     }
   }
@@ -653,7 +651,7 @@ class AuthController {
         data: user
       });
     } catch (error) {
-      console.error('获取用户信息失败:', error);
+      logger.error('获取用户信息失败:', { userId: req.user?.id, error: error.message });
       next(error);
     }
   }
@@ -697,7 +695,7 @@ class AuthController {
         data: user
       });
     } catch (error) {
-      console.error('更新个人信息失败:', error);
+      logger.error('更新个人信息失败:', { userId: req.user?.id, error: error.message });
       next(error);
     }
   }
@@ -808,7 +806,7 @@ class AuthController {
         }
       });
     } catch (error) {
-      console.error('验证码登录失败:', error);
+      logger.error('验证码登录失败:', { email: req.body.email, error: error.message });
       next(error);
     }
   }
@@ -873,7 +871,7 @@ class AuthController {
         message: '密码修改成功，请重新登录'
       });
     } catch (error) {
-      console.error('修改密码失败:', error);
+      logger.error('修改密码失败:', { userId: req.user?.id, error: error.message });
       next(error);
     }
   }
@@ -939,7 +937,7 @@ class AuthController {
         message: '微信绑定成功'
       });
     } catch (error) {
-      console.error('绑定微信失败:', error);
+      logger.error('绑定微信失败:', { userId: req.user?.id, error: error.message });
       next(error);
     }
   }
@@ -1036,7 +1034,7 @@ class AuthController {
         message: '手机号绑定成功'
       });
     } catch (error) {
-      console.error('绑定手机号失败:', error);
+      logger.error('绑定手机号失败:', { userId: req.user?.id, error: error.message });
       next(error);
     }
   }
@@ -1052,7 +1050,7 @@ class AuthController {
         message: '退出登录成功'
       });
     } catch (error) {
-      console.error('退出登录失败:', error);
+      logger.error('退出登录失败:', { userId: req.user?.id, error: error.message });
       next(error);
     }
   }
@@ -1148,7 +1146,7 @@ class AuthController {
         }
       });
     } catch (error) {
-      console.error('微信登录失败:', error);
+      logger.error('微信登录失败:', { code: req.body.code, error: error.message });
       next(error);
     }
   }

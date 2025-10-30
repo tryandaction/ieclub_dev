@@ -101,6 +101,9 @@ router.use('/badges', require('./badges'));
 // Stats Routes
 router.use('/stats', require('./stats'));
 
+// Feedback Routes
+router.use('/feedback', require('./feedback'));
+
 // Test Route
 router.get('/test', (req, res) => {
   res.json({

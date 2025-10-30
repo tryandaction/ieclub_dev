@@ -81,6 +81,8 @@ model User {
   activityComments ActivityComment[]
   userBindings    UserBinding[]
   loginLogs       LoginLog[]
+  feedbacks       Feedback[]
+  feedbackReplies FeedbackReply[] @relation("AdminReplies")
 
   @@map("users")
 }
@@ -279,6 +281,11 @@ model Notification {
   targetType  String   @db.VarChar(20) // topic, comment, user
   targetId    String
 
+  @@index([userId])
+  @@index([isRead])
+  @@index([type])
+  @@index([createdAt])
+  @@index([userId, isRead])
   @@map("notifications")
 }
 
@@ -581,4 +588,72 @@ model LoginLog {
   @@index([ipAddress])
   @@index([loginTime])
   @@map("login_logs")
+}
+
+// ==================== 新增：用户反馈表 ====================
+model Feedback {
+  id          String   @id @default(cuid())
+  
+  // 反馈类型
+  type        String   @db.VarChar(20) // bug, feature, improvement, other
+  
+  // 反馈内容
+  title       String   @db.VarChar(100)
+  content     String   @db.Text
+  
+  // 联系方式（可选）
+  contact     String?  @db.VarChar(100)
+  
+  // 截图和附件
+  images      String?  @db.Text // JSON数组
+  
+  // 平台信息
+  platform    String   @default("web") @db.VarChar(20) // web, miniprogram
+  version     String?  @db.VarChar(20)
+  deviceInfo  String?  @db.Text // JSON对象
+  
+  // 请求信息
+  ipAddress   String?  @db.VarChar(45)
+  userAgent   String?  @db.Text
+  
+  // 状态
+  status      String   @default("pending") @db.VarChar(20) // pending, processing, resolved, closed
+  processedAt DateTime?
+  
+  // 时间戳
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // 关联关系
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reply       FeedbackReply[]
+  
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@map("feedbacks")
+}
+
+// ==================== 新增：反馈回复表 ====================
+model FeedbackReply {
+  id          String   @id @default(cuid())
+  
+  // 回复内容
+  content     String   @db.Text
+  
+  // 时间戳
+  createdAt   DateTime @default(now())
+  
+  // 关联关系
+  feedbackId  String
+  feedback    Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  adminId     String
+  admin       User     @relation("AdminReplies", fields: [adminId], references: [id])
+  
+  @@index([feedbackId])
+  @@index([adminId])
+  @@index([createdAt])
+  @@map("feedback_replies")
 }

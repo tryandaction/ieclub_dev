@@ -15,6 +15,8 @@
 > - ✅ 改进骨架屏加载效果
 > - ✅ 添加消息提示工具
 > - ✅ 修复API路由配置和小程序路径
+> - ✅ 增强错误处理和调试信息
+> - ✅ 添加健康检查和API测试端点
 
 ---
 
@@ -186,10 +188,15 @@ pm2 restart ieclub-backend
 pm2 status
 
 # Check logs
-pm2 logs ieclub-backend
+pm2 logs ieclub-backend --lines 20
 
-# Test API
+# Test API Health
 curl https://ieclub.online/api/health
+# Expected: {"status":"ok","timestamp":"...","uptime":...}
+
+# Test API Connectivity
+curl https://ieclub.online/api/test
+# Expected: {"message":"IEClub API is running","timestamp":"..."}
 ```
 
 ---
@@ -236,25 +243,47 @@ JWT_SECRET=your_production_secret
 
 ### Common Issues
 
-#### 1. Web Build Failed
+#### 1. API 404 Not Found
+```bash
+# Symptom
+Network requests return 404, browser console shows API errors
+
+# Diagnosis
+ssh root@ieclub.online
+pm2 status  # Check if backend is running
+curl http://localhost:3000/api/health  # Test local API
+curl http://localhost:3000/api/test    # Test connectivity
+
+# Solution
+pm2 restart ieclub-backend
+pm2 logs ieclub-backend --lines 20
+
+# If still fails
+cd /root/IEclub_dev/ieclub-backend
+git pull
+npm install
+pm2 restart ieclub-backend
+```
+
+#### 2. Web Build Failed
 ```bash
 Error: Cannot find module 'vite'
 Solution: npm install
 ```
 
-#### 2. Backend Start Failed
+#### 3. Backend Start Failed
 ```bash
 Error: Cannot connect to MySQL
 Solution: Check MySQL service and connection string
 ```
 
-#### 3. Mini Program Upload Failed
+#### 4. Mini Program Upload Failed
 ```
 Error: WeChat DevTools not logged in
 Solution: Scan QR code to login
 ```
 
-#### 4. Server Connection Timeout
+#### 5. Server Connection Timeout
 ```bash
 Error: ssh: connect to host ieclub.online port 22: Connection timed out
 Solution: Check VPN or network connection

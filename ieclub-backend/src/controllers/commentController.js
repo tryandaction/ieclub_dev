@@ -107,7 +107,57 @@ class CommentController {
         data: { commentsCount: { increment: 1 } }
       });
 
-      // TODO: 发送通知给话题作者和被回复者
+      // 发送通知
+      const topic = await prisma.topic.findUnique({
+        where: { id: topicId },
+        select: { authorId: true, title: true }
+      });
+
+      // 通知话题作者（如果不是自己评论）
+      if (topic && topic.authorId !== userId) {
+        const commenter = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { nickname: true }
+        });
+
+        const preview = content.length > 50 ? content.substring(0, 50) + '...' : content;
+
+        await prisma.notification.create({
+          data: {
+            userId: topic.authorId,
+            type: 'comment',
+            title: '收到新的评论',
+            content: `${commenter.nickname} 评论了你的话题：${preview}`,
+            actorId: userId,
+            targetType: 'topic',
+            targetId: topicId,
+            link: `/topic/${topicId}#comment-${comment.id}`,
+          },
+        }).catch(() => {});
+      }
+
+      // 如果是回复，通知被回复者
+      if (parentId && replyToUserId && replyToUserId !== userId) {
+        const replier = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { nickname: true }
+        });
+
+        const preview = content.length > 50 ? content.substring(0, 50) + '...' : content;
+
+        await prisma.notification.create({
+          data: {
+            userId: replyToUserId,
+            type: 'reply',
+            title: '收到新的回复',
+            content: `${replier.nickname} 回复了你的评论：${preview}`,
+            actorId: userId,
+            targetType: 'comment',
+            targetId: parentId,
+            link: `/topic/${topicId}#comment-${comment.id}`,
+          },
+        }).catch(() => {});
+      }
 
       res.status(201).json({
         success: true,

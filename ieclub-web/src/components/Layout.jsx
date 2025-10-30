@@ -1,6 +1,7 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import FeedbackButton from './FeedbackButton'
+import NotificationBadge from './NotificationBadge'
 
 const navItems = [
   { path: '/plaza', label: '广场', icon: '✨' },
@@ -36,13 +37,16 @@ export default function Layout() {
               <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                 IEClub
               </h1>
-              <p className="text-xs text-gray-500">学习·科研·创业</p>
+              <p className="text-xs text-gray-500">学习·科研·项目·创业</p>
             </div>
           </div>
         </div>
 
-        {/* 搜索框 */}
+        {/* 搜索框和通知 */}
         <div className="px-4 py-3 border-b border-gray-200">
+          <div className="flex items-center gap-2 mb-3">
+            <NotificationBadge />
+          </div>
           <form onSubmit={handleSearch}>
             <div className="relative">
               <input

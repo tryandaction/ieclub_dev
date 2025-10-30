@@ -75,17 +75,20 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
   lastModified: true
 }));
 
-// 健康检查
+// ==================== 系统端点（在限流之前）====================
+
+// 健康检查（不需要缓存控制，保证实时性）
 app.get('/health', (req, res) => {
   res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV
+    environment: process.env.NODE_ENV || 'development',
+    uptime: process.uptime()
   });
 });
 
-// 根路径处理
+// 根路径
 app.get('/', (req, res) => {
   res.json({
     success: true,
@@ -101,7 +104,8 @@ app.get('/', (req, res) => {
   });
 });
 
-// API限流配置（在路由之前）
+// ==================== API限流配置 ====================
+
 const rateLimit = require('express-rate-limit');
 const apiLimiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
@@ -118,7 +122,9 @@ const apiLimiter = rateLimit({
 // 应用限流到API路由
 app.use('/api', apiLimiter);
 
-// API缓存控制中间件
+// ==================== API中间件 ====================
+
+// API缓存控制
 app.use('/api', (req, res, next) => {
   if (req.method === 'GET') {
     res.set('Cache-Control', 'public, max-age=300');
@@ -128,20 +134,12 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
-// 健康检查端点（在所有中间件之前）
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
-
-// API 测试端点
+// API 测试端点（用于快速诊断）
 app.get('/api/test', (req, res) => {
   res.json({ 
+    success: true,
     message: 'IEClub API is running',
-    version: '1.0.0',
+    version: '2.0.0',
     timestamp: new Date().toISOString()
   });
 });

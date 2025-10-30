@@ -13,6 +13,9 @@ import Community from './pages/Community'
 import Activities from './pages/Activities'
 import Publish from './pages/Publish'
 import Profile from './pages/Profile'
+import Notifications from './pages/Notifications'
+import Feedback from './pages/Feedback'
+import MyFeedback from './pages/MyFeedback'
 import useLoadingStore from './stores/loadingStore'
 
 function App() {
@@ -38,6 +41,9 @@ function App() {
           <Route path="activities" element={<Activities />} />
           <Route path="publish" element={<Publish />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="notifications" element={<Notifications />} />
+          <Route path="feedback" element={<Feedback />} />
+          <Route path="feedback/my" element={<MyFeedback />} />
         </Route>
       </Routes>
     </ErrorBoundary>
