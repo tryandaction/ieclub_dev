@@ -12,15 +12,15 @@ const app = express();
 
 // 安全中间件
 app.use(helmet({
-  contentSecurityPolicy: false, // 移除CSP以避免兼容性问题
-  xContentTypeOptions: true, // 添加X-Content-Type-Options头
-  server: 'IEClub/2.0', // 设置服务器名称
+  contentSecurityPolicy: false,
+  xPoweredBy: false,
+  hsts: { maxAge: 31536000 }
 }));
 
 // HTTP参数污染保护
 app.use(hpp());
 
-// CORS配置 - 修复网页端无法显示问题
+// CORS配置
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
   : [
@@ -36,18 +36,14 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 app.use(cors({
   origin: function(origin, callback) {
-    // 允许没有origin的请求（如移动应用、Postman、本地开发）
     if (!origin) return callback(null, true);
-    
-    // 允许所有本地开发环境
     if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
       return callback(null, true);
     }
-
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      console.log('CORS blocked origin:', origin);
+      logger.warn('CORS blocked origin:', origin);
       callback(new Error('CORS policy violation'));
     }
   },
@@ -69,9 +65,9 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// 静态文件 - 添加缓存控制
+// 静态文件
 app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
-  maxAge: '1d', // 缓存1天
+  maxAge: '1d',
   etag: true,
   lastModified: true
 }));
@@ -86,18 +82,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API缓存控制中间件
-app.use('/api', (req, res, next) => {
-  // 为API响应设置缓存控制
-  if (req.method === 'GET') {
-    res.set('Cache-Control', 'public, max-age=300'); // 5分钟缓存
-  } else {
-    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-  }
-  next();
-});
-
-// 根路径处理 - API信息页面
+// 根路径处理
 app.get('/', (req, res) => {
   res.json({
     success: true,
@@ -113,12 +98,40 @@ app.get('/', (req, res) => {
   });
 });
 
+// API限流配置（在路由之前）
+const rateLimit = require('express-rate-limit');
+const apiLimiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    code: 429,
+    message: '请求过于频繁，请稍后再试'
+  }
+});
+
+// 应用限流到API路由
+app.use('/api', apiLimiter);
+
+// API缓存控制中间件
+app.use('/api', (req, res, next) => {
+  if (req.method === 'GET') {
+    res.set('Cache-Control', 'public, max-age=300');
+  } else {
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  }
+  next();
+});
+
 // API 路由
 try {
   const routes = require('./routes');
   app.use('/api', routes);
+  logger.info('✅ 路由加载成功');
 } catch (error) {
-  logger.error('路由加载失败:', error);
+  logger.error('❌ 路由加载失败:', error);
 }
 
 // 404 处理

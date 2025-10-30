@@ -29,6 +29,26 @@ function validateEmail(email) {
   return regex.test(email);
 }
 
+// 密码强度验证函数
+function validatePasswordStrength(password) {
+  if (password.length < 8) {
+    return { valid: false, message: '密码至少8位' };
+  }
+  if (!/[a-z]/.test(password)) {
+    return { valid: false, message: '密码需包含小写字母' };
+  }
+  if (!/[A-Z]/.test(password)) {
+    return { valid: false, message: '密码需包含大写字母' };
+  }
+  if (!/[0-9]/.test(password)) {
+    return { valid: false, message: '密码需包含数字' };
+  }
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    return { valid: false, message: '密码需包含特殊字符(!@#$%^&*等)' };
+  }
+  return { valid: true };
+}
+
 function generateVerificationCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
@@ -58,6 +78,24 @@ class AuthController {
         return res.status(400).json({
           code: 400,
           message: '邮箱格式不正确'
+        });
+      }
+
+      // 频率限制：同一邮箱1分钟内只能发送1次
+      const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+      const recentCode = await prisma.verificationCode.findFirst({
+        where: {
+          email,
+          createdAt: { gte: oneMinuteAgo }
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      if (recentCode) {
+        const waitSeconds = Math.ceil((recentCode.createdAt.getTime() + 60000 - Date.now()) / 1000);
+        return res.status(429).json({
+          code: 429,
+          message: `验证码发送过于频繁，请${waitSeconds}秒后重试`
         });
       }
 
@@ -517,10 +555,11 @@ class AuthController {
       }
 
       // 验证密码强度
-      if (newPassword.length < 6) {
+      const passwordCheck = validatePasswordStrength(newPassword);
+      if (!passwordCheck.valid) {
         return res.status(400).json({
           success: false,
-          message: '密码至少6位'
+          message: passwordCheck.message
         });
       }
 
@@ -788,10 +827,11 @@ class AuthController {
       }
 
       // 验证新密码强度
-      if (newPassword.length < 6) {
+      const passwordCheck = validatePasswordStrength(newPassword);
+      if (!passwordCheck.valid) {
         return res.status(400).json({
           success: false,
-          message: '新密码至少6位'
+          message: passwordCheck.message
         });
       }
 

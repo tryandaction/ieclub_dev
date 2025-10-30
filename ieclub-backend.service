@@ -1,0 +1,24 @@
+[Unit]
+Description=IEclub Backend Service
+After=network.target mysql.service redis.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/IEclub_dev/ieclub-backend
+Environment=NODE_ENV=production
+Environment=PATH=/root/.nvm/versions/node/v22.20.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/root/.nvm/versions/node/v22.20.0/bin/node /root/IEclub_dev/ieclub-backend/src/server.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ieclub-backend
+
+# 资源限制
+LimitNOFILE=65536
+MemoryLimit=2G
+
+[Install]
+WantedBy=multi-user.target
+

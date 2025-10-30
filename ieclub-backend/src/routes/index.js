@@ -1,4 +1,4 @@
-// ===== routes/index.js - 路由配置（完整版）=====
+// src/routes/index.js - Main routing configuration
 const express = require('express');
 const router = express.Router();
 
@@ -8,66 +8,30 @@ const commentController = require('../controllers/commentController');
 const UserController = require('../controllers/userController');
 const searchController = require('../controllers/searchController');
 const notificationController = require('../controllers/notificationController');
-// const communityController = require('../controllers/communityController');
 const uploadController = require('../controllers/uploadController');
 const announcementController = require('../controllers/announcementController');
 const LocalUploadService = require('../services/localUploadService');
 
 const { authenticate } = require('../middleware/auth');
 
-// 创建控制器实例（UserController需要实例化）
-const userControllerInstance = new UserController();
-
-// ===== 认证路由 =====
-// 公开路由（不需要认证）
-router.post('/auth/send-code', AuthController.sendVerifyCode);
+// Authentication Routes
+router.post('/auth/send-verify-code', AuthController.sendVerifyCode);
 router.post('/auth/verify-code', AuthController.verifyCode);
 router.post('/auth/register', AuthController.register);
 router.post('/auth/login', AuthController.login);
-router.post('/auth/login-code', AuthController.loginWithCode);
-router.post('/auth/wechat-login', AuthController.wechatLogin);
+router.post('/auth/login-with-code', AuthController.loginWithCode);
 router.post('/auth/forgot-password', AuthController.forgotPassword);
 router.post('/auth/reset-password', AuthController.resetPassword);
-
-// 需要认证的路由
 router.get('/auth/profile', authenticate, AuthController.getProfile);
 router.put('/auth/profile', authenticate, AuthController.updateProfile);
-router.post('/auth/change-password', authenticate, AuthController.changePassword);
+router.put('/auth/change-password', authenticate, AuthController.changePassword);
 router.post('/auth/bind-wechat', authenticate, AuthController.bindWechat);
 router.post('/auth/bind-phone', authenticate, AuthController.bindPhone);
 router.post('/auth/logout', authenticate, AuthController.logout);
+router.post('/auth/wechat-login', AuthController.wechatLogin);
 
-// ===== 话题路由 =====
+// Topic Routes
 router.get('/topics', topicController.getTopics);
-
-// 添加测试路由
-router.get('/test', (req, res) => {
-  res.json({
-    success: true,
-    message: 'API连接正常',
-    timestamp: new Date().toISOString(),
-    data: {
-      topics: [
-        {
-          id: '1',
-          title: '测试话题1',
-          cover: null,
-          author: { nickname: '测试用户', avatar: null },
-          likesCount: 10,
-          commentsCount: 5
-        },
-        {
-          id: '2',
-          title: '测试话题2',
-          cover: null,
-          author: { nickname: '测试用户2', avatar: null },
-          likesCount: 8,
-          commentsCount: 3
-        }
-      ]
-    }
-  });
-});
 router.get('/topics/:id', topicController.getTopicDetail);
 router.post('/topics', authenticate, topicController.createTopic);
 router.put('/topics/:id', authenticate, topicController.updateTopic);
@@ -79,13 +43,13 @@ router.get('/topics/recommend', topicController.getRecommendTopics);
 router.get('/topics/trending', topicController.getTrendingTopics);
 router.get('/topics/:id/matches', topicController.getMatches);
 
-// ===== 评论路由 =====
+// Comment Routes
 router.get('/topics/:topicId/comments', commentController.getComments);
 router.post('/comments', authenticate, commentController.createComment);
 router.post('/comments/:id/like', authenticate, commentController.likeComment);
 router.delete('/comments/:id', authenticate, commentController.deleteComment);
 
-// ===== 用户路由 =====
+// User Routes
 router.get('/users', UserController.getUsers);
 router.get('/users/search', searchController.searchUsers);
 router.get('/users/:id', UserController.getUserProfile);
@@ -96,7 +60,7 @@ router.get('/users/:id/followers', UserController.getFollowers);
 router.post('/users/:id/like', authenticate, UserController.likeUser);
 router.post('/users/:id/heart', authenticate, UserController.heartUser);
 
-// ===== 搜索路由 =====
+// Search Routes
 router.get('/search/topics', searchController.searchTopics);
 router.get('/search/users', searchController.searchUsers);
 router.get('/search/hot-keywords', searchController.getHotKeywords);
@@ -104,40 +68,46 @@ router.get('/search/history', authenticate, searchController.getSearchHistory);
 router.delete('/search/history', authenticate, searchController.clearSearchHistory);
 router.get('/search/suggest', searchController.getSuggestions);
 
-// ===== 通知路由 =====
+// Notification Routes
 router.get('/notifications', authenticate, notificationController.getNotifications);
 router.get('/notifications/unread-count', authenticate, notificationController.getUnreadCount);
 router.put('/notifications/:id/read', authenticate, notificationController.markAsRead);
 router.put('/notifications/read-all', authenticate, notificationController.markAllAsRead);
 router.delete('/notifications/:id', authenticate, notificationController.deleteNotification);
 
-// ===== 文件上传路由 =====
+// Upload Routes
 router.post('/upload/images', authenticate, LocalUploadService.getUploadMiddleware().array('images', 9), uploadController.uploadImages);
 router.post('/upload/documents', authenticate, LocalUploadService.getUploadMiddleware().array('documents', 3), uploadController.uploadDocuments);
 router.post('/upload/link-preview', authenticate, uploadController.getLinkPreview);
 router.delete('/upload/file', authenticate, uploadController.deleteFile);
 
-// ===== 社区路由 =====
+// Community Routes
 router.use('/community', require('./community'));
 
-// ===== 活动路由 =====
+// Activity Routes
 router.use('/activities', require('./activities'));
 
-// ===== 公告路由 =====
+// Announcement Routes
 router.get('/announcements', announcementController.getAnnouncements);
 router.get('/announcements/:id', announcementController.getAnnouncementDetail);
 router.put('/announcements/:id/read', authenticate, announcementController.markAsRead);
 
-// ===== 排行榜路由 =====
+// Leaderboard Routes
 router.use('/leaderboard', require('./leaderboard'));
 
-// ===== 徽章路由 =====
+// Badge Routes
 router.use('/badges', require('./badges'));
 
-// ===== 统计路由 =====
+// Stats Routes
 router.use('/stats', require('./stats'));
 
-// ===== 搜索路由 =====
-router.use('/search', require('./search'));
+// Test Route
+router.get('/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'IEclub API is running',
+    timestamp: new Date().toISOString()
+  });
+});
 
 module.exports = router;

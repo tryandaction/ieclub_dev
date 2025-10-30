@@ -143,24 +143,128 @@ deploy_backend() {
         git pull origin main || log_warning "Git pull 失败，跳过"
     fi
     
+    # 检查必需文件
+    log_info "检查必需配置文件..."
+    if [ ! -f ".env" ]; then
+        log_error ".env 文件不存在！请创建环境配置文件"
+        exit 1
+    fi
+    
+    if [ ! -f "src/config/database.js" ]; then
+        log_error "src/config/database.js 不存在！路由将无法加载"
+        exit 1
+    fi
+    
+    # 检查Node版本
+    log_info "检查Node版本..."
+    NODE_VERSION=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
+    if [ "$NODE_VERSION" -lt 18 ]; then
+        log_warning "Node版本过低 ($NODE_VERSION)，建议使用 v18 或更高版本"
+    fi
+    log_info "当前Node版本: $(node --version)"
+    
+    # 清理旧的node_modules（可选，避免依赖冲突）
+    # rm -rf node_modules package-lock.json
+    
     # 安装依赖
     log_info "安装后端依赖..."
-    npm install
+    npm install --production=false
+    
+    # 验证关键依赖
+    log_info "验证关键依赖..."
+    MISSING_DEPS=""
+    for pkg in "@prisma/client" "express" "ioredis" "date-fns" "jsonwebtoken"; do
+        if ! npm list "$pkg" &>/dev/null; then
+            MISSING_DEPS="$MISSING_DEPS $pkg"
+        fi
+    done
+    
+    if [ -n "$MISSING_DEPS" ]; then
+        log_error "缺少关键依赖:$MISSING_DEPS"
+        log_info "尝试重新安装..."
+        npm install
+    fi
+    
+    # Prisma 生成客户端
+    log_info "生成Prisma客户端..."
+    npx prisma generate
     
     # 数据库迁移
     log_info "执行数据库迁移..."
     npx prisma migrate deploy || log_warning "数据库迁移失败，请手动检查"
     
-    # 重启后端服务
+    # 检查Redis连接
+    log_info "检查Redis连接..."
+    REDIS_HOST=$(grep "^REDIS_HOST=" .env | cut -d'=' -f2)
+    REDIS_PORT=$(grep "^REDIS_PORT=" .env | cut -d'=' -f2)
+    REDIS_PASSWORD=$(grep "^REDIS_PASSWORD=" .env | cut -d'=' -f2)
+    
+    if command -v redis-cli &> /dev/null; then
+        if [ -n "$REDIS_PASSWORD" ]; then
+            if redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" -a "$REDIS_PASSWORD" ping 2>/dev/null | grep -q "PONG"; then
+                log_success "✅ Redis连接正常"
+            else
+                log_error "❌ Redis连接失败，请检查配置和服务状态"
+                exit 1
+            fi
+        else
+            if redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" ping 2>/dev/null | grep -q "PONG"; then
+                log_success "✅ Redis连接正常"
+            else
+                log_error "❌ Redis连接失败，请检查配置和服务状态"
+                exit 1
+            fi
+        fi
+    else
+        log_warning "未安装redis-cli，跳过Redis检查"
+    fi
+    
+    # 重启后端服务（使用正确的Node版本）
     log_info "重启后端服务..."
     if command -v pm2 &> /dev/null; then
-        pm2 restart ieclub-backend || pm2 start npm --name "ieclub-backend" -- start
-        log_success "后端服务已重启（PM2）"
+        # 确保使用正确的Node路径
+        NODE_PATH=$(which node)
+        log_info "使用Node路径: $NODE_PATH"
+        
+        # 停止旧进程
+        if pm2 describe ieclub-backend > /dev/null 2>&1; then
+            pm2 delete ieclub-backend
+            log_info "已停止旧进程"
+        fi
+        
+        # 启动新进程
+        pm2 start src/server.js --name ieclub-backend --node-args="--max-old-space-size=2048"
+        pm2 save
+        
+        # 等待启动
+        sleep 3
+        
+        # 检查进程状态
+        if pm2 describe ieclub-backend | grep -q "online"; then
+            log_success "✅ 后端服务启动成功（PM2）"
+        else
+            log_error "❌ 后端服务启动失败，查看日志:"
+            pm2 logs ieclub-backend --lines 20 --nostream
+            exit 1
+        fi
+        
+        # API健康检查
+        log_info "执行API健康检查..."
+        sleep 2
+        
+        if curl -sf http://127.0.0.1:3000/health > /dev/null 2>&1; then
+            log_success "✅ API健康检查通过"
+            log_info "API响应: $(curl -s http://127.0.0.1:3000/health)"
+        else
+            log_warning "⚠️  API健康检查失败，检查日志:"
+            pm2 logs ieclub-backend --lines 30 --nostream
+        fi
+        
     else
         log_warning "未找到 PM2，请手动重启后端服务"
     fi
     
-    log_success "后端部署完成"
+    log_success "========== 后端部署完成 =========="
 }
 
 # --- 主函数 ---
