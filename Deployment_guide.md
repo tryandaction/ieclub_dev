@@ -8,7 +8,6 @@
 > **PM2**: Both frontend and backend running  
 > **SSL**: Active (Let's Encrypt)
 >
-> See [DEPLOYMENT_SUCCESS.md](DEPLOYMENT_SUCCESS.md) for complete deployment report.
 
 ---
 
