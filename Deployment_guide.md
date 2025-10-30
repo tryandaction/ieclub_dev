@@ -243,6 +243,43 @@ JWT_SECRET=your_production_secret
 
 ### Common Issues
 
+#### 0. 依赖缺失错误（express-validator, express-rate-limit等）
+```bash
+# Symptom
+Error: Cannot find module 'express-validator'
+Error: Cannot find module 'express-rate-limit'
+
+# Root Cause
+服务器上的package.json版本过旧，缺少新增的依赖
+
+# Solution - 方法1：使用部署脚本（推荐）
+.\Deploy.ps1 -Target "backend"
+# 此命令会自动上传最新的package.json并安装所有依赖
+
+# Solution - 方法2：手动修复
+ssh root@ieclub.online
+cd /root/IEclub_dev/ieclub-backend
+
+# 拉取最新代码（包括package.json）
+git pull
+
+# 安装所有依赖
+npm install
+
+# 重启服务
+pm2 restart ieclub-backend
+
+# 检查日志
+pm2 logs ieclub-backend --lines 30
+```
+
+**关键依赖列表** (确保这些都在package.json中):
+- `express-validator@^7.0.1` - 请求参数验证
+- `express-rate-limit@^7.5.1` - API限流
+- `@prisma/client@^5.8.0` - 数据库ORM
+- `ioredis@^5.8.2` - Redis客户端
+- `winston@^3.11.0` - 日志管理
+
 #### 1. API 404 Not Found
 ```bash
 # Symptom
