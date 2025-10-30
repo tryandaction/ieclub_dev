@@ -1,6 +1,14 @@
 import request from '../utils/request'
 
 /**
+ * 获取当前用户信息
+ * @returns {Promise<object>}
+ */
+export const getUserProfile = () => {
+  return request.get('/user/profile')
+}
+
+/**
  * 获取用户列表
  * @param {object} params - 查询参数
  * @param {number} params.page - 页码
