@@ -25,24 +25,24 @@ $ServerPort = 22
 # --- Helper Functions ---
 function Write-Section {
     param([string]$Text)
-    Write-Host "`n═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+    Write-Host "`n================================================================" -ForegroundColor Cyan
     Write-Host "  $Text" -ForegroundColor Cyan
-    Write-Host "═══════════════════════════════════════════════════════════════`n" -ForegroundColor Cyan
+    Write-Host "================================================================`n" -ForegroundColor Cyan
 }
 
 function Write-Info {
     param([string]$Text)
-    Write-Host "ℹ️  $Text" -ForegroundColor Blue
+    Write-Host "[INFO] $Text" -ForegroundColor Blue
 }
 
 function Write-Success {
     param([string]$Text)
-    Write-Host "✅ $Text" -ForegroundColor Green
+    Write-Host "[SUCCESS] $Text" -ForegroundColor Green
 }
 
 function Write-Error {
     param([string]$Text)
-    Write-Host "❌ $Text" -ForegroundColor Red
+    Write-Host "[ERROR] $Text" -ForegroundColor Red
 }
 
 # --- Git Commit ---
@@ -56,6 +56,11 @@ function Commit-Changes {
     if ($status) {
         git commit -m $Message
         Write-Success "Committed changes: $Message"
+        
+        # Push to remote
+        Write-Info "Pushing to remote repository..."
+        git push origin main
+        Write-Success "Pushed to GitHub"
     } else {
         Write-Info "No changes to commit"
     }
@@ -75,15 +80,15 @@ function Build-Web {
     if (Test-Path "dist") {
         Write-Success "Web build completed"
         
-        # 验证关键文件
+        # Verify key files
         if (Test-Path "dist\index.html") {
-            Write-Success "✅ index.html found"
+            Write-Success "index.html found"
         } else {
-            Write-Error "❌ index.html not found in dist!"
+            Write-Error "index.html not found in dist!"
             exit 1
         }
         
-        # 显示构建产物
+        # Show build artifacts
         Write-Info "Build artifacts:"
         Get-ChildItem dist | Select-Object Name | ForEach-Object { Write-Host "  - $($_.Name)" }
     } else {
@@ -143,9 +148,19 @@ function Deploy-Web {
     
     Write-Success "Web upload completed"
     
+    # Upload Deploy_server.sh with Unix line endings
+    Write-Info "Uploading deployment script..."
+    $scriptContent = Get-Content "${ProjectRoot}\Deploy_server.sh" -Raw
+    $scriptContent = $scriptContent -replace "`r`n", "`n"
+    $tempScript = "${env:TEMP}\Deploy_server_unix.sh"
+    [System.IO.File]::WriteAllText($tempScript, $scriptContent, [System.Text.UTF8Encoding]::new($false))
+    scp -P $ServerPort "$tempScript" "${ServerUser}@${ServerHost}:/root/IEclub_dev/Deploy_server.sh"
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "chmod +x /root/IEclub_dev/Deploy_server.sh"
+    Remove-Item $tempScript -Force
+    
     # Execute server-side deployment script
     Write-Info "Executing server-side deployment..."
-    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "cd /root/IEclub_dev; ./Deploy_server.sh web"
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash /root/IEclub_dev/Deploy_server.sh web"
     
     Write-Success "Web deployment completed"
     Write-Info "Visit: https://ieclub.online"
@@ -164,10 +179,10 @@ function Deploy-Backend {
         Remove-Item "backend-code.zip" -Force
     }
     
-    # 创建排除列表
+    # Create exclusion list
     $excludeItems = @("node_modules", ".git", "dist", "*.log", "*.zip", ".env.local")
     
-    # 压缩所有文件（排除大文件）
+    # Compress all files (excluding large files)
     Get-ChildItem -Path . -Exclude $excludeItems | Compress-Archive -DestinationPath "backend-code.zip" -Force
     Write-Success "Backend packaging completed"
     
@@ -187,22 +202,29 @@ function Deploy-Backend {
     
     # Extract and deploy on server
     Write-Info "Extracting backend code on server..."
-    ssh -p $ServerPort "${ServerUser}@${ServerHost}" @"
-cd /root/IEclub_dev/ieclub-backend
-unzip -o /tmp/backend-code.zip
-rm -f /tmp/backend-code.zip
-"@
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "unzip -o /tmp/backend-code.zip -d /root/IEclub_dev/ieclub-backend"
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "rm -f /tmp/backend-code.zip"
+    
+    # Upload Deploy_server.sh (if not already uploaded by web deployment)
+    Write-Info "Uploading deployment script..."
+    $scriptContent = Get-Content "${ProjectRoot}\Deploy_server.sh" -Raw
+    $scriptContent = $scriptContent -replace "`r`n", "`n"
+    $tempScript = "${env:TEMP}\Deploy_server_unix.sh"
+    [System.IO.File]::WriteAllText($tempScript, $scriptContent, [System.Text.UTF8Encoding]::new($false))
+    scp -P $ServerPort "$tempScript" "${ServerUser}@${ServerHost}:/root/IEclub_dev/Deploy_server.sh"
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "chmod +x /root/IEclub_dev/Deploy_server.sh"
+    Remove-Item $tempScript -Force
     
     # Execute server-side deployment
     Write-Info "Deploying backend on server..."
-    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "cd /root/IEclub_dev; ./Deploy_server.sh backend"
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash /root/IEclub_dev/Deploy_server.sh backend"
     
     Write-Success "Backend deployment completed"
     Write-Info "API: https://ieclub.online/api"
 }
 
 # --- Main Execution ---
-Write-Section "🚀 IEClub Dual-Platform One-Click Deployment"
+Write-Section "IEClub Deployment"
 Write-Info "Deployment target: $Target"
 Write-Info "Commit message: $Message"
 
@@ -229,9 +251,8 @@ switch ($Target) {
     }
 }
 
-Write-Section "✅ Deployment Completed"
+Write-Section "Deployment Completed"
 Write-Host "Done!" -ForegroundColor Green
 
 # Return to project root
 Set-Location -Path $ProjectRoot
-
