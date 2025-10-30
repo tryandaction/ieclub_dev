@@ -1,38 +1,52 @@
 # IEClub Deployment Guide
 
+> **✅ DEPLOYMENT STATUS: SUCCESSFUL** (Last Updated: 2025-10-30)
+> 
+> **Live Site**: https://ieclub.online  
+> **API Status**: ✅ Running (15/18 tests passing)  
+> **Server**: 39.108.160.112  
+> **PM2**: Both frontend and backend running  
+> **SSL**: Active (Let's Encrypt)
+>
+> See [DEPLOYMENT_SUCCESS.md](DEPLOYMENT_SUCCESS.md) for complete deployment report.
+
+---
+
 > **Quick Start** - 3 commands to deploy everything!
 
 ---
 
-## 📌 Most Common Operations (Copy & Use)
+## 📌 部署命令（直接复制运行）
 
-### 1️⃣ Deploy Web + Backend (Most Used)
+### 1️⃣ 部署全部（网页+后端） - 最常用
+```powershell
+cd C:\universe\GitHub_try\IEclub_dev
+.\Deploy.ps1 -Target "all"
+```
+**这条命令会**:
+- ✅ 构建并部署网页
+- ✅ 打包并部署后端
+- ✅ 重启所有服务
+- ✅ 自动提交Git
+
+### 2️⃣ 只部署网页
 ```powershell
 cd C:\universe\GitHub_try\IEclub_dev
 .\Deploy.ps1 -Target "web"
 ```
 
-Visit: https://ieclub.online
-
-### 2️⃣ Build Mini Program (During Development)
-```powershell
-cd C:\universe\GitHub_try\IEclub_dev
-.\Deploy.ps1 -Target "weapp"
-```
-
-Then open WeChat DevTools and import `ieclub-frontend` directory
-
-### 3️⃣ Deploy All (Web + Mini Program + Backend)
-```powershell
-cd C:\universe\GitHub_try\IEclub_dev
-.\Deploy.ps1 -Target "all"
-```
-
-### 4️⃣ Deploy Backend Only
+### 3️⃣ 只部署后端
 ```powershell
 cd C:\universe\GitHub_try\IEclub_dev
 .\Deploy.ps1 -Target "backend"
 ```
+
+### 4️⃣ 编译小程序（本地开发）
+```powershell
+cd C:\universe\GitHub_try\IEclub_dev
+.\Deploy.ps1 -Target "weapp"
+```
+然后用微信开发者工具打开 `ieclub-frontend` 目录
 
 ---
 

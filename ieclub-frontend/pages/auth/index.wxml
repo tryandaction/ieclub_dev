@@ -4,7 +4,7 @@
   <view class="logo-section">
     <view class="logo">IE</view>
     <view class="app-name">IEClub</view>
-    <view class="app-slogan">学习 · 科研 · 创业</view>
+    <view class="app-slogan">学习 · 科研 · 项目 · 创业</view>
   </view>
 
   <!-- Tab 切换 -->

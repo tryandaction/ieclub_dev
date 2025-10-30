@@ -7,7 +7,7 @@
 ![WeChat](https://img.shields.io/badge/WeChat-MiniProgram-brightgreen)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 
-**学习 · 科研 · 创业 | 智能匹配 · 资源对接 · 知识分享**
+**学习 · 科研 · 项目 · 创业 | 智能匹配 · 资源对接 · 知识分享**
 
 [功能特性](#功能特性) · [技术架构](#技术架构) · [快速开始](#快速开始) · [项目结构](#项目结构) · [开发指南](#开发指南)
 

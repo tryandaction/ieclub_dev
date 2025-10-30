@@ -137,8 +137,16 @@ deploy_backend() {
     
     cd "${BACKEND_DIR}"
     
-    # 拉取最新代码（如果是Git仓库）
-    if [ -d ".git" ]; then
+    # 检查是否有上传的代码包
+    if [ -f "/tmp/backend-code.zip" ]; then
+        log_info "发现上传的后端代码包，解压部署..."
+        unzip -o /tmp/backend-code.zip -d "${BACKEND_DIR}"
+        rm -f /tmp/backend-code.zip
+        log_success "代码包解压完成"
+    fi
+    
+    # 如果是Git仓库，拉取最新代码（作为备用）
+    if [ -d ".git" ] && [ ! -f "/tmp/backend-code.zip" ]; then
         log_info "拉取最新代码..."
         git pull origin main || log_warning "Git pull 失败，跳过"
     fi

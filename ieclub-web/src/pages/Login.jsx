@@ -121,7 +121,7 @@ export default function Login() {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
             IEClub
           </h1>
-          <p className="text-gray-600">学习 · 科研 · 创业</p>
+          <p className="text-gray-600">学习 · 科研 · 项目 · 创业</p>
         </div>
 
         {/* 登录表单 */}

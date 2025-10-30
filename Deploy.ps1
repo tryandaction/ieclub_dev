@@ -116,16 +116,16 @@ function Deploy-Web {
     Write-Info "Packaging web build artifacts..."
     Set-Location -Path $WebDir
     
-    if (Test-Path "dist.zip") {
-        Remove-Item "dist.zip" -Force
+    if (Test-Path "web-dist.zip") {
+        Remove-Item "web-dist.zip" -Force
     }
     
-    Compress-Archive -Path "dist\*" -DestinationPath "dist.zip"
+    Compress-Archive -Path "dist\*" -DestinationPath "web-dist.zip"
     Write-Success "Web packaging completed"
     
     # Upload to server
     Write-Info "Uploading web to server..."
-    scp -P $ServerPort "dist.zip" "${ServerUser}@${ServerHost}:/tmp/"
+    scp -P $ServerPort "web-dist.zip" "${ServerUser}@${ServerHost}:/tmp/"
     
     # Upload source code
     Write-Info "Uploading web source code..."
@@ -155,14 +155,46 @@ function Deploy-Web {
 function Deploy-Backend {
     Write-Section "Deploy backend"
     
-    Set-Location -Path $ProjectRoot
+    Set-Location -Path $BackendDir
     
-    # Upload backend code
-    Write-Info "Uploading backend code..."
-    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "cd /root/IEclub_dev/ieclub-backend; git pull"
+    # Package backend code (exclude node_modules and other large files)
+    Write-Info "Packaging backend code..."
+    
+    if (Test-Path "backend-code.zip") {
+        Remove-Item "backend-code.zip" -Force
+    }
+    
+    # 创建排除列表
+    $excludeItems = @("node_modules", ".git", "dist", "*.log", "*.zip", ".env.local")
+    
+    # 压缩所有文件（排除大文件）
+    Get-ChildItem -Path . -Exclude $excludeItems | Compress-Archive -DestinationPath "backend-code.zip" -Force
+    Write-Success "Backend packaging completed"
+    
+    # Upload to server
+    Write-Info "Uploading backend code to server..."
+    scp -P $ServerPort "backend-code.zip" "${ServerUser}@${ServerHost}:/tmp/"
+    
+    # Upload critical files that might be excluded
+    Write-Info "Uploading .env file..."
+    scp -P $ServerPort ".env" "${ServerUser}@${ServerHost}:/root/IEclub_dev/ieclub-backend/" 2>$null
+    
+    # Upload package files
+    scp -P $ServerPort "package.json" "${ServerUser}@${ServerHost}:/root/IEclub_dev/ieclub-backend/"
+    if (Test-Path "package-lock.json") {
+        scp -P $ServerPort "package-lock.json" "${ServerUser}@${ServerHost}:/root/IEclub_dev/ieclub-backend/"
+    }
+    
+    # Extract and deploy on server
+    Write-Info "Extracting backend code on server..."
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" @"
+cd /root/IEclub_dev/ieclub-backend
+unzip -o /tmp/backend-code.zip
+rm -f /tmp/backend-code.zip
+"@
     
     # Execute server-side deployment
-    Write-Info "Deploying backend..."
+    Write-Info "Deploying backend on server..."
     ssh -p $ServerPort "${ServerUser}@${ServerHost}" "cd /root/IEclub_dev; ./Deploy_server.sh backend"
     
     Write-Success "Backend deployment completed"
