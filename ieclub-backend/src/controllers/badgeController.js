@@ -1,5 +1,6 @@
 // ===== controllers/badgeController.js - 徽章控制器 =====
 const badgeService = require('../services/badgeService');
+const logger = require('../utils/logger');
 
 class BadgeController {
   /**
@@ -14,7 +15,7 @@ class BadgeController {
         data: badges
       });
     } catch (error) {
-      console.error('获取徽章列表失败:', error);
+      logger.error('获取徽章列表失败:', error);
       res.status(500).json({
         success: false,
         message: '获取徽章列表失败'
@@ -36,7 +37,7 @@ class BadgeController {
         data: badges
       });
     } catch (error) {
-      console.error('获取用户徽章失败:', error);
+      logger.error('获取用户徽章失败:', error);
       res.status(500).json({
         success: false,
         message: '获取用户徽章失败'
@@ -56,7 +57,7 @@ class BadgeController {
         data: rules
       });
     } catch (error) {
-      console.error('获取积分规则失败:', error);
+      logger.error('获取积分规则失败:', error);
       res.status(500).json({
         success: false,
         message: '获取积分规则失败'
@@ -79,7 +80,7 @@ class BadgeController {
         data: newBadges
       });
     } catch (error) {
-      console.error('检查徽章失败:', error);
+      logger.error('检查徽章失败:', error);
       res.status(500).json({
         success: false,
         message: '检查徽章失败'

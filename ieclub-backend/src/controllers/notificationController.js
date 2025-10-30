@@ -2,6 +2,7 @@
  * 通知控制器
  */
 const { PrismaClient } = require('@prisma/client');
+const logger = require('../utils/logger');
 const prisma = new PrismaClient();
 
 class NotificationController {
@@ -56,7 +57,7 @@ class NotificationController {
         },
       });
     } catch (error) {
-      console.error('获取通知列表失败:', error);
+      logger.error('获取通知列表失败:', error);
       return res.status(500).json({
         success: false,
         message: '获取通知列表失败',
@@ -84,7 +85,7 @@ class NotificationController {
         data: { count },
       });
     } catch (error) {
-      console.error('获取未读数量失败:', error);
+      logger.error('获取未读数量失败:', error);
       return res.status(500).json({
         success: false,
         message: '获取未读数量失败',
@@ -134,7 +135,7 @@ class NotificationController {
         data: updated,
       });
     } catch (error) {
-      console.error('标记已读失败:', error);
+      logger.error('标记已读失败:', error);
       return res.status(500).json({
         success: false,
         message: '标记已读失败',
@@ -169,7 +170,7 @@ class NotificationController {
         message: `已标记 ${result.count} 条通知为已读`,
       });
     } catch (error) {
-      console.error('标记全部已读失败:', error);
+      logger.error('标记全部已读失败:', error);
       return res.status(500).json({
         success: false,
         message: '标记全部已读失败',
@@ -214,7 +215,7 @@ class NotificationController {
         message: '删除成功',
       });
     } catch (error) {
-      console.error('删除通知失败:', error);
+      logger.error('删除通知失败:', error);
       return res.status(500).json({
         success: false,
         message: '删除通知失败',
@@ -245,7 +246,7 @@ class NotificationController {
         message: `已清空 ${result.count} 条已读通知`,
       });
     } catch (error) {
-      console.error('清空已读通知失败:', error);
+      logger.error('清空已读通知失败:', error);
       return res.status(500).json({
         success: false,
         message: '清空已读通知失败',
@@ -282,7 +283,7 @@ class NotificationController {
 
       return notification;
     } catch (error) {
-      console.error('创建通知失败:', error);
+      logger.error('创建通知失败:', error);
       throw error;
     }
   }
@@ -296,7 +297,7 @@ class NotificationController {
         data: notifications,
       });
     } catch (error) {
-      console.error('批量创建通知失败:', error);
+      logger.error('批量创建通知失败:', error);
       throw error;
     }
   }

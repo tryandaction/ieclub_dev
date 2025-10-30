@@ -1,5 +1,6 @@
 // ===== controllers/leaderboardController.js - 排行榜控制器 =====
 const prisma = require('../config/database');
+const logger = require('../utils/logger');
 const { startOfWeek, startOfMonth, subDays } = require('date-fns');
 
 class LeaderboardController {
@@ -103,7 +104,7 @@ class LeaderboardController {
         }
       });
     } catch (error) {
-      console.error('获取综合排行榜失败:', error);
+      logger.error('获取综合排行榜失败:', error);
       res.status(500).json({
         success: false,
         message: '获取排行榜失败'
@@ -200,7 +201,7 @@ class LeaderboardController {
         }
       });
     } catch (error) {
-      console.error('获取知识分享排行榜失败:', error);
+      logger.error('获取知识分享排行榜失败:', error);
       res.status(500).json({
         success: false,
         message: '获取排行榜失败'
@@ -270,7 +271,7 @@ class LeaderboardController {
         }
       });
     } catch (error) {
-      console.error('获取人气排行榜失败:', error);
+      logger.error('获取人气排行榜失败:', error);
       res.status(500).json({
         success: false,
         message: '获取排行榜失败'
@@ -364,7 +365,7 @@ class LeaderboardController {
         }
       });
     } catch (error) {
-      console.error('获取话题热度排行榜失败:', error);
+      logger.error('获取话题热度排行榜失败:', error);
       res.status(500).json({
         success: false,
         message: '获取排行榜失败'
@@ -441,7 +442,7 @@ class LeaderboardController {
         }
       });
     } catch (error) {
-      console.error('获取项目关注排行榜失败:', error);
+      logger.error('获取项目关注排行榜失败:', error);
       res.status(500).json({
         success: false,
         message: '获取排行榜失败'
@@ -506,7 +507,7 @@ class LeaderboardController {
         }
       });
     } catch (error) {
-      console.error('获取用户排名失败:', error);
+      logger.error('获取用户排名失败:', error);
       res.status(500).json({
         success: false,
         message: '获取排名失败'
@@ -525,7 +526,7 @@ class LeaderboardController {
       req.params.userId = userId;
       await this.getUserRanking(req, res);
     } catch (error) {
-      console.error('获取我的排名失败:', error);
+      logger.error('获取我的排名失败:', error);
       res.status(500).json({
         success: false,
         message: '获取排名失败'
@@ -614,7 +615,7 @@ async function calculateUserRank(userId, type) {
       beatPercentage: parseFloat(beatPercentage)
     };
   } catch (error) {
-    console.error('计算用户排名失败:', error);
+    logger.error('计算用户排名失败:', error);
     return {
       rank: null,
       total: null,

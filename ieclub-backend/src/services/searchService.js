@@ -1,5 +1,6 @@
 // ===== services/searchService.js - 搜索服务（智能联想和纠错） =====
 const prisma = require('../config/database');
+const logger = require('../utils/logger');
 
 class SearchService {
   /**
@@ -87,7 +88,7 @@ class SearchService {
 
       return suggestions;
     } catch (error) {
-      console.error('获取搜索建议失败:', error);
+      logger.error('获取搜索建议失败:', error);
       return [];
     }
   }
@@ -118,7 +119,7 @@ class SearchService {
 
       return searches.map(s => s.keyword);
     } catch (error) {
-      console.error('获取热门搜索失败:', error);
+      logger.error('获取热门搜索失败:', error);
       // 返回默认热门搜索
       return [
         'Python', '机器学习', '前端开发', 'React',
@@ -224,7 +225,7 @@ class SearchService {
         }
       });
     } catch (error) {
-      console.error('保存搜索历史失败:', error);
+      logger.error('保存搜索历史失败:', error);
     }
   }
 
@@ -242,7 +243,7 @@ class SearchService {
 
       return history.map(h => h.keyword);
     } catch (error) {
-      console.error('获取搜索历史失败:', error);
+      logger.error('获取搜索历史失败:', error);
       return [];
     }
   }
@@ -257,7 +258,7 @@ class SearchService {
       });
       return true;
     } catch (error) {
-      console.error('清除搜索历史失败:', error);
+      logger.error('清除搜索历史失败:', error);
       return false;
     }
   }
@@ -302,7 +303,7 @@ class SearchService {
 
       return related;
     } catch (error) {
-      console.error('获取相关搜索失败:', error);
+      logger.error('获取相关搜索失败:', error);
       return [];
     }
   }
@@ -335,7 +336,7 @@ class SearchService {
 
       return [...new Set(topics.map(t => t.title))];
     } catch (error) {
-      console.error('搜索补全失败:', error);
+      logger.error('搜索补全失败:', error);
       return [];
     }
   }

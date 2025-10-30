@@ -2,18 +2,20 @@
 // JWT 认证中间件测试 - 符合 IEClub 技术架构规范
 
 const jwt = require('jsonwebtoken');
-const { authenticate, optionalAuth, requireVip, requireCertified, generateToken } = require('../../../src/middleware/auth');
 const AppError = require('../../../src/utils/AppError');
 
 // Mock dependencies - 符合项目架构
 jest.mock('jsonwebtoken');
-jest.mock('@prisma/client', () => ({
-  PrismaClient: jest.fn().mockImplementation(() => ({
-    user: {
-      findUnique: jest.fn(),
-    },
-  })),
-}));
+
+// Mock Prisma instance
+const mockPrisma = {
+  user: {
+    findUnique: jest.fn(),
+  },
+};
+
+// Mock database module to return our mock prisma
+jest.mock('../../../src/config/database', () => mockPrisma);
 
 // Mock config - 使用项目实际配置结构
 jest.mock('../../../src/config', () => ({
@@ -42,10 +44,11 @@ jest.mock('../../../src/utils/response', () => ({
   serverError: jest.fn(),
 }));
 
-const { PrismaClient } = require('@prisma/client');
-const mockPrisma = new PrismaClient();
 const logger = require('../../../src/utils/logger');
 const response = require('../../../src/utils/response');
+
+// Import auth middleware AFTER mocks are set up
+const { authenticate, optionalAuth, requireVip, requireCertified, generateToken } = require('../../../src/middleware/auth');
 
 describe('IEClub Auth Middleware - 认证系统测试', () => {
   let req, res, next;

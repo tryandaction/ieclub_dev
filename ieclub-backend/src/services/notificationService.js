@@ -3,6 +3,7 @@
  * 负责在各种操作时自动创建通知
  */
 const { PrismaClient } = require('@prisma/client');
+const logger = require('../utils/logger');
 const prisma = new PrismaClient();
 
 class NotificationService {
@@ -42,7 +43,7 @@ class NotificationService {
         },
       });
     } catch (error) {
-      console.error('创建点赞通知失败:', error);
+      logger.error('创建点赞通知失败:', error);
     }
   }
 
@@ -92,7 +93,7 @@ class NotificationService {
         },
       });
     } catch (error) {
-      console.error('创建评论通知失败:', error);
+      logger.error('创建评论通知失败:', error);
     }
   }
 
@@ -143,7 +144,7 @@ class NotificationService {
         },
       });
     } catch (error) {
-      console.error('创建回复通知失败:', error);
+      logger.error('创建回复通知失败:', error);
     }
   }
 
@@ -174,7 +175,7 @@ class NotificationService {
         },
       });
     } catch (error) {
-      console.error('创建关注通知失败:', error);
+      logger.error('创建关注通知失败:', error);
     }
   }
 
@@ -195,7 +196,7 @@ class NotificationService {
         },
       });
     } catch (error) {
-      console.error('创建系统通知失败:', error);
+      logger.error('创建系统通知失败:', error);
     }
   }
 
@@ -225,7 +226,7 @@ class NotificationService {
 
       return notifications.length;
     } catch (error) {
-      console.error('批量发送系统通知失败:', error);
+      logger.error('批量发送系统通知失败:', error);
       throw error;
     }
   }
@@ -248,10 +249,10 @@ class NotificationService {
         },
       });
 
-      console.log(`清理了 ${result.count} 条旧通知`);
+      logger.info(`清理了 ${result.count} 条旧通知`);
       return result.count;
     } catch (error) {
-      console.error('清理旧通知失败:', error);
+      logger.error('清理旧通知失败:', error);
       throw error;
     }
   }

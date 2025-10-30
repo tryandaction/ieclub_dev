@@ -1,5 +1,6 @@
 // ===== services/statsService.js - 数据统计服务 =====
 const prisma = require('../config/database');
+const logger = require('../utils/logger');
 const { startOfWeek, startOfMonth, startOfYear, subDays } = require('date-fns');
 
 class StatsService {
@@ -47,7 +48,7 @@ class StatsService {
         monthly: monthlyStats
       };
     } catch (error) {
-      console.error('获取用户统计失败:', error);
+      logger.error('获取用户统计失败:', error);
       throw error;
     }
   }
@@ -180,7 +181,7 @@ class StatsService {
         activityByDay
       };
     } catch (error) {
-      console.error('计算用户活跃度失败:', error);
+      logger.error('计算用户活跃度失败:', error);
       return {
         activeDays: 0,
         totalActivity: 0,
@@ -236,7 +237,7 @@ class StatsService {
 
       return Math.round(influence);
     } catch (error) {
-      console.error('计算用户影响力失败:', error);
+      logger.error('计算用户影响力失败:', error);
       return 0;
     }
   }
@@ -267,7 +268,7 @@ class StatsService {
         updatedAt: new Date().toISOString()
       };
     } catch (error) {
-      console.error('获取平台统计失败:', error);
+      logger.error('获取平台统计失败:', error);
       return {
         totalUsers: 0,
         totalTopics: 0,
@@ -313,7 +314,7 @@ class StatsService {
 
       return popularTags;
     } catch (error) {
-      console.error('获取热门标签失败:', error);
+      logger.error('获取热门标签失败:', error);
       return [];
     }
   }
@@ -380,7 +381,7 @@ class StatsService {
 
       return trends;
     } catch (error) {
-      console.error('计算成长趋势失败:', error);
+      logger.error('计算成长趋势失败:', error);
       return [];
     }
   }

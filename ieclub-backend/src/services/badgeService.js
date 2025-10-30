@@ -1,5 +1,6 @@
 // ===== services/badgeService.js - 徽章服务 =====
 const prisma = require('../config/database');
+const logger = require('../utils/logger');
 
 /**
  * 徽章类型定义
@@ -115,7 +116,7 @@ class BadgeService {
 
       return newBadges;
     } catch (error) {
-      console.error('检查徽章失败:', error);
+      logger.error('检查徽章失败:', error);
       return [];
     }
   }
@@ -148,10 +149,10 @@ class BadgeService {
       // 创建通知
       await this.createBadgeNotification(userId, badge);
 
-      console.log(`用户 ${userId} 获得徽章: ${badge.name}`);
+      logger.info(`用户 ${userId} 获得徽章: ${badge.name}`);
       return true;
     } catch (error) {
-      console.error('授予徽章失败:', error);
+      logger.error('授予徽章失败:', error);
       return false;
     }
   }
@@ -171,7 +172,7 @@ class BadgeService {
         }
       });
     } catch (error) {
-      console.error('创建徽章通知失败:', error);
+      logger.error('创建徽章通知失败:', error);
     }
   }
 
@@ -199,10 +200,10 @@ class BadgeService {
       // 检查是否应该获得新徽章
       await this.checkAndAwardBadges(userId);
 
-      console.log(`用户 ${userId} 获得 ${points} 积分 (${pointsType})`);
+      logger.info(`用户 ${userId} 获得 ${points} 积分 (${pointsType})`);
       return points;
     } catch (error) {
-      console.error('增加积分失败:', error);
+      logger.error('增加积分失败:', error);
       return 0;
     }
   }
@@ -239,10 +240,10 @@ class BadgeService {
           }
         });
 
-        console.log(`用户 ${userId} 升级到 LV${newLevel}`);
+        logger.info(`用户 ${userId} 升级到 LV${newLevel}`);
       }
     } catch (error) {
-      console.error('检查等级提升失败:', error);
+      logger.error('检查等级提升失败:', error);
     }
   }
 
@@ -279,7 +280,7 @@ class BadgeService {
       
       return [];
     } catch (error) {
-      console.error('获取用户徽章失败:', error);
+      logger.error('获取用户徽章失败:', error);
       return [];
     }
   }

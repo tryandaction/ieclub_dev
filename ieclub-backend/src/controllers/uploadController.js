@@ -7,7 +7,6 @@ const OSSService = require('../services/ossService');
 const LocalUploadService = require('../services/localUploadService');
 const WechatService = require('../services/wechatService');
 const axios = require('axios');
-const cheerio = require('cheerio');
 
 class UploadController {
   /**
@@ -152,37 +151,62 @@ class UploadController {
         return response.error(res, '无法访问该链接', 400);
       }
 
-      // 解析 HTML
-      const $ = cheerio.load(html);
+      // 使用正则表达式解析 HTML（轻量级方案，避免 cheerio 依赖）
+      const getMetaContent = (html, property) => {
+        // 尝试匹配 <meta property="xxx" content="yyy">
+        const propertyMatch = new RegExp(
+          `<meta[^>]*property=["']${property}["'][^>]*content=["']([^"']*)["']`,
+          'i'
+        ).exec(html);
+        if (propertyMatch) return propertyMatch[1];
+        
+        // 尝试匹配 <meta content="yyy" property="xxx">
+        const propertyMatch2 = new RegExp(
+          `<meta[^>]*content=["']([^"']*)["'][^>]*property=["']${property}["']`,
+          'i'
+        ).exec(html);
+        if (propertyMatch2) return propertyMatch2[1];
+        
+        // 尝试匹配 <meta name="xxx" content="yyy">
+        const nameMatch = new RegExp(
+          `<meta[^>]*name=["']${property}["'][^>]*content=["']([^"']*)["']`,
+          'i'
+        ).exec(html);
+        if (nameMatch) return nameMatch[1];
+        
+        // 尝试匹配 <meta content="yyy" name="xxx">
+        const nameMatch2 = new RegExp(
+          `<meta[^>]*content=["']([^"']*)["'][^>]*name=["']${property}["']`,
+          'i'
+        ).exec(html);
+        if (nameMatch2) return nameMatch2[1];
+        
+        return '';
+      };
 
-      // 提取 OpenGraph 标签
-      const getMetaContent = (property) => {
-        return (
-          $(`meta[property="${property}"]`).attr('content') ||
-          $(`meta[name="${property}"]`).attr('content') ||
-          ''
-        );
+      const getTitleContent = (html) => {
+        const match = /<title[^>]*>([^<]*)<\/title>/i.exec(html);
+        return match ? match[1].trim() : '';
       };
 
       const preview = {
         url,
         title:
-          getMetaContent('og:title') ||
-          $('title').text() ||
+          getMetaContent(html, 'og:title') ||
+          getTitleContent(html) ||
           '无标题',
         description:
-          getMetaContent('og:description') ||
-          getMetaContent('description') ||
+          getMetaContent(html, 'og:description') ||
+          getMetaContent(html, 'description') ||
           '',
         image:
-          getMetaContent('og:image') ||
-          getMetaContent('twitter:image') ||
-          $('link[rel="image_src"]').attr('href') ||
+          getMetaContent(html, 'og:image') ||
+          getMetaContent(html, 'twitter:image') ||
           '',
         siteName:
-          getMetaContent('og:site_name') ||
+          getMetaContent(html, 'og:site_name') ||
           parsedUrl.hostname,
-        type: getMetaContent('og:type') || 'website',
+        type: getMetaContent(html, 'og:type') || 'website',
       };
 
       // 处理相对路径的图片

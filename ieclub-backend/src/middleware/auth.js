@@ -2,13 +2,20 @@
 // JWT 认证中间件
 
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
 const config = require('../config');
 const response = require('../utils/response');
 const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
 
-const prisma = new PrismaClient();
+// 使用共享的 Prisma 实例以支持测试 mock
+let prisma;
+try {
+  prisma = require('../config/database');
+} catch {
+  // Fallback for tests
+  const { PrismaClient } = require('@prisma/client');
+  prisma = new PrismaClient();
+}
 
 /**
  * 验证 JWT Token

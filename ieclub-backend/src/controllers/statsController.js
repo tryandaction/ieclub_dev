@@ -1,5 +1,6 @@
 // ===== controllers/statsController.js - 统计控制器 =====
 const statsService = require('../services/statsService');
+const logger = require('../utils/logger');
 
 class StatsController {
   /**
@@ -16,7 +17,7 @@ class StatsController {
         data: stats
       });
     } catch (error) {
-      console.error('获取用户统计失败:', error);
+      logger.error('获取用户统计失败:', error);
       res.status(500).json({
         success: false,
         message: '获取统计数据失败'
@@ -39,7 +40,7 @@ class StatsController {
         data: activity
       });
     } catch (error) {
-      console.error('获取用户活跃度失败:', error);
+      logger.error('获取用户活跃度失败:', error);
       res.status(500).json({
         success: false,
         message: '获取活跃度失败'
@@ -61,7 +62,7 @@ class StatsController {
         data: { influence }
       });
     } catch (error) {
-      console.error('获取用户影响力失败:', error);
+      logger.error('获取用户影响力失败:', error);
       res.status(500).json({
         success: false,
         message: '获取影响力失败'
@@ -81,7 +82,7 @@ class StatsController {
         data: stats
       });
     } catch (error) {
-      console.error('获取平台统计失败:', error);
+      logger.error('获取平台统计失败:', error);
       res.status(500).json({
         success: false,
         message: '获取统计数据失败'
@@ -103,7 +104,7 @@ class StatsController {
         data: tags
       });
     } catch (error) {
-      console.error('获取热门标签失败:', error);
+      logger.error('获取热门标签失败:', error);
       res.status(500).json({
         success: false,
         message: '获取热门标签失败'
@@ -126,7 +127,7 @@ class StatsController {
         data: trend
       });
     } catch (error) {
-      console.error('获取成长趋势失败:', error);
+      logger.error('获取成长趋势失败:', error);
       res.status(500).json({
         success: false,
         message: '获取成长趋势失败'
