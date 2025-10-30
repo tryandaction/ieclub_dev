@@ -41,6 +41,18 @@ request.interceptors.request.use(
       showLoading()
     }
     
+    // 开发环境下打印请求信息
+    if (import.meta.env.DEV) {
+      console.log('🚀 API Request:', {
+        method: config.method?.toUpperCase(),
+        url: config.url,
+        baseURL: config.baseURL,
+        fullURL: `${config.baseURL}${config.url}`,
+        data: config.data,
+        params: config.params
+      })
+    }
+    
     return config
   },
   error => {
@@ -160,8 +172,17 @@ request.interceptors.response.use(
         }
         break
       case 404:
+        // 404错误提供更详细的信息
+        const requestURL = error.config?.url || 'unknown'
+        const fullURL = error.config?.baseURL ? `${error.config.baseURL}${requestURL}` : requestURL
+        console.error('❌ 404 Error:', {
+          url: requestURL,
+          fullURL: fullURL,
+          method: error.config?.method,
+          response: data
+        })
         if (!data || !data.message) {
-          errorMessage = '请求的资源不存在'
+          errorMessage = `路由不存在: ${error.config?.method?.toUpperCase()} ${requestURL}`
         }
         break
       case 429:

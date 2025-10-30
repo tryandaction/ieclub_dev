@@ -128,6 +128,24 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
+// 健康检查端点（在所有中间件之前）
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// API 测试端点
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'IEClub API is running',
+    version: '1.0.0',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // API 路由
 try {
   const routes = require('./routes');
@@ -135,6 +153,7 @@ try {
   logger.info('✅ 路由加载成功');
 } catch (error) {
   logger.error('❌ 路由加载失败:', error);
+  process.exit(1); // 路由加载失败应该退出
 }
 
 // 404 处理

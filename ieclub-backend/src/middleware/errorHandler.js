@@ -85,6 +85,14 @@ const errorHandler = (err, req, res, _next) => {
 };
 
 const notFoundHandler = (req, res) => {
+  logger.warn(`404 - 路由不存在: ${req.method} ${req.url}`, {
+    method: req.method,
+    url: req.url,
+    baseUrl: req.baseUrl,
+    originalUrl: req.originalUrl,
+    ip: req.ip,
+    userAgent: req.get('user-agent')
+  });
   return response.notFound(res, `路由 ${req.method} ${req.url} 不存在`);
 };
 
