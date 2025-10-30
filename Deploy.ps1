@@ -51,13 +51,19 @@ function Commit-Changes {
     Set-Location -Path $ProjectRoot
     
     git add .
-    git commit -m $Message
-    Write-Success "Committed changes: $Message"
+    $status = git status --porcelain
+    
+    if ($status) {
+        git commit -m $Message
+        Write-Success "Committed changes: $Message"
         
-    # Push to remote
-    Write-Info "Pushing to remote repository..."
-    git push origin main
-    Write-Success "Pushed to GitHub"
+        # Push to remote
+        Write-Info "Pushing to remote repository..."
+        git push origin main
+        Write-Success "Pushed to GitHub"
+    } else {
+        Write-Info "No changes to commit"
+    }
 }
 
 # --- Build Web Frontend ---
