@@ -66,7 +66,7 @@ function Commit-Changes {
     # }
     git commit -m $Message
     Write-Success "Committed changes: $Message"
-    Push to remote
+    # Push to remote
     Write-Info "Pushing to remote repository..."
     git push origin main
     Write-Success "Pushed to GitHub"
