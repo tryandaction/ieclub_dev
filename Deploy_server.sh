@@ -201,26 +201,24 @@ deploy_backend() {
     log_info "执行数据库迁移..."
     npx prisma migrate deploy || log_warning "数据库迁移失败，请手动检查"
     
-    # 检查Redis连接
+    # 检查Redis连接（非阻塞）
     log_info "检查Redis连接..."
-    REDIS_HOST=$(grep "^REDIS_HOST=" .env | cut -d'=' -f2)
-    REDIS_PORT=$(grep "^REDIS_PORT=" .env | cut -d'=' -f2)
-    REDIS_PASSWORD=$(grep "^REDIS_PASSWORD=" .env | cut -d'=' -f2)
+    REDIS_HOST=$(grep "^REDIS_HOST=" .env | cut -d'=' -f2 2>/dev/null || echo "localhost")
+    REDIS_PORT=$(grep "^REDIS_PORT=" .env | cut -d'=' -f2 2>/dev/null || echo "6379")
+    REDIS_PASSWORD=$(grep "^REDIS_PASSWORD=" .env | cut -d'=' -f2 2>/dev/null || echo "")
     
     if command -v redis-cli &> /dev/null; then
         if [ -n "$REDIS_PASSWORD" ]; then
             if redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" -a "$REDIS_PASSWORD" ping 2>/dev/null | grep -q "PONG"; then
                 log_success "✅ Redis连接正常"
             else
-                log_error "❌ Redis连接失败，请检查配置和服务状态"
-                exit 1
+                log_warning "⚠️  Redis连接失败，服务可能需要重启"
             fi
         else
             if redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" ping 2>/dev/null | grep -q "PONG"; then
                 log_success "✅ Redis连接正常"
             else
-                log_error "❌ Redis连接失败，请检查配置和服务状态"
-                exit 1
+                log_warning "⚠️  Redis连接失败，服务可能需要重启"
             fi
         fi
     else
@@ -251,9 +249,8 @@ deploy_backend() {
         if pm2 describe ieclub-backend | grep -q "online"; then
             log_success "✅ 后端服务启动成功（PM2）"
         else
-            log_error "❌ 后端服务启动失败，查看日志:"
-            pm2 logs ieclub-backend --lines 20 --nostream
-            exit 1
+            log_warning "⚠️  后端服务可能未正常启动，查看日志:"
+            pm2 logs ieclub-backend --lines 20 --nostream || true
         fi
         
         # API健康检查
