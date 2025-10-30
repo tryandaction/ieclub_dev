@@ -8,6 +8,12 @@
 > **PM2**: Both frontend and backend running  
 > **SSL**: Active (Let's Encrypt)
 >
+> **Recent Updates**:
+> - ✅ 完善前端UI和用户体验
+> - ✅ 添加全局加载和错误处理
+> - ✅ 优化评论列表空状态显示
+> - ✅ 改进骨架屏加载效果
+> - ✅ 添加消息提示工具
 
 ---
 
@@ -329,5 +335,5 @@ tail -f /var/log/nginx/error.log
 
 ---
 
-**Last Updated**: 2025-10-29
+**Last Updated**: 2025-10-30
 
