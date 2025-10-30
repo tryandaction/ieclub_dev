@@ -10,6 +10,9 @@ const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
+// 信任代理（Nginx反向代理）
+app.set('trust proxy', 1);
+
 // 安全中间件
 app.use(helmet({
   contentSecurityPolicy: false,

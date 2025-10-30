@@ -34,9 +34,8 @@ App({
     token: '',
     userInfo: null,
     systemInfo: null,
-    // API 基础地址
-    // 注意：DNS修复后可以改为 http://ieclub.online/api
-    apiBase: 'http://39.108.160.112/api'
+    // API 基础地址 - 使用HTTPS域名
+    apiBase: 'https://www.ieclub.online/api'
   }
 })
 
