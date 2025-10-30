@@ -1,0 +1,167 @@
+<!--pages/auth/index.wxml-->
+<view class="auth-page">
+  <!-- Logo 区域 -->
+  <view class="logo-section">
+    <view class="logo">IE</view>
+    <view class="app-name">IEClub</view>
+    <view class="app-slogan">学习 · 科研 · 创业</view>
+  </view>
+
+  <!-- Tab 切换 -->
+  <view class="tab-section">
+    <view class="tab-item {{tabIndex === 0 ? 'active' : ''}}" bindtap="switchTab" data-index="0">
+      <text class="tab-text">登录</text>
+    </view>
+    <view class="tab-item {{tabIndex === 1 ? 'active' : ''}}" bindtap="switchTab" data-index="1">
+      <text class="tab-text">注册</text>
+    </view>
+    <view class="tab-indicator" style="transform: translateX({{tabIndex * 100}}%)"></view>
+  </view>
+
+  <!-- 登录表单 -->
+  <view class="form-section" wx:if="{{tabIndex === 0}}">
+    <!-- 邮箱 -->
+    <view class="form-item">
+      <view class="input-wrapper">
+        <text class="input-icon">📧</text>
+        <input 
+          class="input" 
+          type="text"
+          placeholder="请输入学校邮箱"
+          value="{{loginForm.email}}"
+          bindinput="onLoginEmailInput"
+        />
+      </view>
+    </view>
+
+    <!-- 密码 -->
+    <view class="form-item">
+      <view class="input-wrapper">
+        <text class="input-icon">🔒</text>
+        <input 
+          class="input" 
+          type="{{showPassword ? 'text' : 'password'}}"
+          placeholder="请输入密码"
+          value="{{loginForm.password}}"
+          bindinput="onLoginPasswordInput"
+        />
+        <text class="eye-icon" bindtap="togglePassword">{{showPassword ? '👁️' : '👁️‍🗨️'}}</text>
+      </view>
+    </view>
+
+    <!-- 忘记密码 -->
+    <view class="forgot-password">
+      <text class="forgot-link" bindtap="goToForgotPassword">忘记密码？</text>
+    </view>
+
+    <!-- 登录按钮 -->
+    <button 
+      class="submit-btn {{loginLoading ? 'loading' : ''}}"
+      bindtap="handleLogin"
+      disabled="{{loginLoading}}"
+    >
+      {{loginLoading ? '登录中...' : '登录'}}
+    </button>
+
+    <!-- 微信登录 -->
+    <view class="divider">
+      <view class="divider-line"></view>
+      <text class="divider-text">或</text>
+      <view class="divider-line"></view>
+    </view>
+
+    <button 
+      class="wechat-btn"
+      bindtap="goToWechatLogin"
+    >
+      <text class="wechat-icon">💬</text>
+      <text>微信快速登录</text>
+    </button>
+  </view>
+
+  <!-- 注册表单 -->
+  <view class="form-section" wx:if="{{tabIndex === 1}}">
+    <!-- 邮箱 -->
+    <view class="form-item">
+      <view class="input-wrapper">
+        <text class="input-icon">📧</text>
+        <input 
+          class="input" 
+          type="text"
+          placeholder="请输入学校邮箱"
+          value="{{registerForm.email}}"
+          bindinput="onRegisterEmailInput"
+        />
+      </view>
+    </view>
+
+    <!-- 验证码 -->
+    <view class="form-item">
+      <view class="input-wrapper">
+        <text class="input-icon">🔢</text>
+        <input 
+          class="input code-input" 
+          type="text"
+          placeholder="请输入验证码"
+          value="{{registerForm.code}}"
+          bindinput="onRegisterCodeInput"
+        />
+        <button 
+          class="code-btn {{codeSending ? 'disabled' : ''}}"
+          bindtap="sendCode"
+          disabled="{{codeSending || countdown > 0}}"
+        >
+          {{countdown > 0 ? countdown + 's' : '获取验证码'}}
+        </button>
+      </view>
+    </view>
+
+    <!-- 密码 -->
+    <view class="form-item">
+      <view class="input-wrapper">
+        <text class="input-icon">🔒</text>
+        <input 
+          class="input" 
+          type="{{showPassword ? 'text' : 'password'}}"
+          placeholder="请输入密码（6-20位）"
+          value="{{registerForm.password}}"
+          bindinput="onRegisterPasswordInput"
+        />
+        <text class="eye-icon" bindtap="togglePassword">{{showPassword ? '👁️' : '👁️‍🗨️'}}</text>
+      </view>
+    </view>
+
+    <!-- 确认密码 -->
+    <view class="form-item">
+      <view class="input-wrapper">
+        <text class="input-icon">🔒</text>
+        <input 
+          class="input" 
+          type="{{showConfirmPassword ? 'text' : 'password'}}"
+          placeholder="请再次输入密码"
+          value="{{registerForm.confirmPassword}}"
+          bindinput="onRegisterConfirmPasswordInput"
+        />
+        <text class="eye-icon" bindtap="toggleConfirmPassword">{{showConfirmPassword ? '👁️' : '👁️‍🗨️'}}</text>
+      </view>
+    </view>
+
+    <!-- 注册按钮 -->
+    <button 
+      class="submit-btn {{registerLoading ? 'loading' : ''}}"
+      bindtap="handleRegister"
+      disabled="{{registerLoading}}"
+    >
+      {{registerLoading ? '注册中...' : '注册'}}
+    </button>
+
+    <!-- 用户协议 -->
+    <view class="agreement">
+      <text class="agreement-text">注册即代表同意</text>
+      <text class="agreement-link">《用户协议》</text>
+      <text class="agreement-text">和</text>
+      <text class="agreement-link">《隐私政策》</text>
+    </view>
+  </view>
+</view>
+

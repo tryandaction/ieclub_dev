@@ -35,7 +35,8 @@ App({
     userInfo: null,
     systemInfo: null,
     // API 基础地址
-    apiBase: 'http://localhost:3000/api'
+    // 注意：DNS修复后可以改为 http://ieclub.online/api
+    apiBase: 'http://39.108.160.112/api'
   }
 })
 

@@ -18,14 +18,30 @@ export const wechatLogin = (data) => {
 
 /**
  * 邮箱密码登录
- * @param {string} email - 邮箱
- * @param {string} password - 密码
+ * @param {object} data - 登录数据
+ * @param {string} data.email - 邮箱
+ * @param {string} data.password - 密码
  * @returns {Promise<{token: string, user: object}>}
  */
-export const emailLogin = (email, password) => {
+export const login = (data) => {
   return request('/auth/login', {
     method: 'POST',
-    data: { email, password }
+    data
+  })
+}
+
+/**
+ * 邮箱注册
+ * @param {object} data - 注册数据
+ * @param {string} data.email - 邮箱
+ * @param {string} data.password - 密码
+ * @param {string} data.verificationCode - 验证码
+ * @returns {Promise<{token: string, user: object}>}
+ */
+export const register = (data) => {
+  return request('/auth/register', {
+    method: 'POST',
+    data
   })
 }
 
@@ -33,6 +49,19 @@ export const emailLogin = (email, password) => {
  * 发送验证码
  * @param {string} email - 邮箱
  * @param {string} type - 验证码类型 (register, login, reset_password, bind_email)
+ * @returns {Promise}
+ */
+export const sendVerifyCode = (email, type = 'register') => {
+  return request('/auth/send-verification-code', {
+    method: 'POST',
+    data: { email, type }
+  })
+}
+
+/**
+ * 发送验证码（旧接口，兼容）
+ * @param {string} email - 邮箱
+ * @param {string} type - 验证码类型
  * @returns {Promise}
  */
 export const sendCode = (email, type = 'login') => {
