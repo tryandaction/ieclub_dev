@@ -452,7 +452,39 @@ ssh -p 22 root@39.108.160.112 "cat /etc/nginx/sites-available/ieclub"
 ssh -p 22 root@39.108.160.112 "curl http://127.0.0.1:3000/health"
 ```
 
-### 问题 4: 网页显示旧版本
+### 问题 4: 数据库表缺失 - "The table does not exist"
+
+**症状**:
+```
+The table `login_logs` does not exist in the current database.
+The table `verification_codes` does not exist in the current database.
+```
+
+**原因**: 
+- 数据库迁移文件存在，但未被实际执行
+- Prisma 迁移状态显示"up to date"，但表实际不存在
+
+**解决方案**:
+```bash
+# 手动执行迁移 SQL
+ssh -p 22 root@39.108.160.112 "cd /root/IEclub_dev/ieclub-backend && npx prisma db execute --file prisma/migrations/20251029234240_add_auth_tables/migration.sql"
+
+# 重启服务
+ssh -p 22 root@39.108.160.112 "pm2 restart ieclub-backend"
+
+# 验证服务状态
+ssh -p 22 root@39.108.160.112 "pm2 list"
+```
+
+**验证修复**:
+```bash
+# 测试认证 API
+curl -X POST https://ieclub.online/api/auth/send-verify-code \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@mail.sustech.edu.cn","type":"register"}'
+```
+
+### 问题 5: 网页显示旧版本
 
 **解决方案**:
 1. 清除浏览器缓存 (Ctrl+F5)
