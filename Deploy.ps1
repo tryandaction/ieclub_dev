@@ -196,20 +196,21 @@ function Deploy-Backend {
     Write-Info "Uploading backend code to server..."
     scp -P $ServerPort "backend-code.zip" "${ServerUser}@${ServerHost}:/tmp/"
     
-    # Upload critical files that might be excluded
-    Write-Info "Uploading .env file..."
-    scp -P $ServerPort ".env" "${ServerUser}@${ServerHost}:/root/IEclub_dev/ieclub-backend/" 2>$null
-    
-    # Upload package files
-    scp -P $ServerPort "package.json" "${ServerUser}@${ServerHost}:/root/IEclub_dev/ieclub-backend/"
-    if (Test-Path "package-lock.json") {
-        scp -P $ServerPort "package-lock.json" "${ServerUser}@${ServerHost}:/root/IEclub_dev/ieclub-backend/"
-    }
-    
     # Extract and deploy on server
     Write-Info "Extracting backend code on server..."
     ssh -p $ServerPort "${ServerUser}@${ServerHost}" "unzip -o /tmp/backend-code.zip -d /root/IEclub_dev/ieclub-backend"
     ssh -p $ServerPort "${ServerUser}@${ServerHost}" "rm -f /tmp/backend-code.zip"
+    
+    # Upload critical files AFTER extraction to ensure they're not overwritten
+    Write-Info "Uploading .env file..."
+    scp -P $ServerPort ".env" "${ServerUser}@${ServerHost}:/root/IEclub_dev/ieclub-backend/" 2>$null
+    
+    # Upload package files AFTER extraction
+    Write-Info "Uploading package.json with latest dependencies..."
+    scp -P $ServerPort "package.json" "${ServerUser}@${ServerHost}:/root/IEclub_dev/ieclub-backend/"
+    if (Test-Path "package-lock.json") {
+        scp -P $ServerPort "package-lock.json" "${ServerUser}@${ServerHost}:/root/IEclub_dev/ieclub-backend/"
+    }
     
     # Upload Deploy_server.sh (if not already uploaded by web deployment)
     Write-Info "Uploading deployment script..."

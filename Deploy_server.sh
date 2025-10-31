@@ -181,16 +181,32 @@ deploy_backend() {
     # 验证关键依赖
     log_info "验证关键依赖..."
     MISSING_DEPS=""
-    for pkg in "@prisma/client" "express" "ioredis" "date-fns" "jsonwebtoken"; do
+    CRITICAL_DEPS=("@prisma/client" "express" "ioredis" "date-fns" "jsonwebtoken" "express-validator" "express-rate-limit" "winston")
+    
+    for pkg in "${CRITICAL_DEPS[@]}"; do
         if ! npm list "$pkg" &>/dev/null; then
             MISSING_DEPS="$MISSING_DEPS $pkg"
+            log_warning "缺少依赖: $pkg"
         fi
     done
     
     if [ -n "$MISSING_DEPS" ]; then
         log_error "缺少关键依赖:$MISSING_DEPS"
-        log_info "尝试重新安装..."
+        log_info "尝试重新安装所有依赖..."
+        rm -rf node_modules package-lock.json
         npm install
+        
+        # 再次验证
+        log_info "再次验证依赖..."
+        for pkg in "${CRITICAL_DEPS[@]}"; do
+            if npm list "$pkg" &>/dev/null; then
+                log_success "✅ $pkg 已安装"
+            else
+                log_error "❌ $pkg 仍然缺失！"
+            fi
+        done
+    else
+        log_success "✅ 所有关键依赖已安装"
     fi
     
     # Prisma 生成客户端
