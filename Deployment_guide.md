@@ -1,22 +1,20 @@
 # IEClub Deployment Guide
 
-> **✅ DEPLOYMENT STATUS: SUCCESSFUL** (Last Updated: 2025-10-30)
+> **✅ DEPLOYMENT STATUS: SUCCESSFUL** (Last Updated: 2025-10-31)
 > 
 > **Live Site**: https://ieclub.online  
-> **API Status**: ✅ Running (15/18 tests passing)  
+> **API Status**: ✅ Running & Healthy  
 > **Server**: 39.108.160.112  
-> **PM2**: Both frontend and backend running  
+> **PM2**: Backend running (ieclub-backend)  
 > **SSL**: Active (Let's Encrypt)
 >
-> **Recent Updates**:
-> - ✅ 完善前端UI和用户体验
-> - ✅ 添加全局加载和错误处理
-> - ✅ 优化评论列表空状态显示
-> - ✅ 改进骨架屏加载效果
-> - ✅ 添加消息提示工具
-> - ✅ 修复API路由配置和小程序路径
-> - ✅ 增强错误处理和调试信息
-> - ✅ 添加健康检查和API测试端点
+> **Recent Updates** (2025-10-31):
+> - ✅ 修复依赖安装问题 (express-validator, express-rate-limit, winston)
+> - ✅ 改进部署脚本，确保 package.json 在解压后上传
+> - ✅ 增强服务器端依赖验证和错误处理
+> - ✅ 后端服务成功启动，所有API正常工作
+> - ✅ Redis 和 WebSocket 服务正常运行
+> - ✅ 健康检查端点返回正常状态
 
 ---
 
@@ -394,6 +392,75 @@ tail -f /var/log/nginx/error.log
 
 ---
 
+## 🔧 故障排除 (Troubleshooting)
+
+### 问题 1: 后端启动失败 - 缺少依赖
+
+**症状**:
+```
+Error: Cannot find module 'express-validator'
+Error: Cannot find module 'express-rate-limit'
+```
+
+**原因**: 
+- 部署脚本在解压代码包时可能覆盖了 `package.json`
+- `npm install` 在旧的 `package.json` 上执行，导致新依赖未安装
+
+**解决方案**:
+```bash
+# 方法1: 手动安装缺失的依赖
+ssh -p 22 root@39.108.160.112 "cd /root/IEclub_dev/ieclub-backend && npm install express-validator express-rate-limit winston --save"
+pm2 restart ieclub-backend
+
+# 方法2: 重新部署（已修复的脚本会自动处理）
+.\Deploy.ps1 -Target "backend"
+```
+
+**预防措施**:
+- 部署脚本已更新，现在会在解压后再次上传 `package.json`
+- 服务器端脚本会验证关键依赖是否安装
+
+### 问题 2: PM2 进程频繁重启
+
+**检查方法**:
+```bash
+ssh -p 22 root@39.108.160.112 "pm2 list"
+ssh -p 22 root@39.108.160.112 "pm2 logs ieclub-backend --lines 50"
+```
+
+**常见原因**:
+- 依赖缺失
+- 环境变量配置错误
+- 数据库连接失败
+- Redis 连接失败
+
+**解决方案**:
+1. 检查 `.env` 文件是否存在且配置正确
+2. 验证数据库和 Redis 服务是否运行
+3. 查看详细日志找出具体错误
+
+### 问题 3: API 返回 404
+
+**检查 Nginx 配置**:
+```bash
+ssh -p 22 root@39.108.160.112 "nginx -t"
+ssh -p 22 root@39.108.160.112 "cat /etc/nginx/sites-available/ieclub"
+```
+
+**验证后端服务**:
+```bash
+ssh -p 22 root@39.108.160.112 "curl http://127.0.0.1:3000/health"
+```
+
+### 问题 4: 网页显示旧版本
+
+**解决方案**:
+1. 清除浏览器缓存 (Ctrl+F5)
+2. 检查 Nginx 是否正确重启
+3. 验证文件是否正确部署到 `/root/IEclub_dev/ieclub-web/dist`
+
+---
+
 ## 📞 Support
 
 - **Documentation**: See README.md in project root
@@ -402,5 +469,5 @@ tail -f /var/log/nginx/error.log
 
 ---
 
-**Last Updated**: 2025-10-30
+**Last Updated**: 2025-10-31
 
