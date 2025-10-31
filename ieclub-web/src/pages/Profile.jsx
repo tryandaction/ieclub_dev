@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getUserProfile } from '../api/user'
+import { useAuth } from '../contexts/AuthContext'
+import { showToast } from '../components/Toast'
 
 const menuItems = [
   { icon: '📝', label: '我的话题', path: '/my-topics' },
@@ -11,39 +11,21 @@ const menuItems = [
 
 export default function Profile() {
   const navigate = useNavigate()
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    // 检查登录状态
-    const token = localStorage.getItem('token')
-    if (!token) {
-      setLoading(false)
-      return
-    }
-
-    // 获取用户信息
-    getUserProfile()
-      .then(data => {
-        setUser(data)
-        setLoading(false)
-      })
-      .catch(() => {
-        localStorage.removeItem('token')
-        setLoading(false)
-      })
-  }, [])
+  const { user, isAuthenticated, logout, loading } = useAuth()
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    setUser(null)
+    logout()
+    showToast('已退出登录', 'success')
     navigate('/plaza')
   }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-gray-500">加载中...</div>
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-gray-600">加载中...</p>
+        </div>
       </div>
     )
   }
@@ -80,39 +62,42 @@ export default function Profile() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* 用户信息卡片 */}
-      <div className="bg-gradient-primary text-white rounded-2xl p-8 shadow-lg text-center">
-        <div className="text-8xl mb-4">{user.avatar || '👤'}</div>
-        <h1 className="text-3xl font-bold mb-2">{user.username}</h1>
-        <p className="text-white/90 mb-4">
-          {user.major || '未设置专业'} · {user.grade || '未设置年级'}
-        </p>
-        <div className="flex items-center justify-center space-x-4">
-          <span className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl font-bold">
-            LV{user.level || 1}
-          </span>
-          <span className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl font-bold">
-            ⭐ {user.score || 0}
-          </span>
+      <div className="bg-gradient-primary text-white rounded-2xl p-8 shadow-lg">
+        <div className="text-center">
+          <div className="text-8xl mb-4">{user.avatar || '👤'}</div>
+          <h1 className="text-3xl font-bold mb-2">{user.nickname || user.username || '未设置昵称'}</h1>
+          <p className="text-white/90 mb-2">{user.email}</p>
+          <p className="text-white/80 mb-4">
+            {user.major || '未设置专业'} {user.grade ? `· ${user.grade}` : ''}
+          </p>
+          <div className="flex items-center justify-center space-x-4">
+            <span className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl font-bold">
+              LV{user.level || 1}
+            </span>
+            <span className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl font-bold">
+              ⭐ {user.score || 0}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* 数据统计 */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="card text-center">
+        <div className="card text-center p-6">
           <div className="text-3xl font-bold text-purple-600 mb-1">
-            {user.stats?.topics || 0}
+            {user.topicsCount || 0}
           </div>
           <div className="text-sm text-gray-500">话题</div>
         </div>
-        <div className="card text-center">
+        <div className="card text-center p-6">
           <div className="text-3xl font-bold text-purple-600 mb-1">
-            {user.stats?.followers || 0}
+            {user.followersCount || 0}
           </div>
           <div className="text-sm text-gray-500">粉丝</div>
         </div>
-        <div className="card text-center">
+        <div className="card text-center p-6">
           <div className="text-3xl font-bold text-purple-600 mb-1">
-            {user.stats?.following || 0}
+            {user.followingCount || 0}
           </div>
           <div className="text-sm text-gray-500">关注</div>
         </div>

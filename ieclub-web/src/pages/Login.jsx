@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { sendCode, login } from '../api/auth'
+import { useAuth } from '../contexts/AuthContext'
+import { showToast } from '../components/Toast'
 
 export default function Login() {
   const [loginMode, setLoginMode] = useState('password') // 'password' 或 'code'
@@ -12,6 +14,11 @@ export default function Login() {
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
+  const { login: authLogin } = useAuth()
+  
+  // 获取登录前的页面路径
+  const from = location.state?.from?.pathname || '/plaza'
 
   // 南科大邮箱验证
   const validateEmail = (email) => {
@@ -91,20 +98,18 @@ export default function Login() {
         result = await login(email, code, 'code')
       }
       
-      // 存储 Token 和用户信息
-      localStorage.setItem('token', result.token)
-      localStorage.setItem('user', JSON.stringify(result.user))
+      // 使用 AuthContext 的 login 方法
+      authLogin(result.user, result.token)
       
       // 显示成功提示
-      console.log('✅ 登录成功！')
+      showToast('🎉 登录成功！', 'success')
       
-      // 短暂延迟后跳转
+      // 返回登录前的页面或首页
       setTimeout(() => {
-        navigate('/plaza')
+        navigate(from, { replace: true })
       }, 300)
     } catch (err) {
       setError(err.message || '登录失败，请重试')
-      console.error('❌ 登录失败:', err)
     } finally {
       setLoading(false)
     }

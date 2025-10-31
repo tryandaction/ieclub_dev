@@ -3,6 +3,8 @@ import ErrorBoundary from './components/ErrorBoundary'
 import { ToastContainer } from './components/Toast'
 import Loading from './components/Loading'
 import Layout from './components/Layout'
+import { AuthProvider } from './contexts/AuthContext'
+import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
@@ -22,31 +24,37 @@ function App() {
   const { isLoading, loadingText } = useLoadingStore()
   
   return (
-    <ErrorBoundary>
-      <ToastContainer />
-      <Loading show={isLoading} text={loadingText} fullscreen />
-      <Routes>
-        {/* 认证页面（无布局） */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        
-        {/* 主应用（带布局） */}
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Navigate to="/plaza" replace />} />
-          <Route path="plaza" element={<Plaza />} />
-          <Route path="topic/:id" element={<TopicDetail />} />
-          <Route path="search" element={<Search />} />
-          <Route path="community" element={<Community />} />
-          <Route path="activities" element={<Activities />} />
-          <Route path="publish" element={<Publish />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="notifications" element={<Notifications />} />
-          <Route path="feedback" element={<Feedback />} />
-          <Route path="feedback/my" element={<MyFeedback />} />
-        </Route>
-      </Routes>
-    </ErrorBoundary>
+    <AuthProvider>
+      <ErrorBoundary>
+        <ToastContainer />
+        <Loading show={isLoading} text={loadingText} fullscreen />
+        <Routes>
+          {/* 认证页面（无布局，已登录用户不能访问） */}
+          <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+          <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
+          <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
+          
+          {/* 主应用（带布局） */}
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Navigate to="/plaza" replace />} />
+            
+            {/* 公开页面 - 无需登录 */}
+            <Route path="plaza" element={<Plaza />} />
+            <Route path="topic/:id" element={<TopicDetail />} />
+            <Route path="search" element={<Search />} />
+            <Route path="community" element={<Community />} />
+            <Route path="activities" element={<Activities />} />
+            
+            {/* 需要登录的页面 */}
+            <Route path="publish" element={<ProtectedRoute><Publish /></ProtectedRoute>} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+            <Route path="feedback" element={<Feedback />} />
+            <Route path="feedback/my" element={<ProtectedRoute><MyFeedback /></ProtectedRoute>} />
+          </Route>
+        </Routes>
+      </ErrorBoundary>
+    </AuthProvider>
   )
 }
 

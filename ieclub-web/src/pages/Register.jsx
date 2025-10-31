@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { sendCode, register } from '../api/auth'
+import { sendCode, verifyCode, register } from '../api/auth'
+import { useAuth } from '../contexts/AuthContext'
+import { showToast } from '../components/Toast'
 
 export default function Register() {
   const [step, setStep] = useState(1) // 1: 邮箱验证, 2: 设置密码, 3: 完善信息
@@ -16,6 +18,7 @@ export default function Register() {
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
+  const { login: authLogin } = useAuth()
 
   // 南科大邮箱验证
   const validateEmail = (email) => {
@@ -54,7 +57,7 @@ export default function Register() {
     }
   }
 
-  // 步骤1: 验证邮箱
+  // 步骤1: 验证邮箱和验证码
   const handleStep1 = async (e) => {
     e.preventDefault()
     setError('')
@@ -69,8 +72,20 @@ export default function Register() {
       return
     }
 
-    // 验证码验证成功，进入下一步
-    setStep(2)
+    setLoading(true)
+
+    try {
+      // 调用后端验证接口验证验证码
+      await verifyCode(email, code)
+      
+      // 验证成功，进入下一步
+      showToast('验证码验证成功！', 'success')
+      setStep(2)
+    } catch (err) {
+      setError(err.message || '验证码错误或已过期')
+    } finally {
+      setLoading(false)
+    }
   }
 
   // 步骤2: 设置密码
@@ -113,11 +128,10 @@ export default function Register() {
         major
       })
       
-      // 存储 Token 和用户信息
-      localStorage.setItem('token', result.token)
-      localStorage.setItem('user', JSON.stringify(result.user))
+      // 使用 AuthContext 的 login 方法
+      authLogin(result.user, result.token)
       
-      console.log('✅ 注册成功！')
+      showToast('🎉 注册成功！欢迎加入IEClub', 'success')
       
       // 跳转到首页
       setTimeout(() => {
@@ -125,7 +139,6 @@ export default function Register() {
       }, 500)
     } catch (err) {
       setError(err.message || '注册失败，请重试')
-      console.error('❌ 注册失败:', err)
     } finally {
       setLoading(false)
     }

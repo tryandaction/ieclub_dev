@@ -1,5 +1,6 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 import FeedbackButton from './FeedbackButton'
 import NotificationBadge from './NotificationBadge'
 
@@ -13,6 +14,7 @@ const navItems = [
 
 export default function Layout() {
   const navigate = useNavigate()
+  const { user, isAuthenticated } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
 
   const handleSearch = (e) => {
@@ -22,6 +24,13 @@ export default function Layout() {
       setSearchQuery('')
     }
   }
+  
+  const handlePublishClick = (e, path) => {
+    if (!isAuthenticated && path === '/publish') {
+      e.preventDefault()
+      navigate('/login')
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -29,7 +38,7 @@ export default function Layout() {
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-gray-200 flex-col z-50">
         {/* Logo区域 */}
         <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 mb-4">
             <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center text-white text-xl font-bold">
               IE
             </div>
@@ -40,6 +49,34 @@ export default function Layout() {
               <p className="text-xs text-gray-500">学习·科研·项目·创业</p>
             </div>
           </div>
+          
+          {/* 用户登录状态 */}
+          {isAuthenticated && user ? (
+            <div className="flex items-center space-x-2 p-3 bg-purple-50 rounded-xl">
+              <span className="text-2xl">{user.avatar || '👤'}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {user.nickname || user.username || '用户'}
+                </p>
+                <p className="text-xs text-gray-500">LV{user.level || 1}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => navigate('/login')}
+                className="flex-1 py-2 px-3 text-sm bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors font-medium"
+              >
+                登录
+              </button>
+              <button
+                onClick={() => navigate('/register')}
+                className="flex-1 py-2 px-3 text-sm bg-gradient-primary text-white rounded-lg hover:shadow-lg transition-all font-medium"
+              >
+                注册
+              </button>
+            </div>
+          )}
         </div>
 
         {/* 搜索框和通知 */}

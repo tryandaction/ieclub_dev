@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getTopics, toggleLike } from '../api/topic'
+import { useAuth } from '../contexts/AuthContext'
 import { showToast } from '../components/Toast'
 import { TopicListSkeleton } from '../components/Skeleton'
 
@@ -52,6 +53,7 @@ const typeConfig = {
 
 export default function Plaza() {
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
   const [activeTab, setActiveTab] = useState('all')
   const [topics, setTopics] = useState(mockTopics)
   const [loading, setLoading] = useState(false)
@@ -88,9 +90,9 @@ export default function Plaza() {
   const handleLike = async (e, topicId) => {
     e.stopPropagation() // 阻止事件冒泡，避免跳转到详情页
     
-    const token = localStorage.getItem('token')
-    if (!token) {
-      showToast('请先登录', 'warning')
+    if (!isAuthenticated) {
+      showToast('请先登录后再操作', 'warning')
+      setTimeout(() => navigate('/login'), 500)
       return
     }
 
@@ -110,6 +112,8 @@ export default function Plaza() {
             }
           : t
       ))
+      
+      showToast('操作成功', 'success')
     } catch (error) {
       console.error('操作失败:', error)
       showToast(error.response?.data?.message || '操作失败，请稍后重试', 'error')
@@ -118,6 +122,35 @@ export default function Plaza() {
 
   return (
     <div className="space-y-6">
+      {/* 未登录提示 */}
+      {!isAuthenticated && (
+        <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <span className="text-5xl">👋</span>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">欢迎来到 IEClub</h3>
+                <p className="text-sm text-gray-600">登录后可以发布话题、参与讨论、结识伙伴</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => navigate('/login')}
+                className="px-6 py-2.5 bg-white text-purple-600 font-medium rounded-xl hover:shadow-lg transition-all"
+              >
+                登录
+              </button>
+              <button
+                onClick={() => navigate('/register')}
+                className="px-6 py-2.5 bg-gradient-primary text-white font-medium rounded-xl hover:shadow-lg transition-all"
+              >
+                注册
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Tab 切换栏 */}
       <div className="bg-white rounded-2xl p-2 shadow-sm">
         <div className="flex items-center space-x-2">
