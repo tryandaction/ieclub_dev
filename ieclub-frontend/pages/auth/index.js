@@ -25,12 +25,20 @@ Page({
   },
 
   onLoad() {
-    console.log('认证页加载')
+    console.log('✅ 认证页加载成功')
+    console.log('📡 API Base URL:', getApp().globalData.apiBase)
     
     // 获取系统信息，设置状态栏高度
     const systemInfo = wx.getSystemInfoSync()
     const statusBarHeight = systemInfo.statusBarHeight || 0
     const navBarHeight = statusBarHeight + 44 // 导航栏高度 = 状态栏高度 + 44px
+    
+    console.log('📱 系统信息:', {
+      statusBarHeight,
+      navBarHeight,
+      platform: systemInfo.platform,
+      version: systemInfo.version
+    })
     
     this.setData({
       statusBarHeight,
@@ -40,6 +48,7 @@ Page({
     // 检查是否已登录
     const token = wx.getStorageSync('token')
     if (token) {
+      console.log('🔑 已有 Token，跳转到广场')
       wx.switchTab({
         url: '/pages/plaza/index'
       })
@@ -109,6 +118,8 @@ Page({
   async sendCode() {
     const { email } = this.data.registerForm
     
+    console.log('📧 发送验证码 - 邮箱:', email)
+    
     if (!email) {
       wx.showToast({
         title: '请输入邮箱',
@@ -117,12 +128,13 @@ Page({
       return
     }
 
-    // 验证邮箱格式
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    // 验证邮箱格式（南科大邮箱）
+    const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/
     if (!emailRegex.test(email)) {
       wx.showToast({
-        title: '邮箱格式不正确',
-        icon: 'none'
+        title: '请使用南科大邮箱',
+        icon: 'none',
+        duration: 2000
       })
       return
     }
@@ -130,7 +142,9 @@ Page({
     this.setData({ codeSending: true })
 
     try {
-      await sendVerifyCode(email, 'register')
+      console.log('📤 正在发送验证码请求...')
+      const result = await sendVerifyCode(email, 'register')
+      console.log('✅ 验证码发送成功:', result)
       
       wx.showToast({
         title: '验证码已发送',
@@ -140,10 +154,16 @@ Page({
       // 开始倒计时
       this.startCountdown()
     } catch (error) {
-      console.error('发送验证码失败:', error)
+      console.error('❌ 发送验证码失败:', error)
+      console.error('错误详情:', {
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      })
       wx.showToast({
         title: error.message || '发送失败',
-        icon: 'none'
+        icon: 'none',
+        duration: 2000
       })
     } finally {
       this.setData({ codeSending: false })
@@ -170,6 +190,8 @@ Page({
   async handleLogin() {
     const { email, password } = this.data.loginForm
 
+    console.log('🔐 开始登录 - 邮箱:', email)
+
     // 验证表单
     if (!email || !password) {
       wx.showToast({
@@ -179,10 +201,25 @@ Page({
       return
     }
 
+    // 验证邮箱格式（南科大邮箱）
+    const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/
+    if (!emailRegex.test(email)) {
+      wx.showToast({
+        title: '请使用南科大邮箱',
+        icon: 'none',
+        duration: 2000
+      })
+      return
+    }
+
     this.setData({ loginLoading: true })
 
     try {
-      const { token, user } = await login({ email, password })
+      console.log('📤 正在发送登录请求...')
+      const result = await login({ email, password })
+      console.log('✅ 登录成功:', result)
+      
+      const { token, user } = result
       
       // 存储 Token 和用户信息
       wx.setStorageSync('token', token)
@@ -206,10 +243,16 @@ Page({
       }, 1500)
 
     } catch (error) {
-      console.error('登录失败:', error)
+      console.error('❌ 登录失败:', error)
+      console.error('错误详情:', {
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      })
       wx.showToast({
         title: error.message || '登录失败',
-        icon: 'none'
+        icon: 'none',
+        duration: 2000
       })
     } finally {
       this.setData({ loginLoading: false })
@@ -220,11 +263,24 @@ Page({
   async handleRegister() {
     const { email, code, password, confirmPassword } = this.data.registerForm
 
+    console.log('📝 开始注册 - 邮箱:', email)
+
     // 验证表单
     if (!email || !code || !password || !confirmPassword) {
       wx.showToast({
         title: '请填写完整信息',
         icon: 'none'
+      })
+      return
+    }
+
+    // 验证邮箱格式（南科大邮箱）
+    const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/
+    if (!emailRegex.test(email)) {
+      wx.showToast({
+        title: '请使用南科大邮箱',
+        icon: 'none',
+        duration: 2000
       })
       return
     }
@@ -248,11 +304,13 @@ Page({
     this.setData({ registerLoading: true })
 
     try {
-      await register({
+      console.log('📤 正在发送注册请求...')
+      const result = await register({
         email,
         password,
         verificationCode: code
       })
+      console.log('✅ 注册成功:', result)
 
       wx.showToast({
         title: '注册成功',
@@ -273,10 +331,16 @@ Page({
       }, 1500)
 
     } catch (error) {
-      console.error('注册失败:', error)
+      console.error('❌ 注册失败:', error)
+      console.error('错误详情:', {
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      })
       wx.showToast({
         title: error.message || '注册失败',
-        icon: 'none'
+        icon: 'none',
+        duration: 2000
       })
     } finally {
       this.setData({ registerLoading: false })

@@ -30,8 +30,16 @@ const request = (url, options = {}) => {
     // 获取 Token
     const token = wx.getStorageSync('token')
 
+    const fullUrl = baseURL + url
+    console.log('📡 发起请求:', {
+      url: fullUrl,
+      method: method.toUpperCase(),
+      data,
+      hasToken: !!token
+    })
+
     wx.request({
-      url: baseURL + url,
+      url: fullUrl,
       method: method.toUpperCase(),
       data,
       header: {
@@ -39,6 +47,11 @@ const request = (url, options = {}) => {
         'Authorization': token ? `Bearer ${token}` : ''
       },
       success: (res) => {
+        console.log('📥 收到响应:', {
+          url: fullUrl,
+          statusCode: res.statusCode,
+          data: res.data
+        })
         // 隐藏 Loading
         if (loading) {
           wx.hideLoading()
@@ -159,7 +172,11 @@ const request = (url, options = {}) => {
           wx.hideLoading()
         }
 
-        console.error('Request fail:', err)
+        console.error('❌ 请求失败:', {
+          url: fullUrl,
+          error: err,
+          errMsg: err.errMsg
+        })
         
         wx.showToast({
           title: '网络连接失败，请检查网络',
@@ -167,8 +184,9 @@ const request = (url, options = {}) => {
           duration: 2000
         })
         
-        const error = new Error('网络连接失败')
+        const error = new Error('网络连接失败: ' + (err.errMsg || ''))
         error.code = 'NETWORK_ERROR'
+        error.originalError = err
         reject(error)
       }
     })

@@ -44,7 +44,14 @@ export default function NotificationBadge() {
     
     try {
       const res = await getUnreadCount()
-      setUnreadCount(res.data.data.count)
+      // 修复：正确处理响应数据结构
+      if (res?.data?.data?.count !== undefined) {
+        setUnreadCount(res.data.data.count)
+      } else if (res?.data?.count !== undefined) {
+        setUnreadCount(res.data.count)
+      } else if (typeof res?.data === 'number') {
+        setUnreadCount(res.data)
+      }
     } catch (error) {
       // 静默失败，不影响用户体验
       console.error('获取未读数量失败:', error)
