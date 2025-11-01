@@ -101,3 +101,16 @@ exports.serverError = (res, message = '服务器内部错误') => {
     timestamp: Date.now(),
   });
 };
+
+/**
+ * 成功响应（返回数据对象）
+ */
+exports.successResponse = (data = null, message = '操作成功') => {
+  return {
+    success: true,
+    code: 200,
+    message,
+    data,
+    timestamp: Date.now(),
+  };
+};

@@ -73,7 +73,7 @@ class AuthController {
   // 发送邮箱验证码
   static async sendVerifyCode(req, res, next) {
     try {
-      const { email, type = 'register' } = req.body; // type: register, reset
+      const { email, type = 'register' } = req.body; // type: register, reset, login
 
       // 验证邮箱格式
       if (!validateEmail(email)) {
@@ -126,8 +126,8 @@ class AuthController {
         }
       }
 
-      // 重置密码时检查邮箱是否存在
-      if (type === 'reset') {
+      // 重置密码或登录时检查邮箱是否存在
+      if (type === 'reset' || type === 'login') {
         const user = await prisma.user.findUnique({
           where: { email }
         });
@@ -155,10 +155,15 @@ class AuthController {
       });
 
       // 发送邮件
-      const subject = type === 'register' ? 'IEClub 注册验证码' : 'IEClub 密码重置验证码';
+      const typeMap = {
+        register: '注册',
+        reset: '密码重置',
+        login: '登录'
+      };
+      const subject = `IEClub ${typeMap[type] || ''}验证码`;
       const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #3b82f6;">IEClub ${type === 'register' ? '注册' : '密码重置'}验证</h2>
+          <h2 style="color: #3b82f6;">IEClub ${typeMap[type] || ''}验证</h2>
           <p>您好！</p>
           <p>您的验证码是：</p>
           <h1 style="color: #3b82f6; font-size: 32px; letter-spacing: 5px;">${code}</h1>
@@ -288,13 +293,13 @@ class AuthController {
       // 加密密码
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // 创建用户
+      // 创建用户（使用默认头像）
       const user = await prisma.user.create({
         data: {
           email,
           password: hashedPassword,
           nickname: nickname || email.split('@')[0],
-          avatar: `https://ui-avatars.com/api/?name=${nickname || 'User'}&background=667eea&color=fff`,
+          avatar: '', // 默认为空，前端显示默认头像
           lastLoginAt: new Date(),
           lastActiveAt: new Date()
         }
