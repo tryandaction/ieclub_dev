@@ -3,9 +3,10 @@
 
 const { PrismaClient } = require('@prisma/client');
 const logger = require('../utils/logger');
-const redis = require('../config/redis');
+const { getRedis } = require('../utils/redis');
 
 const prisma = new PrismaClient();
+const redis = getRedis();
 
 class RBACService {
   /**

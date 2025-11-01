@@ -5,7 +5,7 @@ const express = require('express');
 const router = express.Router();
 const notificationController = require('../controllers/notificationController');
 const { authenticate } = require('../middleware/auth');
-const { requirePermission } = require('../middleware/rbac');
+const { hasPermission } = require('../middleware/permission');
 
 // 所有通知路由都需要认证
 router.use(authenticate);
@@ -70,7 +70,7 @@ router.put('/settings', notificationController.updateNotificationSettings);
  */
 router.post(
   '/system',
-  requirePermission('admin.notification.create'),
+  hasPermission('admin.notification.create'),
   notificationController.createSystemNotification
 );
 

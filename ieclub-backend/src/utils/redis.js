@@ -20,12 +20,11 @@ function initRedis() {
     redis = new Redis({
       host: config.redis.host,
       port: config.redis.port,
-      password: config.redis.password,
+      password: config.redis.password || undefined,  // 如果密码为空字符串，传递 undefined
       db: config.redis.db,
       retryDelayOnFailover: 100,
       enableReadyCheck: true,
       maxRetriesPerRequest: 3,
-      lazyConnect: true,
     });
 
     redis.on('connect', () => {

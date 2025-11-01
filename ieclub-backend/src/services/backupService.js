@@ -5,9 +5,12 @@ const { promisify } = require('util');
 const execPromise = promisify(exec);
 const archiver = require('archiver');
 const unzipper = require('unzipper');
-const prisma = require('../config/prisma');
+const { PrismaClient } = require('@prisma/client');
 const logger = require('../utils/logger');
-const redis = require('../config/redis');
+const { getRedis } = require('../utils/redis');
+
+const prisma = new PrismaClient();
+const redis = getRedis();
 
 class BackupService {
   constructor() {

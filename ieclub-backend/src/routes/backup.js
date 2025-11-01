@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const backupController = require('../controllers/backupController');
-const { authenticate, authorize } = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
+const { hasRole } = require('../middleware/permission');
 
 // 所有备份操作都需要管理员权限
 
@@ -12,7 +13,7 @@ const { authenticate, authorize } = require('../middleware/auth');
  */
 router.post('/full', 
   authenticate, 
-  authorize(['admin']), 
+  hasRole(['super_admin', 'admin']), 
   backupController.createBackup
 );
 
@@ -23,7 +24,7 @@ router.post('/full',
  */
 router.get('/list', 
   authenticate, 
-  authorize(['admin']), 
+  hasRole(['super_admin', 'admin']), 
   backupController.listBackups
 );
 
@@ -34,7 +35,7 @@ router.get('/list',
  */
 router.post('/restore', 
   authenticate, 
-  authorize(['admin']), 
+  hasRole(['super_admin', 'admin']), 
   backupController.restoreBackup
 );
 
@@ -45,7 +46,7 @@ router.post('/restore',
  */
 router.delete('/:backupName', 
   authenticate, 
-  authorize(['admin']), 
+  hasRole(['super_admin', 'admin']), 
   backupController.deleteBackup
 );
 
@@ -56,7 +57,7 @@ router.delete('/:backupName',
  */
 router.post('/table', 
   authenticate, 
-  authorize(['admin']), 
+  hasRole(['super_admin', 'admin']), 
   backupController.backupTable
 );
 
@@ -67,7 +68,7 @@ router.post('/table',
  */
 router.post('/table/restore', 
   authenticate, 
-  authorize(['admin']), 
+  hasRole(['super_admin', 'admin']), 
   backupController.restoreTable
 );
 
@@ -78,7 +79,7 @@ router.post('/table/restore',
  */
 router.post('/database', 
   authenticate, 
-  authorize(['admin']), 
+  hasRole(['super_admin', 'admin']), 
   backupController.backupDatabase
 );
 
@@ -89,7 +90,7 @@ router.post('/database',
  */
 router.post('/redis', 
   authenticate, 
-  authorize(['admin']), 
+  hasRole(['super_admin', 'admin']), 
   backupController.backupRedis
 );
 
@@ -100,7 +101,7 @@ router.post('/redis',
  */
 router.post('/uploads', 
   authenticate, 
-  authorize(['admin']), 
+  hasRole(['super_admin', 'admin']), 
   backupController.backupUploads
 );
 
