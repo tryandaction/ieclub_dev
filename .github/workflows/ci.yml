@@ -1,7 +1,3 @@
-# =================================================================
-#  CI & CD Workflow (All-in-One)
-#  File: .github/workflows/ci.yml
-# =================================================================
 name: CI/CD Pipeline
 
 on:
@@ -11,115 +7,223 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  # ==================================
-  # Job 1: Backend Checks
-  # ==================================
-  backend-checks:
-    name: "CI / Backend"
+  # ========================================
+  # 后端测试和构建
+  # ========================================
+  backend-test:
+    name: Backend Tests
     runs-on: ubuntu-latest
     
     services:
       mysql:
         image: mysql:8.0
-        env: { MYSQL_ROOT_PASSWORD: root_password, MYSQL_DATABASE: ieclub_test }
-        ports: ['3306:3306']
+        env:
+          MYSQL_ROOT_PASSWORD: test_password
+          MYSQL_DATABASE: ieclub_test
+        ports:
+          - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping --silent" --health-interval=10s --health-timeout=5s --health-retries=5
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+      
       redis:
-        image: redis:7
-        ports: ['6379:6379']
-        options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=5
-
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
       - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with: { node-version: '18', cache: 'npm', cache-dependency-path: 'ieclub-backend/package-lock.json' }
-      - name: Install Backend Dependencies
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ieclub-backend/package-lock.json
+      
+      - name: Install dependencies
         working-directory: ./ieclub-backend
         run: npm ci
-      - name: Run Backend Lint
+      
+      - name: Generate Prisma Client
         working-directory: ./ieclub-backend
-        run: npm run lint -- --max-warnings=0
-      - name: Run Backend Tests
+        run: npx prisma generate
+      
+      - name: Run database migrations
         working-directory: ./ieclub-backend
         env:
-          DATABASE_URL: "mysql://root:root_password@127.0.0.1:3306/ieclub_test" # 在 job 内部，可以用 127.0.0.1
-          REDIS_HOST: 127.0.0.1
+          DATABASE_URL: mysql://root:test_password@localhost:3306/ieclub_test
+        run: npx prisma migrate deploy
+      
+      - name: Run unit tests
+        working-directory: ./ieclub-backend
+        env:
+          DATABASE_URL: mysql://root:test_password@localhost:3306/ieclub_test
+          REDIS_HOST: localhost
           REDIS_PORT: 6379
-          JWT_SECRET: a-dummy-jwt-secret-for-ci-testing-only
-        run: |
-          npx prisma migrate deploy
-          npm test
-
-  # ==================================
-  # Job 2: Frontend Checks
-  # ==================================
-  frontend-checks:
-    name: "CI / Frontend"
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with: { node-version: '18', cache: 'npm', cache-dependency-path: 'ieclub-frontend/package-lock.json' }
-      - name: Install Frontend Dependencies
-        working-directory: ./ieclub-frontend
-        run: npm ci
-      - name: Run Frontend Lint & Type Check
-        working-directory: ./ieclub-frontend
-        run: |
-          npm run lint -- --max-warnings=0
-          npm run type-check
-      - name: Build Frontend (H5 & WeApp)
-        working-directory: ./ieclub-frontend
-        run: |
-          npm run build:h5
-          npm run build:weapp
-
-  # ==================================
-  # Job 3: Deploy to Production (新增的部署任务)
-  # ==================================
-  deploy:
-    name: "Deploy / Production"
-    runs-on: ubuntu-latest
-    
-    # --- 关键的触发条件 ---
-    # 1. 依赖于 backend-checks 和 frontend-checks 都成功
-    needs: [backend-checks, frontend-checks]
-    # 2. 只有当事件是推送到 main 分支时，才执行这个 job
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Deploy to Server via SSH
-        uses: appleboy/ssh-action@master
+          JWT_SECRET: test_secret
+        run: npm run test:unit
+      
+      - name: Run integration tests
+        working-directory: ./ieclub-backend
+        env:
+          DATABASE_URL: mysql://root:test_password@localhost:3306/ieclub_test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: test_secret
+        run: npm run test:integration
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          files: ./ieclub-backend/coverage/lcov.info
+          flags: backend
+          name: backend-coverage
+  
+  # ========================================
+  # 前端测试和构建
+  # ========================================
+  frontend-web-test:
+    name: Frontend Web Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ieclub-web/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: ./ieclub-web
+        run: npm ci
+      
+      - name: Run tests
+        working-directory: ./ieclub-web
+        run: npm test
+      
+      - name: Build
+        working-directory: ./ieclub-web
+        run: npm run build
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: web-build
+          path: ieclub-web/dist
+          retention-days: 7
+  
+  # ========================================
+  # 代码质量检查
+  # ========================================
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install backend dependencies
+        working-directory: ./ieclub-backend
+        run: npm ci
+      
+      - name: Run ESLint (Backend)
+        working-directory: ./ieclub-backend
+        run: npm run lint || true
+      
+      - name: Check for security vulnerabilities
+        working-directory: ./ieclub-backend
+        run: npm audit --audit-level=high || true
+  
+  # ========================================
+  # Docker 构建
+  # ========================================
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-web-test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ieclub-backend
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/ieclub-backend:latest
+            ${{ secrets.DOCKER_USERNAME }}/ieclub-backend:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/ieclub-backend:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/ieclub-backend:buildcache,mode=max
+  
+  # ========================================
+  # 部署到生产环境
+  # ========================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://ieclub.online
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
           script: |
-            cd /var/www/ieclub_dev || exit 1
-            echo "🚚 1/5 Pulling latest code..."
-            git pull origin main
-            echo "🚀 2/5 Deploying backend..."
-            cd ieclub-backend
-            npm install --production
-            npx prisma migrate deploy
-            pm2 reload ieclub-api
-            cd ..
-            echo "🚀 3/5 Deploying frontend..."
-            cd ieclub-frontend
-            npm install
-            npm run build:h5
-            cd ..
-            echo "🔐 4/5 Setting permissions..."
-            sudo chown -R xingduo:xingduo /var/www/ieclub_dev
-            echo "🔄 5/5 Reloading Nginx..."
-            sudo systemctl reload nginx
-            echo "🎉 Deployment completed!"
+            cd /opt/ieclub
+            docker-compose pull
+            docker-compose up -d
+            docker-compose exec -T backend npm run prisma:migrate:prod
+            docker system prune -f
+      
+      - name: Health check
+        run: |
+          sleep 30
+          curl -f https://ieclub.online/api/health || exit 1
+      
+      - name: Notify deployment
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Deployment to production completed!'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        if: always()

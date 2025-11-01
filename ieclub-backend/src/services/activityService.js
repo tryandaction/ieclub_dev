@@ -493,7 +493,15 @@ class ActivityService {
   /**
    * 签到
    */
-  async checkIn(activityId, userId) {
+  async checkIn(activityId, userId, token = null) {
+    // 如果提供了 token，先验证
+    if (token) {
+      const verification = await this.verifyCheckInToken(activityId, token);
+      if (!verification.valid) {
+        throw new AppError('签到令牌无效或已过期', 400);
+      }
+    }
+
     const participation = await prisma.activityParticipant.findUnique({
       where: {
         activityId_userId: {
@@ -546,6 +554,179 @@ class ActivityService {
     return { 
       message: '签到成功',
       checkedInAt: now.toISOString()
+    };
+  }
+
+  /**
+   * 生成签到二维码
+   */
+  async generateCheckInQRCode(activityId, userId) {
+    const crypto = require('crypto');
+    const QRCode = require('qrcode');
+
+    // 验证用户是否是活动组织者
+    const activity = await prisma.activity.findUnique({
+      where: { id: activityId },
+      select: { organizerId: true, title: true }
+    });
+
+    if (!activity) {
+      throw new AppError('活动不存在', 404);
+    }
+
+    if (activity.organizerId !== userId) {
+      throw new AppError('只有活动组织者可以生成签到二维码', 403);
+    }
+
+    // 生成唯一令牌
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24小时有效
+
+    // 存储到 Redis
+    const redis = require('../config/redis');
+    const tokenKey = `activity:checkin:${activityId}:${token}`;
+    await redis.setex(tokenKey, 24 * 60 * 60, JSON.stringify({
+      activityId,
+      createdBy: userId,
+      createdAt: new Date().toISOString()
+    }));
+
+    // 生成二维码数据（包含活动ID和令牌）
+    const qrData = JSON.stringify({
+      type: 'activity_checkin',
+      activityId,
+      token,
+      expiresAt: expiresAt.toISOString()
+    });
+
+    // 生成二维码图片（Base64）
+    const qrCodeDataURL = await QRCode.toDataURL(qrData, {
+      errorCorrectionLevel: 'H',
+      type: 'image/png',
+      width: 300,
+      margin: 2
+    });
+
+    logger.info(`活动 ${activityId} 生成签到二维码，令牌: ${token}`);
+
+      logger.info(`成功为活动 ${activityId} 生成签到二维码，令牌: ${token.substring(0, 8)}...`);
+
+      return {
+        token,
+        qrCodeDataURL,
+        expiresAt: expiresAt.toISOString(),
+        activityTitle: activity.title
+      };
+    } catch (error) {
+      logger.error(`生成签到二维码失败: ${error.message}`, {
+        activityId,
+        userId,
+        error: error.stack
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * 验证签到令牌
+   */
+  async verifyCheckInToken(activityId, token) {
+    const redis = require('../config/redis');
+    const tokenKey = `activity:checkin:${activityId}:${token}`;
+    
+    const tokenData = await redis.get(tokenKey);
+    
+    if (!tokenData) {
+      return {
+        valid: false,
+        message: '签到令牌无效或已过期'
+      };
+    }
+
+    const data = JSON.parse(tokenData);
+    
+    return {
+      valid: true,
+      activityId: data.activityId,
+      message: '令牌有效'
+    };
+  }
+
+  /**
+   * 获取签到统计
+   */
+  async getCheckInStats(activityId, userId) {
+    // 验证用户是否是活动组织者
+    const activity = await prisma.activity.findUnique({
+      where: { id: activityId },
+      select: { 
+        organizerId: true,
+        title: true,
+        startTime: true,
+        endTime: true
+      }
+    });
+
+    if (!activity) {
+      throw new AppError('活动不存在', 404);
+    }
+
+    if (activity.organizerId !== userId) {
+      throw new AppError('只有活动组织者可以查看签到统计', 403);
+    }
+
+    // 获取统计数据
+    const [totalParticipants, checkedInCount, participants] = await Promise.all([
+      prisma.activityParticipant.count({
+        where: { activityId }
+      }),
+      prisma.activityParticipant.count({
+        where: { 
+          activityId,
+          checkedIn: true
+        }
+      }),
+      prisma.activityParticipant.findMany({
+        where: { activityId },
+        include: {
+          user: {
+            select: {
+              id: true,
+              nickname: true,
+              avatar: true,
+              email: true
+            }
+          }
+        },
+        orderBy: [
+          { checkedIn: 'desc' }, // 已签到的排前面
+          { createdAt: 'desc' }  // 然后按报名时间排序
+        ]
+      })
+    ]);
+
+    const checkInRate = totalParticipants > 0 
+      ? ((checkedInCount / totalParticipants) * 100).toFixed(1)
+      : 0;
+
+    return {
+      activityTitle: activity.title,
+      startTime: activity.startTime.toISOString(),
+      endTime: activity.endTime.toISOString(),
+      totalParticipants,
+      checkedInCount,
+      notCheckedInCount: totalParticipants - checkedInCount,
+      checkInRate: parseFloat(checkInRate),
+      participants: participants.map(p => ({
+        userId: p.user.id,
+        nickname: p.user.nickname,
+        avatar: p.user.avatar,
+        email: p.user.email,
+        joinedAt: p.joinedAt.toISOString(),
+        checkedIn: p.checkedIn,
+        checkedInAt: p.checkedInAt ? p.checkedInAt.toISOString() : null,
+        status: p.status
+      }))
     };
   }
 

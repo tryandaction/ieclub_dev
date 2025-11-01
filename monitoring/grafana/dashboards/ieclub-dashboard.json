@@ -1,0 +1,145 @@
+{
+  "dashboard": {
+    "title": "IEClub 系统监控仪表板",
+    "tags": ["ieclub", "production"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "API 请求速率",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=\"ieclub-backend\"}[5m])",
+            "legendFormat": "{{method}} {{path}}"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "API 响应时间 (P95)",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"ieclub-backend\"}[5m]))",
+            "legendFormat": "{{method}} {{path}}"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "错误率",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=\"ieclub-backend\",status=~\"5..\"}[5m])",
+            "legendFormat": "5xx Errors"
+          },
+          {
+            "expr": "rate(http_requests_total{job=\"ieclub-backend\",status=~\"4..\"}[5m])",
+            "legendFormat": "4xx Errors"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "系统资源使用",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "process_resident_memory_bytes{job=\"ieclub-backend\"}",
+            "legendFormat": "Memory Usage"
+          },
+          {
+            "expr": "rate(process_cpu_seconds_total{job=\"ieclub-backend\"}[5m])",
+            "legendFormat": "CPU Usage"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "数据库连接数",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "mysql_global_status_threads_connected{job=\"mysql\"}",
+            "legendFormat": "Active Connections"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Redis 命令执行速率",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 16, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(redis_commands_processed_total{job=\"redis\"}[5m])",
+            "legendFormat": "Commands/sec"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "活跃用户数",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 24, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "active_users{job=\"ieclub-backend\"}"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "今日新增用户",
+        "type": "stat",
+        "gridPos": {"x": 6, "y": 24, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "new_users_today{job=\"ieclub-backend\"}"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "今日发布话题",
+        "type": "stat",
+        "gridPos": {"x": 12, "y": 24, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "posts_created_today{job=\"ieclub-backend\"}"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "系统健康状态",
+        "type": "stat",
+        "gridPos": {"x": 18, "y": 24, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "up{job=\"ieclub-backend\"}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"value": 1, "text": "健康", "color": "green"},
+              {"value": 0, "text": "异常", "color": "red"}
+            ]
+          }
+        }
+      }
+    ]
+  }
+}
+

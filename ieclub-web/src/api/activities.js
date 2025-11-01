@@ -2,7 +2,6 @@ import request from '../utils/request'
 
 /**
  * 获取活动列表
- * @param {Object} params - 查询参数
  */
 export const getActivities = (params) => {
   return request.get('/activities', { params })
@@ -10,7 +9,6 @@ export const getActivities = (params) => {
 
 /**
  * 获取活动详情
- * @param {number} id - 活动ID
  */
 export const getActivityDetail = (id) => {
   return request.get(`/activities/${id}`)
@@ -18,7 +16,6 @@ export const getActivityDetail = (id) => {
 
 /**
  * 创建活动
- * @param {Object} data - 活动数据
  */
 export const createActivity = (data) => {
   return request.post('/activities', data)
@@ -26,8 +23,6 @@ export const createActivity = (data) => {
 
 /**
  * 更新活动
- * @param {number} id - 活动ID
- * @param {Object} data - 更新的数据
  */
 export const updateActivity = (id, data) => {
   return request.put(`/activities/${id}`, data)
@@ -35,32 +30,56 @@ export const updateActivity = (id, data) => {
 
 /**
  * 删除活动
- * @param {number} id - 活动ID
  */
 export const deleteActivity = (id) => {
   return request.delete(`/activities/${id}`)
 }
 
 /**
- * 点赞/取消点赞活动
- * @param {number} id - 活动ID
- */
-export const toggleLike = (id) => {
-  return request.post(`/activities/${id}/like`)
-}
-
-/**
- * 报名/取消报名活动
- * @param {number} id - 活动ID
+ * 参与/取消参与活动
  */
 export const toggleParticipation = (id) => {
   return request.post(`/activities/${id}/participate`)
 }
 
 /**
- * 获取活动分类
+ * 点赞/取消点赞活动
  */
-export const getCategories = () => {
-  return request.get('/activities/categories')
+export const toggleLike = (id) => {
+  return request.post(`/activities/${id}/like`)
 }
 
+/**
+ * 活动签到
+ */
+export const checkIn = (id, token = null) => {
+  return request.post(`/activities/${id}/checkin`, { token })
+}
+
+/**
+ * 生成签到二维码（组织者）
+ */
+export const generateCheckInQRCode = (id) => {
+  return request.post(`/activities/${id}/qrcode`)
+}
+
+/**
+ * 验证签到令牌
+ */
+export const verifyCheckInToken = (id, token) => {
+  return request.post(`/activities/${id}/verify-token`, { token })
+}
+
+/**
+ * 获取签到统计（组织者）
+ */
+export const getCheckInStats = (id) => {
+  return request.get(`/activities/${id}/checkin-stats`)
+}
+
+/**
+ * 获取我的活动
+ */
+export const getMyActivities = (params) => {
+  return request.get('/activities/me/activities', { params })
+}

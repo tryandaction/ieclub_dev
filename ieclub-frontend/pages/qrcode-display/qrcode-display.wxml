@@ -1,0 +1,44 @@
+<!--pages/qrcode-display/qrcode-display.wxml-->
+<view class="container">
+  <view class="header">
+    <text class="title">签到二维码</text>
+    <text class="activity-name">{{activityTitle}}</text>
+  </view>
+
+  <view class="qrcode-wrapper">
+    <image 
+      src="{{qrCodeData}}" 
+      class="qrcode"
+      mode="aspectFit"
+    />
+  </view>
+
+  <view class="info">
+    <view class="info-item">
+      <text class="info-label">有效期至</text>
+      <text class="info-value">{{expiresAt}}</text>
+    </view>
+    <view class="info-item">
+      <text class="info-label">剩余时间</text>
+      <text class="info-value countdown">{{countdown}}</text>
+    </view>
+  </view>
+
+  <view class="tips">
+    <text class="tips-title">📱 使用说明</text>
+    <text class="tips-item">1. 参与者使用小程序扫描此二维码</text>
+    <text class="tips-item">2. 二维码有效期为 24 小时</text>
+    <text class="tips-item">3. 只能在活动进行期间签到</text>
+    <text class="tips-item">4. 每人只能签到一次</text>
+  </view>
+
+  <view class="actions">
+    <button class="btn btn-primary" bindtap="saveQRCode">
+      保存到相册 📷
+    </button>
+    <button class="btn btn-secondary" open-type="share">
+      分享二维码 📤
+    </button>
+  </view>
+</view>
+

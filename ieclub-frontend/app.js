@@ -1,7 +1,15 @@
 // app.js
+const { validateAll } = require('./utils/configValidator')
+
 App({
   onLaunch() {
-    console.log('IEClub 小程序启动')
+    console.log('🚀 IEClub 小程序启动')
+    
+    // 验证配置
+    const configResult = validateAll()
+    if (!configResult.valid) {
+      console.error('⚠️ 配置验证失败，小程序可能无法正常工作')
+    }
     
     // 获取系统信息
     const systemInfo = wx.getSystemInfoSync()

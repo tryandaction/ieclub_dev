@@ -44,14 +44,22 @@ export default function NotificationBadge() {
     
     try {
       const res = await getUnreadCount()
-      // 修复：正确处理响应数据结构
+      // 使用统一的响应处理 - 支持多种数据格式
+      // 格式1: { data: { data: { count: 5 } } }
+      // 格式2: { data: { count: 5 } }
+      // 格式3: { data: 5 }
+      // 格式4: 5
+      let count = 0
       if (res?.data?.data?.count !== undefined) {
-        setUnreadCount(res.data.data.count)
+        count = res.data.data.count
       } else if (res?.data?.count !== undefined) {
-        setUnreadCount(res.data.count)
+        count = res.data.count
       } else if (typeof res?.data === 'number') {
-        setUnreadCount(res.data)
+        count = res.data
+      } else if (typeof res === 'number') {
+        count = res
       }
+      setUnreadCount(Number(count) || 0)
     } catch (error) {
       // 静默失败，不影响用户体验
       console.error('获取未读数量失败:', error)

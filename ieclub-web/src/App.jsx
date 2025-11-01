@@ -13,6 +13,7 @@ import TopicDetail from './pages/TopicDetail'
 import Search from './pages/Search'
 import Community from './pages/Community'
 import Activities from './pages/Activities'
+import ActivityDetail from './pages/ActivityDetail'
 import Publish from './pages/Publish'
 import Profile from './pages/Profile'
 import Notifications from './pages/Notifications'
@@ -44,6 +45,7 @@ function App() {
             <Route path="search" element={<Search />} />
             <Route path="community" element={<Community />} />
             <Route path="activities" element={<Activities />} />
+            <Route path="activities/:id" element={<ActivityDetail />} />
             
             {/* 需要登录的页面 */}
             <Route path="publish" element={<ProtectedRoute><Publish /></ProtectedRoute>} />

@@ -432,6 +432,7 @@ model Activity {
   participantsCount Int       @default(0)
   likesCount        Int       @default(0)
   commentsCount     Int       @default(0)
+  checkedInCount    Int       @default(0) // 签到人数
   
   // 状态
   status          String      @default("published") @db.VarChar(20) // published, draft, deleted
@@ -441,13 +442,13 @@ model Activity {
   updatedAt       DateTime    @updatedAt
   
   // 关联关系
-  authorId        String
-  author          User        @relation(fields: [authorId], references: [id])
+  organizerId     String      // 改名为 organizerId 更语义化
+  organizer       User        @relation(fields: [organizerId], references: [id])
   participants    ActivityParticipant[]
   likes           ActivityLike[]
   comments        ActivityComment[]
   
-  @@index([authorId])
+  @@index([organizerId])
   @@index([category])
   @@index([startTime])
   @@index([status])
@@ -457,8 +458,19 @@ model Activity {
 
 // ==================== 活动参与表 ====================
 model ActivityParticipant {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
+  id          String    @id @default(cuid())
+  
+  // 报名状态
+  status      String    @default("approved") @db.VarChar(20) // approved, pending, rejected
+  note        String?   @db.Text // 报名备注
+  
+  // 签到信息
+  checkedIn   Boolean   @default(false)
+  checkedInAt DateTime?
+  
+  // 时间戳
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   
   // 关联关系
   userId      String
@@ -469,6 +481,7 @@ model ActivityParticipant {
   @@unique([userId, activityId])
   @@index([userId])
   @@index([activityId])
+  @@index([checkedIn])
   @@map("activity_participants")
 }
 

@@ -5,6 +5,13 @@ import App from './App.jsx'
 import './index.css'
 import errorMonitor from './utils/errorMonitor'
 import performanceMonitor from './utils/performance'
+import { validateConfig } from './utils/configValidator'
+
+// 验证配置
+const configResult = validateConfig()
+if (!configResult.valid) {
+  console.error('⚠️ 配置验证失败，应用可能无法正常工作')
+}
 
 // 初始化错误监控
 errorMonitor.init()

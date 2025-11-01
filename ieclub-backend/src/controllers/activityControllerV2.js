@@ -121,10 +121,47 @@ exports.getParticipants = asyncHandler(async (req, res) => {
 exports.checkIn = asyncHandler(async (req, res) => {
   const { activityId } = req.params;
   const userId = req.user.id;
+  const { token } = req.body; // 签到令牌（从二维码获取）
 
-  const result = await activityService.checkIn(activityId, userId);
+  const result = await activityService.checkIn(activityId, userId, token);
 
   res.json(success(result, result.message));
+});
+
+/**
+ * 生成活动签到二维码
+ */
+exports.generateCheckInQRCode = asyncHandler(async (req, res) => {
+  const { activityId } = req.params;
+  const userId = req.user.id;
+
+  const result = await activityService.generateCheckInQRCode(activityId, userId);
+
+  res.json(success(result, '生成签到二维码成功'));
+});
+
+/**
+ * 验证签到令牌
+ */
+exports.verifyCheckInToken = asyncHandler(async (req, res) => {
+  const { activityId } = req.params;
+  const { token } = req.body;
+
+  const result = await activityService.verifyCheckInToken(activityId, token);
+
+  res.json(success(result, '验证成功'));
+});
+
+/**
+ * 获取活动签到统计
+ */
+exports.getCheckInStats = asyncHandler(async (req, res) => {
+  const { activityId } = req.params;
+  const userId = req.user.id;
+
+  const stats = await activityService.getCheckInStats(activityId, userId);
+
+  res.json(success(stats, '获取签到统计成功'));
 });
 
 /**

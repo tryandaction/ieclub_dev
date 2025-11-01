@@ -67,6 +67,15 @@ router.get('/:activityId/participants', activityControllerV2.getParticipants);
 // 活动签到
 router.post('/:activityId/checkin', authenticate, activityControllerV2.checkIn);
 
+// 生成签到二维码（组织者）
+router.post('/:activityId/qrcode', authenticate, activityControllerV2.generateCheckInQRCode);
+
+// 验证签到令牌
+router.post('/:activityId/verify-token', authenticate, activityControllerV2.verifyCheckInToken);
+
+// 获取签到统计
+router.get('/:activityId/checkin-stats', authenticate, activityControllerV2.getCheckInStats);
+
 // 获取我的活动
 router.get('/me/activities', authenticate, activityControllerV2.getMyActivities);
 

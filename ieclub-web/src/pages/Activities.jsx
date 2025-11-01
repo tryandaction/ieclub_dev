@@ -95,7 +95,11 @@ export default function Activities() {
       {!loading && activities.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {activities.map((activity) => (
-          <div key={activity.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all">
+          <div 
+            key={activity.id} 
+            className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer"
+            onClick={() => window.location.href = `/activities/${activity.id}`}
+          >
             {/* 封面 */}
             <div className="bg-gradient-to-br from-blue-400 to-purple-500 h-48 flex items-center justify-center">
               <span className="text-8xl">{activity.cover}</span>
@@ -112,7 +116,10 @@ export default function Activities() {
               </div>
 
               <button 
-                onClick={() => handleParticipate(activity.id)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleParticipate(activity.id)
+                }}
                 className={`w-full py-3 rounded-xl font-medium transition-all ${
                   activity.isParticipating
                     ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'

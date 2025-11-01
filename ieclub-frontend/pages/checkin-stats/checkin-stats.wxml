@@ -1,0 +1,119 @@
+<!--pages/checkin-stats/checkin-stats.wxml-->
+<view class="container">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 统计内容 -->
+  <view wx:else class="content">
+    <!-- 标题 -->
+    <view class="header">
+      <text class="title">{{stats.activityTitle}}</text>
+      <text class="subtitle">签到统计</text>
+    </view>
+
+    <!-- 统计卡片 -->
+    <view class="stats-grid">
+      <view class="stat-card stat-total">
+        <text class="stat-value">{{stats.totalParticipants}}</text>
+        <text class="stat-label">总报名</text>
+      </view>
+      <view class="stat-card stat-checked">
+        <text class="stat-value">{{stats.checkedInCount}}</text>
+        <text class="stat-label">已签到</text>
+      </view>
+      <view class="stat-card stat-unchecked">
+        <text class="stat-value">{{stats.notCheckedInCount}}</text>
+        <text class="stat-label">未签到</text>
+      </view>
+      <view class="stat-card stat-rate">
+        <text class="stat-value">{{stats.checkInRate}}%</text>
+        <text class="stat-label">签到率</text>
+      </view>
+    </view>
+
+    <!-- 筛选器 -->
+    <view class="filters">
+      <view class="search-box">
+        <input 
+          class="search-input"
+          placeholder="搜索姓名或邮箱"
+          value="{{searchKeyword}}"
+          bindinput="onSearchInput"
+        />
+      </view>
+      <view class="filter-tabs">
+        <view 
+          class="filter-tab {{filterType === 'all' ? 'active' : ''}}"
+          data-type="all"
+          bindtap="onFilterChange"
+        >
+          全部 ({{stats.totalParticipants}})
+        </view>
+        <view 
+          class="filter-tab {{filterType === 'checked' ? 'active' : ''}}"
+          data-type="checked"
+          bindtap="onFilterChange"
+        >
+          已签到 ({{stats.checkedInCount}})
+        </view>
+        <view 
+          class="filter-tab {{filterType === 'unchecked' ? 'active' : ''}}"
+          data-type="unchecked"
+          bindtap="onFilterChange"
+        >
+          未签到 ({{stats.notCheckedInCount}})
+        </view>
+      </view>
+    </view>
+
+    <!-- 参与者列表 -->
+    <view class="participants-list">
+      <view wx:if="{{filteredParticipants.length === 0}}" class="empty">
+        <text class="empty-icon">🔍</text>
+        <text class="empty-text">暂无数据</text>
+      </view>
+
+      <view 
+        wx:for="{{filteredParticipants}}" 
+        wx:key="userId"
+        class="participant-item"
+      >
+        <image 
+          src="{{item.avatar || '/images/default-avatar.png'}}"
+          class="participant-avatar"
+        />
+        <view class="participant-info">
+          <view class="participant-name">{{item.nickname}}</view>
+          <view class="participant-email">{{item.email}}</view>
+          <view class="participant-time">
+            报名: {{formatTime(item.joinedAt)}}
+          </view>
+          <view wx:if="{{item.checkedIn}}" class="participant-time">
+            签到: {{formatTime(item.checkedInAt)}}
+          </view>
+        </view>
+        <view class="participant-status">
+          <view wx:if="{{item.checkedIn}}" class="status-badge status-checked">
+            已签到 ✅
+          </view>
+          <view wx:else class="status-badge status-unchecked">
+            未签到
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="actions">
+      <button class="btn btn-secondary" bindtap="exportData">
+        导出数据 📊
+      </button>
+      <button class="btn btn-primary" open-type="share">
+        分享统计 📤
+      </button>
+    </view>
+  </view>
+</view>
+

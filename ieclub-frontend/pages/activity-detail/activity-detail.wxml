@@ -1,0 +1,124 @@
+<!--pages/activity-detail/activity-detail.wxml-->
+<view class="container">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 活动详情 -->
+  <view wx:else class="activity-detail">
+    <!-- 封面图 -->
+    <view class="cover">
+      <image 
+        wx:if="{{activity.images && activity.images.length > 0}}"
+        src="{{activity.images[0]}}" 
+        mode="aspectFill"
+        class="cover-image"
+      />
+      <view wx:else class="cover-placeholder">
+        <text class="cover-icon">🎉</text>
+      </view>
+    </view>
+
+    <!-- 内容区域 -->}
+    <view class="content">
+      <!-- 标题 -->
+      <view class="title">{{activity.title}}</view>
+
+      <!-- 基本信息 -->
+      <view class="info-grid">
+        <view class="info-item">
+          <text class="info-icon">🕐</text>
+          <view class="info-content">
+            <text class="info-label">开始时间</text>
+            <text class="info-value">{{activity.startTime}}</text>
+          </view>
+        </view>
+        <view class="info-item">
+          <text class="info-icon">🏁</text>
+          <view class="info-content">
+            <text class="info-label">结束时间</text>
+            <text class="info-value">{{activity.endTime}}</text>
+          </view>
+        </view>
+        <view class="info-item">
+          <text class="info-icon">📍</text>
+          <view class="info-content">
+            <text class="info-label">活动地点</text>
+            <text class="info-value">{{activity.location}}</text>
+          </view>
+        </view>
+        <view class="info-item">
+          <text class="info-icon">👥</text>
+          <view class="info-content">
+            <text class="info-label">参与人数</text>
+            <text class="info-value">{{activity.participantsCount || 0}}/{{activity.maxParticipants || '不限'}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 活动描述 -->
+      <view class="section">
+        <view class="section-title">活动介绍</view>
+        <text class="description">{{activity.description}}</text>
+      </view>
+
+      <!-- 组织者信息 -->
+      <view wx:if="{{activity.organizer}}" class="organizer">
+        <view class="section-title">组织者</view>
+        <view class="organizer-info">
+          <image 
+            src="{{activity.organizer.avatar || '/images/default-avatar.png'}}" 
+            class="organizer-avatar"
+          />
+          <view class="organizer-details">
+            <text class="organizer-name">{{activity.organizer.nickname}}</text>
+            <text wx:if="{{activity.organizer.bio}}" class="organizer-bio">{{activity.organizer.bio}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="actions">
+        <!-- 普通用户操作 -->
+        <block wx:if="{{!isOrganizer}}">
+          <button 
+            class="btn {{isParticipating ? 'btn-secondary' : 'btn-primary'}}"
+            bindtap="handleParticipate"
+          >
+            {{isParticipating ? '已报名' : '立即报名'}}
+          </button>
+
+          <button 
+            wx:if="{{isParticipating && !hasCheckedIn}}"
+            class="btn btn-success"
+            bindtap="handleScanCheckIn"
+          >
+            扫码签到 ✅
+          </button>
+
+          <view wx:if="{{hasCheckedIn}}" class="checked-in-badge">
+            已签到 ✅
+          </view>
+        </block>
+
+        <!-- 组织者操作 -->
+        <block wx:else>
+          <button 
+            class="btn btn-primary"
+            bindtap="handleGenerateQRCode"
+          >
+            生成签到二维码 📱
+          </button>
+          <button 
+            class="btn btn-info"
+            bindtap="handleViewStats"
+          >
+            查看签到统计 📊
+          </button>
+        </block>
+      </view>
+    </view>
+  </view>
+</view>
+

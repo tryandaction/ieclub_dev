@@ -146,6 +146,9 @@ router.use('/rbac', require('./rbac'));
 router.post('/errors/report', errorReportController.reportError);
 router.get('/errors/stats', authenticate, errorReportController.getErrorStats);
 
+// Health Check Routes (健康检查和系统状态)
+router.use('/health', require('./health'));
+
 // Test Route
 router.get('/test', (req, res) => {
   res.json({
