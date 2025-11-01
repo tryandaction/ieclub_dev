@@ -607,24 +607,14 @@ class ActivityService {
       margin: 2
     });
 
-    logger.info(`活动 ${activityId} 生成签到二维码，令牌: ${token}`);
+    logger.info(`成功为活动 ${activityId} 生成签到二维码，令牌: ${token.substring(0, 8)}...`);
 
-      logger.info(`成功为活动 ${activityId} 生成签到二维码，令牌: ${token.substring(0, 8)}...`);
-
-      return {
-        token,
-        qrCodeDataURL,
-        expiresAt: expiresAt.toISOString(),
-        activityTitle: activity.title
-      };
-    } catch (error) {
-      logger.error(`生成签到二维码失败: ${error.message}`, {
-        activityId,
-        userId,
-        error: error.stack
-      });
-      throw error;
-    }
+    return {
+      token,
+      qrCodeDataURL,
+      expiresAt: expiresAt.toISOString(),
+      activityTitle: activity.title
+    };
   }
 
   /**
