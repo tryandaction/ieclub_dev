@@ -1,265 +1,100 @@
 // ===== 2. commentController.js - 评论控制器 =====
-const { PrismaClient } = require('@prisma/client');
-
-const prisma = new PrismaClient();
+const commentService = require('../services/commentService');
+const creditService = require('../services/creditService');
+const asyncHandler = require('../utils/asyncHandler');
+const { success } = require('../utils/response');
 
 class CommentController {
   // 获取评论列表
-  static async getComments(req, res, next) {
-    try {
+  static async getComments(req, res) {
+    return asyncHandler(async (req, res) => {
       const { topicId } = req.params;
-      const { page = 1, limit = 20 } = req.query;
+      const { page = 1, pageSize = 20, sortBy } = req.query;
 
-      const skip = (parseInt(page) - 1) * parseInt(limit);
-      const take = parseInt(limit);
-
-      const [comments, total] = await Promise.all([
-        prisma.comment.findMany({
-          where: {
-            topicId,
-            status: 'published',
-            parentId: null // 只获取顶级评论
-          },
-          include: {
-            author: {
-              select: {
-                id: true,
-                nickname: true,
-                avatar: true
-              }
-            },
-            replies: {
-              include: {
-                author: {
-                  select: {
-                    id: true,
-                    nickname: true,
-                    avatar: true
-                  }
-                }
-              },
-              orderBy: { createdAt: 'asc' }
-            }
-          },
-          orderBy: { createdAt: 'desc' },
-          skip,
-          take
-        }),
-        prisma.comment.count({
-          where: { topicId, status: 'published' }
-        })
-      ]);
-
-      res.json({
-        success: true,
-        data: {
-          comments,
-          pagination: {
-            page: parseInt(page),
-            limit: parseInt(limit),
-            total,
-            totalPages: Math.ceil(total / take)
-          }
-        }
+      const result = await commentService.getComments(topicId, {
+        page: parseInt(page),
+        pageSize: parseInt(pageSize),
+        sortBy
       });
-    } catch (error) {
-      next(error);
-    }
+
+      res.json(success(result));
+    })(req, res);
   }
 
   // 创建评论
-  static async createComment(req, res, next) {
-    try {
-      const userId = req.userId;
-      const { topicId, content, parentId, replyToUserId } = req.body;
+  static async createComment(req, res) {
+    return asyncHandler(async (req, res) => {
+      const userId = req.user.id;
+      const { topicId, content, parentId, images } = req.body;
 
-      if (!content || !content.trim()) {
-        return res.status(400).json({
-          success: false,
-          message: '评论内容不能为空'
-        });
+      const comment = await commentService.createComment(userId, {
+        topicId,
+        content,
+        parentId,
+        images
+      });
+
+      // 添加积分和经验值
+      await creditService.addCredits(userId, 'comment_create', {
+        relatedType: 'comment',
+        relatedId: comment.id,
+        metadata: { topicId },
+      });
+
+      // 检查是否是第一条评论，授予勋章
+      const { PrismaClient } = require('@prisma/client');
+      const prisma = new PrismaClient();
+      
+      const userCommentsCount = await prisma.comment.count({
+        where: { userId },
+      });
+      
+      if (userCommentsCount === 1) {
+        await creditService.awardBadge(userId, 'first_comment');
       }
 
-      // 创建评论
-      const comment = await prisma.comment.create({
-        data: {
-          topicId,
-          authorId: userId,
-          content: content.trim(),
-          parentId,
-          rootId: parentId ? (await prisma.comment.findUnique({ where: { id: parentId } }))?.rootId || parentId : null,
-          replyToUserId
-        },
-        include: {
-          author: {
-            select: {
-              id: true,
-              nickname: true,
-              avatar: true
-            }
-          }
-        }
-      });
-
-      // 更新话题评论数
-      await prisma.topic.update({
-        where: { id: topicId },
-        data: { commentsCount: { increment: 1 } }
-      });
-
-      // 发送通知
-      const topic = await prisma.topic.findUnique({
-        where: { id: topicId },
-        select: { authorId: true, title: true }
-      });
-
-      // 通知话题作者（如果不是自己评论）
-      if (topic && topic.authorId !== userId) {
-        const commenter = await prisma.user.findUnique({
-          where: { id: userId },
-          select: { nickname: true }
-        });
-
-        const preview = content.length > 50 ? content.substring(0, 50) + '...' : content;
-
-        await prisma.notification.create({
-          data: {
-            userId: topic.authorId,
-            type: 'comment',
-            title: '收到新的评论',
-            content: `${commenter.nickname} 评论了你的话题：${preview}`,
-            actorId: userId,
-            targetType: 'topic',
-            targetId: topicId,
-            link: `/topic/${topicId}#comment-${comment.id}`,
-          },
-        }).catch(() => {});
-      }
-
-      // 如果是回复，通知被回复者
-      if (parentId && replyToUserId && replyToUserId !== userId) {
-        const replier = await prisma.user.findUnique({
-          where: { id: userId },
-          select: { nickname: true }
-        });
-
-        const preview = content.length > 50 ? content.substring(0, 50) + '...' : content;
-
-        await prisma.notification.create({
-          data: {
-            userId: replyToUserId,
-            type: 'reply',
-            title: '收到新的回复',
-            content: `${replier.nickname} 回复了你的评论：${preview}`,
-            actorId: userId,
-            targetType: 'comment',
-            targetId: parentId,
-            link: `/topic/${topicId}#comment-${comment.id}`,
-          },
-        }).catch(() => {});
-      }
-
-      res.status(201).json({
-        success: true,
-        message: '评论成功',
-        data: comment
-      });
-    } catch (error) {
-      next(error);
-    }
+      res.status(201).json(success(comment, '评论成功'));
+    })(req, res);
   }
 
   // 点赞评论
-  static async likeComment(req, res, next) {
-    try {
+  static async likeComment(req, res) {
+    return asyncHandler(async (req, res) => {
       const { id } = req.params;
-      const userId = req.userId;
+      const userId = req.user.id;
 
-      const existingLike = await prisma.like.findUnique({
-        where: {
-          userId_targetType_targetId: {
-            userId,
-            targetType: 'comment',
-            targetId: id
-          }
-        }
-      });
+      const result = await commentService.toggleLikeComment(id, userId);
 
-      if (existingLike) {
-        // 取消点赞
-        await prisma.$transaction([
-          prisma.like.delete({ where: { id: existingLike.id } }),
-          prisma.comment.update({
-            where: { id },
-            data: { likesCount: { decrement: 1 } }
-          })
-        ]);
-
-        return res.json({
-          success: true,
-          message: '已取消点赞',
-          data: { isLiked: false }
-        });
-      } else {
-        // 添加点赞
-        await prisma.$transaction([
-          prisma.like.create({
-            data: { userId, targetType: 'comment', targetId: id }
-          }),
-          prisma.comment.update({
-            where: { id },
-            data: { likesCount: { increment: 1 } }
-          })
-        ]);
-
-        return res.json({
-          success: true,
-          message: '点赞成功',
-          data: { isLiked: true }
-        });
-      }
-    } catch (error) {
-      next(error);
-    }
+      res.json(success(result, result.isLiked ? '点赞成功' : '已取消点赞'));
+    })(req, res);
   }
 
   // 删除评论
-  static async deleteComment(req, res, next) {
-    try {
+  static async deleteComment(req, res) {
+    return asyncHandler(async (req, res) => {
       const { id } = req.params;
-      const userId = req.userId;
+      const userId = req.user.id;
+      const isAdmin = req.user.role === 'admin';
 
-      const comment = await prisma.comment.findUnique({
-        where: { id }
+      await commentService.deleteComment(id, userId, isAdmin);
+
+      res.json(success(null, '删除成功'));
+    })(req, res);
+  }
+
+  // 获取评论的回复列表
+  static async getReplies(req, res) {
+    return asyncHandler(async (req, res) => {
+      const { commentId } = req.params;
+      const { page = 1, pageSize = 20 } = req.query;
+
+      const result = await commentService.getReplies(commentId, {
+        page: parseInt(page),
+        pageSize: parseInt(pageSize)
       });
 
-      if (!comment) {
-        return res.status(404).json({
-          success: false,
-          message: '评论不存在'
-        });
-      }
-
-      if (comment.authorId !== userId) {
-        return res.status(403).json({
-          success: false,
-          message: '无权限删除此评论'
-        });
-      }
-
-      // 软删除
-      await prisma.comment.update({
-        where: { id },
-        data: { status: 'deleted' }
-      });
-
-      res.json({
-        success: true,
-        message: '删除成功'
-      });
-    } catch (error) {
-      next(error);
-    }
+      res.json(success(result));
+    })(req, res);
   }
 }
 

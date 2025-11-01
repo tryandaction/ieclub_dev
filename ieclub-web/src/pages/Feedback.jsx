@@ -306,7 +306,7 @@ export default function Feedback() {
           <li>• 请尽量详细描述问题，这将帮助我们更快地定位和解决</li>
           <li>• 建议附上截图，以便更直观地了解问题</li>
           <li>• 我们会在1-3个工作日内处理您的反馈</li>
-          <li>• 您可以在"我的反馈"中查看处理进度</li>
+          <li>• 您可以在&ldquo;我的反馈&rdquo;中查看处理进度</li>
         </ul>
       </div>
     </div>

@@ -7,6 +7,7 @@ const morgan = require('morgan');
 const path = require('path');
 const logger = require('./utils/logger');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
+const { performanceMonitorWithStats, getPerformanceReport } = require('./middleware/performance');
 
 const app = express();
 
@@ -59,6 +60,9 @@ app.use(cors({
 // 压缩响应
 app.use(compression());
 
+// 性能监控
+app.use(performanceMonitorWithStats);
+
 // 请求日志
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -87,6 +91,11 @@ app.get('/health', (req, res) => {
     uptime: process.uptime()
   });
 });
+
+// 性能报告（仅开发环境）
+if (process.env.NODE_ENV === 'development') {
+  app.get('/performance', getPerformanceReport);
+}
 
 // 根路径
 app.get('/', (req, res) => {

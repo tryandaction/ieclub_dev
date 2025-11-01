@@ -426,7 +426,7 @@ export default function TopicDetail() {
         </div>
 
         {/* 评论列表 */}
-        {commentsLoading ? (
+        {loading ? (
           <CommentListSkeleton count={3} />
         ) : comments.length === 0 ? (
           <div className="text-center py-12">

@@ -5,7 +5,7 @@ import request from '../utils/request'
  * @returns {Promise<object>}
  */
 export const getUserProfile = () => {
-  return request.get('/user/profile')
+  return request.get('/auth/profile')
 }
 
 /**

@@ -318,11 +318,20 @@ IEclub_dev/
 │   │   └── utils/            # 工具函数
 │   └── prisma/               # 数据库配置
 │
+├── docs/                     # 📚 文档中心
+│   ├── deployment/           # 部署文档
+│   │   └── Deployment_guide.md
+│   ├── development/          # 开发文档
+│   │   ├── DEVELOPMENT_PLAN.md
+│   │   ├── PROJECT_ARCHITECTURE.md
+│   │   └── SECURITY_AND_FUNCTIONALITY_CHECKLIST.md
+│   ├── features/             # 功能文档
+│   │   ├── NEW_FEATURES.md
+│   │   └── CREDIT_SYSTEM_SUMMARY.md
+│   └── API_REFERENCE.md      # API 参考文档
+│
 ├── ieclub_v2_demo.tsx        # 设计原型（保留参考）
-├── PRODUCT_DESIGN_V1.md      # 📚 产品设计文档
-├── Development_plan.md       # 📋 开发规划文档
-├── README.md                 # 项目总览（本文件）
-└── Deployment_guide.md       # 部署指南
+└── README.md                 # 项目总览（本文件）
 ```
 
 ---
@@ -437,9 +446,20 @@ IEclub_dev/
 
 ### 📚 详细文档
 
-- [产品设计文档](PRODUCT_DESIGN_V1.md) - 完整产品设计
-- [开发规划文档](Development_plan.md) - 详细开发计划
-- [部署文档](Deployment_guide.md) - 部署指南
+#### 核心文档
+- [API 参考文档](docs/API_REFERENCE.md) - 完整的 API 接口文档
+- [新功能总览](docs/features/NEW_FEATURES.md) - 最新功能介绍
+
+#### 开发文档
+- [开发规划](docs/development/DEVELOPMENT_PLAN.md) - 详细开发计划
+- [系统架构](docs/development/PROJECT_ARCHITECTURE.md) - 技术架构说明
+- [安全检查清单](docs/development/SECURITY_AND_FUNCTIONALITY_CHECKLIST.md) - 安全与功能检查
+
+#### 功能文档
+- [积分系统](docs/features/CREDIT_SYSTEM_SUMMARY.md) - 积分系统详解
+
+#### 部署文档
+- [部署指南](docs/deployment/Deployment_guide.md) - 完整部署流程
 
 ---
 

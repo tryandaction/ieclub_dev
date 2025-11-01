@@ -1,227 +1,293 @@
-// ===== services/searchService.js - 搜索服务（智能联想和纠错） =====
-const prisma = require('../config/database');
+// ieclub-backend/src/services/searchService.js
+// 搜索服务 - 提供全局搜索功能
+
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 const logger = require('../utils/logger');
 
 class SearchService {
   /**
-   * 搜索建议 - 智能联想
+   * 全局搜索
    */
-  async getSearchSuggestions(keyword, limit = 10) {
-    try {
-      if (!keyword || keyword.length < 2) {
-        return this.getPopularSearches(limit);
-      }
+  async globalSearch(keyword, options = {}) {
+    const {
+      page = 1,
+      pageSize = 20,
+      types = ['posts', 'users', 'activities'] // 搜索类型
+    } = options;
 
-      // 1. 从热门话题中匹配
-      const topicMatches = await prisma.topic.findMany({
-        where: {
-          status: 'published',
-          OR: [
-            { title: { contains: keyword } },
-            { tags: { hasSome: [keyword] } }
-          ]
-        },
-        select: {
-          title: true,
-          tags: true
-        },
-        take: 5,
-        orderBy: [
-          { views: 'desc' },
-          { likes: 'desc' }
-        ]
-      });
-
-      // 2. 从标签中匹配
-      const allTopics = await prisma.topic.findMany({
-        where: {
-          status: 'published',
-          tags: { isEmpty: false }
-        },
-        select: { tags: true },
-        take: 1000
-      });
-
-      // 统计标签频率
-      const tagCounts = {};
-      allTopics.forEach(topic => {
-        if (topic.tags && Array.isArray(topic.tags)) {
-          topic.tags.forEach(tag => {
-            if (tag.toLowerCase().includes(keyword.toLowerCase())) {
-              tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-            }
-          });
-        }
-      });
-
-      const tagSuggestions = Object.entries(tagCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .map(([tag]) => tag);
-
-      // 3. 从用户名中匹配
-      const userMatches = await prisma.user.findMany({
-        where: {
-          status: 'active',
-          OR: [
-            { nickname: { contains: keyword } },
-            { bio: { contains: keyword } }
-          ]
-        },
-        select: {
-          nickname: true
-        },
-        take: 3,
-        orderBy: {
-          level: 'desc'
-        }
-      });
-
-      // 组合建议
-      const suggestions = [
-        ...new Set([
-          ...topicMatches.map(t => t.title),
-          ...tagSuggestions,
-          ...userMatches.map(u => u.nickname)
-        ])
-      ].slice(0, limit);
-
-      return suggestions;
-    } catch (error) {
-      logger.error('获取搜索建议失败:', error);
-      return [];
-    }
-  }
-
-  /**
-   * 获取热门搜索
-   */
-  async getPopularSearches(limit = 10) {
-    try {
-      // 从搜索历史中统计热门关键词
-      const searches = await prisma.searchHistory.groupBy({
-        by: ['keyword'],
-        _count: {
-          keyword: true
-        },
-        where: {
-          createdAt: {
-            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 最近7天
-          }
-        },
-        orderBy: {
-          _count: {
-            keyword: 'desc'
-          }
-        },
-        take: limit
-      });
-
-      return searches.map(s => s.keyword);
-    } catch (error) {
-      logger.error('获取热门搜索失败:', error);
-      // 返回默认热门搜索
-      return [
-        'Python', '机器学习', '前端开发', 'React',
-        '算法', '数据结构', '项目实践', '竞赛经验'
-      ].slice(0, limit);
-    }
-  }
-
-  /**
-   * 智能纠错 - 拼写纠正
-   */
-  correctSpelling(keyword) {
-    // 常见拼写错误映射
-    const corrections = {
-      'paython': 'python',
-      'javascrpt': 'javascript',
-      'recat': 'react',
-      '机其学习': '机器学习',
-      '线代': '线性代数',
-      '概率论': '概率论与数理统计',
-      '数据库': '数据库原理',
-      '计网': '计算机网络',
-      '操作系统': '操作系统原理'
+    const results = {
+      posts: [],
+      users: [],
+      activities: [],
+      total: 0
     };
 
-    const lowerKeyword = keyword.toLowerCase();
-    
-    // 完全匹配
-    if (corrections[lowerKeyword]) {
-      return {
-        corrected: true,
-        original: keyword,
-        suggestion: corrections[lowerKeyword]
-      };
+    // 并行搜索各类型内容
+    const promises = [];
+
+    if (types.includes('posts')) {
+      promises.push(this.searchPosts(keyword, page, pageSize));
     }
 
-    // 模糊匹配（编辑距离）
-    let minDistance = Infinity;
-    let bestMatch = null;
-
-    for (const [wrong, right] of Object.entries(corrections)) {
-      const distance = this.levenshteinDistance(lowerKeyword, wrong);
-      if (distance < minDistance && distance <= 2) {
-        minDistance = distance;
-        bestMatch = right;
-      }
+    if (types.includes('users')) {
+      promises.push(this.searchUsers(keyword, page, pageSize));
     }
 
-    if (bestMatch) {
-      return {
-        corrected: true,
-        original: keyword,
-        suggestion: bestMatch
-      };
+    if (types.includes('activities')) {
+      promises.push(this.searchActivities(keyword, page, pageSize));
     }
+
+    const searchResults = await Promise.all(promises);
+
+    // 整合结果
+    let index = 0;
+    if (types.includes('posts')) {
+      results.posts = searchResults[index].posts;
+      results.total += searchResults[index].total;
+      index++;
+    }
+
+    if (types.includes('users')) {
+      results.users = searchResults[index].users;
+      results.total += searchResults[index].total;
+      index++;
+    }
+
+    if (types.includes('activities')) {
+      results.activities = searchResults[index].activities;
+      results.total += searchResults[index].total;
+    }
+
+    return results;
+  }
+
+  /**
+   * 搜索帖子
+   */
+  async searchPosts(keyword, page = 1, pageSize = 20) {
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+
+    const where = {
+      publishedAt: { not: null },
+      OR: [
+        { title: { contains: keyword } },
+        { content: { contains: keyword } }
+      ]
+    };
+
+    const [posts, total] = await Promise.all([
+      prisma.topic.findMany({
+        where,
+        skip,
+        take,
+        orderBy: [
+          { likesCount: 'desc' },
+          { createdAt: 'desc' }
+        ],
+        include: {
+          author: {
+            select: {
+              id: true,
+              nickname: true,
+              avatar: true,
+              level: true
+            }
+          },
+          category: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        }
+      }),
+      prisma.topic.count({ where })
+    ]);
 
     return {
-      corrected: false,
-      original: keyword,
-      suggestion: keyword
+      posts: posts.map(post => ({
+        id: post.id,
+        title: post.title,
+        content: this.getExcerpt(post.content, keyword),
+        tags: post.tags ? JSON.parse(post.tags) : [],
+        author: post.author,
+        category: post.category,
+        likesCount: post.likesCount,
+        commentsCount: post.commentsCount,
+        viewsCount: post.viewsCount,
+        createdAt: post.createdAt.toISOString()
+      })),
+      total,
+      hasMore: skip + take < total
     };
   }
 
   /**
-   * 计算编辑距离（Levenshtein Distance）
+   * 搜索用户
    */
-  levenshteinDistance(str1, str2) {
-    const m = str1.length;
-    const n = str2.length;
-    const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+  async searchUsers(keyword, page = 1, pageSize = 20) {
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
 
-    for (let i = 0; i <= m; i++) dp[i][0] = i;
-    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    const where = {
+      status: 'active',
+      OR: [
+        { nickname: { contains: keyword } },
+        { bio: { contains: keyword } },
+        { email: { contains: keyword } }
+      ]
+    };
 
-    for (let i = 1; i <= m; i++) {
-      for (let j = 1; j <= n; j++) {
-        if (str1[i - 1] === str2[j - 1]) {
-          dp[i][j] = dp[i - 1][j - 1];
-        } else {
-          dp[i][j] = Math.min(
-            dp[i - 1][j] + 1,     // 删除
-            dp[i][j - 1] + 1,     // 插入
-            dp[i - 1][j - 1] + 1  // 替换
-          );
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        skip,
+        take,
+        orderBy: [
+          { level: 'desc' },
+          { credits: 'desc' }
+        ],
+        select: {
+          id: true,
+          nickname: true,
+          avatar: true,
+          bio: true,
+          level: true,
+          credits: true,
+          topicsCount: true,
+          commentsCount: true,
+          likesCount: true,
+          fansCount: true
+        }
+      }),
+      prisma.user.count({ where })
+    ]);
+
+      return {
+      users: users.map(user => ({
+        id: user.id,
+        nickname: user.nickname,
+        avatar: user.avatar,
+        bio: user.bio || '',
+        level: user.level,
+        credits: user.credits,
+        stats: {
+          topics: user.topicsCount,
+          comments: user.commentsCount,
+          likes: user.likesCount,
+          fans: user.fansCount
+        }
+      })),
+      total,
+      hasMore: skip + take < total
+    };
+  }
+
+  /**
+   * 搜索活动
+   */
+  async searchActivities(keyword, page = 1, pageSize = 20) {
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+
+    const where = {
+      status: 'published',
+      OR: [
+        { title: { contains: keyword } },
+        { description: { contains: keyword } },
+        { location: { contains: keyword } }
+      ]
+    };
+
+    const [activities, total] = await Promise.all([
+      prisma.activity.findMany({
+        where,
+        skip,
+        take,
+        orderBy: [{ startTime: 'asc' }],
+        include: {
+          organizer: {
+            select: {
+              id: true,
+              nickname: true,
+              avatar: true
+            }
+          },
+          category: {
+            select: {
+              id: true,
+              name: true
+            }
+          },
+          _count: {
+            select: {
+              participants: true
+            }
+          }
+        }
+      }),
+      prisma.activity.count({ where })
+    ]);
+
+    return {
+      activities: activities.map(activity => ({
+        id: activity.id,
+        title: activity.title,
+        description: this.getExcerpt(activity.description, keyword),
+        location: activity.location,
+        startTime: activity.startTime.toISOString(),
+        endTime: activity.endTime.toISOString(),
+        maxParticipants: activity.maxParticipants,
+        participantsCount: activity._count.participants,
+        organizer: activity.organizer,
+        category: activity.category
+      })),
+      total,
+      hasMore: skip + take < total
+    };
+  }
+
+  /**
+   * 获取热门搜索关键词
+   */
+  async getHotKeywords(limit = 10) {
+    // 从搜索历史中统计热门关键词
+    const result = await prisma.searchHistory.groupBy({
+      by: ['keyword'],
+      _count: {
+        keyword: true
+      },
+      orderBy: {
+        _count: {
+          keyword: 'desc'
+        }
+      },
+      take: limit,
+      where: {
+        createdAt: {
+          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 最近7天
         }
       }
-    }
+    });
 
-    return dp[m][n];
+    return result.map(item => ({
+      keyword: item.keyword,
+      count: item._count.keyword
+    }));
   }
 
   /**
    * 保存搜索历史
    */
-  async saveSearchHistory(userId, keyword, resultType = 'all') {
+  async saveSearchHistory(userId, keyword, resultType = null) {
     try {
       await prisma.searchHistory.create({
         data: {
           userId,
           keyword,
-          resultType,
-          createdAt: new Date()
+          resultType
         }
       });
     } catch (error) {
@@ -233,114 +299,122 @@ class SearchService {
    * 获取用户搜索历史
    */
   async getUserSearchHistory(userId, limit = 10) {
-    try {
       const history = await prisma.searchHistory.findMany({
         where: { userId },
-        orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }],
         take: limit,
-        distinct: ['keyword']
-      });
+      distinct: ['keyword'], // 去重
+      select: {
+        keyword: true,
+        resultType: true,
+        createdAt: true
+      }
+    });
 
-      return history.map(h => h.keyword);
-    } catch (error) {
-      logger.error('获取搜索历史失败:', error);
-      return [];
-    }
+    return history;
   }
 
   /**
-   * 清除用户搜索历史
+   * 清空用户搜索历史
    */
-  async clearUserSearchHistory(userId) {
-    try {
-      await prisma.searchHistory.deleteMany({
+  async clearSearchHistory(userId) {
+    const result = await prisma.searchHistory.deleteMany({
         where: { userId }
       });
-      return true;
-    } catch (error) {
-      logger.error('清除搜索历史失败:', error);
-      return false;
-    }
+
+    return { message: '清空成功', count: result.count };
   }
 
   /**
-   * 相关搜索推荐
+   * 获取搜索建议
    */
-  async getRelatedSearches(keyword, limit = 5) {
-    try {
-      // 查找包含相同标签的话题
-      const topics = await prisma.topic.findMany({
-        where: {
-          status: 'published',
-          OR: [
-            { title: { contains: keyword } },
-            { tags: { hasSome: [keyword] } }
-          ]
-        },
-        select: {
-          tags: true
-        },
-        take: 20
-      });
-
-      // 统计相关标签
-      const tagCounts = {};
-      topics.forEach(topic => {
-        if (topic.tags && Array.isArray(topic.tags)) {
-          topic.tags.forEach(tag => {
-            if (tag !== keyword) {
-              tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-            }
-          });
-        }
-      });
-
-      // 返回最相关的标签
-      const related = Object.entries(tagCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, limit)
-        .map(([tag]) => tag);
-
-      return related;
-    } catch (error) {
-      logger.error('获取相关搜索失败:', error);
+  async getSuggestions(keyword, limit = 10) {
+    if (!keyword || keyword.length < 2) {
       return [];
     }
+
+    // 从帖子标题获取建议
+    const posts = await prisma.topic.findMany({
+        where: {
+        publishedAt: { not: null },
+        title: { contains: keyword }
+      },
+      take: limit,
+      select: {
+        title: true
+      },
+      orderBy: [
+        { likesCount: 'desc' },
+        { viewsCount: 'desc' }
+      ]
+    });
+
+    // 从用户昵称获取建议
+    const users = await prisma.user.findMany({
+      where: {
+        status: 'active',
+        nickname: { contains: keyword }
+      },
+      take: limit,
+        select: {
+        nickname: true
+      },
+      orderBy: [{ level: 'desc' }]
+    });
+
+    // 从活动标题获取建议
+    const activities = await prisma.activity.findMany({
+      where: {
+        status: 'published',
+        title: { contains: keyword }
+      },
+      take: limit,
+      select: {
+        title: true
+      },
+      orderBy: [{ participantsCount: 'desc' }]
+    });
+
+    // 合并去重
+    const suggestions = new Set();
+    posts.forEach(p => suggestions.add(p.title));
+    users.forEach(u => suggestions.add(u.nickname));
+    activities.forEach(a => suggestions.add(a.title));
+
+    return Array.from(suggestions).slice(0, limit);
   }
 
   /**
-   * 搜索补全
+   * 获取内容摘要（高亮关键词）
    */
-  async getAutoComplete(prefix, limit = 8) {
-    try {
-      if (!prefix || prefix.length < 1) {
-        return [];
-      }
+  getExcerpt(content, keyword, maxLength = 150) {
+    if (!content) return '';
 
-      // 从话题标题中查找
-      const topics = await prisma.topic.findMany({
-        where: {
-          status: 'published',
-          title: {
-            startsWith: prefix
-          }
-        },
-        select: {
-          title: true
-        },
-        take: limit,
-        orderBy: {
-          views: 'desc'
-        }
-      });
+    const lowerContent = content.toLowerCase();
+    const lowerKeyword = keyword.toLowerCase();
+    const keywordIndex = lowerContent.indexOf(lowerKeyword);
 
-      return [...new Set(topics.map(t => t.title))];
-    } catch (error) {
-      logger.error('搜索补全失败:', error);
-      return [];
+    if (keywordIndex === -1) {
+      // 如果没找到关键词，返回开头部分
+      return content.substring(0, maxLength) + (content.length > maxLength ? '...' : '');
     }
+
+    // 以关键词为中心，截取前后文
+    const start = Math.max(0, keywordIndex - Math.floor(maxLength / 2));
+    const end = Math.min(content.length, start + maxLength);
+    
+    let excerpt = content.substring(start, end);
+    
+    if (start > 0) {
+      excerpt = '...' + excerpt;
+    }
+    
+    if (end < content.length) {
+      excerpt = excerpt + '...';
+    }
+
+    return excerpt;
   }
 }
 
 module.exports = new SearchService();
-

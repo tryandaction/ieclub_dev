@@ -1,306 +1,316 @@
+// src/controllers/notificationController.js
+// 通知控制器 - 处理通知相关的HTTP请求
+
+const notificationService = require('../services/notificationService');
+const { broadcastToUser } = require('../websocket/wsServer'); // WebSocket推送
+
 /**
- * 通知控制器
+ * 获取通知列表
+ * GET /api/notifications
  */
-const { PrismaClient } = require('@prisma/client');
-const logger = require('../utils/logger');
-const prisma = new PrismaClient();
+async function getNotifications(req, res) {
+  try {
+    const userId = req.user.id;
+    const {
+      page = 1,
+      limit = 20,
+      unreadOnly = false,
+      type = null,
+    } = req.query;
 
-class NotificationController {
-  /**
-   * 获取通知列表
-   * GET /api/notifications
-   */
-  static async getNotifications(req, res) {
-    try {
-      const { page = 1, limit = 20, type, unreadOnly = false } = req.query;
-      const userId = req.user.id;
+    const result = await notificationService.getUserNotifications(userId, {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      unreadOnly: unreadOnly === 'true' || unreadOnly === true,
+      type,
+    });
 
-      const skip = (parseInt(page) - 1) * parseInt(limit);
-
-      const where = { userId };
-      
-      if (type) {
-        where.type = type;
-      }
-      
-      if (unreadOnly === 'true') {
-        where.isRead = false;
-      }
-
-      const [notifications, total] = await Promise.all([
-        prisma.notification.findMany({
-          where,
-          include: {
-            actor: {
-              select: {
-                id: true,
-                nickname: true,
-                avatar: true,
-              },
-            },
-          },
-          orderBy: { createdAt: 'desc' },
-          skip,
-          take: parseInt(limit),
-        }),
-        prisma.notification.count({ where }),
-      ]);
-
-      return res.json({
-        success: true,
-        data: notifications,
-        pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total,
-          totalPages: Math.ceil(total / parseInt(limit)),
-        },
-      });
-    } catch (error) {
-      logger.error('获取通知列表失败:', error);
-      return res.status(500).json({
-        success: false,
-        message: '获取通知列表失败',
-      });
-    }
-  }
-
-  /**
-   * 获取未读通知数量
-   * GET /api/notifications/unread-count
-   */
-  static async getUnreadCount(req, res) {
-    try {
-      const userId = req.user.id;
-
-      const count = await prisma.notification.count({
-        where: {
-          userId,
-          isRead: false,
-        },
-      });
-
-      return res.json({
-        success: true,
-        data: { count },
-      });
-    } catch (error) {
-      logger.error('获取未读数量失败:', error);
-      return res.status(500).json({
-        success: false,
-        message: '获取未读数量失败',
-      });
-    }
-  }
-
-  /**
-   * 标记单条通知为已读
-   * PUT /api/notifications/:id/read
-   */
-  static async markAsRead(req, res) {
-    try {
-      const { id } = req.params;
-      const userId = req.user.id;
-
-      // 验证所有权
-      const notification = await prisma.notification.findUnique({
-        where: { id },
-      });
-
-      if (!notification) {
-        return res.status(404).json({
-          success: false,
-          message: '通知不存在',
-        });
-      }
-
-      if (notification.userId !== userId) {
-        return res.status(403).json({
-          success: false,
-          message: '无权操作此通知',
-        });
-      }
-
-      // 更新为已读
-      const updated = await prisma.notification.update({
-        where: { id },
-        data: {
-          isRead: true,
-          readAt: new Date(),
-        },
-      });
-
-      return res.json({
-        success: true,
-        data: updated,
-      });
-    } catch (error) {
-      logger.error('标记已读失败:', error);
-      return res.status(500).json({
-        success: false,
-        message: '标记已读失败',
-      });
-    }
-  }
-
-  /**
-   * 标记所有通知为已读
-   * PUT /api/notifications/read-all
-   */
-  static async markAllAsRead(req, res) {
-    try {
-      const userId = req.user.id;
-
-      const result = await prisma.notification.updateMany({
-        where: {
-          userId,
-          isRead: false,
-        },
-        data: {
-          isRead: true,
-          readAt: new Date(),
-        },
-      });
-
-      return res.json({
-        success: true,
-        data: {
-          count: result.count,
-        },
-        message: `已标记 ${result.count} 条通知为已读`,
-      });
-    } catch (error) {
-      logger.error('标记全部已读失败:', error);
-      return res.status(500).json({
-        success: false,
-        message: '标记全部已读失败',
-      });
-    }
-  }
-
-  /**
-   * 删除单条通知
-   * DELETE /api/notifications/:id
-   */
-  static async deleteNotification(req, res) {
-    try {
-      const { id } = req.params;
-      const userId = req.user.id;
-
-      // 验证所有权
-      const notification = await prisma.notification.findUnique({
-        where: { id },
-      });
-
-      if (!notification) {
-        return res.status(404).json({
-          success: false,
-          message: '通知不存在',
-        });
-      }
-
-      if (notification.userId !== userId) {
-        return res.status(403).json({
-          success: false,
-          message: '无权删除此通知',
-        });
-      }
-
-      await prisma.notification.delete({
-        where: { id },
-      });
-
-      return res.json({
-        success: true,
-        message: '删除成功',
-      });
-    } catch (error) {
-      logger.error('删除通知失败:', error);
-      return res.status(500).json({
-        success: false,
-        message: '删除通知失败',
-      });
-    }
-  }
-
-  /**
-   * 清空所有已读通知
-   * DELETE /api/notifications/clear-read
-   */
-  static async clearReadNotifications(req, res) {
-    try {
-      const userId = req.user.id;
-
-      const result = await prisma.notification.deleteMany({
-        where: {
-          userId,
-          isRead: true,
-        },
-      });
-
-      return res.json({
-        success: true,
-        data: {
-          count: result.count,
-        },
-        message: `已清空 ${result.count} 条已读通知`,
-      });
-    } catch (error) {
-      logger.error('清空已读通知失败:', error);
-      return res.status(500).json({
-        success: false,
-        message: '清空已读通知失败',
-      });
-    }
-  }
-
-  /**
-   * 创建通知（内部方法）
-   */
-  static async createNotification(data) {
-    try {
-      const notification = await prisma.notification.create({
-        data: {
-          userId: data.userId,
-          type: data.type,
-          title: data.title,
-          content: data.content,
-          actorId: data.actorId,
-          targetType: data.targetType,
-          targetId: data.targetId,
-          link: data.link,
-        },
-        include: {
-          actor: {
-            select: {
-              id: true,
-              nickname: true,
-              avatar: true,
-            },
-          },
-        },
-      });
-
-      return notification;
-    } catch (error) {
-      logger.error('创建通知失败:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * 批量创建通知（内部方法）
-   */
-  static async createBatchNotifications(notifications) {
-    try {
-      await prisma.notification.createMany({
-        data: notifications,
-      });
-    } catch (error) {
-      logger.error('批量创建通知失败:', error);
-      throw error;
-    }
+    res.json({
+      code: 200,
+      message: '获取通知列表成功',
+      data: result,
+    });
+  } catch (error) {
+    console.error('获取通知列表失败:', error);
+    res.status(500).json({
+      code: 500,
+      message: error.message || '获取通知列表失败',
+    });
   }
 }
 
-module.exports = NotificationController;
+/**
+ * 获取未读通知数量
+ * GET /api/notifications/unread-count
+ */
+async function getUnreadCount(req, res) {
+  try {
+    const userId = req.user.id;
+
+    const count = await notificationService.getUnreadCount(userId);
+
+    res.json({
+      code: 200,
+      message: '获取未读数量成功',
+      data: { count },
+    });
+  } catch (error) {
+    console.error('获取未读数量失败:', error);
+    res.status(500).json({
+      code: 500,
+      message: error.message || '获取未读数量失败',
+    });
+  }
+}
+
+/**
+ * 标记通知为已读
+ * PUT /api/notifications/:id/read
+ */
+async function markAsRead(req, res) {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    const notification = await notificationService.markAsRead(id, userId);
+
+    res.json({
+      code: 200,
+      message: '标记已读成功',
+      data: notification,
+    });
+  } catch (error) {
+    console.error('标记已读失败:', error);
+    res.status(error.message.includes('不存在') ? 404 : 500).json({
+      code: error.message.includes('不存在') ? 404 : 500,
+      message: error.message || '标记已读失败',
+    });
+  }
+}
+
+/**
+ * 标记所有通知为已读
+ * PUT /api/notifications/read-all
+ */
+async function markAllAsRead(req, res) {
+  try {
+    const userId = req.user.id;
+
+    const count = await notificationService.markAllAsRead(userId);
+
+    res.json({
+      code: 200,
+      message: '全部标记已读成功',
+      data: { count },
+    });
+  } catch (error) {
+    console.error('全部标记已读失败:', error);
+    res.status(500).json({
+      code: 500,
+      message: error.message || '全部标记已读失败',
+    });
+  }
+}
+
+/**
+ * 删除通知
+ * DELETE /api/notifications/:id
+ */
+async function deleteNotification(req, res) {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    await notificationService.deleteNotification(id, userId);
+
+    res.json({
+      code: 200,
+      message: '删除通知成功',
+      data: null,
+    });
+  } catch (error) {
+    console.error('删除通知失败:', error);
+    res.status(error.message.includes('不存在') ? 404 : 500).json({
+      code: error.message.includes('不存在') ? 404 : 500,
+      message: error.message || '删除通知失败',
+    });
+  }
+}
+
+/**
+ * 批量删除通知
+ * POST /api/notifications/batch-delete
+ */
+async function batchDeleteNotifications(req, res) {
+  try {
+    const userId = req.user.id;
+    const { notificationIds } = req.body;
+
+    if (!Array.isArray(notificationIds) || notificationIds.length === 0) {
+      return res.status(400).json({
+        code: 400,
+        message: '请提供要删除的通知ID列表',
+      });
+    }
+
+    const count = await notificationService.deleteNotifications(notificationIds, userId);
+
+    res.json({
+      code: 200,
+      message: '批量删除成功',
+      data: { count },
+    });
+  } catch (error) {
+    console.error('批量删除通知失败:', error);
+    res.status(500).json({
+      code: 500,
+      message: error.message || '批量删除通知失败',
+    });
+  }
+}
+
+/**
+ * 清空已读通知
+ * DELETE /api/notifications/clear-read
+ */
+async function clearReadNotifications(req, res) {
+  try {
+    const userId = req.user.id;
+
+    const count = await notificationService.clearReadNotifications(userId);
+
+    res.json({
+      code: 200,
+      message: '清空已读通知成功',
+      data: { count },
+    });
+  } catch (error) {
+    console.error('清空已读通知失败:', error);
+    res.status(500).json({
+      code: 500,
+      message: error.message || '清空已读通知失败',
+    });
+  }
+}
+
+/**
+ * 创建系统通知（管理员专用）
+ * POST /api/notifications/system
+ */
+async function createSystemNotification(req, res) {
+  try {
+    const { userId, title, content, link } = req.body;
+
+    // 验证必要参数
+    if (!title || !content) {
+      return res.status(400).json({
+        code: 400,
+        message: '标题和内容不能为空',
+      });
+    }
+
+    const notification = await notificationService.createSystemNotification(
+      userId || null, // null表示发送给所有用户
+      title,
+      content,
+      link
+    );
+
+    // 通过WebSocket实时推送
+    if (userId) {
+      broadcastToUser(userId, {
+        type: 'notification',
+        data: notification,
+      });
+    } else {
+      // 全局推送（需要在wsServer中实现）
+      // broadcastToAll({ type: 'notification', data: notification });
+    }
+
+    res.json({
+      code: 200,
+      message: '系统通知创建成功',
+      data: notification,
+    });
+  } catch (error) {
+    console.error('创建系统通知失败:', error);
+    res.status(500).json({
+      code: 500,
+      message: error.message || '创建系统通知失败',
+    });
+  }
+}
+
+/**
+ * 获取通知设置
+ * GET /api/notifications/settings
+ */
+async function getNotificationSettings(req, res) {
+  try {
+    // const userId = req.user.id;
+
+    // TODO: 从数据库读取用户的通知设置
+    // 目前返回默认设置
+    const settings = {
+      like: true,           // 点赞通知
+      comment: true,        // 评论通知
+      reply: true,          // 回复通知
+      follow: true,         // 关注通知
+      activity: true,       // 活动通知
+      system: true,         // 系统通知
+      emailNotification: false,  // 邮件通知
+      pushNotification: true,    // 推送通知
+    };
+
+    res.json({
+      code: 200,
+      message: '获取通知设置成功',
+      data: settings,
+    });
+  } catch (error) {
+    console.error('获取通知设置失败:', error);
+    res.status(500).json({
+      code: 500,
+      message: error.message || '获取通知设置失败',
+    });
+  }
+}
+
+/**
+ * 更新通知设置
+ * PUT /api/notifications/settings
+ */
+async function updateNotificationSettings(req, res) {
+  try {
+    // const userId = req.user.id;
+    const settings = req.body;
+
+    // TODO: 保存到数据库
+    // 目前仅返回成功
+
+    res.json({
+      code: 200,
+      message: '更新通知设置成功',
+      data: settings,
+    });
+  } catch (error) {
+    console.error('更新通知设置失败:', error);
+    res.status(500).json({
+      code: 500,
+      message: error.message || '更新通知设置失败',
+    });
+  }
+}
+
+module.exports = {
+  getNotifications,
+  getUnreadCount,
+  markAsRead,
+  markAllAsRead,
+  deleteNotification,
+  batchDeleteNotifications,
+  clearReadNotifications,
+  createSystemNotification,
+  getNotificationSettings,
+  updateNotificationSettings,
+};

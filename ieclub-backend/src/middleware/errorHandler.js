@@ -2,6 +2,7 @@ const logger = require('../utils/logger');
 const response = require('../utils/response');
 const AppError = require('../utils/AppError');
 const { Prisma } = require('@prisma/client');
+const monitoringService = require('../services/monitoringService');
 
 const errorHandler = (err, req, res, _next) => {
   // 记录错误日志
@@ -13,6 +14,17 @@ const errorHandler = (err, req, res, _next) => {
     ip: req.ip,
     userId: req.user?.id
   });
+
+  // 记录到监控服务
+  try {
+    monitoringService.recordError(err, {
+      url: req.originalUrl,
+      method: req.method,
+      userId: req.user?.id
+    });
+  } catch (error) {
+    // 忽略监控服务错误
+  }
 
   // 如果是自定义AppError
   if (err instanceof AppError) {

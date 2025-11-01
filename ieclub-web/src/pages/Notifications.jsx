@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getNotifications, markAsRead, markAllAsRead, deleteNotification, clearReadNotifications } from '../api/notification'
+import { useNotifications } from '../hooks/useWebSocket'
 import toast from '../utils/toast'
 import Loading from '../components/Loading'
 
 /**
- * 通知页面
+ * 通知页面 - 支持实时通知
  */
 export default function Notifications() {
   const navigate = useNavigate()
@@ -14,6 +15,21 @@ export default function Notifications() {
   const [filter, setFilter] = useState('all') // all, unread
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
+
+  // 监听实时通知
+  useNotifications((newNotification) => {
+    // 如果在第一页且显示全部通知，将新通知添加到列表顶部
+    if (page === 1 && filter === 'all') {
+      setNotifications((prev) => [newNotification, ...prev])
+      setTotal((prev) => prev + 1)
+    } else if (page === 1 && filter === 'unread' && !newNotification.isRead) {
+      setNotifications((prev) => [newNotification, ...prev])
+      setTotal((prev) => prev + 1)
+    }
+    
+    // 显示 Toast 提示
+    toast.success(`新通知：${newNotification.title}`)
+  })
 
   const typeConfig = {
     like: {

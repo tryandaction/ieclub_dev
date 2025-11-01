@@ -46,6 +46,16 @@ module.exports = {
     cdnDomain: process.env.OSS_CDN_DOMAIN,
   },
 
+  // 邮件配置
+  email: {
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.EMAIL_PORT) || 587,
+    secure: process.env.EMAIL_SECURE === 'true',
+    user: process.env.EMAIL_USER,
+    password: process.env.EMAIL_PASSWORD,
+    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+  },
+
   // 文件上传限制
   upload: {
     maxImageSize: parseInt(process.env.MAX_IMAGE_SIZE) || 5 * 1024 * 1024, // 5MB

@@ -73,7 +73,7 @@ request.interceptors.response.use(
     const responseData = response.data
     
     // 如果后端返回的是标准格式 {success, message, data}
-    if (responseData.hasOwnProperty('success')) {
+    if (Object.prototype.hasOwnProperty.call(responseData, 'success')) {
       if (responseData.success) {
         return responseData.data || responseData
       } else {
@@ -84,7 +84,7 @@ request.interceptors.response.use(
     }
     
     // 如果后端返回的是 {code, data, message} 格式
-    if (responseData.hasOwnProperty('code')) {
+    if (Object.prototype.hasOwnProperty.call(responseData, 'code')) {
       const { code, data, message } = responseData
       
       // 业务成功
@@ -171,7 +171,7 @@ request.interceptors.response.use(
           errorMessage = '没有权限访问'
         }
         break
-      case 404:
+      case 404: {
         // 404错误提供更详细的信息
         const requestURL = error.config?.url || 'unknown'
         const fullURL = error.config?.baseURL ? `${error.config.baseURL}${requestURL}` : requestURL
@@ -185,6 +185,7 @@ request.interceptors.response.use(
           errorMessage = `路由不存在: ${error.config?.method?.toUpperCase()} ${requestURL}`
         }
         break
+      }
       case 429:
         if (!data || !data.message) {
           errorMessage = '请求过于频繁，请稍后重试'

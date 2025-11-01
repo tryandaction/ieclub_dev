@@ -1,391 +1,501 @@
-// ===== services/statsService.js - 数据统计服务 =====
-const prisma = require('../config/database');
-const logger = require('../utils/logger');
-const { startOfWeek, startOfMonth, startOfYear, subDays } = require('date-fns');
+// ieclub-backend/src/services/statsService.js
+// 数据统计和分析服务
+
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 class StatsService {
   /**
    * 获取用户统计数据
    */
   async getUserStats(userId) {
-    try {
-      const user = await prisma.user.findUnique({
+    const [user, posts, comments, likes, activities] = await Promise.all([
+      prisma.user.findUnique({
         where: { id: userId },
-        include: {
-          _count: {
             select: {
-              topics: true,
-              comments: true,
-              followers: true,
-              following: true,
-              receivedLikes: true,
-              bookmarks: true,
-            }
-          }
+          credits: true,
+          level: true,
+          exp: true,
+          topicsCount: true,
+          commentsCount: true,
+          likesCount: true,
+          fansCount: true,
+          createdAt: true
         }
-      });
-
-      if (!user) {
-        throw new Error('用户不存在');
-      }
-
-      // 获取本周和本月的统计
-      const weeklyStats = await this.getUserPeriodStats(userId, 'week');
-      const monthlyStats = await this.getUserPeriodStats(userId, 'month');
-
-      return {
-        basic: {
-          totalTopics: user._count.topics,
-          totalComments: user._count.comments,
-          followersCount: user._count.followers,
-          followingCount: user._count.following,
-          totalLikes: user._count.receivedLikes,
-          totalBookmarks: user._count.bookmarks,
-          points: user.points,
-          level: user.level
-        },
-        weekly: weeklyStats,
-        monthly: monthlyStats
-      };
-    } catch (error) {
-      logger.error('获取用户统计失败:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * 获取用户某时间段的统计
-   */
-  async getUserPeriodStats(userId, period = 'week') {
-    const startDate = this.getStartDate(period);
-
-    const [topicsCount, commentsCount, newFollowers, likesCount] = await Promise.all([
-      // 发布话题数
+      }),
       prisma.topic.count({
-        where: {
-          authorId: userId,
-          createdAt: { gte: startDate }
-        }
+        where: { authorId: userId, publishedAt: { not: null } }
       }),
-      // 评论数
       prisma.comment.count({
-        where: {
-          userId: userId,
-          createdAt: { gte: startDate }
-        }
+        where: { userId }
       }),
-      // 新增粉丝数
-      prisma.follow.count({
-        where: {
-          followingId: userId,
-          createdAt: { gte: startDate }
-        }
-      }),
-      // 获得点赞数
       prisma.like.count({
-        where: {
-          topic: {
-            authorId: userId
-          },
-          createdAt: { gte: startDate }
-        }
+        where: { userId }
+      }),
+      prisma.activityParticipant.count({
+        where: { userId, status: 'approved' }
       })
     ]);
 
-    return {
-      topicsCount,
-      commentsCount,
-      newFollowers,
-      likesCount
-    };
-  }
+    // 计算活跃天数
+    const firstActivity = await prisma.creditLog.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'asc' },
+      select: { createdAt: true }
+    });
 
-  /**
-   * 计算用户活跃度
-   */
-  async calculateUserActivity(userId, days = 30) {
-    try {
-      const startDate = subDays(new Date(), days);
+    const activeDays = firstActivity
+      ? Math.floor((Date.now() - firstActivity.createdAt.getTime()) / (1000 * 60 * 60 * 24))
+      : 0;
 
-      // 获取用户在指定时间内的活动
-      const [topics, comments, likes] = await Promise.all([
-        prisma.topic.findMany({
-          where: {
-            authorId: userId,
-            createdAt: { gte: startDate }
-          },
-          select: { createdAt: true }
-        }),
-        prisma.comment.findMany({
-          where: {
-            userId: userId,
-            createdAt: { gte: startDate }
-          },
-          select: { createdAt: true }
-        }),
-        prisma.like.findMany({
-          where: {
-            userId: userId,
-            createdAt: { gte: startDate }
-          },
-          select: { createdAt: true }
-        })
-      ]);
+    // 最近7天活跃度
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      // 按天统计活动
-      const activityByDay = {};
-      for (let i = 0; i < days; i++) {
-        const date = subDays(new Date(), i).toISOString().split('T')[0];
-        activityByDay[date] = {
-          topics: 0,
-          comments: 0,
-          likes: 0,
-          total: 0
-        };
+    const recentActivity = await prisma.creditLog.count({
+      where: {
+        userId,
+        createdAt: { gte: sevenDaysAgo }
       }
+    });
 
-      // 统计各类活动
-      topics.forEach(t => {
-        const date = t.createdAt.toISOString().split('T')[0];
-        if (activityByDay[date]) {
-          activityByDay[date].topics++;
-          activityByDay[date].total++;
-        }
-      });
-
-      comments.forEach(c => {
-        const date = c.createdAt.toISOString().split('T')[0];
-        if (activityByDay[date]) {
-          activityByDay[date].comments++;
-          activityByDay[date].total++;
-        }
-      });
-
-      likes.forEach(l => {
-        const date = l.createdAt.toISOString().split('T')[0];
-        if (activityByDay[date]) {
-          activityByDay[date].likes++;
-          activityByDay[date].total++;
-        }
-      });
-
-      // 计算活跃天数和平均活跃度
-      const activeDays = Object.values(activityByDay).filter(day => day.total > 0).length;
-      const totalActivity = Object.values(activityByDay).reduce((sum, day) => sum + day.total, 0);
-      const avgActivity = activeDays > 0 ? totalActivity / activeDays : 0;
-
-      return {
-        activeDays,
-        totalActivity,
-        avgActivity: Math.round(avgActivity * 10) / 10,
-        activityByDay
-      };
-    } catch (error) {
-      logger.error('计算用户活跃度失败:', error);
-      return {
-        activeDays: 0,
-        totalActivity: 0,
-        avgActivity: 0,
-        activityByDay: {}
-      };
-    }
-  }
-
-  /**
-   * 计算用户影响力
-   */
-  async calculateUserInfluence(userId) {
-    try {
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        include: {
-          _count: {
-            select: {
-              followers: true,
-              topics: true,
-              receivedLikes: true
-            }
-          },
-          topics: {
-            select: {
-              _count: {
-                select: {
-                  likes: true,
-                  comments: true,
-                  views: true
-                }
-              }
-            }
-          }
-        }
-      });
-
-      if (!user) return 0;
-
-      // 计算总浏览量、点赞量、评论量
-      const totalViews = user.topics.reduce((sum, t) => sum + t._count.views, 0);
-      const totalLikes = user.topics.reduce((sum, t) => sum + t._count.likes, 0);
-      const totalComments = user.topics.reduce((sum, t) => sum + t._count.comments, 0);
-
-      // 影响力计算公式
-      const influence = 
-        user._count.followers * 10 +
-        user._count.topics * 5 +
-        totalViews * 0.1 +
-        totalLikes * 2 +
-        totalComments * 3;
-
-      return Math.round(influence);
-    } catch (error) {
-      logger.error('计算用户影响力失败:', error);
-      return 0;
-    }
+    return {
+      user: {
+        credits: user.credits,
+        level: user.level,
+        exp: user.exp,
+        joinDate: user.createdAt.toISOString(),
+        activeDays
+      },
+      content: {
+        posts,
+        comments,
+        likes,
+        activities
+      },
+      social: {
+        fans: user.fansCount,
+        receivedLikes: user.likesCount
+      },
+      activity: {
+        recentWeek: recentActivity,
+        averageDaily: activeDays > 0 ? (recentActivity / 7).toFixed(2) : 0
+      }
+    };
   }
 
   /**
    * 获取平台整体统计
    */
   async getPlatformStats() {
-    try {
-      const [totalUsers, totalTopics, totalComments, activeUsers] = await Promise.all([
-        prisma.user.count(),
-        prisma.topic.count(),
-        prisma.comment.count(),
-        prisma.user.count({
-          where: {
-            lastActiveAt: {
-              gte: subDays(new Date(), 7)
-            }
-          }
-        })
-      ]);
+    const [
+      totalUsers,
+      activeUsers,
+      totalPosts,
+      totalComments,
+      totalActivities,
+      todayPosts,
+      todayComments,
+      todayUsers
+    ] = await Promise.all([
+      prisma.user.count(),
+      prisma.user.count({ where: { status: 'active' } }),
+      prisma.topic.count({ where: { publishedAt: { not: null } } }),
+      prisma.comment.count(),
+      prisma.activity.count({ where: { status: 'published' } }),
+      this.getTodayCount('topic'),
+      this.getTodayCount('comment'),
+      this.getTodayCount('user')
+    ]);
 
       return {
-        totalUsers,
-        totalTopics,
-        totalComments,
-        activeUsers,
-        updatedAt: new Date().toISOString()
-      };
-    } catch (error) {
-      logger.error('获取平台统计失败:', error);
-      return {
-        totalUsers: 0,
-        totalTopics: 0,
-        totalComments: 0,
-        activeUsers: 0,
-        updatedAt: new Date().toISOString()
-      };
-    }
+      users: {
+        total: totalUsers,
+        active: activeUsers,
+        today: todayUsers
+      },
+      content: {
+        posts: totalPosts,
+        comments: totalComments,
+        activities: totalActivities
+      },
+      today: {
+        posts: todayPosts,
+        comments: todayComments,
+        newUsers: todayUsers
+      }
+    };
   }
 
   /**
-   * 获取热门标签统计
+   * 获取内容趋势（最近30天）
    */
-  async getPopularTags(limit = 20) {
-    try {
-      // 由于没有看到tags表的schema，这里用简化版本
-      // 实际应该从topic_tags关联表中统计
-      
-      const topics = await prisma.topic.findMany({
+  async getContentTrend(days = 30) {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    // 按天统计
+    const dailyStats = [];
+    for (let i = 0; i < days; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - (days - i - 1));
+      date.setHours(0, 0, 0, 0);
+
+      const nextDate = new Date(date);
+      nextDate.setDate(nextDate.getDate() + 1);
+
+      const [posts, comments, users] = await Promise.all([
+      prisma.topic.count({
         where: {
-          status: { not: 'deleted' }
-        },
-        select: {
-          tags: true
+            publishedAt: {
+              gte: date,
+              lt: nextDate
+            }
+          }
+        }),
+      prisma.comment.count({
+        where: {
+            createdAt: {
+              gte: date,
+              lt: nextDate
+            }
+          }
+        }),
+        prisma.user.count({
+        where: {
+            createdAt: {
+              gte: date,
+              lt: nextDate
+            }
+        }
+      })
+    ]);
+
+      dailyStats.push({
+        date: date.toISOString().split('T')[0],
+        posts,
+        comments,
+        users
+      });
+    }
+
+    return dailyStats;
+  }
+
+  /**
+   * 获取热门内容
+   */
+  async getHotContent(options = {}) {
+    const {
+      type = 'posts', // posts, activities, users
+      limit = 10,
+      days = 7
+    } = options;
+
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    switch (type) {
+      case 'posts':
+        return await prisma.topic.findMany({
+          where: {
+            publishedAt: { gte: startDate }
+          },
+          take: limit,
+          orderBy: [
+            { likesCount: 'desc' },
+            { commentsCount: 'desc' },
+            { viewsCount: 'desc' }
+          ],
+        include: {
+            author: {
+            select: {
+                id: true,
+                nickname: true,
+                avatar: true
+              }
+            },
+            category: {
+            select: {
+                id: true,
+                name: true
+            }
+          }
         }
       });
 
-      // 统计标签频率
-      const tagCount = {};
-      topics.forEach(topic => {
-        if (topic.tags && Array.isArray(topic.tags)) {
-          topic.tags.forEach(tag => {
-            tagCount[tag] = (tagCount[tag] || 0) + 1;
-          });
-        }
-      });
+      case 'activities':
+        return await prisma.activity.findMany({
+          where: {
+            status: 'published',
+            createdAt: { gte: startDate }
+          },
+          take: limit,
+          orderBy: [
+            { participantsCount: 'desc' }
+          ],
+          include: {
+            organizer: {
+              select: {
+                id: true,
+                nickname: true,
+                avatar: true
+              }
+            }
+          }
+        });
 
-      // 排序并返回前N个
-      const popularTags = Object.entries(tagCount)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, limit)
-        .map(([tag, count]) => ({ tag, count }));
+      case 'users':
+        return await prisma.user.findMany({
+          where: {
+            status: 'active',
+            createdAt: { gte: startDate }
+          },
+          take: limit,
+          orderBy: [
+            { credits: 'desc' },
+            { level: 'desc' }
+          ],
+          select: {
+            id: true,
+            nickname: true,
+            avatar: true,
+            level: true,
+            credits: true,
+            topicsCount: true,
+            commentsCount: true
+          }
+        });
 
-      return popularTags;
-    } catch (error) {
-      logger.error('获取热门标签失败:', error);
+      default:
       return [];
     }
   }
 
   /**
-   * 辅助函数：获取时间段起始日期
+   * 获取用户行为分析
    */
-  getStartDate(period) {
-    const now = new Date();
-    switch (period) {
-      case 'week':
-        return startOfWeek(now, { weekStartsOn: 1 });
-      case 'month':
-        return startOfMonth(now);
-      case 'year':
-        return startOfYear(now);
-      case 'day':
-        return subDays(now, 1);
-      default:
-        return startOfWeek(now, { weekStartsOn: 1 });
-    }
-  }
+  async getUserBehaviorAnalysis(userId) {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-  /**
-   * 计算用户成长趋势
-   */
-  async getUserGrowthTrend(userId, days = 30) {
-    try {
-      const trends = [];
-      
-      for (let i = days - 1; i >= 0; i--) {
-        const date = subDays(new Date(), i);
-        const startDate = new Date(date.setHours(0, 0, 0, 0));
-        const endDate = new Date(date.setHours(23, 59, 59, 999));
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-        const [followersCount, topicsCount, likesCount] = await Promise.all([
-          prisma.follow.count({
+    // 获取行为数据
+    const [
+      recentPosts,
+      recentComments,
+      recentLikes,
+      monthlyPosts,
+      monthlyComments,
+      creditHistory
+    ] = await Promise.all([
+      prisma.topic.count({
+        where: {
+          authorId: userId,
+          publishedAt: { gte: sevenDaysAgo }
+        }
+      }),
+      prisma.comment.count({
+        where: {
+          userId,
+          createdAt: { gte: sevenDaysAgo }
+        }
+      }),
+      prisma.like.count({
             where: {
-              followingId: userId,
-              createdAt: { gte: startDate, lte: endDate }
+          userId,
+          createdAt: { gte: sevenDaysAgo }
             }
           }),
           prisma.topic.count({
             where: {
               authorId: userId,
-              createdAt: { gte: startDate, lte: endDate }
+          publishedAt: { gte: thirtyDaysAgo }
             }
           }),
-          prisma.like.count({
+      prisma.comment.count({
             where: {
-              topic: { authorId: userId },
-              createdAt: { gte: startDate, lte: endDate }
-            }
+          userId,
+          createdAt: { gte: thirtyDaysAgo }
+        }
+      }),
+      prisma.creditLog.findMany({
+        where: {
+          userId,
+          createdAt: { gte: thirtyDaysAgo }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 100
           })
         ]);
 
-        trends.push({
-          date: startDate.toISOString().split('T')[0],
-          followers: followersCount,
-          topics: topicsCount,
-          likes: likesCount
-        });
+    // 计算活跃度分数（0-100）
+    const activityScore = Math.min(100, 
+      recentPosts * 10 + 
+      recentComments * 5 + 
+      recentLikes * 2
+    );
+
+    // 分析最活跃时间段
+    const activityByHour = {};
+    creditHistory.forEach(log => {
+      const hour = log.createdAt.getHours();
+      activityByHour[hour] = (activityByHour[hour] || 0) + 1;
+    });
+
+    const mostActiveHour = Object.keys(activityByHour).reduce((a, b) => 
+      activityByHour[a] > activityByHour[b] ? a : b, 0
+    );
+
+    return {
+      recent: {
+        posts: recentPosts,
+        comments: recentComments,
+        likes: recentLikes,
+        activityScore
+      },
+      monthly: {
+        posts: monthlyPosts,
+        comments: monthlyComments,
+        averagePostsPerWeek: (monthlyPosts / 4).toFixed(1),
+        averageCommentsPerWeek: (monthlyComments / 4).toFixed(1)
+      },
+      behavior: {
+        mostActiveHour: parseInt(mostActiveHour),
+        activityDistribution: activityByHour
+      }
+    };
+  }
+
+  /**
+   * 获取积分趋势
+   */
+  async getCreditTrend(userId, days = 30) {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const logs = await prisma.creditLog.findMany({
+      where: {
+        userId,
+        createdAt: { gte: startDate }
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+
+    // 按天分组统计
+    const dailyCredits = {};
+    let cumulativeCredits = 0;
+
+    logs.forEach(log => {
+      const date = log.createdAt.toISOString().split('T')[0];
+      if (!dailyCredits[date]) {
+        dailyCredits[date] = {
+          date,
+          gained: 0,
+          spent: 0,
+          cumulative: 0
+        };
       }
 
-      return trends;
-    } catch (error) {
-      logger.error('计算成长趋势失败:', error);
-      return [];
-    }
+      if (log.credits > 0) {
+        dailyCredits[date].gained += log.credits;
+      } else {
+        dailyCredits[date].spent += Math.abs(log.credits);
+      }
+
+      cumulativeCredits += log.credits;
+      dailyCredits[date].cumulative = cumulativeCredits;
+    });
+
+    return Object.values(dailyCredits);
+  }
+
+  /**
+   * 获取分类统计
+   */
+  async getCategoryStats() {
+    // 获取所有分类及其内容数量
+    const categories = await prisma.category.findMany({
+      include: {
+        _count: {
+          select: {
+            topics: true,
+            activities: true
+          }
+        }
+      }
+    });
+
+    return categories.map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      postsCount: cat._count.topics,
+      activitiesCount: cat._count.activities,
+      total: cat._count.topics + cat._count.activities
+    })).sort((a, b) => b.total - a.total);
+  }
+
+  /**
+   * 辅助函数：获取今天的数量
+   */
+  async getTodayCount(model) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const modelMap = {
+      user: 'user',
+      topic: 'topic',
+      comment: 'comment'
+    };
+
+    const modelName = modelMap[model];
+    if (!modelName) return 0;
+
+    return await prisma[modelName].count({
+      where: {
+        createdAt: {
+          gte: today,
+          lt: tomorrow
+        }
+      }
+    });
+  }
+
+  /**
+   * 获取排行榜
+   */
+  async getLeaderboard(type = 'credits', limit = 50) {
+    const orderByMap = {
+      credits: { credits: 'desc' },
+      level: { level: 'desc' },
+      posts: { topicsCount: 'desc' },
+      likes: { likesCount: 'desc' }
+    };
+
+    const orderBy = orderByMap[type] || orderByMap.credits;
+
+    return await prisma.user.findMany({
+      where: { status: 'active' },
+      take: limit,
+      orderBy,
+      select: {
+        id: true,
+        nickname: true,
+        avatar: true,
+        level: true,
+        credits: true,
+        exp: true,
+        topicsCount: true,
+        commentsCount: true,
+        likesCount: true
+      }
+    });
   }
 }
 
 module.exports = new StatsService();
-

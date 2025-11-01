@@ -63,7 +63,7 @@ class ErrorBoundary extends Component {
             </p>
 
             {/* 开发环境显示错误详情 */}
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <details className="mb-6 text-left">
                 <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
                   查看错误详情

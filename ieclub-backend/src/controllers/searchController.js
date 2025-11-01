@@ -4,8 +4,10 @@
 const { PrismaClient } = require('@prisma/client');
 const response = require('../utils/response');
 const logger = require('../utils/logger');
-const redis = require('../utils/redis');
+const { getRedis } = require('../utils/redis');
 const searchService = require('../services/searchService');
+
+const redis = getRedis();
 
 const prisma = new PrismaClient();
 
@@ -399,50 +401,6 @@ class SearchController {
       return response.success(res, { keywords });
     } catch (error) {
       logger.error('获取热门搜索词失败:', error);
-      return response.serverError(res);
-    }
-  }
-
-  /**
-   * 获取用户搜索历史
-   * GET /api/v1/search/history
-   */
-  static async getSearchHistory(req, res) {
-    try {
-      const userId = req.userId;
-      const { limit = 10 } = req.query;
-
-      // 从Redis获取搜索历史（使用List数据结构）
-      const history = await redis.lrange(
-        `search:history:${userId}`,
-        0,
-        parseInt(limit) - 1
-      );
-
-      // 解析JSON
-      const parsedHistory = history.map((item) => JSON.parse(item));
-
-      return response.success(res, { history: parsedHistory });
-    } catch (error) {
-      logger.error('获取搜索历史失败:', error);
-      return response.serverError(res);
-    }
-  }
-
-  /**
-   * 清除搜索历史
-   * DELETE /api/v1/search/history
-   */
-  static async clearSearchHistory(req, res) {
-    try {
-      const userId = req.userId;
-
-      await redis.del(`search:history:${userId}`);
-
-      logger.info('清除搜索历史', { userId });
-      return response.success(res, null, '已清除搜索历史');
-    } catch (error) {
-      logger.error('清除搜索历史失败:', error);
       return response.serverError(res);
     }
   }

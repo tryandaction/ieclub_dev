@@ -1,7 +1,7 @@
 // ===== controllers/leaderboardController.js - 排行榜控制器 =====
 const prisma = require('../config/database');
 const logger = require('../utils/logger');
-const { startOfWeek, startOfMonth, subDays } = require('date-fns');
+const { startOfWeek, startOfMonth } = require('date-fns');
 
 class LeaderboardController {
   /**
@@ -599,7 +599,7 @@ function calculateTopicHotScore(data) {
 /**
  * 计算用户在特定排行榜中的排名
  */
-async function calculateUserRank(userId, type) {
+async function calculateUserRank(_userId, _type) {
   try {
     // 这里简化实现，实际应该根据type计算对应的排名
     // 返回排名、总人数、击败百分比

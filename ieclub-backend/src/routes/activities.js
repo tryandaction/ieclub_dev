@@ -4,6 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const activityController = require('../controllers/activityController');
+const activityControllerV2 = require('../controllers/activityControllerV2');
 const { authenticate, optionalAuth } = require('../middleware/auth');
 
 /**
@@ -50,6 +51,24 @@ router.post('/:id/like', authenticate, activityController.toggleLike);
  * POST /api/activities/:id/participate
  */
 router.post('/:id/participate', authenticate, activityController.toggleParticipation);
+
+/**
+ * V2 路由 - 新增功能
+ */
+// 报名参加活动
+router.post('/:activityId/join', authenticate, activityControllerV2.joinActivity);
+
+// 取消报名
+router.post('/:activityId/leave', authenticate, activityControllerV2.leaveActivity);
+
+// 获取参与者列表
+router.get('/:activityId/participants', activityControllerV2.getParticipants);
+
+// 活动签到
+router.post('/:activityId/checkin', authenticate, activityControllerV2.checkIn);
+
+// 获取我的活动
+router.get('/me/activities', authenticate, activityControllerV2.getMyActivities);
 
 /**
  * 获取活动分类列表

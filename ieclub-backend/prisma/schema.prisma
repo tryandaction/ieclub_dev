@@ -83,6 +83,11 @@ model User {
   loginLogs       LoginLog[]
   feedbacks       Feedback[]
   feedbackReplies FeedbackReply[] @relation("AdminReplies")
+  creditLogs      CreditLog[]
+  badgeRecords    UserBadgeRecord[]
+  checkIns        DailyCheckIn[]
+  roles           UserRole[]
+  operationLogs   OperationLog[]
 
   @@map("users")
 }
@@ -656,4 +661,284 @@ model FeedbackReply {
   @@index([adminId])
   @@index([createdAt])
   @@map("feedback_replies")
+}
+
+// ==================== 新增：积分系统 ====================
+
+// 积分历史记录表
+model CreditLog {
+  id          String   @id @default(cuid())
+  
+  // 积分变动
+  action      String   @db.VarChar(50) // topic_create, comment_create, like_received, check_in, etc.
+  amount      Int      // 变动金额（正数为增加，负数为减少）
+  reason      String?  @db.VarChar(200)
+  
+  // 关联对象
+  relatedType String?  @db.VarChar(20) // topic, comment, like
+  relatedId   String?
+  
+  // 元数据
+  metadata    String?  @db.Text // JSON字符串
+  
+  // 时间戳
+  createdAt   DateTime @default(now())
+  
+  // 关联关系
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("credit_logs")
+}
+
+// 用户等级表
+model UserLevel {
+  id          String   @id @default(cuid())
+  
+  // 等级信息
+  level       Int      @unique
+  name        String   @db.VarChar(50)
+  minExp      Int
+  maxExp      Int
+  
+  // 显示
+  icon        String?  @db.VarChar(200)
+  color       String?  @db.VarChar(20)
+  
+  // 权限
+  privileges  String?  @db.Text // JSON字符串
+  
+  // 时间戳
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("user_levels")
+}
+
+// 勋章定义表
+model UserBadge {
+  id          String   @id @default(cuid())
+  
+  // 勋章信息
+  code        String   @unique @db.VarChar(50)
+  name        String   @db.VarChar(50)
+  description String?  @db.Text
+  icon        String?  @db.VarChar(200)
+  
+  // 分类
+  category    String   @db.VarChar(20) // basic, content, social, activity, special
+  rarity      String   @default("common") @db.VarChar(20) // common, uncommon, rare, epic, legendary
+  
+  // 获取条件
+  condition   String?  @db.Text // JSON字符串
+  
+  // 状态
+  isActive    Boolean  @default(true)
+  
+  // 时间戳
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // 关联关系
+  userRecords UserBadgeRecord[]
+  
+  @@index([category])
+  @@index([rarity])
+  @@map("user_badges")
+}
+
+// 用户获得的勋章记录
+model UserBadgeRecord {
+  id          String   @id @default(cuid())
+  
+  // 进度（某些勋章可能有进度条）
+  progress    Int      @default(100)
+  
+  // 获得时间
+  awardedAt   DateTime @default(now())
+  
+  // 元数据
+  metadata    String?  @db.Text // JSON字符串
+  
+  // 关联关系
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId     String
+  badge       UserBadge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@index([badgeId])
+  @@map("user_badge_records")
+}
+
+// 每日签到记录表
+model DailyCheckIn {
+  id              String   @id @default(cuid())
+  
+  // 签到信息
+  checkInDate     DateTime @db.Date
+  credits         Int      @default(5)
+  consecutiveDays Int      @default(1)
+  
+  // 时间戳
+  createdAt       DateTime @default(now())
+  
+  // 关联关系
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, checkInDate])
+  @@index([userId])
+  @@index([checkInDate])
+  @@map("daily_check_ins")
+}
+
+// ==================== RBAC 权限管理系统 ====================
+
+// 角色表
+model Role {
+  id          String   @id @default(cuid())
+  
+  // 角色信息
+  name        String   @unique @db.VarChar(50) // 角色名称，如 admin, moderator, vip_user
+  displayName String   @db.VarChar(100) // 显示名称，如 "系统管理员"
+  description String?  @db.Text
+  
+  // 角色级别（数字越大权限越高）
+  level       Int      @default(0)
+  
+  // 角色类型
+  type        String   @default("custom") @db.VarChar(20) // system(系统内置), custom(自定义)
+  
+  // 状态
+  isActive    Boolean  @default(true)
+  
+  // 时间戳
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // 关联关系
+  userRoles   UserRole[]
+  permissions RolePermission[]
+  
+  @@index([name])
+  @@index([type])
+  @@index([isActive])
+  @@map("roles")
+}
+
+// 权限表
+model Permission {
+  id          String   @id @default(cuid())
+  
+  // 权限信息
+  name        String   @unique @db.VarChar(100) // 权限名称，如 user.create, topic.delete
+  displayName String   @db.VarChar(100) // 显示名称
+  description String?  @db.Text
+  
+  // 权限分组
+  module      String   @db.VarChar(50) // 模块，如 user, topic, comment, admin
+  action      String   @db.VarChar(50) // 操作，如 create, read, update, delete
+  
+  // 资源类型（可选，用于细粒度控制）
+  resource    String?  @db.VarChar(50)
+  
+  // 状态
+  isActive    Boolean  @default(true)
+  
+  // 时间戳
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // 关联关系
+  roles       RolePermission[]
+  
+  @@index([module])
+  @@index([action])
+  @@index([isActive])
+  @@map("permissions")
+}
+
+// 角色-权限关联表
+model RolePermission {
+  id           String   @id @default(cuid())
+  
+  // 关联关系
+  roleId       String
+  role         Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  
+  // 时间戳
+  createdAt    DateTime @default(now())
+  
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+// 用户-角色关联表
+model UserRole {
+  id        String   @id @default(cuid())
+  
+  // 关联关系
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  
+  // 分配信息
+  assignedBy String?  // 分配者ID
+  expiresAt  DateTime? // 过期时间（可选，用于临时角色）
+  
+  // 时间戳
+  createdAt  DateTime @default(now())
+  
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@index([expiresAt])
+  @@map("user_roles")
+}
+
+// 操作日志表（用于审计）
+model OperationLog {
+  id          String   @id @default(cuid())
+  
+  // 操作信息
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action      String   @db.VarChar(100) // 操作类型
+  module      String   @db.VarChar(50)  // 模块
+  description String?  @db.Text         // 操作描述
+  
+  // 请求信息
+  method      String   @db.VarChar(10)  // HTTP方法
+  path        String   @db.VarChar(500) // 请求路径
+  ip          String?  @db.VarChar(50)  // IP地址
+  userAgent   String?  @db.Text         // User Agent
+  
+  // 操作结果
+  status      String   @db.VarChar(20)  // success, failed
+  errorMsg    String?  @db.Text         // 错误信息
+  
+  // 操作数据（JSON格式）
+  requestData String?  @db.Text
+  responseData String? @db.Text
+  
+  // 时间
+  duration    Int?     // 执行时长（毫秒）
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([module])
+  @@index([status])
+  @@index([createdAt])
+  @@map("operation_logs")
 }

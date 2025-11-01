@@ -7,6 +7,9 @@ const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
 const AlgorithmService = require('../services/algorithmService');
 const WechatService = require('../services/wechatService');
+const creditService = require('../services/creditService');
+const notificationService = require('../services/notificationService');
+const websocketService = require('../services/websocketService');
 const { CacheManager } = require('../utils/redis');
 const config = require('../config');
 
@@ -288,15 +291,35 @@ class TopicController {
         },
       });
 
-      // 更新用户话题数和积分
+      // 更新用户话题数
       await prisma.user.update({
         where: { id: req.userId },
         data: {
           topicsCount: { increment: 1 },
-          credits: { increment: config.business.credits.topicCreate },
-          exp: { increment: config.business.credits.topicCreate },
         },
       });
+
+      // 添加积分和经验值
+      await creditService.addCredits(req.userId, 'topic_create', {
+        relatedType: 'topic',
+        relatedId: topic.id,
+        metadata: { title: topic.title, category: topic.category },
+      });
+
+      // 检查是否是第一个话题，授予勋章
+      const userTopicsCount = await prisma.topic.count({
+        where: { authorId: req.userId },
+      });
+      
+      if (userTopicsCount === 1) {
+        await creditService.awardBadge(req.userId, 'first_topic');
+      } else if (userTopicsCount === 10) {
+        await creditService.awardBadge(req.userId, 'prolific_writer');
+      } else if (userTopicsCount === 50) {
+        await creditService.awardBadge(req.userId, 'content_creator');
+      } else if (userTopicsCount === 100) {
+        await creditService.awardBadge(req.userId, 'topic_master');
+      }
 
       // 清除相关缓存
       await CacheManager.delPattern(`ieclub:topics:*`);
@@ -480,20 +503,52 @@ class TopicController {
           },
         }).catch(() => {});
 
-        // 给作者发送通知（不是自己点赞自己）
+        // 给作者增加积分（不是自己点赞自己）
         if (topic.authorId !== userId) {
-          await prisma.notification.create({
-            data: {
-              userId: topic.authorId,
-              type: 'like',
-              title: '收到新点赞',
-              content: '有人点赞了你的话题',
-              actorId: userId,
-              targetType: 'topic',
-              targetId: id,
-              link: `/pages/topic-detail/index?id=${id}`,
-            },
+          // 给作者增加积分
+          await creditService.addCredits(topic.authorId, 'like_received', {
+            relatedType: 'topic',
+            relatedId: id,
+            metadata: { fromUserId: userId },
           }).catch(() => {});
+
+          // 给点赞者增加经验值
+          await creditService.addCredits(userId, 'like_given', {
+            relatedType: 'topic',
+            relatedId: id,
+          }).catch(() => {});
+
+          // 检查作者获得的点赞数，授予勋章
+          const authorLikesCount = await prisma.like.count({
+            where: {
+              targetType: 'topic',
+              topic: { authorId: topic.authorId },
+            },
+          });
+
+          if (authorLikesCount === 100) {
+            await creditService.awardBadge(topic.authorId, 'popular');
+          } else if (authorLikesCount === 500) {
+            await creditService.awardBadge(topic.authorId, 'star');
+          } else if (authorLikesCount === 1000) {
+            await creditService.awardBadge(topic.authorId, 'celebrity');
+          }
+
+          // 给作者发送通知（使用通知服务）
+          const notification = await notificationService.createLikeNotification(
+            topic.authorId,
+            userId,
+            'topic',
+            id,
+            topic.title
+          ).catch(err => {
+            logger.error('创建点赞通知失败:', err);
+          });
+
+          // WebSocket 实时推送通知
+          if (notification) {
+            websocketService.sendNotification(topic.authorId, notification);
+          }
         }
       }
 

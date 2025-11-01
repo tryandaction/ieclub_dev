@@ -1,25 +1,47 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getUnreadCount } from '../api/notification'
+import { useAuth } from '../contexts/AuthContext'
+import { useNotifications } from '../hooks/useWebSocket'
 
 /**
  * 通知徽章组件
- * 显示未读数量，点击跳转到通知页面
+ * 显示未读数量，点击跳转到通知页面，支持实时更新
  */
 export default function NotificationBadge() {
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
 
+  // 监听实时通知
+  useNotifications((notification) => {
+    // 收到新通知时，未读数+1
+    if (!notification.isRead) {
+      setUnreadCount((prev) => prev + 1)
+    }
+    
+    // 可以添加音效提示
+    // playNotificationSound()
+  })
+
   useEffect(() => {
+    // 只在用户登录时获取未读数量
+    if (!isAuthenticated) {
+      setUnreadCount(0)
+      return
+    }
+
     fetchUnreadCount()
 
-    // 每30秒刷新一次
-    const interval = setInterval(fetchUnreadCount, 30000)
+    // 每60秒刷新一次（降低频率，因为有实时推送）
+    const interval = setInterval(fetchUnreadCount, 60000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [isAuthenticated])
 
   const fetchUnreadCount = async () => {
+    if (!isAuthenticated) return
+    
     try {
       const res = await getUnreadCount()
       setUnreadCount(res.data.data.count)

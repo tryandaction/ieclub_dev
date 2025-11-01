@@ -4,7 +4,8 @@ const logger = require('../utils/logger');
 // 获取公告列表
 exports.getAnnouncements = async (req, res) => {
   try {
-    const { page = 1, pageSize = 20, type } = req.query;
+    const { page = 1, pageSize = 20 } = req.query;
+    // const type = req.query.type; // 可用于将来的类型过滤
 
     // 模拟公告数据
     const announcements = [
@@ -77,7 +78,8 @@ exports.getAnnouncementDetail = async (req, res) => {
 // 标记公告为已读
 exports.markAsRead = async (req, res) => {
   try {
-    const { id } = req.params;
+    // const { id } = req.params;
+    // TODO: 实现标记公告为已读的逻辑
 
     res.json({
       success: true,

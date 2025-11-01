@@ -74,7 +74,7 @@ export default function ActionSheet({ show, onClose, title, actions = [] }) {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes fade-in {
           from { opacity: 0; }
           to { opacity: 1; }

@@ -28,6 +28,11 @@ async function startServer() {
     websocketService.start(server);
     logger.info(`🔌 WebSocket 服务已启动: ws://localhost:${config.port}/ws`);
 
+    // 启动定时任务调度器
+    const scheduler = require('./jobs/scheduler');
+    scheduler.start();
+    logger.info('📅 定时任务调度器已启动');
+
     // 处理服务器错误
     server.on('error', (error) => {
       if (error.syscall !== 'listen') {
@@ -60,6 +65,11 @@ async function startServer() {
         logger.info('HTTP 服务器已关闭');
 
         try {
+          // 停止定时任务
+          const scheduler = require('./jobs/scheduler');
+          scheduler.stop();
+          logger.info('定时任务已停止');
+
           // 关闭数据库连接
           const { PrismaClient } = require('@prisma/client');
           const prisma = new PrismaClient();

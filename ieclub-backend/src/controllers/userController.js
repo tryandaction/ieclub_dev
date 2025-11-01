@@ -3,6 +3,8 @@
 const { PrismaClient } = require('@prisma/client');
 const response = require('../utils/response');
 const logger = require('../utils/logger');
+const notificationService = require('../services/notificationService');
+const websocketService = require('../services/websocketService');
 
 const prisma = new PrismaClient();
 
@@ -407,16 +409,19 @@ class UserController {
           },
         });
 
-        // 创建通知
-        await prisma.notification.create({
-          data: {
-            type: 'follow',
-            senderId: followerId,
-            receiverId: id,
-            content: '关注了你',
-            status: 'pending',
-          },
+        // 创建关注通知
+        const notification = await notificationService.createFollowNotification(
+          id,
+          followerId
+        ).catch(err => {
+          logger.error('创建关注通知失败:', err);
+          return null;
         });
+        
+        // WebSocket 实时推送
+        if (notification) {
+          websocketService.sendNotification(id, notification);
+        }
 
         return response.success(res, { isFollowing: true }, '关注成功');
       }

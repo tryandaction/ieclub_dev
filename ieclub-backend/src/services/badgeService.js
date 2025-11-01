@@ -269,20 +269,15 @@ class BadgeService {
   /**
    * 获取用户的所有徽章
    */
-  async getUserBadges(userId) {
-    try {
-      // 这里假设有UserBadge表
-      // const badges = await prisma.userBadge.findMany({
-      //   where: { userId },
-      //   orderBy: { awardedAt: 'desc' }
-      // });
-      // return badges;
-      
-      return [];
-    } catch (error) {
-      logger.error('获取用户徽章失败:', error);
-      return [];
-    }
+  async getUserBadges(_userId) {
+    // 这里假设有UserBadge表
+    // const badges = await prisma.userBadge.findMany({
+    //   where: { userId: _userId },
+    //   orderBy: { awardedAt: 'desc' }
+    // });
+    // return badges;
+    
+    return [];
   }
 
   /**
