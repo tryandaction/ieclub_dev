@@ -2,10 +2,10 @@
 // 通知控制器 - 处理通知相关的HTTP请求
 
 const notificationService = require('../services/notificationService');
-const { broadcastToUser } = require('../websocket/wsServer'); // WebSocket推送
+const websocketService = require('../services/websocketService'); // WebSocket推送
 
-/**
- * 获取通知列表
+  /**
+   * 获取通知列表
  * GET /api/notifications
  */
 async function getNotifications(req, res) {
@@ -29,18 +29,18 @@ async function getNotifications(req, res) {
       code: 200,
       message: '获取通知列表成功',
       data: result,
-    });
-  } catch (error) {
+      });
+    } catch (error) {
     console.error('获取通知列表失败:', error);
     res.status(500).json({
       code: 500,
       message: error.message || '获取通知列表失败',
     });
+    }
   }
-}
 
-/**
- * 获取未读通知数量
+  /**
+   * 获取未读通知数量
  * GET /api/notifications/unread-count
  */
 async function getUnreadCount(req, res) {
@@ -54,23 +54,23 @@ async function getUnreadCount(req, res) {
       message: '获取未读数量成功',
       data: { count },
     });
-  } catch (error) {
+    } catch (error) {
     console.error('获取未读数量失败:', error);
     res.status(500).json({
       code: 500,
       message: error.message || '获取未读数量失败',
     });
+    }
   }
-}
 
-/**
- * 标记通知为已读
+  /**
+   * 标记通知为已读
  * PUT /api/notifications/:id/read
- */
+   */
 async function markAsRead(req, res) {
-  try {
+    try {
     const userId = req.user.id;
-    const { id } = req.params;
+      const { id } = req.params;
 
     const notification = await notificationService.markAsRead(id, userId);
 
@@ -79,16 +79,16 @@ async function markAsRead(req, res) {
       message: '标记已读成功',
       data: notification,
     });
-  } catch (error) {
+    } catch (error) {
     console.error('标记已读失败:', error);
     res.status(error.message.includes('不存在') ? 404 : 500).json({
       code: error.message.includes('不存在') ? 404 : 500,
       message: error.message || '标记已读失败',
     });
+    }
   }
-}
 
-/**
+  /**
  * 标记所有通知为已读
  * PUT /api/notifications/read-all
  */
@@ -103,23 +103,23 @@ async function markAllAsRead(req, res) {
       message: '全部标记已读成功',
       data: { count },
     });
-  } catch (error) {
+    } catch (error) {
     console.error('全部标记已读失败:', error);
     res.status(500).json({
       code: 500,
       message: error.message || '全部标记已读失败',
     });
+    }
   }
-}
 
-/**
- * 删除通知
+  /**
+   * 删除通知
  * DELETE /api/notifications/:id
- */
+   */
 async function deleteNotification(req, res) {
-  try {
+    try {
     const userId = req.user.id;
-    const { id } = req.params;
+      const { id } = req.params;
 
     await notificationService.deleteNotification(id, userId);
 
@@ -160,16 +160,16 @@ async function batchDeleteNotifications(req, res) {
       message: '批量删除成功',
       data: { count },
     });
-  } catch (error) {
+    } catch (error) {
     console.error('批量删除通知失败:', error);
     res.status(500).json({
       code: 500,
       message: error.message || '批量删除通知失败',
     });
+    }
   }
-}
 
-/**
+  /**
  * 清空已读通知
  * DELETE /api/notifications/clear-read
  */
@@ -211,20 +211,20 @@ async function createSystemNotification(req, res) {
 
     const notification = await notificationService.createSystemNotification(
       userId || null, // null表示发送给所有用户
-      title,
-      content,
+        title,
+        content,
       link
     );
 
     // 通过WebSocket实时推送
     if (userId) {
-      broadcastToUser(userId, {
+      websocketService.sendNotification(userId, notification);
+    } else {
+      // 全局推送
+      websocketService.broadcast({
         type: 'notification',
         data: notification,
       });
-    } else {
-      // 全局推送（需要在wsServer中实现）
-      // broadcastToAll({ type: 'notification', data: notification });
     }
 
     res.json({
@@ -267,7 +267,7 @@ async function getNotificationSettings(req, res) {
       message: '获取通知设置成功',
       data: settings,
     });
-  } catch (error) {
+    } catch (error) {
     console.error('获取通知设置失败:', error);
     res.status(500).json({
       code: 500,
