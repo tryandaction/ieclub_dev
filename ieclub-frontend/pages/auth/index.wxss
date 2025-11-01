@@ -2,9 +2,10 @@
 .auth-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 60rpx 40rpx;
+  padding: 0 40rpx 60rpx;
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* Logo 区域 */

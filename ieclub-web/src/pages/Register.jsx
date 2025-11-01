@@ -145,35 +145,35 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center px-4 py-4 sm:py-8 safe-area-top safe-area-bottom">
       <div className="max-w-md w-full">
         {/* Logo 和标题 */}
-        <div className="text-center mb-8">
-          <div className="inline-block w-20 h-20 bg-gradient-primary rounded-2xl flex items-center justify-center text-white text-3xl font-bold mb-4 shadow-lg">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="inline-block w-16 h-16 sm:w-20 sm:h-20 bg-gradient-primary rounded-2xl flex items-center justify-center text-white text-2xl sm:text-3xl font-bold mb-3 sm:mb-4 shadow-lg">
             IE
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
             加入 IEClub
           </h1>
-          <p className="text-gray-600">创造线上线下交互的无限可能</p>
+          <p className="text-sm sm:text-base text-gray-600">创造线上线下交互的无限可能</p>
         </div>
 
         {/* 进度指示器 */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-6 sm:mb-8">
           <div className="flex items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sm sm:text-base font-bold ${
               step >= 1 ? 'bg-gradient-primary text-white' : 'bg-gray-200 text-gray-500'
             }`}>
               1
             </div>
-            <div className={`w-16 h-1 ${step >= 2 ? 'bg-gradient-primary' : 'bg-gray-200'}`}></div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+            <div className={`w-12 sm:w-16 h-1 ${step >= 2 ? 'bg-gradient-primary' : 'bg-gray-200'}`}></div>
+            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sm sm:text-base font-bold ${
               step >= 2 ? 'bg-gradient-primary text-white' : 'bg-gray-200 text-gray-500'
             }`}>
               2
             </div>
-            <div className={`w-16 h-1 ${step >= 3 ? 'bg-gradient-primary' : 'bg-gray-200'}`}></div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+            <div className={`w-12 sm:w-16 h-1 ${step >= 3 ? 'bg-gradient-primary' : 'bg-gray-200'}`}></div>
+            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sm sm:text-base font-bold ${
               step >= 3 ? 'bg-gradient-primary text-white' : 'bg-gray-200 text-gray-500'
             }`}>
               3
@@ -182,20 +182,20 @@ export default function Register() {
         </div>
 
         {/* 注册表单 */}
-        <div className="bg-white rounded-3xl shadow-xl p-8">
+        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl p-5 sm:p-8">
           {/* 步骤1: 邮箱验证 */}
           {step === 1 && (
             <>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 text-center">
                 验证邮箱
               </h2>
-              <p className="text-sm text-gray-500 mb-6 text-center">
+              <p className="text-xs sm:text-sm text-gray-500 mb-5 sm:mb-6 text-center">
                 使用南科大邮箱注册
               </p>
 
-              <form onSubmit={handleStep1} className="space-y-5">
+              <form onSubmit={handleStep1} className="space-y-4 sm:space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                     📧 南科大邮箱
                   </label>
                   <input
@@ -203,31 +203,31 @@ export default function Register() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="例如：12345678@mail.sustech.edu.cn"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                     🔢 验证码
                   </label>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2 sm:gap-3">
                     <input
                       type="text"
                       value={code}
                       onChange={(e) => setCode(e.target.value)}
                       placeholder="请输入6位验证码"
                       maxLength={6}
-                      className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     />
                     <button
                       type="button"
                       onClick={handleSendCode}
                       disabled={countdown > 0 || !validateEmail(email)}
-                      className={`px-6 py-3 rounded-xl font-medium transition-all whitespace-nowrap ${
+                      className={`px-3 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl font-medium transition-all whitespace-nowrap ${
                         countdown > 0 || !validateEmail(email)
                           ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-gradient-primary text-white hover:shadow-lg hover:scale-105'
+                          : 'bg-gradient-primary text-white hover:shadow-lg active:scale-95 sm:hover:scale-105'
                       }`}
                     >
                       {countdown > 0 ? `${countdown}s` : '获取验证码'}
@@ -236,14 +236,14 @@ export default function Register() {
                 </div>
 
                 {error && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
-                    <p className="text-sm text-red-600">⚠️ {error}</p>
+                  <div className="p-2.5 sm:p-3 bg-red-50 border border-red-200 rounded-xl">
+                    <p className="text-xs sm:text-sm text-red-600">⚠️ {error}</p>
                   </div>
                 )}
 
                 <button
                   type="submit"
-                  className="w-full py-4 rounded-xl font-bold text-lg bg-gradient-primary text-white hover:shadow-xl hover:scale-105 transition-all"
+                  className="w-full py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg bg-gradient-primary text-white hover:shadow-xl active:scale-95 sm:hover:scale-105 transition-all"
                 >
                   下一步
                 </button>
@@ -254,16 +254,16 @@ export default function Register() {
           {/* 步骤2: 设置密码 */}
           {step === 2 && (
             <>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 text-center">
                 设置密码
               </h2>
-              <p className="text-sm text-gray-500 mb-6 text-center">
+              <p className="text-xs sm:text-sm text-gray-500 mb-5 sm:mb-6 text-center">
                 请设置一个安全的密码
               </p>
 
-              <form onSubmit={handleStep2} className="space-y-5">
+              <form onSubmit={handleStep2} className="space-y-4 sm:space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                     🔒 设置密码
                   </label>
                   <div className="relative">
@@ -272,12 +272,12 @@ export default function Register() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="至少6位，建议包含字母和数字"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all pr-12"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all pr-12"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg"
                     >
                       {showPassword ? '👁️' : '👁️‍🗨️'}
                     </button>
@@ -285,7 +285,7 @@ export default function Register() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                     🔒 确认密码
                   </label>
                   <input
@@ -293,27 +293,27 @@ export default function Register() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="请再次输入密码"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   />
                 </div>
 
                 {error && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
-                    <p className="text-sm text-red-600">⚠️ {error}</p>
+                  <div className="p-2.5 sm:p-3 bg-red-50 border border-red-200 rounded-xl">
+                    <p className="text-xs sm:text-sm text-red-600">⚠️ {error}</p>
                   </div>
                 )}
 
-                <div className="flex gap-3">
+                <div className="flex gap-2 sm:gap-3">
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="flex-1 py-4 rounded-xl font-bold text-lg border-2 border-gray-200 text-gray-600 hover:bg-gray-50 transition-all"
+                    className="flex-1 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg border-2 border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95 transition-all"
                   >
                     上一步
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-4 rounded-xl font-bold text-lg bg-gradient-primary text-white hover:shadow-xl hover:scale-105 transition-all"
+                    className="flex-1 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg bg-gradient-primary text-white hover:shadow-xl active:scale-95 sm:hover:scale-105 transition-all"
                   >
                     下一步
                   </button>
@@ -325,16 +325,16 @@ export default function Register() {
           {/* 步骤3: 完善信息 */}
           {step === 3 && (
             <>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 text-center">
                 完善信息
               </h2>
-              <p className="text-sm text-gray-500 mb-6 text-center">
+              <p className="text-xs sm:text-sm text-gray-500 mb-5 sm:mb-6 text-center">
                 让大家更好地认识你
               </p>
 
-              <form onSubmit={handleRegister} className="space-y-5">
+              <form onSubmit={handleRegister} className="space-y-4 sm:space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                     ✨ 昵称 <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -343,18 +343,18 @@ export default function Register() {
                     onChange={(e) => setNickname(e.target.value)}
                     placeholder="请输入昵称（2-20字符）"
                     maxLength={20}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                     🎓 年级
                   </label>
                   <select
                     value={grade}
                     onChange={(e) => setGrade(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   >
                     <option value="">请选择年级（可选）</option>
                     <option value="大一">大一</option>
@@ -370,7 +370,7 @@ export default function Register() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                     📚 专业
                   </label>
                   <input
@@ -378,32 +378,32 @@ export default function Register() {
                     value={major}
                     onChange={(e) => setMajor(e.target.value)}
                     placeholder="请输入专业（可选）"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   />
                 </div>
 
                 {error && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
-                    <p className="text-sm text-red-600">⚠️ {error}</p>
+                  <div className="p-2.5 sm:p-3 bg-red-50 border border-red-200 rounded-xl">
+                    <p className="text-xs sm:text-sm text-red-600">⚠️ {error}</p>
                   </div>
                 )}
 
-                <div className="flex gap-3">
+                <div className="flex gap-2 sm:gap-3">
                   <button
                     type="button"
                     onClick={() => setStep(2)}
                     disabled={loading}
-                    className="flex-1 py-4 rounded-xl font-bold text-lg border-2 border-gray-200 text-gray-600 hover:bg-gray-50 transition-all disabled:opacity-50"
+                    className="flex-1 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg border-2 border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95 transition-all disabled:opacity-50"
                   >
                     上一步
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all ${
+                    className={`flex-1 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg transition-all ${
                       loading
                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-gradient-primary text-white hover:shadow-xl hover:scale-105'
+                        : 'bg-gradient-primary text-white hover:shadow-xl active:scale-95 sm:hover:scale-105'
                     }`}
                   >
                     {loading ? '注册中...' : '完成注册'}
@@ -414,7 +414,7 @@ export default function Register() {
           )}
 
           {/* 用户协议 */}
-          <p className="text-center text-xs text-gray-500 mt-6">
+          <p className="text-center text-xs text-gray-500 mt-5 sm:mt-6">
             注册即代表同意
             <a href="/terms" className="text-purple-600 hover:underline">
               《用户协议》
@@ -427,7 +427,7 @@ export default function Register() {
         </div>
 
         {/* 底部提示 */}
-        <p className="text-center text-sm text-gray-500 mt-8">
+        <p className="text-center text-xs sm:text-sm text-gray-500 mt-6 sm:mt-8">
           已有账号？
           <Link to="/login" className="text-purple-600 font-medium hover:underline ml-1">
             立即登录

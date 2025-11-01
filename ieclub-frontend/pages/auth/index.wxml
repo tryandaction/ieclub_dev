@@ -1,5 +1,5 @@
 <!--pages/auth/index.wxml-->
-<view class="auth-page">
+<view class="auth-page" style="padding-top: {{navBarHeight + 20}}px;">
   <!-- Logo 区域 -->
   <view class="logo-section">
     <view class="logo">IE</view>

@@ -19,11 +19,23 @@ Page({
     loginLoading: false,
     registerLoading: false,
     codeSending: false,
-    countdown: 0
+    countdown: 0,
+    statusBarHeight: 0,
+    navBarHeight: 0
   },
 
   onLoad() {
     console.log('认证页加载')
+    
+    // 获取系统信息，设置状态栏高度
+    const systemInfo = wx.getSystemInfoSync()
+    const statusBarHeight = systemInfo.statusBarHeight || 0
+    const navBarHeight = statusBarHeight + 44 // 导航栏高度 = 状态栏高度 + 44px
+    
+    this.setData({
+      statusBarHeight,
+      navBarHeight
+    })
     
     // 检查是否已登录
     const token = wx.getStorageSync('token')
