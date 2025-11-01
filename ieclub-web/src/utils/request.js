@@ -1,20 +1,45 @@
 import axios from 'axios'
 import useLoadingStore from '../stores/loadingStore'
 
-// 创建 axios 实例
+// 获取 API 基础地址（智能推断）
+const getApiBaseUrl = () => {
+  // 1. 优先使用环境变量配置
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL
+  }
+  
+  // 2. 开发环境使用代理
+  if (import.meta.env.MODE === 'development') {
+    return '/api'
+  }
+  
+  // 3. 生产环境根据当前域名自动推断
+  const currentHost = window.location.hostname
+  if (currentHost === 'ieclub.online' || currentHost.endsWith('.ieclub.online')) {
+    return 'https://ieclub.online/api'
+  }
+  
+  // 4. 其他域名使用相同域名
+  const protocol = window.location.protocol
+  return `${protocol}//${currentHost}/api`
+}
+
+// 创建 axios 实例（优化版）
 const request = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || (
-    import.meta.env.MODE === 'development' 
-      ? '/api'  // 开发环境使用代理
-      : 'https://ieclub.online/api'  // 生产环境使用完整URL
-  ),
-  timeout: 10000,
+  baseURL: getApiBaseUrl(),
+  timeout: 15000, // 增加超时时间到15秒
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest'
   },
   // 请求重试配置
   retry: 3,
-  retryDelay: 1000
+  retryDelay: 1000,
+  // 允许跨域携带凭证
+  withCredentials: false,
+  // 最大内容长度
+  maxContentLength: 50 * 1024 * 1024, // 50MB
+  maxBodyLength: 50 * 1024 * 1024
 })
 
 // 显示 Loading
@@ -117,16 +142,26 @@ request.interceptors.response.use(
       hideLoading()
     }
 
-    // 请求重试逻辑
+    // 请求重试逻辑（优化：只对特定错误重试）
     const config = error.config
-    if (config && config.retry && config.__retryCount < config.retry) {
+    const shouldRetry = !error.response || // 网络错误
+                       error.response.status >= 500 || // 服务器错误
+                       error.response.status === 429 || // 请求过多
+                       error.code === 'ECONNABORTED' // 超时
+    
+    if (config && config.retry && shouldRetry) {
       config.__retryCount = config.__retryCount || 0
-      config.__retryCount++
-
-      // 等待后重试
-      await new Promise(resolve => setTimeout(resolve, config.retryDelay * config.__retryCount))
       
-      return request(config)
+      if (config.__retryCount < config.retry) {
+        config.__retryCount++
+        
+        // 指数退避重试策略
+        const delay = config.retryDelay * Math.pow(2, config.__retryCount - 1)
+        console.log(`🔄 请求失败，${delay}ms 后进行第 ${config.__retryCount} 次重试...`)
+        
+        await new Promise(resolve => setTimeout(resolve, delay))
+        return request(config)
+      }
     }
     
     // 网络错误

@@ -13,8 +13,26 @@ class ConfigValidator {
    * 验证 API 配置
    */
   validateApiConfig() {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+    let apiBaseUrl = import.meta.env.VITE_API_BASE_URL
     const mode = import.meta.env.MODE
+
+    // 如果未配置，根据当前域名自动推断
+    if (!apiBaseUrl) {
+      if (mode === 'production') {
+        // 生产环境默认配置
+        const currentHost = window.location.hostname
+        if (currentHost === 'ieclub.online' || currentHost.endsWith('.ieclub.online')) {
+          apiBaseUrl = 'https://ieclub.online/api'
+          console.log('🔧 自动配置 API 地址:', apiBaseUrl)
+        } else {
+          this.warnings.push('生产环境未配置 VITE_API_BASE_URL，已尝试自动配置')
+        }
+      } else {
+        // 开发环境默认配置
+        apiBaseUrl = 'http://localhost:3000/api'
+        this.warnings.push('开发环境未配置 VITE_API_BASE_URL，使用默认值: ' + apiBaseUrl)
+      }
+    }
 
     // 检查 API URL 格式
     if (apiBaseUrl) {
@@ -34,8 +52,6 @@ class ConfigValidator {
       } catch (e) {
         this.errors.push(`API URL 格式错误: ${apiBaseUrl}`)
       }
-    } else if (mode === 'production') {
-      this.errors.push('生产环境必须配置 VITE_API_BASE_URL')
     }
 
     return this

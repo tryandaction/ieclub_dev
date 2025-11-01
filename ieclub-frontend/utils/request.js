@@ -1,17 +1,21 @@
 /**
- * 统一请求封装 - 小程序版
+ * 统一请求封装 - 小程序版（优化版）
  * @param {String} url - 请求地址
  * @param {Object} options - 请求选项
  * @param {String} options.method - 请求方法 GET/POST/PUT/DELETE
  * @param {Object} options.data - 请求数据
  * @param {Boolean} options.loading - 是否显示 Loading，默认 true
+ * @param {Number} options.retry - 重试次数，默认 2
+ * @param {Number} options.timeout - 超时时间（毫秒），默认 15000
  * @returns {Promise}
  */
 const request = (url, options = {}) => {
   const {
     method = 'GET',
     data = {},
-    loading = true
+    loading = true,
+    retry = 2,
+    timeout = 15000
   } = options
 
   // 显示 Loading
@@ -38,14 +42,18 @@ const request = (url, options = {}) => {
       hasToken: !!token
     })
 
-    wx.request({
-      url: fullUrl,
-      method: method.toUpperCase(),
-      data,
-      header: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-      },
+    // 请求执行函数（支持重试）
+    let retryCount = 0
+    const doRequest = () => {
+      wx.request({
+        url: fullUrl,
+        method: method.toUpperCase(),
+        data,
+        timeout,
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
       success: (res) => {
         console.log('📥 收到响应:', {
           url: fullUrl,
@@ -167,16 +175,29 @@ const request = (url, options = {}) => {
         reject(error)
       },
       fail: (err) => {
+        console.error('❌ 请求失败:', {
+          url: fullUrl,
+          error: err,
+          errMsg: err.errMsg,
+          retryCount
+        })
+        
+        // 重试逻辑（仅对网络错误和超时重试）
+        if (retryCount < retry && (err.errMsg.includes('timeout') || err.errMsg.includes('fail'))) {
+          retryCount++
+          const delay = 1000 * Math.pow(2, retryCount - 1) // 指数退避
+          console.log(`🔄 ${delay}ms 后进行第 ${retryCount} 次重试...`)
+          
+          setTimeout(() => {
+            doRequest()
+          }, delay)
+          return
+        }
+        
         // 隐藏 Loading
         if (loading) {
           wx.hideLoading()
         }
-
-        console.error('❌ 请求失败:', {
-          url: fullUrl,
-          error: err,
-          errMsg: err.errMsg
-        })
         
         wx.showToast({
           title: '网络连接失败，请检查网络',
@@ -190,6 +211,10 @@ const request = (url, options = {}) => {
         reject(error)
       }
     })
+    }
+    
+    // 执行请求
+    doRequest()
   })
 }
 
