@@ -175,7 +175,7 @@ exports.getMyActivities = asyncHandler(async (req, res) => {
   const take = parseInt(pageSize);
 
   const { PrismaClient } = require('@prisma/client');
-  const prisma = new PrismaClient();
+  const prisma = require('../config/database');
 
   if (type === 'organized') {
     // 我组织的活动

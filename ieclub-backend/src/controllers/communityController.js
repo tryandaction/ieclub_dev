@@ -1,8 +1,7 @@
 // ieclub-backend/src/controllers/communityController.js
 // 社区模块控制器 - 基于开发代码优化版本
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 const asyncHandler = require('../utils/asyncHandler');
 const AppError = require('../utils/AppError');
 const { successResponse } = require('../utils/response');

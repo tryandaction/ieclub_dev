@@ -6,7 +6,7 @@ const config = require('../config');
 const logger = require('../utils/logger');
 const { CacheManager } = require('../utils/redis');
 
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 
 class AlgorithmService {
   /**

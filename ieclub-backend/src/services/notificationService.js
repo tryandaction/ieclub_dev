@@ -1,8 +1,7 @@
 // src/services/notificationService.js
 // 通知服务 - 处理所有通知相关的业务逻辑
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 
 /**
  * 通知类型枚举

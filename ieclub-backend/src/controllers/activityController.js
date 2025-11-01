@@ -1,12 +1,10 @@
 // src/controllers/activityController.js
 // 活动控制器 - 小红书式活动功能
 
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/database');
 const response = require('../utils/response');
 const logger = require('../utils/logger');
 const WechatService = require('../services/wechatService');
-
-const prisma = new PrismaClient();
 
 class ActivityController {
   /**

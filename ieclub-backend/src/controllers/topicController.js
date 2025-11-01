@@ -12,8 +12,7 @@ const notificationService = require('../services/notificationService');
 const websocketService = require('../services/websocketService');
 const { CacheManager } = require('../utils/redis');
 const config = require('../config');
-
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 
 class TopicController {
   /**

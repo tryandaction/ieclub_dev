@@ -1,8 +1,7 @@
 // ieclub-backend/src/services/searchService.js
 // 搜索服务 - 提供全局搜索功能
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 const logger = require('../utils/logger');
 
 class SearchService {

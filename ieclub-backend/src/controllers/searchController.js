@@ -8,8 +8,7 @@ const { getRedis } = require('../utils/redis');
 const searchService = require('../services/searchService');
 
 const redis = getRedis();
-
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 
 class SearchController {
   /**

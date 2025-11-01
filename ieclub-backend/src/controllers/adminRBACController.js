@@ -4,8 +4,7 @@
 const rbacService = require('../services/rbacService');
 const { PrismaClient } = require('@prisma/client');
 const logger = require('../utils/logger');
-
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 
 class AdminRBACController {
   /**

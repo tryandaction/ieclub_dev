@@ -1,14 +1,12 @@
 // ==================== 后端完整API代码 ====================
 
 // ===== 1. authController.js - 认证控制器（增强版）=====
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/database');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const config = require('../config');
 const logger = require('../utils/logger');
-
-const prisma = new PrismaClient();
 
 // 邮件发送器配置
 const transporter = nodemailer.createTransport({

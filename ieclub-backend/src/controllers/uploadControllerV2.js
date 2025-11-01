@@ -146,7 +146,7 @@ exports.uploadAvatar = asyncHandler(async (req, res) => {
 
   // 更新用户头像
   const { PrismaClient } = require('@prisma/client');
-  const prisma = new PrismaClient();
+  const prisma = require('../config/database');
   
   await prisma.user.update({
     where: { id: req.user.id },

@@ -1,8 +1,7 @@
 // ieclub-backend/src/services/commentService.js
 // 评论服务层 - 处理评论的增删改查和点赞
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
 const notificationService = require('./notificationService');

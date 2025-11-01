@@ -3,8 +3,7 @@
  * 负责用户积分、经验值的增减和等级计算
  */
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 const logger = require('../utils/logger');
 
 // 积分规则配置

@@ -1,8 +1,7 @@
 // ieclub-backend/src/services/communityService.js
 // 社区服务层 - 处理帖子、评论、点赞等业务逻辑
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
 const notificationService = require('./notificationService');

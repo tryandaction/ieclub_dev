@@ -43,7 +43,7 @@ class CommentController {
 
       // 检查是否是第一条评论，授予勋章
       const { PrismaClient } = require('@prisma/client');
-      const prisma = new PrismaClient();
+      const prisma = require('../config/database');
       
       const userCommentsCount = await prisma.comment.count({
         where: { userId },

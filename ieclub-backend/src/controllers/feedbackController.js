@@ -6,8 +6,7 @@ const response = require('../utils/response');
 const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
 const WechatService = require('../services/wechatService');
-
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 
 class FeedbackController {
   /**

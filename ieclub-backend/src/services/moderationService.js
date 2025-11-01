@@ -4,7 +4,7 @@
 const { PrismaClient } = require('@prisma/client');
 const logger = require('../utils/logger');
 
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 
 // 敏感词库（可以从文件或数据库加载）
 const SENSITIVE_WORDS = [

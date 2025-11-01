@@ -1,8 +1,7 @@
 // ieclub-backend/src/services/activityService.js
 // 活动服务层 - 处理活动报名和参与逻辑
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
 const creditService = require('./creditService');

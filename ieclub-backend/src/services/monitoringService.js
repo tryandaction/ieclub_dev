@@ -6,7 +6,7 @@ const { PrismaClient } = require('@prisma/client');
 const redis = require('../utils/redis');
 const logger = require('../utils/logger');
 
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 
 class MonitoringService {
   constructor() {

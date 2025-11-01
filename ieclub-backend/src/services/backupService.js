@@ -9,7 +9,7 @@ const { PrismaClient } = require('@prisma/client');
 const logger = require('../utils/logger');
 const { getRedis } = require('../utils/redis');
 
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 const redis = getRedis();
 
 class BackupService {

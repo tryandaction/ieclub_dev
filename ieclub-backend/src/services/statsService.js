@@ -1,8 +1,7 @@
 // ieclub-backend/src/services/statsService.js
 // 数据统计和分析服务
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 
 class StatsService {
   /**

@@ -86,7 +86,7 @@ exports.getAllBadges = asyncHandler(async (req, res) => {
 exports.getLevelLeaderboard = asyncHandler(async (req, res) => {
   const { limit = 50 } = req.query;
   const { PrismaClient } = require('@prisma/client');
-  const prisma = new PrismaClient();
+  const prisma = require('../config/database');
 
   const users = await prisma.user.findMany({
     where: {
@@ -116,7 +116,7 @@ exports.getLevelLeaderboard = asyncHandler(async (req, res) => {
 exports.getCreditLeaderboard = asyncHandler(async (req, res) => {
   const { limit = 50 } = req.query;
   const { PrismaClient } = require('@prisma/client');
-  const prisma = new PrismaClient();
+  const prisma = require('../config/database');
 
   const users = await prisma.user.findMany({
     where: {
