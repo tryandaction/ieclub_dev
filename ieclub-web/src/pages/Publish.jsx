@@ -49,9 +49,10 @@ export default function Publish() {
 
       // 调用API
       await createTopic({
-        type: publishType,
+        topicType: publishType, // 后端期望 topicType
         title: title.trim(),
-        description: description.trim(),
+        content: description.trim(), // 后端期望 content 而不是 description
+        category: publishType, // 后端需要 category 字段
         tags: tagArray,
         images: images.map(img => img.url), // 传递图片URL数组
       })
