@@ -1,4 +1,4 @@
-# ============================================
+﻿# ============================================
 # IEClub 生产环境部署脚本
 # ============================================
 # 用途：正式发布，所有用户可见
@@ -264,13 +264,15 @@ function Deploy-Web-Production {
     
     # 备份当前生产环境
     Write-Info "备份当前生产环境..."
-    ssh -p $ServerPort "${ServerUser}@${ServerHost}" @"
+    $backupScript = @'
 if [ -d /var/www/ieclub.online ]; then
-    timestamp=\$(date +%Y%m%d_%H%M%S)
-    cp -r /var/www/ieclub.online /var/www/ieclub.online.backup.\$timestamp
-    echo '已备份到: /var/www/ieclub.online.backup.'\$timestamp
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    cp -r /var/www/ieclub.online /var/www/ieclub.online.backup.$timestamp
+    echo "已备份到: /var/www/ieclub.online.backup.$timestamp"
 fi
-"@
+'@
+    
+    $backupScript | ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash -s"
     
     # 上传到服务器
     Write-Info "上传到生产服务器..."
@@ -278,14 +280,16 @@ fi
     
     # 部署到生产目录
     Write-Info "部署到生产目录..."
-    ssh -p $ServerPort "${ServerUser}@${ServerHost}" @"
+    $webDeployScript = @'
 mkdir -p /var/www/ieclub.online
 unzip -o /tmp/web-dist.zip -d /var/www/ieclub.online/
 rm -f /tmp/web-dist.zip
 chmod -R 755 /var/www/ieclub.online
 chown -R www-data:www-data /var/www/ieclub.online
-echo '生产环境前端部署完成'
-"@
+echo "生产环境前端部署完成"
+'@
+    
+    $webDeployScript | ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash -s"
     
     Write-Success "前端部署完成 (生产环境)"
     Write-Info "访问地址: https://ieclub.online"
@@ -315,8 +319,33 @@ function Deploy-Backend-Production {
         Remove-Item "backend-code.zip" -Force
     }
     
-    $excludeItems = @("node_modules", ".git", "dist", "*.log", "*.zip", ".env*", "coverage", "uploads")
-    Get-ChildItem -Path . -Exclude $excludeItems | Compress-Archive -DestinationPath "backend-code.zip" -Force
+    # 创建临时目录用于打包
+    $tempDir = "temp-production-backend"
+    if (Test-Path $tempDir) {
+        Remove-Item $tempDir -Recurse -Force
+    }
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+    
+    # 复制需要的文件（排除日志、node_modules等）
+    $includeItems = @(
+        "src",
+        "prisma",
+        "package.json",
+        "package-lock.json",
+        ".env.production"
+    )
+    
+    foreach ($item in $includeItems) {
+        if (Test-Path $item) {
+            Copy-Item -Path $item -Destination $tempDir -Recurse -Force
+        }
+    }
+    
+    # 打包临时目录
+    Compress-Archive -Path "$tempDir\*" -DestinationPath "backend-code.zip" -Force
+    
+    # 清理临时目录
+    Remove-Item $tempDir -Recurse -Force
     Write-Success "后端打包完成"
     
     # 上传到服务器
@@ -329,38 +358,27 @@ function Deploy-Backend-Production {
     
     # 在服务器上部署
     Write-Info "部署后端到生产环境..."
-    ssh -p $ServerPort "${ServerUser}@${ServerHost}" @"
+    $backendDeployScript = @'
 cd /root/IEclub_dev/ieclub-backend
-
-# 备份当前代码
-timestamp=\$(date +%Y%m%d_%H%M%S)
-tar -czf backup_\$timestamp.tar.gz src/ 2>/dev/null || true
-
-# 解压新代码
+timestamp=$(date +%Y%m%d_%H%M%S)
+tar -czf backup_$timestamp.tar.gz src/ 2>/dev/null || true
 unzip -o /tmp/backend-code.zip
 rm -f /tmp/backend-code.zip
-
-# 检查 .env 文件（如果不存在则使用模板）
 if [ ! -f .env ]; then
-    echo '警告: .env 文件不存在，使用模板创建'
+    echo "警告: .env 文件不存在，使用模板创建"
     cp /tmp/env.production.template .env
-    echo '⚠️  请手动编辑 .env 文件配置生产环境参数'
+    echo "请手动编辑 .env 文件配置生产环境参数"
 fi
 rm -f /tmp/env.production.template
-
-# 安装依赖
 npm install --production
-
-# 运行数据库迁移
 npx prisma migrate deploy
-
-# 重启生产环境后端服务
-pm2 reload ieclub-backend || pm2 start npm --name 'ieclub-backend' -- start
+pm2 reload ieclub-backend || pm2 start npm --name "ieclub-backend" -- start
 pm2 save
-
-echo '生产环境后端部署完成'
+echo "生产环境后端部署完成"
 pm2 status
-"@
+'@
+    
+    $backendDeployScript | ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash -s"
     
     Write-Success "后端部署完成 (生产环境)"
     Write-Info "API地址: https://ieclub.online/api"
