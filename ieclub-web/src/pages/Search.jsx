@@ -3,11 +3,12 @@
  * 支持搜索话题、用户等
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { searchTopics } from '../api/topic'
 import { showToast } from '../components/Toast'
 import { TopicListSkeleton } from '../components/Skeleton'
+import { useDebounce } from '../hooks/useDebounce'
 
 const typeConfig = {
   offer: { label: '我来讲', bg: 'bg-gradient-offer', icon: '🎤' },
@@ -32,15 +33,11 @@ export default function Search() {
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
 
-  // URL参数变化时自动搜索
-  useEffect(() => {
-    if (queryFromUrl) {
-      setQuery(queryFromUrl)
-      performSearch(queryFromUrl)
-    }
-  }, [queryFromUrl])
+  // 优化：使用防抖，避免频繁搜索
+  const debouncedQuery = useDebounce(query, 500)
 
-  const performSearch = async (searchQuery = query) => {
+  // 优化：使用 useCallback 缓存搜索函数
+  const performSearch = useCallback(async (searchQuery = query) => {
     if (!searchQuery.trim()) {
       showToast('请输入搜索关键词', 'warning')
       return
@@ -74,7 +71,22 @@ export default function Search() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [query, activeTab, setSearchParams])
+
+  // URL参数变化时自动搜索
+  useEffect(() => {
+    if (queryFromUrl) {
+      setQuery(queryFromUrl)
+      performSearch(queryFromUrl)
+    }
+  }, [queryFromUrl, performSearch])
+
+  // 优化：防抖后自动搜索（用户停止输入500ms后）
+  useEffect(() => {
+    if (debouncedQuery && debouncedQuery.trim().length >= 2) {
+      performSearch(debouncedQuery)
+    }
+  }, [debouncedQuery, performSearch])
 
   const handleSearch = (e) => {
     e.preventDefault()

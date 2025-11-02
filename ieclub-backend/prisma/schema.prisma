@@ -102,7 +102,7 @@ model Topic {
   summary     String?  @db.Text
   category    String   @db.VarChar(50)
   tags        String?  @db.Text // 标签数组 (JSON字符串)
-
+  
   // 话题类型 - 融入开发代码的核心创新
   topicType   String   @default("discussion") @db.VarChar(20) // discussion, demand, supply, collaboration
   
@@ -171,6 +171,13 @@ model Topic {
   quickActionsList TopicQuickAction[]
   actions      TopicAction[]
 
+  @@index([category, createdAt(sort: Desc)])
+  @@index([topicType, createdAt(sort: Desc)])
+  @@index([likesCount(sort: Desc), createdAt(sort: Desc)])
+  @@index([viewsCount(sort: Desc), createdAt(sort: Desc)])
+  @@index([hotScore(sort: Desc)])
+  @@index([authorId, createdAt(sort: Desc)])
+  @@index([status, publishedAt(sort: Desc)])
   @@map("topics")
 }
 
@@ -448,11 +455,12 @@ model Activity {
   likes           ActivityLike[]
   comments        ActivityComment[]
   
-  @@index([organizerId])
-  @@index([category])
-  @@index([startTime])
-  @@index([status])
-  @@index([createdAt])
+  @@index([organizerId, createdAt(sort: Desc)])
+  @@index([category, startTime])
+  @@index([startTime, status])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([likesCount(sort: Desc), startTime])
+  @@index([participantsCount(sort: Desc), startTime])
   @@map("activities")
 }
 

@@ -37,12 +37,12 @@ export function isSuccessResponse(response) {
   if (!response) return false
 
   // 格式 1: { success: true, data: ... }
-  if (response.hasOwnProperty('success')) {
+  if (Object.prototype.hasOwnProperty.call(response, 'success')) {
     return response.success === true
   }
 
   // 格式 2: { code: 200, data: ... }
-  if (response.hasOwnProperty('code')) {
+  if (Object.prototype.hasOwnProperty.call(response, 'code')) {
     return response.code === 200 || response.code === '200'
   }
 
@@ -63,12 +63,12 @@ export function extractData(response, defaultValue = null) {
   }
 
   // 格式 1: { success: true, data: {...} }
-  if (response.hasOwnProperty('success') && response.success) {
+  if (Object.prototype.hasOwnProperty.call(response, 'success') && response.success) {
     return response.data !== undefined ? response.data : defaultValue
   }
 
   // 格式 2: { code: 200, data: {...} }
-  if (response.hasOwnProperty('code')) {
+  if (Object.prototype.hasOwnProperty.call(response, 'code')) {
     if (response.code === 200 || response.code === '200') {
       return response.data !== undefined ? response.data : defaultValue
     }
@@ -141,7 +141,7 @@ export function normalizeResponse(response) {
   }
 
   // 已经是标准格式
-  if (response.hasOwnProperty('success')) {
+  if (Object.prototype.hasOwnProperty.call(response, 'success')) {
     return {
       success: response.success,
       data: response.data || null,
@@ -150,7 +150,7 @@ export function normalizeResponse(response) {
   }
 
   // { code: 200, data: ..., message: ... }
-  if (response.hasOwnProperty('code')) {
+  if (Object.prototype.hasOwnProperty.call(response, 'code')) {
     return {
       success: response.code === 200 || response.code === '200',
       data: response.data || null,

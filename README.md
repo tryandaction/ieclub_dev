@@ -15,6 +15,23 @@
 
 ---
 
+## 🚀 新用户？从这里开始
+
+| 文档 | 说明 |
+|------|------|
+| **[START_HERE.md](START_HERE.md)** | 👋 3步快速启动 |
+| **[STARTUP_GUIDE.md](STARTUP_GUIDE.md)** | 📖 详细启动指南 |
+| **[DATABASE_SETUP.md](DATABASE_SETUP.md)** | 🗄️ 数据库设置 |
+| **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** | 🔧 遇到问题？ |
+| **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** | ⚡ 命令速查 |
+
+**快速启动命令**：
+```powershell
+.\Start-Services.ps1  # 一键启动前端和后端
+```
+
+---
+
 ## 📖 项目简介
 
 **IEClub：创造线上线下交互的无限可能！**
@@ -210,9 +227,36 @@ IEClub 采用**双端原生开发**策略，确保最佳性能和用户体验。
 ### 环境要求
 
 - **Node.js** >= 18.0.0
-- **MySQL** >= 8.0
-- **Redis** >= 7.0
+- **MySQL** >= 8.0 或 Docker
+- **Redis** >= 7.0 或 Docker
 - **微信开发者工具** - [下载地址](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)（仅小程序开发需要）
+
+### ⚡ 一键启动（推荐）
+
+```powershell
+# Windows PowerShell
+.\Start-Services.ps1
+
+# 自动在两个窗口中启动前端和后端
+# 前端: http://localhost:5173
+# 后端: http://localhost:3000
+```
+
+### 🗄️ 数据库设置
+
+**如果遇到数据库连接错误**，请查看 [DATABASE_SETUP.md](DATABASE_SETUP.md) 获取详细指南。
+
+快速方案：
+
+```powershell
+# 方案1：使用 Docker（推荐）
+cd ieclub-backend
+docker-compose up -d mysql redis
+
+# 方案2：安装本地 MySQL
+# 下载：https://dev.mysql.com/downloads/mysql/
+# 创建数据库：ieclub
+```
 
 ### 🌐 网页版开发
 

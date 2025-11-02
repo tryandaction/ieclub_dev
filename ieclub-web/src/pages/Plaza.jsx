@@ -76,8 +76,9 @@ export default function Plaza() {
         setTopics(data.topics)
       }
     } catch (error) {
-      console.error('加载话题失败:', error)
-      // 发生错误时继续使用mock数据
+      console.error('❌ 加载话题失败:', error)
+      // 发生错误时继续使用mock数据，不打扰用户
+      showToast('加载失败，显示示例数据', 'warning')
     } finally {
       setLoading(false)
     }

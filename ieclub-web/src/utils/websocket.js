@@ -18,42 +18,58 @@ class WebSocketManager {
    * @param {string} token - JWT Token
    */
   connect(token) {
+    // 🔒 验证 Token
     if (!token) {
-      console.warn('[WebSocket] 无法连接：Token 为空');
+      console.warn('🔌 [WebSocket] 无法连接：Token 为空');
       return;
     }
 
+    // 🔍 检查现有连接
     if (this.ws && (this.ws.readyState === WebSocket.CONNECTING || this.ws.readyState === WebSocket.OPEN)) {
-      console.log('[WebSocket] 已有连接存在');
+      console.log('🔌 [WebSocket] 已有连接存在，跳过');
       return;
     }
 
     try {
-      // 构建 WebSocket URL
+      // 🌐 构建 WebSocket URL（智能推断）
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = import.meta.env.VITE_API_BASE_URL
-        ? import.meta.env.VITE_API_BASE_URL.replace(/^https?:\/\//, '')
-        : window.location.host;
+      let host = window.location.host;
+      
+      // 如果配置了 API 地址，使用配置的地址
+      if (import.meta.env.VITE_API_BASE_URL) {
+        const apiUrl = import.meta.env.VITE_API_BASE_URL;
+        host = apiUrl.replace(/^https?:\/\//, '').replace(/\/api$/, '');
+      }
+      
+      // 特殊处理：生产环境
+      if (window.location.hostname === 'ieclub.online' || window.location.hostname.endsWith('.ieclub.online')) {
+        host = 'ieclub.online';
+      }
       
       const wsUrl = `${protocol}//${host}/ws?token=${token}`;
       
-      console.log('[WebSocket] 正在连接:', wsUrl);
+      console.log('🔌 [WebSocket] 正在连接:', wsUrl);
       this.isManualClose = false;
       this.ws = new WebSocket(wsUrl);
 
-      // 连接成功
+      // ✅ 连接成功
       this.ws.onopen = () => {
-        console.log('[WebSocket] 连接成功');
+        console.log('✅ [WebSocket] 连接成功');
         this.reconnectAttempts = 0;
+        this.reconnectDelay = 3000; // 重置延迟
         this.startHeartbeat();
         this.emit('connected');
       };
 
-      // 接收消息
+      // 📨 接收消息
       this.ws.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
-          console.log('[WebSocket] 收到消息:', message);
+          
+          // 忽略 pong 消息的日志
+          if (message.type !== 'pong') {
+            console.log('📨 [WebSocket] 收到消息:', message);
+          }
           
           // 触发对应类型的监听器
           this.emit(message.type, message);
@@ -63,15 +79,16 @@ class WebSocketManager {
             this.handleNotification(message.data);
           }
         } catch (error) {
-          console.error('[WebSocket] 解析消息失败:', error);
+          console.error('❌ [WebSocket] 解析消息失败:', error, event.data);
         }
       };
 
-      // 连接关闭
+      // 🔌 连接关闭
       this.ws.onclose = (event) => {
-        console.log('[WebSocket] 连接关闭', event.code, event.reason);
+        const reason = event.reason || '未知原因';
+        console.log(`🔌 [WebSocket] 连接关闭 (code: ${event.code}, reason: ${reason})`);
         this.stopHeartbeat();
-        this.emit('disconnected');
+        this.emit('disconnected', { code: event.code, reason });
 
         // 如果不是手动关闭，尝试重连
         if (!this.isManualClose) {
@@ -79,13 +96,14 @@ class WebSocketManager {
         }
       };
 
-      // 连接错误
+      // ❌ 连接错误
       this.ws.onerror = (error) => {
-        console.error('[WebSocket] 连接错误:', error);
+        console.error('❌ [WebSocket] 连接错误:', error);
         this.emit('error', error);
       };
     } catch (error) {
-      console.error('[WebSocket] 创建连接失败:', error);
+      console.error('❌ [WebSocket] 创建连接失败:', error);
+      this.emit('error', error);
     }
   }
 
@@ -93,18 +111,19 @@ class WebSocketManager {
    * 断开连接
    */
   disconnect() {
+    console.log('🔌 [WebSocket] 主动断开连接');
     this.isManualClose = true;
     this.stopHeartbeat();
     this.stopReconnect();
 
     if (this.ws) {
       if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
-        this.ws.close();
+        this.ws.close(1000, '客户端主动关闭');
       }
       this.ws = null;
     }
 
-    console.log('[WebSocket] 已断开连接');
+    console.log('✅ [WebSocket] 已断开连接');
   }
 
   /**
@@ -112,20 +131,25 @@ class WebSocketManager {
    * @param {string} token - JWT Token
    */
   reconnect(token) {
-    if (this.isManualClose) return;
+    if (this.isManualClose) {
+      console.log('🔌 [WebSocket] 手动关闭，跳过重连');
+      return;
+    }
 
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('[WebSocket] 重连次数超过限制，停止重连');
+      console.error(`❌ [WebSocket] 重连失败：已达最大重试次数 (${this.maxReconnectAttempts})`);
       this.emit('reconnect_failed');
       return;
     }
 
     this.reconnectAttempts++;
-    console.log(`[WebSocket] ${this.reconnectDelay / 1000}秒后尝试第 ${this.reconnectAttempts} 次重连...`);
+    const delay = this.reconnectDelay;
+    console.log(`🔄 [WebSocket] ${delay / 1000}秒后尝试第 ${this.reconnectAttempts}/${this.maxReconnectAttempts} 次重连...`);
 
     this.reconnectTimer = setTimeout(() => {
+      console.log(`🔌 [WebSocket] 开始第 ${this.reconnectAttempts} 次重连...`);
       this.connect(token);
-    }, this.reconnectDelay);
+    }, delay);
 
     // 递增延迟时间，最大30秒
     this.reconnectDelay = Math.min(this.reconnectDelay * 1.5, 30000);

@@ -7,7 +7,12 @@ const logger = require('../utils/logger');
 // 创建 Prisma 客户端实例，添加连接池优化
 const prisma = new PrismaClient({
   log: process.env.NODE_ENV === 'development' 
-    ? ['query', 'info', 'warn', 'error'] 
+    ? [
+        { emit: 'event', level: 'query' },
+        { emit: 'stdout', level: 'info' },
+        { emit: 'stdout', level: 'warn' },
+        { emit: 'stdout', level: 'error' },
+      ]
     : ['error'],
   // 连接池优化配置
   datasources: {
@@ -18,6 +23,19 @@ const prisma = new PrismaClient({
   // 查询引擎优化
   errorFormat: 'minimal',
 });
+
+// 慢查询监控（开发环境）
+if (process.env.NODE_ENV === 'development') {
+  prisma.$on('query', (e) => {
+    if (e.duration > 1000) { // 超过1秒的查询
+      logger.warn('慢查询检测:', {
+        query: e.query,
+        params: e.params,
+        duration: `${e.duration}ms`
+      });
+    }
+  });
+}
 
 // 连接成功日志
 prisma.$connect()

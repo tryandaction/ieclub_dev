@@ -5,10 +5,14 @@ const app = require('./app');
 const config = require('./config');
 const logger = require('./utils/logger');
 const { getRedis } = require('./utils/redis');
+const { fullStartupCheck } = require('./utils/startupCheck');
 
 // 启动服务器
 async function startServer() {
   try {
+    // 🔍 执行完整的启动检查
+    await fullStartupCheck();
+    
     // 测试 Redis 连接
     const redis = getRedis();
     await redis.ping();

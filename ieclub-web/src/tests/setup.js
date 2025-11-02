@@ -32,10 +32,10 @@ const localStorageMock = {
   }
 }
 
-global.localStorage = localStorageMock
+globalThis.localStorage = localStorageMock
 
 // 模拟 import.meta.env
-global.import = {
+globalThis.import = {
   meta: {
     env: {
       MODE: 'test',

@@ -76,33 +76,64 @@ class ActivityController {
           break;
       }
 
-      // 查询活动
+      // 优化查询：使用数据库字段代替 _count 聚合
       const [activities, total] = await Promise.all([
         prisma.activity.findMany({
           where,
           skip,
           take,
           orderBy,
-          include: {
-            author: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            cover: true,
+            images: true,
+            location: true,
+            startTime: true,
+            endTime: true,
+            maxParticipants: true,
+            category: true,
+            tags: true,
+            participantsCount: true, // 使用数据库字段
+            likesCount: true,        // 使用数据库字段
+            commentsCount: true,     // 使用数据库字段
+            createdAt: true,
+            updatedAt: true,
+            organizer: {
               select: {
                 id: true,
                 nickname: true,
                 avatar: true,
                 isCertified: true
               }
-            },
-            _count: {
-              select: {
-                participants: true,
-                likes: true,
-                comments: true
-              }
             }
           }
         }),
         prisma.activity.count({ where })
       ]);
+
+      // 批量检查用户点赞和参与状态（如果已登录）
+      const userId = req.userId;
+      let userLikes = new Set();
+      let userParticipations = new Set();
+      
+      if (userId && activities.length > 0) {
+        const activityIds = activities.map(a => a.id);
+        const [likes, participations] = await Promise.all([
+          prisma.activityLike.findMany({
+            where: { userId, activityId: { in: activityIds } },
+            select: { activityId: true }
+          }),
+          prisma.activityParticipant.findMany({
+            where: { userId, activityId: { in: activityIds } },
+            select: { activityId: true }
+          })
+        ]);
+        
+        userLikes = new Set(likes.map(l => l.activityId));
+        userParticipations = new Set(participations.map(p => p.activityId));
+      }
 
       // 格式化返回数据
       const formattedActivities = activities.map(activity => ({
@@ -117,12 +148,12 @@ class ActivityController {
         maxParticipants: activity.maxParticipants,
         category: activity.category,
         tags: activity.tags ? JSON.parse(activity.tags) : [],
-        author: activity.author,
-        participantsCount: activity._count.participants,
-        likesCount: activity._count.likes,
-        commentsCount: activity._count.comments,
-        isLiked: false, // 需要根据当前用户状态设置
-        isParticipated: false, // 需要根据当前用户状态设置
+        author: activity.organizer,
+        participantsCount: activity.participantsCount,
+        likesCount: activity.likesCount,
+        commentsCount: activity.commentsCount,
+        isLiked: userLikes.has(activity.id),
+        isParticipated: userParticipations.has(activity.id),
         createdAt: activity.createdAt,
         updatedAt: activity.updatedAt
       }));

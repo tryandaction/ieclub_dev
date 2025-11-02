@@ -75,14 +75,29 @@ class TopicController {
           orderBy = { createdAt: 'desc' };
       }
 
-      // 查询话题
+      // 优化查询：只选择需要的字段
       const [topics, total] = await Promise.all([
         prisma.topic.findMany({
           where,
           orderBy,
           skip,
           take,
-          include: {
+          select: {
+            id: true,
+            title: true,
+            content: true,
+            summary: true,
+            category: true,
+            topicType: true,
+            tags: true,
+            images: true,
+            viewsCount: true,
+            likesCount: true,
+            commentsCount: true,
+            bookmarksCount: true,
+            hotScore: true,
+            createdAt: true,
+            updatedAt: true,
             author: {
               select: {
                 id: true,
@@ -97,7 +112,36 @@ class TopicController {
         prisma.topic.count({ where }),
       ]);
 
-      return response.paginated(res, topics, {
+      // 批量检查用户点赞和收藏状态（如果已登录）
+      const userId = req.userId;
+      let userLikes = new Set();
+      let userBookmarks = new Set();
+      
+      if (userId && topics.length > 0) {
+        const topicIds = topics.map(t => t.id);
+        const [likes, bookmarks] = await Promise.all([
+          prisma.like.findMany({
+            where: { userId, targetType: 'topic', targetId: { in: topicIds } },
+            select: { targetId: true }
+          }),
+          prisma.bookmark.findMany({
+            where: { userId, topicId: { in: topicIds } },
+            select: { topicId: true }
+          })
+        ]);
+        
+        userLikes = new Set(likes.map(l => l.targetId));
+        userBookmarks = new Set(bookmarks.map(b => b.topicId));
+      }
+
+      // 添加用户状态
+      const topicsWithUserStatus = topics.map(topic => ({
+        ...topic,
+        isLiked: userLikes.has(topic.id),
+        isBookmarked: userBookmarks.has(topic.id)
+      }));
+
+      return response.paginated(res, topicsWithUserStatus, {
         page: parseInt(page),
         limit: take,
         total,

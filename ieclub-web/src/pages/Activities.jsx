@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, memo } from 'react'
 import { getActivities, toggleParticipation } from '../api/activities'
 import { showToast } from '../components/Toast'
 import { ActivityListSkeleton } from '../components/Skeleton'
@@ -15,16 +15,54 @@ const mockActivities = [
   },
 ]
 
+// 优化：使用 memo 缓存活动卡片组件
+const ActivityCard = memo(({ activity, onParticipate }) => {
+  return (
+    <div 
+      className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer"
+      onClick={() => window.location.href = `/activities/${activity.id}`}
+    >
+      {/* 封面 */}
+      <div className="bg-gradient-to-br from-blue-400 to-purple-500 h-48 flex items-center justify-center">
+        <span className="text-8xl">{activity.cover}</span>
+      </div>
+
+      {/* 内容 */}
+      <div className="p-6 space-y-4">
+        <h3 className="text-xl font-bold text-gray-900">{activity.title}</h3>
+
+        <div className="space-y-2 text-sm text-gray-600">
+          <p>🕐 {activity.time}</p>
+          <p>📍 {activity.location}</p>
+          <p>👥 {activity.participants.current}/{activity.participants.max} 人</p>
+        </div>
+
+        <button 
+          onClick={(e) => {
+            e.stopPropagation()
+            onParticipate(activity.id)
+          }}
+          className={`w-full py-3 rounded-xl font-medium transition-all ${
+            activity.isParticipating
+              ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              : 'bg-gradient-primary text-white hover:shadow-lg hover:scale-105'
+          }`}
+        >
+          {activity.isParticipating ? '已报名' : '立即报名'}
+        </button>
+      </div>
+    </div>
+  )
+})
+
+ActivityCard.displayName = 'ActivityCard'
+
 export default function Activities() {
   const [activities, setActivities] = useState(mockActivities)
   const [loading, setLoading] = useState(false)
 
-  // 加载活动列表
-  useEffect(() => {
-    loadActivities()
-  }, [])
-
-  const loadActivities = async () => {
+  // 优化：使用 useCallback 缓存函数
+  const loadActivities = useCallback(async () => {
     try {
       setLoading(true)
       const data = await getActivities()
@@ -36,14 +74,20 @@ export default function Activities() {
         setActivities(data.activities)
       }
     } catch (error) {
-      console.error('加载活动列表失败:', error)
-      // 发生错误时继续使用mock数据
+      console.error('❌ 加载活动列表失败:', error)
+      // 发生错误时继续使用mock数据，不打扰用户
+      showToast('加载失败，显示示例数据', 'warning')
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const handleParticipate = async (activityId) => {
+  // 加载活动列表
+  useEffect(() => {
+    loadActivities()
+  }, [loadActivities])
+
+  const handleParticipate = useCallback(async (activityId) => {
     // 检查登录状态
     const token = localStorage.getItem('token')
     if (!token) {
@@ -78,7 +122,7 @@ export default function Activities() {
       console.error('操作失败:', error)
       showToast(error.response?.data?.message || '操作失败，请稍后重试', 'error')
     }
-  }
+  }, [activities])
 
   return (
     <div className="space-y-6">
@@ -91,45 +135,15 @@ export default function Activities() {
       {/* 加载状态 - 骨架屏 */}
       {loading && <ActivityListSkeleton count={6} />}
 
-      {/* 活动网格 */}
+      {/* 活动网格 - 使用优化的组件 */}
       {!loading && activities.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {activities.map((activity) => (
-          <div 
-            key={activity.id} 
-            className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer"
-            onClick={() => window.location.href = `/activities/${activity.id}`}
-          >
-            {/* 封面 */}
-            <div className="bg-gradient-to-br from-blue-400 to-purple-500 h-48 flex items-center justify-center">
-              <span className="text-8xl">{activity.cover}</span>
-            </div>
-
-            {/* 内容 */}
-            <div className="p-6 space-y-4">
-              <h3 className="text-xl font-bold text-gray-900">{activity.title}</h3>
-
-              <div className="space-y-2 text-sm text-gray-600">
-                <p>🕐 {activity.time}</p>
-                <p>📍 {activity.location}</p>
-                <p>👥 {activity.participants.current}/{activity.participants.max} 人</p>
-              </div>
-
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleParticipate(activity.id)
-                }}
-                className={`w-full py-3 rounded-xl font-medium transition-all ${
-                  activity.isParticipating
-                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    : 'bg-gradient-primary text-white hover:shadow-lg hover:scale-105'
-                }`}
-              >
-                {activity.isParticipating ? '已报名' : '立即报名'}
-              </button>
-            </div>
-          </div>
+            <ActivityCard
+              key={activity.id}
+              activity={activity}
+              onParticipate={handleParticipate}
+            />
           ))}
         </div>
       )}
@@ -145,4 +159,3 @@ export default function Activities() {
     </div>
   )
 }
-
