@@ -181,7 +181,7 @@ exports.followUser = asyncHandler(async (req, res) => {
   const followingId = userId;
 
   if (followerId === followingId) {
-    throw new AppError('不能关注自己', 400);
+    throw new AppError('VALIDATION_INVALID_FORMAT', '不能关注自己');
   }
 
   // 检查用户是否存在
@@ -190,7 +190,7 @@ exports.followUser = asyncHandler(async (req, res) => {
   });
 
   if (!targetUser) {
-    throw new AppError('用户不存在', 404);
+    throw new AppError('RESOURCE_NOT_FOUND', '用户不存在');
   }
 
   // 检查是否已关注

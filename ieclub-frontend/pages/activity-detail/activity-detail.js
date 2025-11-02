@@ -1,6 +1,5 @@
 // pages/activity-detail/activity-detail.js
-const app = getApp()
-const api = require('../../utils/api')
+import { getActivityDetail, toggleParticipation, checkIn, generateCheckInQRCode, getCheckInStats } from '../../api/activity'
 
 Page({
   data: {
@@ -26,13 +25,11 @@ Page({
     try {
       this.setData({ loading: true })
       
-      const res = await api.request({
-        url: `/activities/${this.data.activityId}`,
-        method: 'GET'
-      })
-
-      const activity = res.data
-      const currentUserId = wx.getStorageSync('userId')
+      const activity = await getActivityDetail(this.data.activityId)
+      
+      // 获取当前用户信息
+      const userStr = wx.getStorageSync('user')
+      const currentUserId = userStr ? JSON.parse(userStr).id : null
       
       this.setData({
         activity,
@@ -41,13 +38,26 @@ Page({
         isOrganizer: activity.organizer?.id === currentUserId,
         loading: false
       })
+
+      console.log('✅ 加载活动详情成功:', {
+        id: activity.id,
+        title: activity.title,
+        isParticipating: activity.isParticipating,
+        isOrganizer: activity.organizer?.id === currentUserId
+      })
     } catch (error) {
-      console.error('加载活动详情失败:', error)
+      console.error('❌ 加载活动详情失败:', error)
       wx.showToast({
         title: error.message || '加载失败',
-        icon: 'none'
+        icon: 'none',
+        duration: 2000
       })
       this.setData({ loading: false })
+      
+      // 如果加载失败，返回上一页
+      setTimeout(() => {
+        wx.navigateBack()
+      }, 2000)
     }
   },
 
@@ -59,39 +69,43 @@ Page({
     if (!token) {
       wx.showToast({
         title: '请先登录',
-        icon: 'none'
+        icon: 'none',
+        duration: 1500
       })
-      wx.navigateTo({
-        url: '/pages/login/login'
-      })
+      setTimeout(() => {
+        wx.reLaunch({
+          url: '/pages/auth/index'
+        })
+      }, 1500)
       return
     }
 
     try {
       wx.showLoading({ title: '处理中...' })
       
-      await api.request({
-        url: `/activities/${this.data.activityId}/participate`,
-        method: 'POST'
-      })
+      const result = await toggleParticipation(this.data.activityId)
 
       wx.hideLoading()
-      wx.showToast({
-        title: this.data.isParticipating ? '已取消报名' : '报名成功',
-        icon: 'success'
-      })
-
+      
       this.setData({
-        isParticipating: !this.data.isParticipating
+        isParticipating: result.isParticipating
       })
 
-      // 重新加载详情
+      wx.showToast({
+        title: result.isParticipating ? '报名成功 ✅' : '已取消报名',
+        icon: 'success',
+        duration: 1500
+      })
+
+      // 重新加载详情以更新参与人数
       this.loadActivityDetail()
     } catch (error) {
       wx.hideLoading()
+      console.error('❌ 报名操作失败:', error)
       wx.showToast({
         title: error.message || '操作失败',
-        icon: 'none'
+        icon: 'none',
+        duration: 2000
       })
     }
   },
@@ -102,70 +116,89 @@ Page({
   async handleScanCheckIn() {
     try {
       // 调用微信扫码 API
-      const scanRes = await wx.scanCode({
+      wx.scanCode({
         onlyFromCamera: true,
-        scanType: ['qrCode']
-      })
+        scanType: ['qrCode'],
+        success: async (scanRes) => {
+          try {
+            const qrData = JSON.parse(scanRes.result)
+            
+            // 验证二维码类型
+            if (qrData.type !== 'activity_checkin') {
+              wx.showToast({
+                title: '无效的签到二维码',
+                icon: 'none',
+                duration: 2000
+              })
+              return
+            }
 
-      const qrData = JSON.parse(scanRes.result)
-      
-      // 验证二维码类型
-      if (qrData.type !== 'activity_checkin') {
-        wx.showToast({
-          title: '无效的签到二维码',
-          icon: 'none'
-        })
-        return
-      }
+            // 验证活动ID
+            if (qrData.activityId != this.data.activityId) {
+              wx.showToast({
+                title: '二维码与当前活动不匹配',
+                icon: 'none',
+                duration: 2000
+              })
+              return
+            }
 
-      // 验证活动ID
-      if (qrData.activityId !== this.data.activityId) {
-        wx.showToast({
-          title: '二维码与当前活动不匹配',
-          icon: 'none'
-        })
-        return
-      }
+            // 检查是否过期
+            const expiresAt = new Date(qrData.expiresAt)
+            if (new Date() > expiresAt) {
+              wx.showToast({
+                title: '签到二维码已过期',
+                icon: 'none',
+                duration: 2000
+              })
+              return
+            }
 
-      // 检查是否过期
-      const expiresAt = new Date(qrData.expiresAt)
-      if (new Date() > expiresAt) {
-        wx.showToast({
-          title: '签到二维码已过期',
-          icon: 'none'
-        })
-        return
-      }
+            // 执行签到
+            wx.showLoading({ title: '签到中...' })
+            
+            await checkIn(this.data.activityId, qrData.token)
 
-      // 执行签到
-      wx.showLoading({ title: '签到中...' })
-      
-      await api.request({
-        url: `/activities/${this.data.activityId}/checkin`,
-        method: 'POST',
-        data: {
-          token: qrData.token
+            wx.hideLoading()
+            wx.showToast({
+              title: '签到成功 ✅',
+              icon: 'success',
+              duration: 1500
+            })
+
+            this.setData({
+              hasCheckedIn: true
+            })
+
+            // 重新加载详情
+            this.loadActivityDetail()
+          } catch (error) {
+            wx.hideLoading()
+            console.error('❌ 签到失败:', error)
+            wx.showToast({
+              title: error.message || '签到失败',
+              icon: 'none',
+              duration: 2000
+            })
+          }
+        },
+        fail: (error) => {
+          console.error('❌ 扫码失败:', error)
+          if (error.errMsg !== 'scanCode:fail cancel') {
+            wx.showToast({
+              title: '扫码失败',
+              icon: 'none',
+              duration: 2000
+            })
+          }
         }
       })
-
-      wx.hideLoading()
-      wx.showToast({
-        title: '签到成功 ✅',
-        icon: 'success'
-      })
-
-      this.setData({
-        hasCheckedIn: true
-      })
-
-      // 重新加载详情
-      this.loadActivityDetail()
     } catch (error) {
-      wx.hideLoading()
-      console.error('签到失败:', error)
+      console.error('❌ 扫码签到失败:', error)
       wx.showToast({
-        title: error.message || '签到失败',
-        icon: 'none'
+        title: error.message || '操作失败',
+        icon: 'none',
+        duration: 2000
       })
     }
   },
@@ -177,22 +210,23 @@ Page({
     try {
       wx.showLoading({ title: '生成中...' })
       
-      const res = await api.request({
-        url: `/activities/${this.data.activityId}/qrcode`,
-        method: 'POST'
-      })
+      const qrCodeData = await generateCheckInQRCode(this.data.activityId, 300)
 
       wx.hideLoading()
       
+      console.log('✅ 生成签到二维码成功:', qrCodeData)
+      
       // 跳转到二维码展示页面
       wx.navigateTo({
-        url: `/pages/qrcode-display/qrcode-display?data=${encodeURIComponent(JSON.stringify(res.data))}`
+        url: `/pages/qrcode-display/qrcode-display?activityId=${this.data.activityId}&data=${encodeURIComponent(JSON.stringify(qrCodeData))}`
       })
     } catch (error) {
       wx.hideLoading()
+      console.error('❌ 生成签到二维码失败:', error)
       wx.showToast({
         title: error.message || '生成失败',
-        icon: 'none'
+        icon: 'none',
+        duration: 2000
       })
     }
   },
@@ -204,22 +238,23 @@ Page({
     try {
       wx.showLoading({ title: '加载中...' })
       
-      const res = await api.request({
-        url: `/activities/${this.data.activityId}/checkin-stats`,
-        method: 'GET'
-      })
+      const stats = await getCheckInStats(this.data.activityId)
 
       wx.hideLoading()
       
+      console.log('✅ 获取签到统计成功:', stats)
+      
       // 跳转到统计页面
       wx.navigateTo({
-        url: `/pages/checkin-stats/checkin-stats?data=${encodeURIComponent(JSON.stringify(res.data))}`
+        url: `/pages/checkin-stats/checkin-stats?activityId=${this.data.activityId}&data=${encodeURIComponent(JSON.stringify(stats))}`
       })
     } catch (error) {
       wx.hideLoading()
+      console.error('❌ 获取签到统计失败:', error)
       wx.showToast({
         title: error.message || '加载失败',
-        icon: 'none'
+        icon: 'none',
+        duration: 2000
       })
     }
   },

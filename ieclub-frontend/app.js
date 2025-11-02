@@ -42,8 +42,8 @@ App({
     token: '',
     userInfo: null,
     systemInfo: null,
-    // API 基础地址 - 使用HTTPS域名（不带www）
-    apiBase: 'https://ieclub.online/api'
+    // API 基础地址 - 使用HTTPS域名（带www，与微信后台配置一致）
+    apiBase: 'https://www.ieclub.online/api'
   }
 })
 

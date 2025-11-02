@@ -1,22 +1,90 @@
 <!--pages/activities/index.wxml-->
 <view class="activities-page">
+  <!-- 头部 -->
   <view class="header">
     <text class="title">精彩活动</text>
   </view>
 
-  <scroll-view scroll-y class="content">
-    <view class="activity-grid">
-      <view wx:for="{{activities}}" wx:key="id" class="activity-card">
+  <!-- 状态标签 -->
+  <view class="tabs">
+    <view 
+      wx:for="{{statusTabs}}" 
+      wx:key="key" 
+      class="tab-item {{currentTab === index ? 'active' : ''}}"
+      data-index="{{index}}"
+      bindtap="switchTab"
+    >
+      {{item.label}}
+    </view>
+  </view>
+
+  <!-- 活动列表 -->
+  <scroll-view 
+    scroll-y 
+    class="content"
+    enable-back-to-top
+    refresher-enabled
+    refresher-triggered="{{loading && page === 1}}"
+    bindrefresherrefresh="onPullDownRefresh"
+  >
+    <!-- Loading 状态 -->
+    <view wx:if="{{loading && activities.length === 0}}" class="loading-container">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+
+    <!-- 活动列表 -->
+    <view wx:else class="activity-grid">
+      <view 
+        wx:for="{{activities}}" 
+        wx:key="id" 
+        class="activity-card"
+        data-id="{{item.id}}"
+        bindtap="goToDetail"
+      >
+        <!-- 封面 -->
         <view class="cover">
           <text class="emoji">{{item.cover}}</text>
         </view>
+
+        <!-- 信息 -->
         <view class="info">
           <text class="activity-title">{{item.title}}</text>
-          <text class="activity-time">🕐 {{item.time}}</text>
-          <text class="activity-location">📍 {{item.location}}</text>
-          <text class="activity-participants">👥 {{item.participants.current}}/{{item.participants.max}}人</text>
-          <button class="register-btn" bindtap="register">立即报名</button>
+          <view class="activity-meta">
+            <text class="meta-item">🕐 {{item.time}}</text>
+            <text class="meta-item">📍 {{item.location}}</text>
+            <text class="meta-item">👥 {{item.participants.current}}/{{item.participants.max}}人</text>
+          </view>
+
+          <!-- 报名按钮 -->
+          <button 
+            class="register-btn {{item.isParticipating ? 'registered' : ''}}"
+            data-id="{{item.id}}"
+            data-index="{{index}}"
+            bindtap="handleParticipate"
+            catchtap="handleParticipate"
+          >
+            {{item.isParticipating ? '已报名 ✓' : '立即报名'}}
+          </button>
         </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view wx:if="{{!loading && activities.length === 0}}" class="empty-state">
+        <text class="empty-icon">📅</text>
+        <text class="empty-text">暂无活动</text>
+        <text class="empty-hint">敬请期待更多精彩活动</text>
+      </view>
+
+      <!-- 加载更多 -->
+      <view wx:if="{{loading && activities.length > 0}}" class="load-more">
+        <view class="loading-spinner small"></view>
+        <text class="load-more-text">加载中...</text>
+      </view>
+
+      <!-- 没有更多 -->
+      <view wx:if="{{!loading && !hasMore && activities.length > 0}}" class="no-more">
+        <text class="no-more-text">没有更多了</text>
       </view>
     </view>
   </scroll-view>

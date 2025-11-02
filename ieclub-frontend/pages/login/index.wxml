@@ -7,7 +7,7 @@
     <view class="app-slogan">学习 · 科研 · 项目 · 创业</view>
   </view>
 
-  <!-- 说明文字 -->}
+  <!-- 说明文字 -->
   <view class="description">
     <view class="desc-item">
       <text class="desc-icon">✨</text>

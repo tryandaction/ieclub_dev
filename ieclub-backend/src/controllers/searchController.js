@@ -27,6 +27,7 @@ class SearchController {
     try {
       const {
         q,
+        keyword: keywordParam,
         category,
         topicType,
         tags,
@@ -35,11 +36,14 @@ class SearchController {
         limit = 20,
       } = req.query;
 
-      if (!q || q.trim().length === 0) {
+      // 支持 q 或 keyword 参数
+      const searchKeyword = q || keywordParam;
+
+      if (!searchKeyword || searchKeyword.trim().length === 0) {
         return response.error(res, '请输入搜索关键词');
       }
 
-      const keyword = q.trim();
+      const keyword = searchKeyword.trim();
 
       // 记录搜索历史（如果用户已登录）
       if (req.userId) {
@@ -90,15 +94,15 @@ class SearchController {
       let orderBy = {};
       switch (sortBy) {
         case 'hot':
-          orderBy = { hotScore: 'desc' };
+          orderBy = { likesCount: 'desc' };
           break;
         case 'new':
           orderBy = { createdAt: 'desc' };
           break;
         case 'relevance':
         default:
-          // 相关度排序：标题匹配优先，然后按热度
-          orderBy = [{ hotScore: 'desc' }, { createdAt: 'desc' }];
+          // 相关度排序：标题匹配优先，然后按点赞数
+          orderBy = [{ likesCount: 'desc' }, { createdAt: 'desc' }];
           break;
       }
 

@@ -3,6 +3,7 @@
 
 const notificationService = require('../services/notificationService');
 const websocketService = require('../services/websocketService'); // WebSocket推送
+const { successResponse, errorResponse } = require('../utils/response');
 
   /**
    * 获取通知列表
@@ -25,17 +26,10 @@ async function getNotifications(req, res) {
       type,
     });
 
-    res.json({
-      code: 200,
-      message: '获取通知列表成功',
-      data: result,
-      });
+    res.json(successResponse(result, '获取通知列表成功'));
     } catch (error) {
     console.error('获取通知列表失败:', error);
-    res.status(500).json({
-      code: 500,
-      message: error.message || '获取通知列表失败',
-    });
+    res.status(500).json(errorResponse(error.message || '获取通知列表失败'));
     }
   }
 

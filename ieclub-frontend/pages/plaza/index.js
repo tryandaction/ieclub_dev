@@ -1,36 +1,14 @@
 // pages/plaza/index.js
+import { getTopics, likeTopic, unlikeTopic } from '../../api/topic'
+
 Page({
   data: {
     activeTab: 'all',
-    topics: [
-      {
-        id: 1,
-        type: 'offer',
-        title: 'Python爬虫实战',
-        cover: '🐍',
-        author: { name: '张三', avatar: '👨‍💻', level: 12 },
-        tags: ['Python', '爬虫'],
-        stats: { views: 456, likes: 89, comments: 34 }
-      },
-      {
-        id: 2,
-        type: 'demand',
-        title: '线性代数期末串讲',
-        cover: '📐',
-        author: { name: '李四', avatar: '👩‍🎓', level: 8 },
-        tags: ['数学', '期末'],
-        stats: { views: 234, likes: 45, comments: 23, wantCount: 12 }
-      },
-      {
-        id: 3,
-        type: 'project',
-        title: '智能选课助手',
-        cover: '🚀',
-        author: { name: '王五', avatar: '🎯', level: 10 },
-        tags: ['创业', 'AI'],
-        stats: { views: 890, likes: 156, comments: 67 }
-      }
-    ],
+    topics: [],
+    loading: true,
+    page: 1,
+    pageSize: 10,
+    hasMore: true,
     tabs: [
       { id: 'all', label: '推荐', icon: '✨' },
       { id: 'offer', label: '我来讲', icon: '🎤' },
@@ -41,40 +19,220 @@ Page({
 
   onLoad() {
     console.log('话题广场页加载')
+    this.loadTopics()
   },
 
   onShow() {
     console.log('话题广场页显示')
+    // 如果是从发布页返回，刷新列表
+    if (this.data.topics.length > 0) {
+      this.refreshTopics()
+    }
   },
 
-  // 切换 Tab
+  /**
+   * 下拉刷新
+   */
+  onPullDownRefresh() {
+    this.refreshTopics().then(() => {
+      wx.stopPullDownRefresh()
+    })
+  },
+
+  /**
+   * 上拉加载更多
+   */
+  onReachBottom() {
+    if (this.data.hasMore && !this.data.loading) {
+      this.setData({
+        page: this.data.page + 1
+      })
+      this.loadTopics()
+    }
+  },
+
+  /**
+   * 刷新话题列表
+   */
+  async refreshTopics() {
+    this.setData({
+      page: 1,
+      topics: [],
+      hasMore: true
+    })
+    await this.loadTopics()
+  },
+
+  /**
+   * 加载话题列表
+   */
+  async loadTopics() {
+    if (this.data.loading && this.data.page > 1) {
+      return
+    }
+
+    try {
+      this.setData({ loading: true })
+
+      const params = {
+        page: this.data.page,
+        limit: this.data.pageSize
+      }
+
+      if (this.data.activeTab !== 'all') {
+        params.type = this.data.activeTab
+      }
+
+      const result = await getTopics(params)
+      
+      // 处理不同的返回格式
+      let topics = []
+      let total = 0
+      
+      if (result.list) {
+        topics = result.list
+        total = result.total || 0
+      } else if (Array.isArray(result)) {
+        topics = result
+        total = result.length
+      } else if (result.data) {
+        topics = result.data.list || result.data
+        total = result.data.total || 0
+      }
+
+      // 格式化话题数据
+      const formattedTopics = topics.map(topic => ({
+        ...topic,
+        cover: this.getTopicIcon(topic.type),
+        author: topic.author || { name: '匿名用户', avatar: '👤', level: 0 },
+        tags: topic.tags || [],
+        stats: {
+          views: topic.viewCount || 0,
+          likes: topic.likeCount || 0,
+          comments: topic.commentCount || 0,
+          wantCount: topic.wantCount || 0
+        }
+      }))
+
+      this.setData({
+        topics: this.data.page === 1 ? formattedTopics : [...this.data.topics, ...formattedTopics],
+        hasMore: this.data.topics.length + formattedTopics.length < total,
+        loading: false
+      })
+
+      console.log('✅ 加载话题列表成功:', {
+        page: this.data.page,
+        count: formattedTopics.length,
+        total
+      })
+    } catch (error) {
+      console.error('❌ 加载话题列表失败:', error)
+      this.setData({ loading: false })
+      
+      wx.showToast({
+        title: error.message || '加载失败',
+        icon: 'none',
+        duration: 2000
+      })
+    }
+  },
+
+  /**
+   * 获取话题图标
+   */
+  getTopicIcon(type) {
+    const icons = {
+      offer: '🎤',
+      demand: '👂',
+      project: '🚀'
+    }
+    return icons[type] || '📝'
+  },
+
+  /**
+   * 切换 Tab
+   */
   switchTab(e) {
     const { tab } = e.currentTarget.dataset
+    if (tab === this.data.activeTab) return
+    
     this.setData({
-      activeTab: tab
+      activeTab: tab,
+      page: 1,
+      topics: [],
+      hasMore: true
     })
+    
     console.log('切换到:', tab)
+    this.loadTopics()
   },
 
-  // 点击话题卡片
+  /**
+   * 点击话题卡片
+   */
   onTopicTap(e) {
-    const { topic } = e.currentTarget.dataset
-    wx.showToast({
-      title: `点击了: ${topic.title}`,
-      icon: 'none',
-      duration: 2000
+    const { id } = e.currentTarget.dataset
+    wx.navigateTo({
+      url: `/pages/topic-detail/topic-detail?id=${id}`
     })
   },
 
-  // 下拉刷新
-  onPullDownRefresh() {
-    setTimeout(() => {
-      wx.stopPullDownRefresh()
+  /**
+   * 点赞/取消点赞
+   */
+  async handleLike(e) {
+    const { id, index } = e.currentTarget.dataset
+    
+    try {
+      // 检查登录状态
+      const token = wx.getStorageSync('token')
+      if (!token) {
+        wx.showToast({
+          title: '请先登录',
+          icon: 'none',
+          duration: 1500
+        })
+        setTimeout(() => {
+          wx.reLaunch({
+            url: '/pages/auth/index'
+          })
+        }, 1500)
+        return
+      }
+
+      const topics = [...this.data.topics]
+      const topic = topics[index]
+      const isLiked = topic.isLiked
+
+      // 乐观更新 UI
+      topic.isLiked = !isLiked
+      topic.stats.likes += isLiked ? -1 : 1
+      this.setData({ topics })
+
+      // 调用 API
+      if (isLiked) {
+        await unlikeTopic(id)
+      } else {
+        await likeTopic(id)
+      }
+
+      console.log('✅ 点赞操作成功:', { id, isLiked: !isLiked })
+    } catch (error) {
+      console.error('❌ 点赞操作失败:', error)
+      
+      // 回滚 UI
+      const topics = [...this.data.topics]
+      const topic = topics[index]
+      topic.isLiked = !topic.isLiked
+      topic.stats.likes += topic.isLiked ? 1 : -1
+      this.setData({ topics })
+      
       wx.showToast({
-        title: '刷新成功',
-        icon: 'success'
+        title: error.message || '操作失败',
+        icon: 'none',
+        duration: 2000
       })
-    }, 1000)
+    }
   }
 })
 

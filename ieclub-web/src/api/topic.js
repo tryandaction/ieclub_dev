@@ -105,5 +105,5 @@ export const getMatches = (id) => {
  * @param {number} params.pageSize - 每页数量
  */
 export const searchTopics = (params) => {
-  return request.get('/topics/search', { params })
+  return request.get('/search/topics', { params })
 }
