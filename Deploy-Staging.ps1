@@ -64,15 +64,32 @@ function Write-Warning {
 function Commit-Changes {
     Write-Section "提交代码到 Git (测试分支)"
     Set-Location -Path $ProjectRoot
-    git switch develop 
-    # 检查是否在测试分支
+    
+    # 切换到 develop 分支（如果存在）
     $currentBranch = git branch --show-current
+    if ($currentBranch -ne "develop") {
+        Write-Info "当前分支: $currentBranch，尝试切换到 develop 分支..."
+        $developExists = git branch --list develop
+        if ($developExists) {
+            git switch develop
+            if ($LASTEXITCODE -eq 0) {
+                Write-Success "已切换到 develop 分支"
+                $currentBranch = "develop"
+            } else {
+                Write-Warning "切换到 develop 分支失败，继续使用当前分支: $currentBranch"
+            }
+        } else {
+            Write-Warning "develop 分支不存在，将使用当前分支: $currentBranch"
+        }
+    } else {
+        Write-Success "已在 develop 分支"
+    }
+    
+    # 检查是否在测试分支
     if ($currentBranch -ne "staging" -and $currentBranch -ne "develop") {
-        Write-Warning "当前不在测试分支 (staging/develop)"
+        Write-Warning "当前不在标准测试分支 (staging/develop)"
         Write-Info "当前分支: $currentBranch"
         Write-Info "测试环境允许从任意分支部署，继续执行..."
-    } else {
-        Write-Success "分支检查通过: $currentBranch"
     }
     
     git add .
@@ -192,9 +209,36 @@ function Deploy-Backend-Staging {
         Remove-Item "backend-staging.zip" -Force
     }
     
-    $excludeItems = @("node_modules", ".git", "dist", "*.log", "*.zip", ".env*", "coverage", "uploads")
-    Get-ChildItem -Path . -Exclude $excludeItems | Compress-Archive -DestinationPath "backend-staging.zip" -Force
-    Write-Success "后端打包完成"
+    # 创建临时目录用于打包（避免包含日志文件和其他不需要的文件）
+    $tempDir = "temp-staging-backend"
+    if (Test-Path $tempDir) {
+        Remove-Item $tempDir -Recurse -Force
+    }
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+    
+    # 只复制需要的文件和目录
+    $includeItems = @(
+        "src",
+        "prisma",
+        "package.json",
+        "package-lock.json",
+        ".env.staging"
+    )
+    
+    Write-Info "复制必要文件到临时目录..."
+    foreach ($item in $includeItems) {
+        if (Test-Path $item) {
+            Copy-Item -Path $item -Destination $tempDir -Recurse -Force
+            Write-Host "  ✓ $item" -ForegroundColor Gray
+        }
+    }
+    
+    # 打包临时目录（不包含日志等文件）
+    Compress-Archive -Path "$tempDir\*" -DestinationPath "backend-staging.zip" -Force
+    
+    # 清理临时目录
+    Remove-Item $tempDir -Recurse -Force
+    Write-Success "后端打包完成（已排除 logs、node_modules 等文件）"
     
     # 上传到服务器
     Write-Info "上传后端代码到测试服务器..."

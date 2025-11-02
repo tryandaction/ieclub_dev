@@ -32,7 +32,16 @@
     "docker:build": "docker build -t ieclub-backend .",
     "docker:run": "docker-compose up -d",
     "docker:stop": "docker-compose down",
-    "docker:logs": "docker-compose logs -f backend"
+    "docker:logs": "docker-compose logs -f backend",
+    "optimize:db": "node scripts/run-database-optimization.js",
+    "check:performance": "node scripts/performance-check.js",
+    "update:hot-scores": "node scripts/update-hot-scores.js",
+    "monitor": "node scripts/performance-check.js",
+    "backup": "node scripts/backup-restore.js backup",
+    "backup:list": "node scripts/backup-restore.js list",
+    "backup:schema": "node scripts/backup-restore.js schema",
+    "health": "node scripts/health-check.js",
+    "health:api": "node scripts/health-check.js --check-api"
   },
   "keywords": [
     "ieclub",

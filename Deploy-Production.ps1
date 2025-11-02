@@ -270,27 +270,48 @@ if [ -d /var/www/ieclub.online ]; then
     timestamp=$(date +%Y%m%d_%H%M%S)
     cp -r /var/www/ieclub.online /var/www/ieclub.online.backup.$timestamp
     echo "已备份到: /var/www/ieclub.online.backup.$timestamp"
+    # 清理超过7天的备份
+    find /var/www -name "ieclub.online.backup.*" -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+else
+    echo "首次部署，无需备份"
 fi
 '@
     
-    $backupScript | ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash -s"
+    try {
+        $backupScript | ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash -s"
+    } catch {
+        Write-Warning "备份失败，但继续部署: $_"
+    }
     
     # 上传到服务器
     Write-Info "上传到生产服务器..."
-    scp -P $ServerPort "web-dist.zip" "${ServerUser}@${ServerHost}:/tmp/"
+    try {
+        scp -P $ServerPort "web-dist.zip" "${ServerUser}@${ServerHost}:/tmp/"
+    } catch {
+        Write-Error "上传失败: $_"
+        exit 1
+    }
     
     # 部署到生产目录
     Write-Info "部署到生产目录..."
     $webDeployScript = @'
+set -e  # 遇到错误立即退出
 mkdir -p /var/www/ieclub.online
 unzip -o /tmp/web-dist.zip -d /var/www/ieclub.online/
 rm -f /tmp/web-dist.zip
 chmod -R 755 /var/www/ieclub.online
-chown -R www-data:www-data /var/www/ieclub.online
-echo "生产环境前端部署完成"
+chown -R www-data:www-data /var/www/ieclub.online 2>/dev/null || true
+echo "=========================================="
+echo "  生产环境前端部署完成"
+echo "=========================================="
 '@
     
-    $webDeployScript | ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash -s"
+    try {
+        $webDeployScript | ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash -s"
+    } catch {
+        Write-Error "前端部署失败: $_"
+        exit 1
+    }
     
     Write-Success "前端部署完成 (生产环境)"
     Write-Info "访问地址: https://ieclub.online"
@@ -339,7 +360,16 @@ function Deploy-Backend-Production {
     foreach ($item in $includeItems) {
         if (Test-Path $item) {
             Copy-Item -Path $item -Destination $tempDir -Recurse -Force
+            Write-Info "已包含: $item"
+        } else {
+            Write-Warning "文件不存在: $item"
         }
+    }
+    
+    # 显示打包内容
+    Write-Info "打包内容:"
+    Get-ChildItem -Path $tempDir -Recurse -Directory | ForEach-Object {
+        Write-Host "  📁 $($_.FullName.Replace($tempDir, '.'))" -ForegroundColor DarkGray
     }
     
     # 打包临时目录
@@ -347,7 +377,10 @@ function Deploy-Backend-Production {
     
     # 清理临时目录
     Remove-Item $tempDir -Recurse -Force
-    Write-Success "后端打包完成"
+    
+    # 显示压缩包信息
+    $zipInfo = Get-Item "backend-code.zip"
+    Write-Success "后端打包完成 (大小: $([math]::Round($zipInfo.Length/1MB, 2)) MB)"
     
     # 上传到服务器
     Write-Info "上传后端代码到生产服务器..."
@@ -360,26 +393,60 @@ function Deploy-Backend-Production {
     # 在服务器上部署
     Write-Info "部署后端到生产环境..."
     $backendDeployScript = @'
+set -e  # 遇到错误立即退出
 cd /root/IEclub_dev/ieclub-backend
+
+# 备份当前版本
 timestamp=$(date +%Y%m%d_%H%M%S)
-tar -czf backup_$timestamp.tar.gz src/ 2>/dev/null || true
+echo "备份当前版本: backup_$timestamp.tar.gz"
+tar -czf backup_$timestamp.tar.gz src/ prisma/ 2>/dev/null || true
+
+# 解压新版本
+echo "解压新版本代码..."
 unzip -o /tmp/backend-code.zip
 rm -f /tmp/backend-code.zip
+
+# 检查环境配置
 if [ ! -f .env ]; then
     echo "警告: .env 文件不存在，使用模板创建"
     cp /tmp/env.production.template .env
-    echo "请手动编辑 .env 文件配置生产环境参数"
+    echo "⚠️  请立即编辑 .env 文件配置生产环境参数！"
 fi
 rm -f /tmp/env.production.template
+
+# 安装依赖
+echo "安装依赖包..."
 npm install --production
+
+# 数据库迁移
+echo "执行数据库迁移..."
 npx prisma migrate deploy
-pm2 reload ieclub-backend || pm2 start npm --name "ieclub-backend" -- start
+
+# 重启服务
+echo "重启后端服务..."
+if pm2 list | grep -q "ieclub-backend"; then
+    pm2 reload ieclub-backend
+    echo "✅ 服务已重载"
+else
+    pm2 start npm --name "ieclub-backend" -- start
+    echo "✅ 服务已启动"
+fi
+
 pm2 save
-echo "生产环境后端部署完成"
+echo ""
+echo "=========================================="
+echo "  生产环境后端部署完成"
+echo "=========================================="
 pm2 status
 '@
     
-    $backendDeployScript | ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash -s"
+    try {
+        $backendDeployScript | ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash -s"
+    } catch {
+        Write-Error "后端部署失败: $_"
+        Write-Warning "如需回滚，请执行: ssh ${ServerUser}@${ServerHost} 'cd /root/IEclub_dev/ieclub-backend && tar -xzf backup_*.tar.gz'"
+        exit 1
+    }
     
     Write-Success "后端部署完成 (生产环境)"
     Write-Info "API地址: https://ieclub.online/api"
