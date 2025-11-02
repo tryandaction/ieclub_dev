@@ -246,7 +246,7 @@ class AuthController {
   // 注册
   static async register(req, res, next) {
     try {
-      const { email, password, verifyCode, nickname } = req.body;
+      const { email, password, verifyCode, nickname, gender } = req.body;
 
       // 验证邮箱格式
       const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/;
@@ -291,13 +291,32 @@ class AuthController {
       // 加密密码
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // 创建用户（使用默认头像）
+      // 生成随机头像 URL（根据性别）
+      const userGender = parseInt(gender) || 0; // 0: 未知, 1: 男, 2: 女
+      let avatarUrl = '';
+      
+      if (userGender === 1) {
+        // 男性头像：使用 DiceBear Avataaars 风格
+        const seed = Math.random().toString(36).substring(7);
+        avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
+      } else if (userGender === 2) {
+        // 女性头像：使用 DiceBear Avataaars 风格（女性特征）
+        const seed = Math.random().toString(36).substring(7);
+        avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=ffdfbf,ffd5dc,c0aede`;
+      } else {
+        // 未知性别：使用 DiceBear Initials 风格（基于昵称）
+        const displayName = nickname || email.split('@')[0];
+        avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=667eea,764ba2,f093fb,4facfe`;
+      }
+
+      // 创建用户（使用随机生成的头像）
       const user = await prisma.user.create({
         data: {
           email,
           password: hashedPassword,
           nickname: nickname || email.split('@')[0],
-          avatar: '', // 默认为空，前端显示默认头像
+          avatar: avatarUrl,
+          gender: userGender,
           lastLoginAt: new Date(),
           lastActiveAt: new Date()
         }

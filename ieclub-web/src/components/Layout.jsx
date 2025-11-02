@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import FeedbackButton from './FeedbackButton'
 import NotificationBadge from './NotificationBadge'
+import Avatar from './Avatar'
 
 const navItems = [
   { path: '/plaza', label: '广场', icon: '✨' },
@@ -53,7 +54,11 @@ export default function Layout() {
           {/* 用户登录状态 */}
           {isAuthenticated && user ? (
             <div className="flex items-center space-x-2 p-3 bg-purple-50 rounded-xl">
-              <span className="text-2xl">{user.avatar || '👤'}</span>
+              <Avatar 
+                src={user.avatar} 
+                name={user.nickname || user.username || '用户'} 
+                size={40}
+              />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
                   {user.nickname || user.username || '用户'}

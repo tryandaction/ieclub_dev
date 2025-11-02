@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getUsers, followUser, unfollowUser } from '../api/community'
 import { showToast } from '../components/Toast'
+import Avatar from '../components/Avatar'
 
 const mockUsers = [
   {
@@ -107,7 +108,13 @@ export default function Community() {
           {users.map((user) => (
           <div key={user.id} className="card text-center space-y-4">
             {/* 头像 */}
-            <div className="text-6xl">{user.avatar}</div>
+            <div className="flex justify-center">
+              <Avatar 
+                src={user.avatar} 
+                name={user.name} 
+                size={80}
+              />
+            </div>
 
             {/* 用户信息 */}
             <div>

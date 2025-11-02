@@ -11,6 +11,7 @@ export default function Register() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [nickname, setNickname] = useState('')
+  const [gender, setGender] = useState('0') // 0: 未知, 1: 男, 2: 女
   const [grade, setGrade] = useState('')
   const [major, setMajor] = useState('')
   const [countdown, setCountdown] = useState(0)
@@ -124,6 +125,7 @@ export default function Register() {
         password,
         verifyCode: code,
         nickname: nickname.trim(),
+        gender: parseInt(gender),
         grade,
         major
       })
@@ -345,6 +347,50 @@ export default function Register() {
                     maxLength={20}
                     className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    👤 性别
+                  </label>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setGender('1')}
+                      className={`flex-1 py-2.5 sm:py-3 rounded-xl font-medium text-sm sm:text-base transition-all ${
+                        gender === '1'
+                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
+                          : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200'
+                      }`}
+                    >
+                      👨 男生
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGender('2')}
+                      className={`flex-1 py-2.5 sm:py-3 rounded-xl font-medium text-sm sm:text-base transition-all ${
+                        gender === '2'
+                          ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg'
+                          : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200'
+                      }`}
+                    >
+                      👩 女生
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGender('0')}
+                      className={`flex-1 py-2.5 sm:py-3 rounded-xl font-medium text-sm sm:text-base transition-all ${
+                        gender === '0'
+                          ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg'
+                          : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200'
+                      }`}
+                    >
+                      🤷 保密
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    💡 选择性别后，系统会为你生成专属头像
+                  </p>
                 </div>
 
                 <div>

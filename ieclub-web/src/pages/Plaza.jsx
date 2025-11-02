@@ -4,6 +4,7 @@ import { getTopics, toggleLike } from '../api/topic'
 import { useAuth } from '../contexts/AuthContext'
 import { showToast } from '../components/Toast'
 import { TopicListSkeleton } from '../components/Skeleton'
+import Avatar from '../components/Avatar'
 
 const tabs = [
   { id: 'all', label: '推荐', icon: '✨' },
@@ -200,7 +201,11 @@ export default function Plaza() {
 
               {/* 作者信息 */}
               <div className="flex items-center space-x-2">
-                <span className="text-2xl">{topic.author.avatar}</span>
+                <Avatar 
+                  src={topic.author.avatar} 
+                  name={topic.author.name} 
+                  size={32}
+                />
                 <span className="text-sm text-gray-600 flex-1">{topic.author.name}</span>
                 <span className="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded-lg font-bold">
                   LV{topic.author.level}

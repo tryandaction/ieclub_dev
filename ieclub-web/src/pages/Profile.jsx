@@ -1,6 +1,9 @@
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { showToast } from '../components/Toast'
+import Avatar from '../components/Avatar'
+import { uploadAvatar } from '../api/upload'
 
 const menuItems = [
   { icon: '📝', label: '我的话题', path: '/my-topics' },
@@ -11,12 +14,53 @@ const menuItems = [
 
 export default function Profile() {
   const navigate = useNavigate()
-  const { user, isAuthenticated, logout, loading } = useAuth()
+  const { user, isAuthenticated, logout, loading, updateUser } = useAuth()
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef(null)
 
   const handleLogout = () => {
     logout()
     showToast('已退出登录', 'success')
     navigate('/plaza')
+  }
+
+  // 处理头像上传
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // 验证文件类型
+    if (!file.type.startsWith('image/')) {
+      showToast('请选择图片文件', 'error')
+      return
+    }
+
+    // 验证文件大小（最大 5MB）
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('图片大小不能超过 5MB', 'error')
+      return
+    }
+
+    setUploading(true)
+
+    try {
+      const result = await uploadAvatar(file)
+      
+      // 更新用户头像
+      updateUser({ ...user, avatar: result.avatarUrl })
+      
+      showToast('头像上传成功！', 'success')
+    } catch (error) {
+      console.error('头像上传失败:', error)
+      showToast(error.message || '头像上传失败', 'error')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  // 触发文件选择
+  const triggerFileInput = () => {
+    fileInputRef.current?.click()
   }
 
   if (loading) {
@@ -64,7 +108,38 @@ export default function Profile() {
       {/* 用户信息卡片 */}
       <div className="bg-gradient-primary text-white rounded-2xl p-8 shadow-lg">
         <div className="text-center">
-          <div className="text-8xl mb-4">{user.avatar || '👤'}</div>
+          <div className="flex justify-center mb-4">
+            <div className="relative group">
+              <Avatar 
+                src={user.avatar} 
+                name={user.nickname || user.username || '用户'} 
+                size={120}
+                className="ring-4 ring-white/30"
+              />
+              {/* 上传头像按钮 */}
+              <button
+                onClick={triggerFileInput}
+                disabled={uploading}
+                className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              >
+                {uploading ? (
+                  <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <div className="text-white text-center">
+                    <div className="text-2xl mb-1">📷</div>
+                    <div className="text-xs font-medium">更换头像</div>
+                  </div>
+                )}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
+            </div>
+          </div>
           <h1 className="text-3xl font-bold mb-2">{user.nickname || user.username || '未设置昵称'}</h1>
           <p className="text-white/90 mb-2">{user.email}</p>
           <p className="text-white/80 mb-4">
