@@ -19,6 +19,13 @@ dist.zip
 build/
 coverage/
 
+# 部署压缩包
+web-dist.zip
+web-staging.zip
+backend-code.zip
+backend-staging.zip
+deploy-*.sh
+
 # ============================
 # 环境变量
 # ============================

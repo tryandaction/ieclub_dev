@@ -392,37 +392,29 @@ function Deploy-Backend-Production {
     
     # 在服务器上部署
     Write-Info "部署后端到生产环境..."
-    $backendDeployScript = @'
-set -e  # 遇到错误立即退出
+    
+    # 创建部署脚本（避免 Windows 换行符问题）
+    $backendScript = @'
+#!/bin/bash
+set -e
 cd /root/IEclub_dev/ieclub-backend
-
-# 备份当前版本
 timestamp=$(date +%Y%m%d_%H%M%S)
 echo "备份当前版本: backup_$timestamp.tar.gz"
 tar -czf backup_$timestamp.tar.gz src/ prisma/ 2>/dev/null || true
-
-# 解压新版本
 echo "解压新版本代码..."
-unzip -o /tmp/backend-code.zip
+unzip -oq /tmp/backend-code.zip
 rm -f /tmp/backend-code.zip
-
-# 检查环境配置
+echo "检查环境配置..."
 if [ ! -f .env ]; then
     echo "警告: .env 文件不存在，使用模板创建"
     cp /tmp/env.production.template .env
     echo "⚠️  请立即编辑 .env 文件配置生产环境参数！"
 fi
 rm -f /tmp/env.production.template
-
-# 安装依赖
 echo "安装依赖包..."
 npm install --production
-
-# 数据库迁移
 echo "执行数据库迁移..."
 npx prisma migrate deploy
-
-# 重启服务
 echo "重启后端服务..."
 if pm2 list | grep -q "ieclub-backend"; then
     pm2 reload ieclub-backend
@@ -431,7 +423,6 @@ else
     pm2 start npm --name "ieclub-backend" -- start
     echo "✅ 服务已启动"
 fi
-
 pm2 save
 echo ""
 echo "=========================================="
@@ -440,11 +431,18 @@ echo "=========================================="
 pm2 status
 '@
     
+    # 保存为 Unix 格式并上传
+    $backendScript -replace "`r`n", "`n" | Out-File -FilePath "deploy-backend-production.sh" -Encoding UTF8 -NoNewline
+    
     try {
-        $backendDeployScript | ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash -s"
+        scp -P $ServerPort "deploy-backend-production.sh" "${ServerUser}@${ServerHost}:/tmp/"
+        Remove-Item "deploy-backend-production.sh" -Force
+        
+        ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash /tmp/deploy-backend-production.sh && rm -f /tmp/deploy-backend-production.sh"
     } catch {
         Write-Error "后端部署失败: $_"
         Write-Warning "如需回滚，请执行: ssh ${ServerUser}@${ServerHost} 'cd /root/IEclub_dev/ieclub-backend && tar -xzf backup_*.tar.gz'"
+        Remove-Item "deploy-backend-production.sh" -Force -ErrorAction SilentlyContinue
         exit 1
     }
     

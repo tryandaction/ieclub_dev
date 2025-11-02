@@ -172,13 +172,8 @@ function Deploy-Web-Staging {
     
     # 在服务器上部署到测试目录
     Write-Info "部署到测试目录..."
-    ssh -p $ServerPort "${ServerUser}@${ServerHost}" @"
-mkdir -p /var/www/test.ieclub.online
-unzip -o /tmp/web-staging.zip -d /var/www/test.ieclub.online/
-rm -f /tmp/web-staging.zip
-chmod -R 755 /var/www/test.ieclub.online
-echo '测试环境前端部署完成'
-"@
+    $webDeployCmd = "mkdir -p /var/www/test.ieclub.online && unzip -oq /tmp/web-staging.zip -d /var/www/test.ieclub.online/ && rm -f /tmp/web-staging.zip && chmod -R 755 /var/www/test.ieclub.online && echo '测试环境前端部署完成'"
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" $webDeployCmd
     
     Write-Success "前端部署完成 (测试环境)"
     Write-Info "访问地址: https://test.ieclub.online"
@@ -250,37 +245,43 @@ function Deploy-Backend-Staging {
     
     # 在服务器上部署
     Write-Info "部署后端到测试环境..."
-    ssh -p $ServerPort "${ServerUser}@${ServerHost}" @"
-# 创建测试环境目录
+    
+    # 创建部署脚本（避免 Windows 换行符问题）
+    $backendScript = @'
+#!/bin/bash
+set -e
+echo "创建测试环境目录..."
 mkdir -p /root/IEclub_dev_staging/ieclub-backend
 cd /root/IEclub_dev_staging/ieclub-backend
-
-# 解压代码
-unzip -o /tmp/backend-staging.zip
+echo "解压代码..."
+unzip -oq /tmp/backend-staging.zip
 rm -f /tmp/backend-staging.zip
-
-# 配置环境变量（如果不存在则使用模板）
+echo "配置环境变量..."
 if [ ! -f .env ]; then
-    echo '首次部署，使用模板创建 .env 文件'
+    echo "首次部署，使用模板创建 .env 文件"
     cp /tmp/env.staging.template .env
-    echo '⚠️  请手动编辑 .env 文件，配置数据库密码等敏感信息'
+    echo "⚠️  请手动编辑 .env 文件，配置数据库密码等敏感信息"
 fi
 rm -f /tmp/env.staging.template
-
-# 安装依赖
+echo "安装依赖..."
 npm install --production
-
-# 运行数据库迁移（使用测试数据库）
+echo "运行数据库迁移..."
 npx prisma migrate deploy
-
-# 重启测试环境后端服务
+echo "重启后端服务..."
 pm2 delete ieclub-backend-staging 2>/dev/null || true
-pm2 start npm --name 'ieclub-backend-staging' -- start
+pm2 start npm --name "ieclub-backend-staging" -- start
 pm2 save
-
-echo '测试环境后端部署完成'
+echo "测试环境后端部署完成"
 pm2 status
-"@
+'@
+    
+    # 保存为 Unix 格式并上传
+    $backendScript -replace "`r`n", "`n" | Out-File -FilePath "deploy-backend-staging.sh" -Encoding UTF8 -NoNewline
+    scp -P $ServerPort "deploy-backend-staging.sh" "${ServerUser}@${ServerHost}:/tmp/"
+    Remove-Item "deploy-backend-staging.sh" -Force
+    
+    # 执行部署
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash /tmp/deploy-backend-staging.sh && rm -f /tmp/deploy-backend-staging.sh"
     
     Write-Success "后端部署完成 (测试环境)"
     Write-Info "API地址: https://test.ieclub.online/api (端口 $StagingPort)"
