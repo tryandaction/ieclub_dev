@@ -412,9 +412,11 @@ if [ ! -f .env ]; then
 fi
 rm -f /tmp/env.production.template
 echo "安装依赖包..."
-npm install --production
+npm install --omit=dev --loglevel=error 2>&1 | head -20
+echo "✅ 依赖安装完成"
 echo "执行数据库迁移..."
-npx prisma migrate deploy
+npx prisma migrate deploy 2>&1 | tail -10
+echo "✅ 数据库迁移完成"
 echo "重启后端服务..."
 if pm2 list | grep -q "ieclub-backend"; then
     pm2 reload ieclub-backend

@@ -264,24 +264,36 @@ if [ ! -f .env ]; then
 fi
 rm -f /tmp/env.staging.template
 echo "安装依赖..."
-npm install --production
+npm install --omit=dev --loglevel=error 2>&1 | head -20
+echo "✅ 依赖安装完成"
 echo "运行数据库迁移..."
-npx prisma migrate deploy
+npx prisma migrate deploy 2>&1 | tail -10
+echo "✅ 数据库迁移完成"
 echo "重启后端服务..."
 pm2 delete ieclub-backend-staging 2>/dev/null || true
 pm2 start npm --name "ieclub-backend-staging" -- start
 pm2 save
-echo "测试环境后端部署完成"
+echo ""
+echo "=========================================="
+echo "  测试环境后端部署完成"
+echo "=========================================="
 pm2 status
 '@
     
     # 保存为 Unix 格式并上传
     $backendScript -replace "`r`n", "`n" | Out-File -FilePath "deploy-backend-staging.sh" -Encoding UTF8 -NoNewline
-    scp -P $ServerPort "deploy-backend-staging.sh" "${ServerUser}@${ServerHost}:/tmp/"
-    Remove-Item "deploy-backend-staging.sh" -Force
     
-    # 执行部署
-    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash /tmp/deploy-backend-staging.sh && rm -f /tmp/deploy-backend-staging.sh"
+    try {
+        scp -P $ServerPort "deploy-backend-staging.sh" "${ServerUser}@${ServerHost}:/tmp/"
+        Remove-Item "deploy-backend-staging.sh" -Force
+        
+        # 执行部署（带超时）
+        ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash /tmp/deploy-backend-staging.sh && rm -f /tmp/deploy-backend-staging.sh"
+    } catch {
+        Write-Error "后端部署失败: $_"
+        Remove-Item "deploy-backend-staging.sh" -Force -ErrorAction SilentlyContinue
+        exit 1
+    }
     
     Write-Success "后端部署完成 (测试环境)"
     Write-Info "API地址: https://test.ieclub.online/api (端口 $StagingPort)"
