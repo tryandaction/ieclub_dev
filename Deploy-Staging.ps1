@@ -69,8 +69,11 @@ function Commit-Changes {
     $currentBranch = git branch --show-current
     if ($currentBranch -ne "develop") {
         Write-Info "当前分支: $currentBranch，尝试切换到 develop 分支..."
-        $developExists = git branch --list develop
-        if ($developExists) {
+        
+        # 检查本地是否有 develop 分支
+        $localDevelop = git branch --list develop
+        if ($localDevelop) {
+            # 本地有 develop 分支，直接切换
             git switch develop
             if ($LASTEXITCODE -eq 0) {
                 Write-Success "已切换到 develop 分支"
@@ -79,7 +82,30 @@ function Commit-Changes {
                 Write-Warning "切换到 develop 分支失败，继续使用当前分支: $currentBranch"
             }
         } else {
-            Write-Warning "develop 分支不存在，将使用当前分支: $currentBranch"
+            # 检查远程是否有 develop 分支
+            git fetch origin develop 2>$null
+            $remoteDevelop = git branch -r --list "origin/develop"
+            if ($remoteDevelop) {
+                # 远程有 develop 分支，从远程创建本地分支
+                Write-Info "从远程创建 develop 分支..."
+                git checkout -b develop origin/develop
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Success "已创建并切换到 develop 分支"
+                    $currentBranch = "develop"
+                } else {
+                    Write-Warning "创建 develop 分支失败，继续使用当前分支: $currentBranch"
+                }
+            } else {
+                # 远程也没有，创建新的 develop 分支
+                Write-Info "创建新的 develop 分支..."
+                git checkout -b develop
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Success "已创建并切换到新的 develop 分支"
+                    $currentBranch = "develop"
+                } else {
+                    Write-Warning "创建 develop 分支失败，继续使用当前分支: $currentBranch"
+                }
+            }
         }
     } else {
         Write-Success "已在 develop 分支"
@@ -98,8 +124,18 @@ function Commit-Changes {
     
     # 推送到远程
     Write-Info "推送到远程仓库..."
-    git push origin $currentBranch
-    Write-Success "已推送到 GitHub"
+    
+    # 尝试推送，如果失败则设置上游分支后重试
+    git push origin $currentBranch 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Info "设置上游分支并推送..."
+        git push -u origin $currentBranch
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "推送失败！请检查网络连接和 GitHub 权限"
+            exit 1
+        }
+    }
+    Write-Success "已推送到 GitHub (origin/$currentBranch)"
 }
 
 # --- Build Web Frontend (Staging) ---
