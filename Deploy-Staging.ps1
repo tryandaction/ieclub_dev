@@ -64,7 +64,7 @@ function Write-Warning {
 function Commit-Changes {
     Write-Section "提交代码到 Git (测试分支)"
     Set-Location -Path $ProjectRoot
-    
+    git switch develop 
     # 检查是否在测试分支
     $currentBranch = git branch --show-current
     if ($currentBranch -ne "staging" -and $currentBranch -ne "develop") {

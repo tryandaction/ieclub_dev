@@ -52,7 +52,7 @@ npm run dev  # 前端: http://localhost:5173
 ```powershell
 # 部署全部
 cd C:\universe\GitHub_try\IEclub_dev
-.\Deploy-Staging.ps1 -Target all -Message "测试新功能"
+.\Deploy-Staging.ps1 -Target all -Message "测试"
 
 # 仅部署前端
 cd C:\universe\GitHub_try\IEclub_dev

@@ -72,6 +72,7 @@ function Check-PreDeployment {
     $hasErrors = $false
     
     # 检查是否在 main 分支
+    git switch main 
     Set-Location -Path $ProjectRoot
     $currentBranch = git branch --show-current
     
