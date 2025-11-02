@@ -70,11 +70,9 @@ function Commit-Changes {
     if ($currentBranch -ne "staging" -and $currentBranch -ne "develop") {
         Write-Warning "当前不在测试分支 (staging/develop)"
         Write-Info "当前分支: $currentBranch"
-        $response = Read-Host "是否继续? (y/n)"
-        if ($response -ne "y") {
-            Write-Info "已取消"
-            exit 0
-        }
+        Write-Info "测试环境允许从任意分支部署，继续执行..."
+    } else {
+        Write-Success "分支检查通过: $currentBranch"
     }
     
     git add .
@@ -255,14 +253,8 @@ Write-Host "   - 使用独立的测试数据库" -ForegroundColor Yellow
 Write-Host ""
 Write-Info "部署目标: $Target"
 Write-Info "提交信息: $Message"
-
-# 确认部署
+Write-Info "测试环境自动部署，无需确认"
 Write-Host ""
-$confirm = Read-Host "确认部署到测试环境? (y/n)"
-if ($confirm -ne "y") {
-    Write-Info "已取消部署"
-    exit 0
-}
 
 # 提交代码
 Commit-Changes

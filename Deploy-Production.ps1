@@ -139,7 +139,8 @@ function Create-ReleaseTag {
     if ($createTag -eq "y") {
         $tagName = Read-Host "请输入标签名称 (例如: v1.2.0)"
         if ($tagName) {
-            git tag -a $tagName -m "Release $tagName: $Message"
+            $tagMessage = "Release ${tagName}: ${Message}"
+            git tag -a $tagName -m $tagMessage
             git push origin $tagName
             Write-Success "已创建标签: $tagName"
         }

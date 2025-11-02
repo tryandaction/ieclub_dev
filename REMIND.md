@@ -12,17 +12,27 @@ IEClub 项目支持三种环境：
 
 ### 部署脚本说明
 
-- **Deploy-Staging.ps1** ⚡ - 测试环境部署
-  - 用于内部测试，不影响线上用户
-  - 使用独立的测试数据库
-  - 执行后团队内部可访问测试版本
+#### 测试环境部署 ⚡
+```powershell
+cd C:\universe\GitHub_try\IEclub_dev
+.\Deploy-Staging.ps1 -Target all -Message "测试新功能"
+```
+- ✅ **自动执行**，无需确认
+- 用于内部测试，不影响线上用户
+- 使用独立的测试数据库（端口 3001）
+- 执行后团队内部可访问 https://test.ieclub.online
 
-- **Deploy-Production.ps1** 🚀 - 生产环境部署
-  - 正式发布，所有用户可见
-  - 执行后 ieclub.online 和小程序都会更新
-  - ⚠️ 需要先在测试环境验证通过
+#### 生产环境部署 🚀
+```powershell
+cd C:\universe\GitHub_try\IEclub_dev
+.\Deploy-Production.ps1 -Target all -Message "正式发布"
+```
+- ⚠️ **需要输入 'YES' 确认**（安全机制）
+- 正式发布，所有用户可见
+- 执行后 https://ieclub.online 和小程序都会更新
+- ⚠️ 必须先在测试环境验证通过
 
-**详细说明**：查看 [环境配置指南](ENVIRONMENT_GUIDE.md) 和 [完整部署指南](docs/deployment/DEPLOYMENT_COMPLETE_GUIDE.md)
+**详细说明**：查看 [完整部署指南](docs/deployment/Deployment_guide.md)
 
 ---
 
