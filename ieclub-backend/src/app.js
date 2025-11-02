@@ -5,9 +5,13 @@ const hpp = require('hpp');
 const compression = require('compression');
 const morgan = require('morgan');
 const path = require('path');
+const session = require('express-session');
+const cookieParser = require('cookie-parser');
 const logger = require('./utils/logger');
-const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
-const { performanceMonitorWithStats, getPerformanceReport } = require('./middleware/performance');
+const { errorMiddleware } = require('./utils/errorHandler');
+const { notFoundHandler } = require('./middleware/errorHandler');
+const { getCsrfToken, refreshCsrfToken } = require('./middleware/csrf');
+const { monitor } = require('./utils/performanceMonitor');
 
 const app = express();
 
@@ -53,20 +57,36 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-CSRF-Token', 'X-XSRF-Token'],
   exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar']
 }));
 
 // 压缩响应
 app.use(compression());
 
-// 性能监控
-app.use(performanceMonitorWithStats);
-
 // 请求日志
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
+
+// 启动性能监控
+monitor.start();
+
+// Cookie 解析
+app.use(cookieParser());
+
+// Session 配置
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'ieclub-session-secret-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 24 * 60 * 60 * 1000  // 24小时
+  }
+}));
 
 // 请求体解析
 app.use(express.json({ limit: '10mb' }));
@@ -81,6 +101,10 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
 
 // ==================== 系统端点（在限流之前）====================
 
+// CSRF Token 端点（在限流之前，允许任何人获取）
+app.get('/csrf-token', getCsrfToken);
+app.post('/csrf-token/refresh', refreshCsrfToken);
+
 // 健康检查（不需要缓存控制，保证实时性）
 app.get('/health', (req, res) => {
   res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -94,7 +118,22 @@ app.get('/health', (req, res) => {
 
 // 性能报告（仅开发环境）
 if (process.env.NODE_ENV === 'development') {
-  app.get('/performance', getPerformanceReport);
+  app.get('/performance', async (req, res) => {
+    try {
+      const report = await monitor.getPerformanceReport(24);
+      const realtime = monitor.getRealTimeMetrics();
+      res.json({
+        success: true,
+        realtime,
+        report
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
 }
 
 // 根路径
@@ -166,7 +205,7 @@ try {
 // 404 处理
 app.use(notFoundHandler);
 
-// 错误处理
-app.use(errorHandler);
+// 统一错误处理（使用新的错误处理器）
+app.use(errorMiddleware());
 
 module.exports = app;

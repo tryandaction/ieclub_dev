@@ -2,7 +2,7 @@
 // API性能监控中间件
 
 const logger = require('../utils/logger');
-const monitoringService = require('../services/monitoringService');
+const { monitor } = require('../utils/performanceMonitor');
 
 /**
  * API性能监控中间件
@@ -162,7 +162,7 @@ const performanceMonitorWithStats = (req, res, next) => {
     
     // 记录到监控服务
     try {
-      monitoringService.recordRequest(req.method, req.path, duration, res.statusCode);
+      monitor.recordRequest(req.method, req.path, duration, res.statusCode);
     } catch (error) {
       // 忽略监控服务错误
     }

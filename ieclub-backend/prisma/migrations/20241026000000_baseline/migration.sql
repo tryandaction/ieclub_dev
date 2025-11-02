@@ -7,7 +7,7 @@ CREATE TABLE `users` (
     `unionid` VARCHAR(191) NULL,
     `sessionKey` VARCHAR(191) NULL,
     `nickname` VARCHAR(50) NOT NULL,
-    `avatar` TEXT NULL DEFAULT '',
+    `avatar` TEXT NULL,
     `gender` TINYINT NOT NULL DEFAULT 0,
     `phone` VARCHAR(20) NULL,
     `bio` TEXT NULL,

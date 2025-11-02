@@ -1,56 +1,132 @@
 # IEClub Deployment Guide
 
-> **✅ DEPLOYMENT STATUS: SUCCESSFUL** (Last Updated: 2025-10-31)
+> **✅ DEPLOYMENT STATUS: SUCCESSFUL** (Last Updated: 2025-11-02)
 > 
-> **Live Site**: https://ieclub.online  
-> **API Status**: ✅ Running & Healthy  
+> **Production**: https://ieclub.online (端口 3000)
+> **Staging**: https://test.ieclub.online (端口 3001)
 > **Server**: 39.108.160.112  
-> **PM2**: Backend running (ieclub-backend)  
+> **PM2**: Backend running (ieclub-backend, ieclub-backend-staging)  
 > **SSL**: Active (Let's Encrypt)
 >
-> **Recent Updates** (2025-10-31):
-> - ✅ **积分系统上线** - 完整的等级、勋章、签到系统
-> - ✅ 数据库迁移成功 (User表添加积分字段，新增6张积分相关表)
-> - ✅ 积分系统API全部测试通过 (用户积分、签到、勋章、排行榜等)
-> - ✅ 修复话题和评论控制器的响应工具函数导入问题
-> - ✅ 优化路由配置，区分公开API和认证API
-> - ✅ 后端服务稳定运行，所有功能正常
+> **Recent Updates** (2025-11-02):
+> - ✅ **三环境部署系统完成** - 本地开发、测试环境、生产环境
+> - ✅ 自动化部署脚本 (Deploy-Staging.ps1, Deploy-Production.ps1)
+> - ✅ 环境配置模板系统 (.env.staging.template, .env.production.template)
+> - ✅ 修复 alertSystem.js 的 undefined.toFixed() 错误
+> - ✅ 测试环境独立数据库和端口配置
+> - ✅ 生产环境安全确认机制
 
 ---
 
-> **Quick Start** - 3 commands to deploy everything!
+## 🎯 三种部署环境
+
+### 1️⃣ 本地开发环境 (Development) - 最常用 ⚡
+
+**用途**: 日常开发和调试
+
+```powershell
+# 快速启动
+cd C:\universe\GitHub_try\IEclub_dev
+.\QUICK_START.ps1
+
+# 或手动启动
+cd C:\universe\GitHub_try\IEclub_dev\ieclub-backend
+npm run dev  # 后端: http://localhost:3000
+
+cd C:\universe\GitHub_try\IEclub_dev\ieclub-web
+npm run dev  # 前端: http://localhost:5173
+```
+
+**特点**:
+- ✅ 热重载，修改即生效
+- ✅ 详细的调试信息
+- ✅ 使用本地数据库
+- ✅ 无需部署，立即测试
 
 ---
 
-## 📌 部署命令（直接复制运行）
+### 2️⃣ 测试环境 (Staging) - 第2常用 🧪
 
-### 1️⃣ 部署全部（网页+后端） - 最常用
-```powershell
-cd C:\universe\GitHub_try\IEclub_dev
-.\Deploy.ps1 -Target "all"
-```
-**这条命令会**:
-- ✅ 构建并部署网页
-- ✅ 打包并部署后端
-- ✅ 重启所有服务
-- ✅ 自动提交Git
+**用途**: 内部测试，不影响线上用户
 
-### 2️⃣ 只部署网页
 ```powershell
+# 部署全部
 cd C:\universe\GitHub_try\IEclub_dev
-.\Deploy.ps1 -Target "web"
-```
+.\Deploy-Staging.ps1 -Target all -Message "测试新功能"
 
-### 3️⃣ 只部署后端
-```powershell
+# 仅部署前端
 cd C:\universe\GitHub_try\IEclub_dev
-.\Deploy.ps1 -Target "backend"
+.\Deploy-Staging.ps1 -Target web
+
+# 仅部署后端
+cd C:\universe\GitHub_try\IEclub_dev
+.\Deploy-Staging.ps1 -Target backend
 ```
 
-### 4️⃣ 编译小程序（本地开发）
+**访问地址**: https://test.ieclub.online
+
+**配置特点**:
+- 📍 后端端口: **3001**
+- 📦 数据库: **ieclub_staging** (独立)
+- 🔧 PM2 进程: **ieclub-backend-staging**
+- 🌐 域名: **test.ieclub.online**
+- ⚡ 自动从模板创建 .env 文件
+- ✅ 完全独立，不影响生产环境
+
+---
+
+### 3️⃣ 生产环境 (Production) - 第3常用 🚀
+
+**用途**: 正式上线，所有用户访问
+
 ```powershell
+# 部署全部（需要输入 YES 确认）
 cd C:\universe\GitHub_try\IEclub_dev
-.\Deploy.ps1 -Target "weapp"
+.\Deploy-Production.ps1 -Target all -Message "正式发布"
+
+# 仅部署前端
+cd C:\universe\GitHub_try\IEclub_dev
+.\Deploy-Production.ps1 -Target web
+
+# 仅部署后端
+cd C:\universe\GitHub_try\IEclub_dev
+.\Deploy-Production.ps1 -Target backend
+```
+
+**访问地址**: https://ieclub.online
+
+**配置特点**:
+- 📍 后端端口: **3000**
+- 📦 数据库: **ieclub** (生产)
+- 🔧 PM2 进程: **ieclub-backend**
+- 🌐 域名: **ieclub.online**
+- ⚠️ 需要输入 'YES' 确认
+- ✅ 自动备份和验证
+
+---
+
+## 📌 快速部署命令
+
+### 本地开发
+```powershell
+.\QUICK_START.ps1
+```
+
+### 测试环境部署
+```powershell
+.\Deploy-Staging.ps1 -Target all -Message "测试新功能"
+```
+
+### 生产环境部署
+```powershell
+.\Deploy-Production.ps1 -Target all -Message "正式发布"
+```
+
+### 小程序编译
+```powershell
+# 使用旧的 Deploy.ps1（仅用于小程序）
+cd C:\universe\GitHub_try\IEclub_dev
+.\Deploy.ps1 -Target weapp
 ```
 然后用微信开发者工具打开 `ieclub-frontend` 目录
 
@@ -201,38 +277,335 @@ curl https://ieclub.online/api/test
 
 ## 🔧 Environment Configuration
 
-### Local Environment
+### 配置文件系统
 
-**Web (.env.development)**:
+项目使用**模板文件**管理环境配置，部署脚本会自动从模板创建 `.env` 文件。
+
+**配置文件位置**:
 ```
+ieclub-web/
+  ├── .env.development        # 本地开发（手动创建）
+  ├── env.staging.template    # 测试环境模板 ✅
+  └── env.production.template # 生产环境模板 ✅
+
+ieclub-backend/
+  ├── .env                    # 本地开发（手动创建）
+  ├── env.staging.template    # 测试环境模板 ✅
+  └── env.production.template # 生产环境模板 ✅
+```
+
+### 1️⃣ 本地开发环境配置
+
+**前端 (.env.development)**:
+```env
 VITE_API_BASE_URL=http://localhost:3000/api
 VITE_APP_ENV=development
 ```
 
-**Backend (.env)**:
-```
+**后端 (.env)**:
+```env
 NODE_ENV=development
 PORT=3000
-DATABASE_URL=mysql://user:password@localhost:3306/ieclub
+DATABASE_URL=mysql://ieclub_user:your_password@localhost:3306/ieclub
 REDIS_URL=redis://localhost:6379
-JWT_SECRET=your_secret_key
+JWT_SECRET=your_dev_secret_key_here
+JWT_REFRESH_SECRET=your_dev_refresh_secret_here
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_EXPIRES_IN=30d
+
+# 可选配置
+EMAIL_USER=your_email@example.com
+EMAIL_PASSWORD=your_email_password
+WECHAT_APPID=your_wechat_appid
+WECHAT_SECRET=your_wechat_secret
 ```
 
-### Production Environment
+### 2️⃣ 测试环境配置 (Staging)
 
-**Web (.env.production)**:
+**前端 (env.staging.template → .env.staging)**:
+```env
+VITE_API_BASE_URL=https://test.ieclub.online/api
+VITE_APP_ENV=staging
 ```
+
+**后端 (env.staging.template → .env)**:
+```env
+NODE_ENV=staging
+PORT=3001  # ⚠️ 测试环境使用 3001 端口
+DATABASE_URL=mysql://ieclub_user:PASSWORD_HERE@localhost:3306/ieclub_staging
+REDIS_URL=redis://localhost:6379
+JWT_SECRET=CHANGE_THIS_IN_SERVER
+JWT_REFRESH_SECRET=CHANGE_THIS_IN_SERVER
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_EXPIRES_IN=30d
+
+# 可选配置
+EMAIL_USER=
+EMAIL_PASSWORD=
+WECHAT_APPID=
+WECHAT_SECRET=
+```
+
+**⚠️ 首次部署后需要手动配置**:
+```bash
+# SSH 到服务器
+ssh root@ieclub.online
+
+# 编辑测试环境配置
+cd /root/IEclub_dev_staging/ieclub-backend
+nano .env
+
+# 修改以下内容：
+# - DATABASE_URL 中的密码
+# - JWT_SECRET 和 JWT_REFRESH_SECRET
+# - 邮箱和微信配置（如需要）
+```
+
+### 3️⃣ 生产环境配置 (Production)
+
+**前端 (env.production.template → .env.production)**:
+```env
 VITE_API_BASE_URL=https://ieclub.online/api
 VITE_APP_ENV=production
 ```
 
-**Backend (.env)**:
-```
+**后端 (env.production.template → .env)**:
+```env
 NODE_ENV=production
-PORT=3000
-DATABASE_URL=mysql://user:password@localhost:3306/ieclub
+PORT=3000  # ⚠️ 生产环境使用 3000 端口
+DATABASE_URL=mysql://ieclub_user:PASSWORD_HERE@localhost:3306/ieclub
 REDIS_URL=redis://localhost:6379
-JWT_SECRET=your_production_secret
+JWT_SECRET=CHANGE_THIS_IN_SERVER
+JWT_REFRESH_SECRET=CHANGE_THIS_IN_SERVER
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_EXPIRES_IN=30d
+
+# 可选配置
+EMAIL_USER=
+EMAIL_PASSWORD=
+WECHAT_APPID=
+WECHAT_SECRET=
+```
+
+**⚠️ 首次部署后需要手动配置**:
+```bash
+# SSH 到服务器
+ssh root@ieclub.online
+
+# 编辑生产环境配置
+cd /root/IEclub_dev/ieclub-backend
+nano .env
+
+# 修改以下内容：
+# - DATABASE_URL 中的密码
+# - JWT_SECRET 和 JWT_REFRESH_SECRET
+# - 邮箱和微信配置（如需要）
+```
+
+### 配置说明
+
+**关键差异**:
+| 配置项 | 本地开发 | 测试环境 | 生产环境 |
+|--------|---------|---------|---------|
+| 端口 | 3000 | **3001** | 3000 |
+| 数据库 | ieclub | **ieclub_staging** | ieclub |
+| PM2 进程名 | - | **ieclub-backend-staging** | ieclub-backend |
+| 域名 | localhost | **test.ieclub.online** | ieclub.online |
+| 自动创建 | ❌ 手动 | ✅ 自动 | ✅ 自动 |
+
+---
+
+## 🚀 首次部署配置
+
+### 1. 创建测试数据库
+
+测试环境需要独立的数据库：
+
+```bash
+# SSH 到服务器
+ssh root@ieclub.online
+
+# 登录 MySQL
+mysql -u root -p
+
+# 创建测试数据库
+CREATE DATABASE ieclub_staging CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+# 授权（如果需要）
+GRANT ALL PRIVILEGES ON ieclub_staging.* TO 'ieclub_user'@'localhost';
+FLUSH PRIVILEGES;
+
+# 退出
+exit;
+```
+
+### 2. 配置 Nginx（测试环境）
+
+创建测试环境的 Nginx 配置：
+
+```bash
+# 创建配置文件
+sudo nano /etc/nginx/sites-available/test.ieclub.online
+```
+
+添加以下内容：
+
+```nginx
+server {
+    listen 80;
+    server_name test.ieclub.online;
+    
+    # 前端静态文件
+    location / {
+        root /var/www/test.ieclub.online;
+        try_files $uri $uri/ /index.html;
+        
+        # 缓存配置
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
+    }
+    
+    # 后端 API（端口 3001）
+    location /api {
+        proxy_pass http://localhost:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+    
+    # WebSocket 支持
+    location /ws {
+        proxy_pass http://localhost:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+启用配置：
+
+```bash
+# 创建软链接
+sudo ln -s /etc/nginx/sites-available/test.ieclub.online /etc/nginx/sites-enabled/
+
+# 测试配置
+sudo nginx -t
+
+# 重载 Nginx
+sudo systemctl reload nginx
+```
+
+### 3. 配置 SSL（可选）
+
+为测试环境添加 SSL 证书：
+
+```bash
+# 使用 Certbot
+sudo certbot --nginx -d test.ieclub.online
+
+# 或手动配置 SSL
+# 编辑 Nginx 配置，添加 SSL 相关设置
+```
+
+### 4. 创建部署目录
+
+```bash
+# 测试环境目录
+sudo mkdir -p /var/www/test.ieclub.online
+sudo mkdir -p /root/IEclub_dev_staging
+
+# 设置权限
+sudo chown -R root:root /var/www/test.ieclub.online
+sudo chown -R root:root /root/IEclub_dev_staging
+```
+
+### 5. 首次部署
+
+```powershell
+# 在本地执行
+.\Deploy-Staging.ps1 -Target all -Message "首次部署测试环境"
+```
+
+### 6. 配置敏感信息
+
+首次部署后，需要在服务器上配置敏感信息：
+
+```bash
+# 测试环境
+ssh root@ieclub.online
+cd /root/IEclub_dev_staging/ieclub-backend
+nano .env
+
+# 修改：
+# - DATABASE_URL=mysql://ieclub_user:你的密码@localhost:3306/ieclub_staging
+# - JWT_SECRET=生成一个随机密钥
+# - JWT_REFRESH_SECRET=生成另一个随机密钥
+# - 其他敏感配置...
+
+# 重启服务
+pm2 restart ieclub-backend-staging
+```
+
+```bash
+# 生产环境（如果需要）
+cd /root/IEclub_dev/ieclub-backend
+nano .env
+
+# 修改相同的配置项
+pm2 restart ieclub-backend
+```
+
+### 7. 验证部署
+
+```bash
+# 检查 PM2 状态
+pm2 status
+
+# 应该看到两个进程：
+# - ieclub-backend (端口 3000)
+# - ieclub-backend-staging (端口 3001)
+
+# 测试测试环境
+curl https://test.ieclub.online/api/health
+
+# 测试生产环境
+curl https://ieclub.online/api/health
+```
+
+---
+
+## 🔄 推荐工作流程
+
+```
+1. 本地开发
+   ↓ 功能完成，代码提交
+   
+2. 部署到测试环境
+   ↓ Deploy-Staging.ps1
+   
+3. 测试环境验证
+   ↓ 访问 test.ieclub.online 测试
+   
+4. 测试通过
+   ↓ 合并到 main 分支
+   
+5. 部署到生产环境
+   ↓ Deploy-Production.ps1 (需要输入 YES 确认)
+   
+6. 生产环境监控
+   ↓ 访问 ieclub.online 验证
+   
+7. 完成 ✅
 ```
 
 ---
@@ -279,21 +652,36 @@ pm2 logs ieclub-backend --lines 30
 - `winston@^3.11.0` - 日志管理
 
 #### 1. API 404 Not Found
+
+**测试环境**:
 ```bash
-# Symptom
-Network requests return 404, browser console shows API errors
-
-# Diagnosis
+# 检查状态
 ssh root@ieclub.online
-pm2 status  # Check if backend is running
-curl http://localhost:3000/api/health  # Test local API
-curl http://localhost:3000/api/test    # Test connectivity
+pm2 status  # 检查 ieclub-backend-staging 是否运行
+curl http://localhost:3001/api/health  # 测试测试环境 API（端口 3001）
 
-# Solution
+# 解决方案
+pm2 restart ieclub-backend-staging
+pm2 logs ieclub-backend-staging --lines 20
+
+# 如果仍然失败
+cd /root/IEclub_dev_staging/ieclub-backend
+npm install
+pm2 restart ieclub-backend-staging
+```
+
+**生产环境**:
+```bash
+# 检查状态
+ssh root@ieclub.online
+pm2 status  # 检查 ieclub-backend 是否运行
+curl http://localhost:3000/api/health  # 测试生产环境 API（端口 3000）
+
+# 解决方案
 pm2 restart ieclub-backend
 pm2 logs ieclub-backend --lines 20
 
-# If still fails
+# 如果仍然失败
 cd /root/IEclub_dev/ieclub-backend
 git pull
 npm install
@@ -326,47 +714,94 @@ Solution: Check VPN or network connection
 
 ### Log Files
 
-**Backend Logs**:
+**测试环境日志**:
 ```bash
-# PM2 logs
-pm2 logs ieclub-backend
+# PM2 日志
+pm2 logs ieclub-backend-staging
 
-# Application logs
-tail -f /root/IEclub_dev/ieclub-backend/logs/combined.log
+# 应用日志
+tail -f /root/IEclub_dev_staging/ieclub-backend/logs/combined.log
+tail -f /root/IEclub_dev_staging/ieclub-backend/logs/error.log
+
+# Nginx 日志
+tail -f /var/log/nginx/access.log | grep test.ieclub.online
+tail -f /var/log/nginx/error.log | grep test.ieclub.online
 ```
 
-**Web Logs**:
+**生产环境日志**:
 ```bash
-# Nginx access logs
-tail -f /var/log/nginx/access.log
+# PM2 日志
+pm2 logs ieclub-backend
 
-# Nginx error logs
-tail -f /var/log/nginx/error.log
+# 应用日志
+tail -f /root/IEclub_dev/ieclub-backend/logs/combined.log
+tail -f /root/IEclub_dev/ieclub-backend/logs/error.log
+
+# Nginx 日志
+tail -f /var/log/nginx/access.log | grep ieclub.online
+tail -f /var/log/nginx/error.log | grep ieclub.online
+```
+
+**查看所有 PM2 进程**:
+```bash
+pm2 list
+pm2 monit  # 实时监控
 ```
 
 ---
 
 ## 📦 Deployment Checklist
 
-### Before Deployment
-- [ ] Code tested locally
-- [ ] All tests passed
-- [ ] Environment variables configured
-- [ ] Database migrations ready
-- [ ] Git committed and pushed
+### 测试环境部署检查清单
 
-### During Deployment
-- [ ] Build successful
-- [ ] Upload complete
-- [ ] Service restarted
-- [ ] No errors in logs
+**部署前**:
+- [ ] 代码已在本地测试通过
+- [ ] 代码已提交到 Git
+- [ ] 测试数据库已创建（ieclub_staging）
+- [ ] Nginx 配置已添加（test.ieclub.online）
+- [ ] DNS 已配置（test.ieclub.online）
 
-### After Deployment
-- [ ] Website accessible
-- [ ] API responding
-- [ ] Functions working
-- [ ] Performance normal
-- [ ] Monitoring active
+**部署中**:
+- [ ] 运行 `.\Deploy-Staging.ps1 -Target all`
+- [ ] 前端构建成功
+- [ ] 后端打包成功
+- [ ] 文件上传完成
+- [ ] PM2 进程启动（ieclub-backend-staging）
+
+**部署后**:
+- [ ] 访问 https://test.ieclub.online 正常
+- [ ] API 健康检查通过（/api/health）
+- [ ] 登录功能正常
+- [ ] 核心功能测试通过
+- [ ] PM2 日志无错误
+
+### 生产环境部署检查清单
+
+**部署前**:
+- [ ] 功能已在测试环境验证通过
+- [ ] 代码已合并到 main 分支
+- [ ] 所有更改已提交
+- [ ] 数据库备份已完成
+- [ ] 团队成员已通知
+- [ ] 准备好回滚方案
+
+**部署中**:
+- [ ] 运行 `.\Deploy-Production.ps1 -Target all`
+- [ ] 输入 'YES' 确认部署
+- [ ] 前端构建成功
+- [ ] 后端打包成功
+- [ ] 文件上传完成
+- [ ] PM2 进程重启（ieclub-backend）
+- [ ] 自动验证通过
+
+**部署后**:
+- [ ] 访问 https://ieclub.online 正常
+- [ ] API 健康检查通过（/api/health）
+- [ ] 登录功能正常
+- [ ] 核心功能正常
+- [ ] 性能指标正常
+- [ ] PM2 日志无错误
+- [ ] 监控系统正常
 
 ---
 
@@ -501,5 +936,21 @@ curl -X POST https://ieclub.online/api/auth/send-verify-code \
 
 ---
 
-**Last Updated**: 2025-10-31
+## 📚 相关文档
+
+- **快速启动**: 查看根目录 `REMIND.md`
+- **环境变量**: 查看配置模板文件（.template）
+- **部署脚本**: `Deploy-Staging.ps1` / `Deploy-Production.ps1`
+- **本地开发**: `QUICK_START.ps1`
+
+---
+
+**Last Updated**: 2025-11-02
+
+**Changelog**:
+- 2025-11-02: 添加三环境部署系统（本地、测试、生产）
+- 2025-11-02: 添加自动化部署脚本和配置模板系统
+- 2025-11-02: 修复 alertSystem.js bug
+- 2025-10-31: 积分系统上线
+- 2025-10-31: 数据库迁移和API测试完成
 

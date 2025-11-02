@@ -1,10 +1,17 @@
 // ieclub-backend/src/middleware/adminAuth.js
 // 管理员权限验证中间件
 
-const { PrismaClient } = require('@prisma/client');
 const logger = require('../utils/logger');
 
-const prisma = new PrismaClient();
+// 使用共享的 Prisma 实例
+let prisma;
+try {
+  prisma = require('../config/database');
+} catch {
+  // Fallback for tests
+  const { PrismaClient } = require('@prisma/client');
+  prisma = new PrismaClient();
+}
 
 // 管理员邮箱白名单（可以从环境变量或数据库读取）
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').filter(Boolean);

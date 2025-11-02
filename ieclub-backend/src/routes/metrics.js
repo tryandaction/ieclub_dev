@@ -3,10 +3,8 @@
 
 const express = require('express');
 const router = express.Router();
-const monitoringService = require('../services/monitoringService');
-const { PrismaClient } = require('@prisma/client');
-
-const prisma = new PrismaClient();
+const { monitor } = require('../utils/performanceMonitor');
+const prisma = require('../config/database');
 
 /**
  * Prometheus 指标格式导出
@@ -19,83 +17,82 @@ router.get('/', async (req, res) => {
     // ========================================
     // 系统指标
     // ========================================
-    const systemMetrics = await monitoringService.getSystemMetrics();
+    const currentMetrics = await monitor.getCurrentMetrics();
     
     // CPU 使用率
     metrics.push(`# HELP process_cpu_usage CPU usage percentage`);
     metrics.push(`# TYPE process_cpu_usage gauge`);
-    metrics.push(`process_cpu_usage ${systemMetrics.system.cpuUsage.toFixed(2)}`);
+    metrics.push(`process_cpu_usage ${currentMetrics.system.cpuUsage}`);
     
     // 内存使用率
     metrics.push(`# HELP process_memory_usage Memory usage percentage`);
     metrics.push(`# TYPE process_memory_usage gauge`);
-    metrics.push(`process_memory_usage ${systemMetrics.system.memUsage.toFixed(2)}`);
+    metrics.push(`process_memory_usage ${currentMetrics.system.memoryUsage}`);
     
     // 进程内存
     metrics.push(`# HELP process_resident_memory_bytes Process resident memory in bytes`);
     metrics.push(`# TYPE process_resident_memory_bytes gauge`);
-    metrics.push(`process_resident_memory_bytes ${systemMetrics.process.heapUsed}`);
+    metrics.push(`process_resident_memory_bytes ${currentMetrics.process.memory.heapUsed}`);
     
     // 进程运行时间
     metrics.push(`# HELP process_uptime_seconds Process uptime in seconds`);
     metrics.push(`# TYPE process_uptime_seconds counter`);
-    metrics.push(`process_uptime_seconds ${systemMetrics.process.uptime}`);
+    metrics.push(`process_uptime_seconds ${Math.floor(process.uptime())}`);
     
     // ========================================
     // API 指标
     // ========================================
-    const apiMetrics = monitoringService.getApiMetrics();
+    const apiMetrics = monitor.getApiMetrics();
     
     // 总请求数
     metrics.push(`# HELP http_requests_total Total HTTP requests`);
     metrics.push(`# TYPE http_requests_total counter`);
-    for (const [endpoint, data] of apiMetrics.endpoints.entries()) {
-      metrics.push(`http_requests_total{endpoint="${endpoint}"} ${data.count}`);
-    }
+    metrics.push(`http_requests_total ${apiMetrics.totalRequests}`);
     
-    // 平均响应时间
-    metrics.push(`# HELP http_request_duration_seconds HTTP request duration in seconds`);
-    metrics.push(`# TYPE http_request_duration_seconds histogram`);
-    for (const [endpoint, data] of apiMetrics.endpoints.entries()) {
-      const avgDuration = data.avgDuration / 1000; // 转换为秒
-      metrics.push(`http_request_duration_seconds{endpoint="${endpoint}"} ${avgDuration.toFixed(3)}`);
+    // 端点指标
+    for (const endpoint of apiMetrics.endpoints) {
+      const label = `method="${endpoint.method}",path="${endpoint.path}"`;
+      metrics.push(`http_requests_total{${label}} ${endpoint.count}`);
+      
+      // 平均响应时间
+      const avgDuration = parseFloat(endpoint.avgDuration) / 1000; // 转换为秒
+      metrics.push(`http_request_duration_seconds{${label}} ${avgDuration.toFixed(3)}`);
     }
     
     // ========================================
     // 错误指标
     // ========================================
-    const errorMetrics = monitoringService.getErrorMetrics();
+    const errorMetrics = monitor.getErrorMetrics();
     
     metrics.push(`# HELP http_errors_total Total HTTP errors`);
     metrics.push(`# TYPE http_errors_total counter`);
-    metrics.push(`http_errors_total ${errorMetrics.total}`);
-    
-    metrics.push(`# HELP http_errors_last_hour HTTP errors in the last hour`);
-    metrics.push(`# TYPE http_errors_last_hour gauge`);
-    metrics.push(`http_errors_last_hour ${errorMetrics.lastHour}`);
+    metrics.push(`http_errors_total ${errorMetrics.totalOccurrences}`);
     
     // ========================================
-    // 数据库指标
+    // 数据库和 Redis 指标
     // ========================================
-    if (systemMetrics.database) {
-      metrics.push(`# HELP mysql_connections Active MySQL connections`);
-      metrics.push(`# TYPE mysql_connections gauge`);
-      metrics.push(`mysql_connections ${systemMetrics.database.connections || 0}`);
+    const healthCheck = await monitor.healthCheck();
+    
+    if (healthCheck.database.status === 'healthy') {
+      metrics.push(`# HELP mysql_connected MySQL connection status`);
+      metrics.push(`# TYPE mysql_connected gauge`);
+      metrics.push(`mysql_connected 1`);
+      metrics.push(`# HELP mysql_latency_ms MySQL query latency in milliseconds`);
+      metrics.push(`# TYPE mysql_latency_ms gauge`);
+      metrics.push(`mysql_latency_ms ${healthCheck.database.latency}`);
+    } else {
+      metrics.push(`# HELP mysql_connected MySQL connection status`);
+      metrics.push(`# TYPE mysql_connected gauge`);
+      metrics.push(`mysql_connected 0`);
     }
     
-    // ========================================
-    // Redis 指标
-    // ========================================
-    if (systemMetrics.redis && systemMetrics.redis.connected) {
+    if (healthCheck.redis.status === 'healthy') {
       metrics.push(`# HELP redis_connected Redis connection status`);
       metrics.push(`# TYPE redis_connected gauge`);
       metrics.push(`redis_connected 1`);
-      
-      if (systemMetrics.redis.totalCommands) {
-        metrics.push(`# HELP redis_commands_processed_total Total Redis commands processed`);
-        metrics.push(`# TYPE redis_commands_processed_total counter`);
-        metrics.push(`redis_commands_processed_total ${systemMetrics.redis.totalCommands}`);
-      }
+      metrics.push(`# HELP redis_latency_ms Redis ping latency in milliseconds`);
+      metrics.push(`# TYPE redis_latency_ms gauge`);
+      metrics.push(`redis_latency_ms ${healthCheck.redis.latency}`);
     } else {
       metrics.push(`# HELP redis_connected Redis connection status`);
       metrics.push(`# TYPE redis_connected gauge`);

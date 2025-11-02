@@ -2,7 +2,7 @@ const logger = require('../utils/logger');
 const response = require('../utils/response');
 const AppError = require('../utils/AppError');
 const { Prisma } = require('@prisma/client');
-const monitoringService = require('../services/monitoringService');
+const { monitor } = require('../utils/performanceMonitor');
 
 const errorHandler = (err, req, res, _next) => {
   // 记录错误日志
@@ -17,7 +17,7 @@ const errorHandler = (err, req, res, _next) => {
 
   // 记录到监控服务
   try {
-    monitoringService.recordError(err, {
+    monitor.recordError(err, {
       url: req.originalUrl,
       method: req.method,
       userId: req.user?.id

@@ -15,23 +15,6 @@
 
 ---
 
-## 🚀 新用户？从这里开始
-
-| 文档 | 说明 |
-|------|------|
-| **[START_HERE.md](START_HERE.md)** | 👋 3步快速启动 |
-| **[STARTUP_GUIDE.md](STARTUP_GUIDE.md)** | 📖 详细启动指南 |
-| **[DATABASE_SETUP.md](DATABASE_SETUP.md)** | 🗄️ 数据库设置 |
-| **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** | 🔧 遇到问题？ |
-| **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** | ⚡ 命令速查 |
-
-**快速启动命令**：
-```powershell
-.\Start-Services.ps1  # 一键启动前端和后端
-```
-
----
-
 ## 📖 项目简介
 
 **IEClub：创造线上线下交互的无限可能！**

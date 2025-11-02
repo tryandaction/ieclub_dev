@@ -1,7 +1,10 @@
-// src/routes/index.js - Main routing configuration
+// src/routes/index.js - 优化后的路由配置
+// 包含速率限制、请求日志、性能监控
+
 const express = require('express');
 const router = express.Router();
 
+// 控制器
 const AuthController = require('../controllers/authController');
 const topicController = require('../controllers/topicController');
 const commentController = require('../controllers/commentController');
@@ -12,149 +15,614 @@ const announcementController = require('../controllers/announcementController');
 const errorReportController = require('../controllers/errorReportController');
 const LocalUploadService = require('../services/localUploadService');
 
+// 中间件
 const { authenticate } = require('../middleware/auth');
+const { csrfProtection } = require('../middleware/csrf');
+const { rateLimiters } = require('../middleware/rateLimiter');
+const { requestLogger } = require('../middleware/requestLogger');
+const { performanceMiddleware } = require('../utils/performanceMonitor');
 
-// Authentication Routes
-router.post('/auth/send-verify-code', AuthController.sendVerifyCode);
-router.post('/auth/verify-code', AuthController.verifyCode);
-router.post('/auth/register', AuthController.register);
-router.post('/auth/login', AuthController.login);
-router.post('/auth/login-with-code', AuthController.loginWithCode);
-router.post('/auth/forgot-password', AuthController.forgotPassword);
-router.post('/auth/reset-password', AuthController.resetPassword);
-router.get('/auth/profile', authenticate, AuthController.getProfile);
-router.put('/auth/profile', authenticate, AuthController.updateProfile);
-router.put('/auth/change-password', authenticate, AuthController.changePassword);
-router.post('/auth/bind-wechat', authenticate, AuthController.bindWechat);
-router.post('/auth/bind-phone', authenticate, AuthController.bindPhone);
-router.post('/auth/logout', authenticate, AuthController.logout);
-router.post('/auth/wechat-login', AuthController.wechatLogin);
+// ==================== 全局中间件 ====================
+// 请求日志（记录所有请求）
+router.use(requestLogger());
 
-// Topic Routes
-router.get('/topics', topicController.getTopics);
-router.get('/topics/:id', topicController.getTopicDetail);
-router.post('/topics', authenticate, topicController.createTopic);
-router.put('/topics/:id', authenticate, topicController.updateTopic);
-router.delete('/topics/:id', authenticate, topicController.deleteTopic);
-router.post('/topics/:id/like', authenticate, topicController.toggleLike);
-router.post('/topics/:id/bookmark', authenticate, topicController.toggleBookmark);
-router.post('/topics/:id/quick-action', authenticate, topicController.quickAction);
-router.get('/topics/recommend', topicController.getRecommendTopics);
-router.get('/topics/trending', topicController.getTrendingTopics);
-router.get('/topics/:id/matches', topicController.getMatches);
+// 性能监控（记录响应时间）
+router.use(performanceMiddleware());
 
-// Comment Routes
-router.get('/topics/:topicId/comments', commentController.getComments);
-router.get('/comments/:commentId/replies', commentController.getReplies);
-router.post('/comments', authenticate, commentController.createComment);
-router.post('/comments/:id/like', authenticate, commentController.likeComment);
-router.delete('/comments/:id', authenticate, commentController.deleteComment);
+// ==================== CSRF 保护配置 ====================
+const csrfIgnorePaths = [
+  '^/auth/login$',
+  '^/auth/wechat-login$',
+  '^/auth/send-verify-code$'
+];
 
-// Post Routes (新增社区帖子功能)
+const csrf = csrfProtection({ ignorePaths: csrfIgnorePaths });
+
+// ==================== Authentication Routes ====================
+// 发送验证码（严格限制）
+router.post('/auth/send-verify-code', 
+  rateLimiters.auth, 
+  AuthController.sendVerifyCode
+);
+
+// 验证验证码（严格限制）
+router.post('/auth/verify-code', 
+  rateLimiters.auth, 
+  csrf, 
+  AuthController.verifyCode
+);
+
+// 注册（严格限制）
+router.post('/auth/register', 
+  rateLimiters.auth, 
+  csrf, 
+  AuthController.register
+);
+
+// 登录（严格限制）
+router.post('/auth/login', 
+  rateLimiters.auth, 
+  AuthController.login
+);
+
+// 验证码登录（严格限制）
+router.post('/auth/login-with-code', 
+  rateLimiters.auth, 
+  csrf, 
+  AuthController.loginWithCode
+);
+
+// 忘记密码（严格限制）
+router.post('/auth/forgot-password', 
+  rateLimiters.auth, 
+  csrf, 
+  AuthController.forgotPassword
+);
+
+// 重置密码（严格限制）
+router.post('/auth/reset-password', 
+  rateLimiters.auth, 
+  csrf, 
+  AuthController.resetPassword
+);
+
+// 获取个人信息（API限制）
+router.get('/auth/profile', 
+  authenticate, 
+  rateLimiters.api, 
+  AuthController.getProfile
+);
+
+// 更新个人信息（API限制）
+router.put('/auth/profile', 
+  authenticate, 
+  rateLimiters.api, 
+  csrf, 
+  AuthController.updateProfile
+);
+
+// 修改密码（API限制）
+router.put('/auth/change-password', 
+  authenticate, 
+  rateLimiters.api, 
+  csrf, 
+  AuthController.changePassword
+);
+
+// 绑定微信（API限制）
+router.post('/auth/bind-wechat', 
+  authenticate, 
+  rateLimiters.api, 
+  csrf, 
+  AuthController.bindWechat
+);
+
+// 绑定手机（API限制）
+router.post('/auth/bind-phone', 
+  authenticate, 
+  rateLimiters.api, 
+  csrf, 
+  AuthController.bindPhone
+);
+
+// 登出（API限制）
+router.post('/auth/logout', 
+  authenticate, 
+  rateLimiters.api, 
+  csrf, 
+  AuthController.logout
+);
+
+// 微信登录（严格限制）
+router.post('/auth/wechat-login', 
+  rateLimiters.auth, 
+  AuthController.wechatLogin
+);
+
+// ==================== Topic Routes ====================
+// 获取话题列表（宽松限制）
+router.get('/topics', 
+  rateLimiters.api, 
+  topicController.getTopics
+);
+
+// 获取话题详情（宽松限制）
+router.get('/topics/:id', 
+  rateLimiters.api, 
+  topicController.getTopicDetail
+);
+
+// 创建话题（内容限制）
+router.post('/topics', 
+  authenticate, 
+  rateLimiters.content, 
+  csrf, 
+  topicController.createTopic
+);
+
+// 更新话题（内容限制）
+router.put('/topics/:id', 
+  authenticate, 
+  rateLimiters.content, 
+  csrf, 
+  topicController.updateTopic
+);
+
+// 删除话题（API限制）
+router.delete('/topics/:id', 
+  authenticate, 
+  rateLimiters.api, 
+  csrf, 
+  topicController.deleteTopic
+);
+
+// 点赞话题（互动限制）
+router.post('/topics/:id/like', 
+  authenticate, 
+  rateLimiters.interaction, 
+  csrf, 
+  topicController.toggleLike
+);
+
+// 收藏话题（互动限制）
+router.post('/topics/:id/bookmark', 
+  authenticate, 
+  rateLimiters.interaction, 
+  csrf, 
+  topicController.toggleBookmark
+);
+
+// 快速操作（互动限制）
+router.post('/topics/:id/quick-action', 
+  authenticate, 
+  rateLimiters.interaction, 
+  csrf, 
+  topicController.quickAction
+);
+
+// 推荐话题（宽松限制）
+router.get('/topics/recommend', 
+  rateLimiters.api, 
+  topicController.getRecommendTopics
+);
+
+// 热门话题（宽松限制）
+router.get('/topics/trending', 
+  rateLimiters.api, 
+  topicController.getTrendingTopics
+);
+
+// 匹配话题（API限制）
+router.get('/topics/:id/matches', 
+  rateLimiters.api, 
+  topicController.getMatches
+);
+
+// ==================== Comment Routes ====================
+// 获取评论列表（宽松限制）
+router.get('/topics/:topicId/comments', 
+  rateLimiters.api, 
+  commentController.getComments
+);
+
+// 获取回复列表（宽松限制）
+router.get('/comments/:commentId/replies', 
+  rateLimiters.api, 
+  commentController.getReplies
+);
+
+// 创建评论（内容限制）
+router.post('/comments', 
+  authenticate, 
+  rateLimiters.content, 
+  csrf, 
+  commentController.createComment
+);
+
+// 点赞评论（互动限制）
+router.post('/comments/:id/like', 
+  authenticate, 
+  rateLimiters.interaction, 
+  csrf, 
+  commentController.likeComment
+);
+
+// 删除评论（API限制）
+router.delete('/comments/:id', 
+  authenticate, 
+  rateLimiters.api, 
+  csrf, 
+  commentController.deleteComment
+);
+
+// ==================== Post Routes ====================
 router.use('/posts', require('./posts'));
 
-// User Routes
-router.get('/users', UserController.getUsers);
-router.get('/users/search', searchController.searchUsers);
-router.get('/users/:id', UserController.getUserProfile);
-router.put('/users/:id', authenticate, UserController.updateUserProfile);
-router.post('/users/:id/follow', authenticate, UserController.followUser);
-router.get('/users/:id/following', UserController.getFollowing);
-router.get('/users/:id/followers', UserController.getFollowers);
-router.post('/users/:id/like', authenticate, UserController.likeUser);
-router.post('/users/:id/heart', authenticate, UserController.heartUser);
+// ==================== User Routes ====================
+// 获取用户列表（API限制）
+router.get('/users', 
+  rateLimiters.api, 
+  UserController.getUsers
+);
 
-// Search Routes
+// 搜索用户（搜索限制）
+router.get('/users/search', 
+  rateLimiters.search, 
+  searchController.searchUsers
+);
+
+// 获取用户信息（API限制）
+router.get('/users/:id', 
+  rateLimiters.api, 
+  UserController.getUserProfile
+);
+
+// 更新用户信息（API限制）
+router.put('/users/:id', 
+  authenticate, 
+  rateLimiters.api, 
+  UserController.updateUserProfile
+);
+
+// 关注用户（互动限制）
+router.post('/users/:id/follow', 
+  authenticate, 
+  rateLimiters.interaction, 
+  UserController.followUser
+);
+
+// 获取关注列表（API限制）
+router.get('/users/:id/following', 
+  rateLimiters.api, 
+  UserController.getFollowing
+);
+
+// 获取粉丝列表（API限制）
+router.get('/users/:id/followers', 
+  rateLimiters.api, 
+  UserController.getFollowers
+);
+
+// 点赞用户（互动限制）
+router.post('/users/:id/like', 
+  authenticate, 
+  rateLimiters.interaction, 
+  UserController.likeUser
+);
+
+// 送心用户（互动限制）
+router.post('/users/:id/heart', 
+  authenticate, 
+  rateLimiters.interaction, 
+  UserController.heartUser
+);
+
+// ==================== Search Routes ====================
 const searchControllerV2 = require('../controllers/searchControllerV2');
-router.get('/search', searchControllerV2.globalSearch);
-router.get('/search/posts', searchControllerV2.searchPosts);
-router.get('/search/topics', searchController.searchTopics);
-router.get('/search/users', searchController.searchUsers);
-router.get('/search/activities', searchControllerV2.searchActivities);
-router.get('/search/hot-keywords', searchController.getHotKeywords);
-router.get('/search/suggestions', searchControllerV2.getSuggestions);
-router.get('/search/history', authenticate, searchControllerV2.getSearchHistory);
-router.delete('/search/history', authenticate, searchControllerV2.clearSearchHistory);
-router.get('/search/suggest', searchController.getSuggestions);
 
-// Notification Routes (完整版路由已迁移到 notificationRoutes.js)
+// 全局搜索（搜索限制）
+router.get('/search', 
+  rateLimiters.search, 
+  searchControllerV2.globalSearch
+);
+
+// 搜索帖子（搜索限制）
+router.get('/search/posts', 
+  rateLimiters.search, 
+  searchControllerV2.searchPosts
+);
+
+// 搜索话题（搜索限制）
+router.get('/search/topics', 
+  rateLimiters.search, 
+  searchController.searchTopics
+);
+
+// 搜索用户（搜索限制）
+router.get('/search/users', 
+  rateLimiters.search, 
+  searchController.searchUsers
+);
+
+// 搜索活动（搜索限制）
+router.get('/search/activities', 
+  rateLimiters.search, 
+  searchControllerV2.searchActivities
+);
+
+// 热门关键词（API限制）
+router.get('/search/hot-keywords', 
+  rateLimiters.api, 
+  searchController.getHotKeywords
+);
+
+// 搜索建议（搜索限制）
+router.get('/search/suggestions', 
+  rateLimiters.search, 
+  searchControllerV2.getSuggestions
+);
+
+// 搜索历史（API限制）
+router.get('/search/history', 
+  authenticate, 
+  rateLimiters.api, 
+  searchControllerV2.getSearchHistory
+);
+
+// 清除搜索历史（API限制）
+router.delete('/search/history', 
+  authenticate, 
+  rateLimiters.api, 
+  searchControllerV2.clearSearchHistory
+);
+
+// 搜索建议（旧版）
+router.get('/search/suggest', 
+  rateLimiters.search, 
+  searchController.getSuggestions
+);
+
+// ==================== Notification Routes ====================
 router.use('/notifications', require('./notificationRoutes'));
 
-// Upload Routes
+// ==================== Upload Routes ====================
 const uploadControllerV2 = require('../controllers/uploadControllerV2');
-router.post('/upload/images', authenticate, LocalUploadService.getUploadMiddleware().array('images', 9), uploadController.uploadImages);
-router.post('/upload/images-v2', authenticate, LocalUploadService.getUploadMiddleware().array('images', 9), uploadControllerV2.uploadImages);
-router.post('/upload/avatar', authenticate, LocalUploadService.getUploadMiddleware().single('avatar'), uploadControllerV2.uploadAvatar);
-router.post('/upload/documents', authenticate, LocalUploadService.getUploadMiddleware().array('documents', 3), uploadController.uploadDocuments);
-router.post('/upload/documents-v2', authenticate, LocalUploadService.getUploadMiddleware().array('documents', 3), uploadControllerV2.uploadDocuments);
-router.post('/upload/link-preview', authenticate, uploadController.getLinkPreview);
-router.delete('/upload/file', authenticate, uploadController.deleteFile);
-router.delete('/upload/file-v2', authenticate, uploadControllerV2.deleteFile);
 
-// Community Routes
+// 上传图片（上传限制）
+router.post('/upload/images', 
+  authenticate, 
+  rateLimiters.upload, 
+  LocalUploadService.getUploadMiddleware().array('images', 9), 
+  uploadController.uploadImages
+);
+
+// 上传图片 V2（上传限制）
+router.post('/upload/images-v2', 
+  authenticate, 
+  rateLimiters.upload, 
+  LocalUploadService.getUploadMiddleware().array('images', 9), 
+  uploadControllerV2.uploadImages
+);
+
+// 上传头像（上传限制）
+router.post('/upload/avatar', 
+  authenticate, 
+  rateLimiters.upload, 
+  LocalUploadService.getUploadMiddleware().single('avatar'), 
+  uploadControllerV2.uploadAvatar
+);
+
+// 上传文档（上传限制）
+router.post('/upload/documents', 
+  authenticate, 
+  rateLimiters.upload, 
+  LocalUploadService.getUploadMiddleware().array('documents', 3), 
+  uploadController.uploadDocuments
+);
+
+// 上传文档 V2（上传限制）
+router.post('/upload/documents-v2', 
+  authenticate, 
+  rateLimiters.upload, 
+  LocalUploadService.getUploadMiddleware().array('documents', 3), 
+  uploadControllerV2.uploadDocuments
+);
+
+// 链接预览（API限制）
+router.post('/upload/link-preview', 
+  authenticate, 
+  rateLimiters.api, 
+  uploadController.getLinkPreview
+);
+
+// 删除文件（API限制）
+router.delete('/upload/file', 
+  authenticate, 
+  rateLimiters.api, 
+  uploadController.deleteFile
+);
+
+// 删除文件 V2（API限制）
+router.delete('/upload/file-v2', 
+  authenticate, 
+  rateLimiters.api, 
+  uploadControllerV2.deleteFile
+);
+
+// ==================== Community Routes ====================
 router.use('/community', require('./community'));
 
-// Activity Routes
+// ==================== Activity Routes ====================
 router.use('/activities', require('./activities'));
 
-// Announcement Routes
-router.get('/announcements', announcementController.getAnnouncements);
-router.get('/announcements/:id', announcementController.getAnnouncementDetail);
-router.put('/announcements/:id/read', authenticate, announcementController.markAsRead);
+// ==================== Announcement Routes ====================
+// 获取公告列表（API限制）
+router.get('/announcements', 
+  rateLimiters.api, 
+  announcementController.getAnnouncements
+);
 
-// Leaderboard Routes
+// 获取公告详情（API限制）
+router.get('/announcements/:id', 
+  rateLimiters.api, 
+  announcementController.getAnnouncementDetail
+);
+
+// 标记已读（API限制）
+router.put('/announcements/:id/read', 
+  authenticate, 
+  rateLimiters.api, 
+  announcementController.markAsRead
+);
+
+// ==================== Leaderboard Routes ====================
 router.use('/leaderboard', require('./leaderboard'));
 
-// Badge Routes
+// ==================== Badge Routes ====================
 router.use('/badges', require('./badges'));
 
-// Stats Routes
+// ==================== Stats Routes ====================
 const statsControllerV2 = require('../controllers/statsControllerV2');
 router.use('/stats', require('./stats'));
-router.get('/stats-v2/platform', statsControllerV2.getPlatformStats);
-router.get('/stats-v2/user/:userId?', authenticate, statsControllerV2.getUserStats);
-router.get('/stats-v2/trend', statsControllerV2.getContentTrend);
-router.get('/stats-v2/hot', statsControllerV2.getHotContent);
-router.get('/stats-v2/behavior/:userId?', authenticate, statsControllerV2.getUserBehaviorAnalysis);
-router.get('/stats-v2/credits/:userId?', authenticate, statsControllerV2.getCreditTrend);
-router.get('/stats-v2/categories', statsControllerV2.getCategoryStats);
-router.get('/stats-v2/leaderboard', statsControllerV2.getLeaderboard);
-router.get('/stats-v2/dashboard', authenticate, statsControllerV2.getMyDashboard);
 
-// Feedback Routes
+// 统计接口（API限制）
+router.get('/stats-v2/platform', rateLimiters.api, statsControllerV2.getPlatformStats);
+router.get('/stats-v2/user/:userId?', authenticate, rateLimiters.api, statsControllerV2.getUserStats);
+router.get('/stats-v2/trend', rateLimiters.api, statsControllerV2.getContentTrend);
+router.get('/stats-v2/hot', rateLimiters.api, statsControllerV2.getHotContent);
+router.get('/stats-v2/behavior/:userId?', authenticate, rateLimiters.api, statsControllerV2.getUserBehaviorAnalysis);
+router.get('/stats-v2/credits/:userId?', authenticate, rateLimiters.api, statsControllerV2.getCreditTrend);
+router.get('/stats-v2/categories', rateLimiters.api, statsControllerV2.getCategoryStats);
+router.get('/stats-v2/leaderboard', rateLimiters.api, statsControllerV2.getLeaderboard);
+router.get('/stats-v2/dashboard', authenticate, rateLimiters.api, statsControllerV2.getMyDashboard);
+
+// ==================== Feedback Routes ====================
 router.use('/feedback', require('./feedback'));
 
-// Admin Routes (管理后台)
+// ==================== Admin Routes ====================
 router.use('/admin', require('./admin'));
 
-// Moderation Routes (内容审核)
+// ==================== Moderation Routes ====================
 router.use('/moderation', require('./moderation'));
 
-// Monitoring Routes (性能监控)
+// ==================== Monitoring Routes ====================
 router.use('/monitoring', require('./monitoring'));
 
-// Credit Routes (积分系统)
+// ==================== Credit Routes ====================
 router.use('/credits', require('./credits'));
 
-// Backup Routes (数据备份)
+// ==================== Backup Routes ====================
 router.use('/backup', require('./backup'));
 
-// RBAC Routes (角色权限管理)
+// ==================== RBAC Routes ====================
 router.use('/rbac', require('./rbac'));
 
-// Error Report Routes (不需要认证，让匿名用户也能报告错误)
-router.post('/errors/report', errorReportController.reportError);
-router.get('/errors/stats', authenticate, errorReportController.getErrorStats);
+// ==================== Error Report Routes ====================
+// 报告错误（不需要认证，但有速率限制）
+router.post('/errors/report', 
+  rateLimiters.api, 
+  errorReportController.reportError
+);
 
-// Health Check Routes (健康检查和系统状态)
+// 错误统计（需要认证和API限制）
+router.get('/errors/stats', 
+  authenticate, 
+  rateLimiters.api, 
+  errorReportController.getErrorStats
+);
+
+// ==================== Health Check Routes ====================
 router.use('/health', require('./health'));
 
-// Test Route
+// ==================== API Root Route ====================
+router.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'IEClub API v2.0 - 企业级社区平台（优化版）',
+    version: '2.0.0',
+    status: 'running',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    features: [
+      '✅ 速率限制',
+      '✅ 请求日志',
+      '✅ 性能监控',
+      '✅ CSRF 保护',
+      '✅ 查询超时',
+      '✅ 缓存优化'
+    ],
+    endpoints: {
+      auth: 'POST /api/auth/login',
+      topics: 'GET /api/topics',
+      activities: 'GET /api/activities',
+      users: 'GET /api/users',
+      health: 'GET /api/health',
+      docs: 'GET /api/docs'
+    },
+    documentation: 'https://docs.ieclub.online',
+    support: 'support@ieclub.online'
+  });
+});
+
+// ==================== API Documentation Route ====================
+router.get('/docs', (req, res) => {
+  res.json({
+    success: true,
+    message: 'IEClub API Documentation v2.0',
+    version: '2.0.0',
+    optimizations: {
+      rateLimiting: {
+        auth: '60秒5次（严格限制）',
+        api: '60秒30次（中等限制）',
+        search: '60秒100次（宽松限制）',
+        upload: '5分钟10次（上传限制）',
+        content: '5分钟20次（内容限制）',
+        interaction: '60秒50次（互动限制）'
+      },
+      caching: {
+        search: '5分钟',
+        admin: '5分钟',
+        stats: '10分钟'
+      },
+      monitoring: {
+        requestLogging: '所有请求',
+        performanceTracking: '响应时间',
+        errorTracking: '错误率'
+      }
+    },
+    categories: {
+      authentication: '认证授权',
+      topics: '话题管理',
+      activities: '活动管理',
+      users: '用户管理',
+      credits: '积分系统',
+      search: '搜索功能'
+    },
+    fullDocumentation: 'https://docs.ieclub.online/api',
+    postmanCollection: 'https://docs.ieclub.online/postman'
+  });
+});
+
+// ==================== Test Route ====================
 router.get('/test', (req, res) => {
   res.json({
     success: true,
-    message: 'IEclub API is running',
-    timestamp: new Date().toISOString()
+    message: 'IEclub API is running (Optimized)',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    nodeVersion: process.version,
+    platform: process.platform,
+    memory: {
+      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + 'MB',
+      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB'
+    },
+    optimizations: {
+      rateLimiting: 'enabled',
+      requestLogging: 'enabled',
+      performanceMonitoring: 'enabled',
+      csrfProtection: 'enabled',
+      queryTimeout: 'enabled'
+    }
   });
 });
 

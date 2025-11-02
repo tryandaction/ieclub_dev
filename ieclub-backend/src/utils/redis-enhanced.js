@@ -362,7 +362,7 @@ const cacheList = {
 /**
  * 集合操作
  */
-const cacheSet = {
+const setOperations = {
   // 添加成员
   add: async (key, ...members) => {
     return safeRedisOperation(
@@ -509,7 +509,7 @@ module.exports = {
   cacheDecr,
   cacheHash,
   cacheList,
-  cacheSet,
+  setOperations,
   cacheSortedSet,
   CacheManager,
   cacheManager

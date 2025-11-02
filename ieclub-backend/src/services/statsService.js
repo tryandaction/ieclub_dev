@@ -1,13 +1,33 @@
 // ieclub-backend/src/services/statsService.js
-// 数据统计和分析服务
+// 数据统计和分析服务（优化版）
 
 const prisma = require('../config/database');
+const { cacheGet, cacheSet } = require('../utils/redis-enhanced');
+const logger = require('../utils/logger');
+
+// 缓存配置
+const CACHE_TTL = {
+  USER_STATS: 900,        // 用户统计15分钟
+  PLATFORM_STATS: 1800,   // 平台统计30分钟
+  HOT_CONTENT: 600,       // 热门内容10分钟
+  LEADERBOARD: 600,       // 排行榜10分钟
+  CATEGORY_STATS: 1800,   // 分类统计30分钟
+  TREND: 3600             // 趋势数据1小时
+};
 
 class StatsService {
   /**
-   * 获取用户统计数据
+   * 获取用户统计数据（优化版 - 添加缓存）
    */
   async getUserStats(userId) {
+    // 尝试从缓存获取
+    const cacheKey = `stats:user:${userId}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) {
+      logger.debug('用户统计命中缓存', { userId });
+      return cached;
+    }
+
     const [user, posts, comments, likes, activities] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
@@ -58,7 +78,7 @@ class StatsService {
       }
     });
 
-    return {
+    const result = {
       user: {
         credits: user.credits,
         level: user.level,
@@ -81,12 +101,25 @@ class StatsService {
         averageDaily: activeDays > 0 ? (recentActivity / 7).toFixed(2) : 0
       }
     };
+
+    // 缓存结果
+    await cacheSet(cacheKey, result, CACHE_TTL.USER_STATS);
+
+    return result;
   }
 
   /**
-   * 获取平台整体统计
+   * 获取平台整体统计（优化版 - 添加缓存）
    */
   async getPlatformStats() {
+    // 尝试从缓存获取
+    const cacheKey = 'stats:platform';
+    const cached = await cacheGet(cacheKey);
+    if (cached) {
+      logger.debug('平台统计命中缓存');
+      return cached;
+    }
+
     const [
       totalUsers,
       activeUsers,
@@ -107,7 +140,7 @@ class StatsService {
       this.getTodayCount('user')
     ]);
 
-      return {
+    const result = {
       users: {
         total: totalUsers,
         active: activeUsers,
@@ -124,6 +157,11 @@ class StatsService {
         newUsers: todayUsers
       }
     };
+
+    // 缓存结果
+    await cacheSet(cacheKey, result, CACHE_TTL.PLATFORM_STATS);
+
+    return result;
   }
 
   /**
@@ -182,7 +220,7 @@ class StatsService {
   }
 
   /**
-   * 获取热门内容
+   * 获取热门内容（优化版 - 添加缓存）
    */
   async getHotContent(options = {}) {
     const {
@@ -190,6 +228,14 @@ class StatsService {
       limit = 10,
       days = 7
     } = options;
+
+    // 尝试从缓存获取
+    const cacheKey = `stats:hot:${type}:${limit}:${days}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) {
+      logger.debug('热门内容命中缓存', { type, limit, days });
+      return cached;
+    }
 
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
@@ -206,22 +252,32 @@ class StatsService {
             { commentsCount: 'desc' },
             { viewsCount: 'desc' }
           ],
-        include: {
+          select: {
+            id: true,
+            title: true,
+            content: true,
+            likesCount: true,
+            commentsCount: true,
+            viewsCount: true,
+            publishedAt: true,
             author: {
-            select: {
+              select: {
                 id: true,
                 nickname: true,
                 avatar: true
               }
             },
             category: {
-            select: {
+              select: {
                 id: true,
                 name: true
+              }
             }
           }
-        }
-      });
+        }).then(result => {
+          cacheSet(cacheKey, result, CACHE_TTL.HOT_CONTENT);
+          return result;
+        });
 
       case 'activities':
         return await prisma.activity.findMany({
@@ -233,7 +289,13 @@ class StatsService {
           orderBy: [
             { participantsCount: 'desc' }
           ],
-          include: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            participantsCount: true,
+            startTime: true,
+            endTime: true,
             organizer: {
               select: {
                 id: true,
@@ -242,6 +304,9 @@ class StatsService {
               }
             }
           }
+        }).then(result => {
+          cacheSet(cacheKey, result, CACHE_TTL.HOT_CONTENT);
+          return result;
         });
 
       case 'users':
@@ -264,10 +329,13 @@ class StatsService {
             topicsCount: true,
             commentsCount: true
           }
+        }).then(result => {
+          cacheSet(cacheKey, result, CACHE_TTL.HOT_CONTENT);
+          return result;
         });
 
       default:
-      return [];
+        return [];
     }
   }
 
@@ -466,9 +534,17 @@ class StatsService {
   }
 
   /**
-   * 获取排行榜
+   * 获取排行榜（优化版 - 添加缓存）
    */
   async getLeaderboard(type = 'credits', limit = 50) {
+    // 尝试从缓存获取
+    const cacheKey = `stats:leaderboard:${type}:${limit}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) {
+      logger.debug('排行榜命中缓存', { type, limit });
+      return cached;
+    }
+
     const orderByMap = {
       credits: { credits: 'desc' },
       level: { level: 'desc' },
@@ -478,7 +554,7 @@ class StatsService {
 
     const orderBy = orderByMap[type] || orderByMap.credits;
 
-    return await prisma.user.findMany({
+    const result = await prisma.user.findMany({
       where: { status: 'active' },
       take: limit,
       orderBy,
@@ -494,6 +570,11 @@ class StatsService {
         likesCount: true
       }
     });
+
+    // 缓存结果
+    await cacheSet(cacheKey, result, CACHE_TTL.LEADERBOARD);
+
+    return result;
   }
 }
 

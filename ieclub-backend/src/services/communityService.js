@@ -1,10 +1,19 @@
 // ieclub-backend/src/services/communityService.js
-// 社区服务层 - 处理帖子、评论、点赞等业务逻辑
+// 社区服务层 - 处理帖子、评论、点赞等业务逻辑（优化版）
 
 const prisma = require('../config/database');
 const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
 const notificationService = require('./notificationService');
+const { cacheGet, cacheSet, cacheDel } = require('../utils/redis-enhanced');
+
+// 缓存配置
+const CACHE_TTL = {
+  HOT_POSTS: 600,     // 热门帖子10分钟
+  LATEST_POSTS: 120,  // 最新帖子2分钟
+  POST_DETAIL: 300,   // 帖子详情5分钟
+  RECOMMENDED: 300    // 推荐帖子5分钟
+};
 
 class CommunityService {
   /**
@@ -64,7 +73,7 @@ class CommunityService {
   }
 
   /**
-   * 获取帖子列表
+   * 获取帖子列表（优化版 - 添加缓存）
    */
   async getPosts(options = {}) {
     const {
@@ -75,6 +84,26 @@ class CommunityService {
       keyword,
       userId // 特定用户的帖子
     } = options;
+
+    // 生成缓存键
+    const cacheKey = `posts:list:${JSON.stringify({
+      page, pageSize, categoryId, sortBy, keyword, userId
+    })}`;
+
+    // 根据sortBy选择缓存时间
+    let cacheTTL = CACHE_TTL.LATEST_POSTS;
+    if (sortBy === 'hot') {
+      cacheTTL = CACHE_TTL.HOT_POSTS;
+    } else if (sortBy === 'recommended') {
+      cacheTTL = CACHE_TTL.RECOMMENDED;
+    }
+
+    // 尝试从缓存获取
+    const cached = await cacheGet(cacheKey);
+    if (cached) {
+      logger.debug('帖子列表命中缓存', { sortBy, page, categoryId });
+      return cached;
+    }
 
     const skip = (page - 1) * pageSize;
     const take = pageSize;
@@ -121,14 +150,26 @@ class CommunityService {
         orderBy = [{ createdAt: 'desc' }];
     }
 
-    // 查询帖子
+    // 优化：使用 select 代替 include
     const [posts, total] = await Promise.all([
       prisma.topic.findMany({
         where,
         skip,
         take,
         orderBy,
-        include: {
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          tags: true,
+          images: true,
+          likesCount: true,
+          commentsCount: true,
+          viewsCount: true,
+          bookmarksCount: true,
+          publishedAt: true,
+          createdAt: true,
+          updatedAt: true,
           author: {
             select: {
               id: true,
@@ -148,12 +189,17 @@ class CommunityService {
       prisma.topic.count({ where })
     ]);
 
-    return {
+    const result = {
       posts: posts.map(post => this.formatPost(post)),
       total,
       hasMore: skip + take < total,
       currentPage: page
     };
+
+    // 缓存结果
+    await cacheSet(cacheKey, result, cacheTTL);
+
+    return result;
   }
 
   /**
