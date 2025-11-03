@@ -254,14 +254,41 @@ function Deploy-Web-Production {
     
     Set-Location -Path $WebDir
     
-    # 打包构建产物
-    Write-Info "打包前端文件..."
-    if (Test-Path "web-dist.zip") {
-        Remove-Item "web-dist.zip" -Force
+    # 验证构建产物存在
+    if (-not (Test-Path "dist")) {
+        Write-Error "构建产物不存在！请先运行构建步骤"
+        exit 1
     }
     
-    Compress-Archive -Path "dist\*" -DestinationPath "web-dist.zip"
-    Write-Success "打包完成"
+    # 检查构建产物是否是最新的（10分钟内）
+    $distModified = (Get-Item "dist").LastWriteTime
+    $timeDiff = (Get-Date) - $distModified
+    if ($timeDiff.TotalMinutes -gt 10) {
+        Write-Warning "构建产物可能不是最新的！上次修改时间: $distModified"
+        Write-Error "生产环境必须使用最新构建！请重新构建前端"
+        exit 1
+    }
+    
+    # 强制删除旧的打包文件
+    Write-Info "清理旧的打包文件..."
+    if (Test-Path "web-dist.zip") {
+        Remove-Item "web-dist.zip" -Force
+        Write-Host "  已删除旧的 web-dist.zip" -ForegroundColor Gray
+    }
+    
+    # 打包构建产物
+    Write-Info "打包前端文件（基于最新构建）..."
+    Compress-Archive -Path "dist\*" -DestinationPath "web-dist.zip" -Force
+    
+    # 验证打包文件
+    if (Test-Path "web-dist.zip") {
+        $zipSize = (Get-Item "web-dist.zip").Length / 1KB
+        $zipTime = (Get-Item "web-dist.zip").LastWriteTime
+        Write-Success "打包完成: web-dist.zip ($('{0:N2}' -f $zipSize) KB, $zipTime)"
+    } else {
+        Write-Error "打包失败！web-dist.zip 不存在"
+        exit 1
+    }
     
     # 备份当前生产环境
     Write-Info "备份当前生产环境..."
@@ -335,10 +362,29 @@ function Deploy-Backend-Production {
         }
     }
     
+    # 验证源代码存在
+    if (-not (Test-Path "src")) {
+        Write-Error "源代码目录不存在！"
+        exit 1
+    }
+    
+    # 检查源代码是否最新（确保不是旧代码）
+    $srcModified = (Get-ChildItem "src" -Recurse -Filter "*.js" | Sort-Object LastWriteTime -Descending | Select-Object -First 1).LastWriteTime
+    $timeDiff = (Get-Date) - $srcModified
+    Write-Info "最新源代码文件修改时间: $srcModified"
+    if ($timeDiff.TotalHours -gt 12) {
+        Write-Warning "源代码可能不是最新的！上次修改: $srcModified"
+        Write-Error "生产环境必须使用最新代码！请确认代码已更新"
+        exit 1
+    }
+    
     # 打包后端代码
-    Write-Info "打包后端代码..."
+    Write-Info "打包后端代码（确保使用最新源代码）..."
+    
+    # 强制删除旧的打包文件
     if (Test-Path "backend-code.zip") {
         Remove-Item "backend-code.zip" -Force
+        Write-Host "  已删除旧的 backend-code.zip" -ForegroundColor Gray
     }
     
     # 创建临时目录用于打包
@@ -357,19 +403,14 @@ function Deploy-Backend-Production {
         ".env.production"
     )
     
+    Write-Info "复制必要文件到临时目录..."
     foreach ($item in $includeItems) {
         if (Test-Path $item) {
             Copy-Item -Path $item -Destination $tempDir -Recurse -Force
-            Write-Info "已包含: $item"
+            Write-Host "  ✓ $item" -ForegroundColor Gray
         } else {
             Write-Warning "文件不存在: $item"
         }
-    }
-    
-    # 显示打包内容
-    Write-Info "打包内容:"
-    Get-ChildItem -Path $tempDir -Recurse -Directory | ForEach-Object {
-        Write-Host "  📁 $($_.FullName.Replace($tempDir, '.'))" -ForegroundColor DarkGray
     }
     
     # 打包临时目录
@@ -378,9 +419,16 @@ function Deploy-Backend-Production {
     # 清理临时目录
     Remove-Item $tempDir -Recurse -Force
     
-    # 显示压缩包信息
-    $zipInfo = Get-Item "backend-code.zip"
-    Write-Success "后端打包完成 (大小: $([math]::Round($zipInfo.Length/1MB, 2)) MB)"
+    # 验证打包文件
+    if (Test-Path "backend-code.zip") {
+        $zipSize = (Get-Item "backend-code.zip").Length / 1KB
+        $zipTime = (Get-Item "backend-code.zip").LastWriteTime
+        Write-Success "后端打包完成: backend-code.zip ($('{0:N2}' -f $zipSize) KB, $zipTime)"
+        Write-Info "已排除: logs、node_modules 等文件"
+    } else {
+        Write-Error "打包失败！backend-code.zip 不存在"
+        exit 1
+    }
     
     # 上传到服务器
     Write-Info "上传后端代码到生产服务器..."
