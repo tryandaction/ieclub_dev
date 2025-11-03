@@ -1,0 +1,241 @@
+/* pages/settings/change-password/index.wxss */
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40rpx;
+  box-sizing: border-box;
+}
+
+/* ========== Header ========== */
+.header {
+  text-align: center;
+  margin-bottom: 60rpx;
+  animation: fadeInDown 0.6s ease-out;
+}
+
+.header-icon {
+  font-size: 100rpx;
+  margin-bottom: 20rpx;
+  animation: bounce 2s infinite;
+}
+
+.header-title {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 16rpx;
+  text-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+}
+
+.header-subtitle {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+}
+
+/* ========== 表单容器 ========== */
+.form-container {
+  background: white;
+  border-radius: 32rpx;
+  padding: 50rpx 40rpx;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.6s ease-out;
+}
+
+/* ========== 表单项 ========== */
+.form-item {
+  margin-bottom: 40rpx;
+}
+
+.form-item.error .input-wrapper {
+  border-color: #ef4444;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.label-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
+}
+
+.label-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #f9fafb;
+  border: 2rpx solid #e5e7eb;
+  border-radius: 20rpx;
+  padding: 0 24rpx;
+  transition: all 0.3s;
+}
+
+.input-wrapper:focus-within {
+  border-color: #667eea;
+  box-shadow: 0 0 0 5rpx rgba(102, 126, 234, 0.1);
+  transform: translateY(-2rpx);
+}
+
+.form-input {
+  flex: 1;
+  height: 96rpx;
+  font-size: 30rpx;
+  color: #1f2937;
+}
+
+.password-toggle {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.password-toggle:active {
+  transform: scale(0.9);
+}
+
+.toggle-icon {
+  font-size: 32rpx;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  margin-top: 12rpx;
+  animation: shake 0.4s;
+}
+
+.error-icon {
+  font-size: 28rpx;
+  margin-right: 8rpx;
+}
+
+.error-text {
+  font-size: 24rpx;
+  color: #ef4444;
+}
+
+/* ========== 密码提示 ========== */
+.password-tips {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 40rpx;
+}
+
+.tips-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #92400e;
+  margin-bottom: 12rpx;
+}
+
+.tips-item {
+  font-size: 24rpx;
+  color: #78350f;
+  line-height: 2;
+}
+
+/* ========== 提交按钮 ========== */
+.submit-btn {
+  width: 100%;
+  height: 100rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 32rpx;
+  font-weight: bold;
+  border-radius: 50rpx;
+  border: none;
+  box-shadow: 0 12rpx 32rpx rgba(102, 126, 234, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.submit-btn:not(.loading):active {
+  opacity: 0.9;
+  transform: translateY(2rpx);
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3);
+}
+
+.submit-btn.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.loading-icon {
+  margin-right: 12rpx;
+  animation: spin 1s linear infinite;
+}
+
+.btn-hover {
+  opacity: 0.9;
+  transform: translateY(2rpx);
+}
+
+/* ========== 动画 ========== */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-40rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(60rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-10rpx);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(10rpx);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20rpx);
+  }
+}
+

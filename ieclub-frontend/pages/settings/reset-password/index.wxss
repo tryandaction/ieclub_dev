@@ -1,0 +1,270 @@
+/* pages/settings/reset-password/index.wxss */
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40rpx;
+  box-sizing: border-box;
+}
+
+/* ========== Header ========== */
+.header {
+  text-align: center;
+  margin-bottom: 60rpx;
+  animation: fadeInDown 0.6s ease-out;
+}
+
+.header-icon {
+  font-size: 100rpx;
+  margin-bottom: 20rpx;
+  animation: bounce 2s infinite;
+}
+
+.header-title {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 16rpx;
+  text-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+}
+
+.header-subtitle {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ========== 表单容器 ========== */
+.form-container {
+  background: white;
+  border-radius: 32rpx;
+  padding: 50rpx 40rpx;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.6s ease-out;
+}
+
+/* ========== 表单项 ========== */
+.form-item {
+  margin-bottom: 40rpx;
+}
+
+.form-item.error .form-input,
+.form-item.error .input-wrapper {
+  border-color: #ef4444;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.label-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
+}
+
+.label-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.form-input {
+  width: 100%;
+  height: 96rpx;
+  background: #f9fafb;
+  border: 2rpx solid #e5e7eb;
+  border-radius: 20rpx;
+  padding: 0 24rpx;
+  font-size: 30rpx;
+  color: #1f2937;
+  box-sizing: border-box;
+  transition: all 0.3s;
+}
+
+.form-input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 5rpx rgba(102, 126, 234, 0.1);
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #f9fafb;
+  border: 2rpx solid #e5e7eb;
+  border-radius: 20rpx;
+  padding: 0 24rpx;
+  transition: all 0.3s;
+}
+
+.input-wrapper:focus-within {
+  border-color: #667eea;
+  box-shadow: 0 0 0 5rpx rgba(102, 126, 234, 0.1);
+}
+
+.input-wrapper .form-input {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.password-toggle {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.toggle-icon {
+  font-size: 32rpx;
+}
+
+/* 验证码输入 */
+.code-input-wrapper {
+  display: flex;
+  gap: 16rpx;
+}
+
+.code-input {
+  flex: 1;
+}
+
+.send-code-btn {
+  width: 200rpx;
+  height: 96rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 26rpx;
+  font-weight: 600;
+  border-radius: 20rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  line-height: 96rpx;
+}
+
+.send-code-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  margin-top: 12rpx;
+  animation: shake 0.4s;
+}
+
+.error-icon {
+  font-size: 28rpx;
+  margin-right: 8rpx;
+}
+
+.error-text {
+  font-size: 24rpx;
+  color: #ef4444;
+}
+
+/* ========== 提交按钮 ========== */
+.submit-btn {
+  width: 100%;
+  height: 100rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 32rpx;
+  font-weight: bold;
+  border-radius: 50rpx;
+  border: none;
+  box-shadow: 0 12rpx 32rpx rgba(102, 126, 234, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  margin-bottom: 30rpx;
+}
+
+.submit-btn:not(.loading):active {
+  opacity: 0.9;
+  transform: translateY(2rpx);
+}
+
+.submit-btn.loading {
+  opacity: 0.7;
+}
+
+.loading-icon {
+  margin-right: 12rpx;
+  animation: spin 1s linear infinite;
+}
+
+/* ========== 返回登录 ========== */
+.back-login {
+  text-align: center;
+  font-size: 28rpx;
+  color: #6b7280;
+}
+
+.link {
+  color: #667eea;
+  font-weight: 600;
+  margin-left: 8rpx;
+}
+
+/* ========== 动画 ========== */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-40rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(60rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-10rpx);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(10rpx);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20rpx);
+  }
+}
+

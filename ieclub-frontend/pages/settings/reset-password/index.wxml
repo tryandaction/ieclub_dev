@@ -1,0 +1,130 @@
+<!--pages/settings/reset-password/index.wxml-->
+<view class="container">
+  <!-- Header -->
+  <view class="header">
+    <view class="header-icon">🔓</view>
+    <view class="header-title">找回密码</view>
+    <view class="header-subtitle">通过邮箱验证码重置密码</view>
+  </view>
+
+  <!-- 重置密码表单 -->
+  <view class="form-container">
+    <!-- 邮箱输入 -->
+    <view class="form-item {{errors.email ? 'error' : ''}}">
+      <view class="form-label">
+        <text class="label-icon">📧</text>
+        <text class="label-text">邮箱</text>
+      </view>
+      <input 
+        class="form-input" 
+        type="text"
+        placeholder="请输入南科大邮箱"
+        value="{{form.email}}"
+        bindinput="onEmailInput"
+      />
+      <view class="error-message" wx:if="{{errors.email}}">
+        <text class="error-icon">⚠️</text>
+        <text class="error-text">{{errors.email}}</text>
+      </view>
+    </view>
+
+    <!-- 验证码输入 -->
+    <view class="form-item {{errors.code ? 'error' : ''}}">
+      <view class="form-label">
+        <text class="label-icon">🔢</text>
+        <text class="label-text">验证码</text>
+      </view>
+      <view class="code-input-wrapper">
+        <input 
+          class="form-input code-input" 
+          type="number"
+          placeholder="请输入6位验证码"
+          value="{{form.code}}"
+          bindinput="onCodeInput"
+          maxlength="6"
+        />
+        <button 
+          class="send-code-btn {{codeSending || countdown > 0 ? 'disabled' : ''}}"
+          bindtap="sendCode"
+          disabled="{{codeSending || countdown > 0}}"
+        >
+          <text wx:if="{{countdown > 0}}">{{countdown}}s</text>
+          <text wx:elif="{{codeSending}}">发送中...</text>
+          <text wx:else>发送验证码</text>
+        </button>
+      </view>
+      <view class="error-message" wx:if="{{errors.code}}">
+        <text class="error-icon">⚠️</text>
+        <text class="error-text">{{errors.code}}</text>
+      </view>
+    </view>
+
+    <!-- 新密码 -->
+    <view class="form-item {{errors.newPassword ? 'error' : ''}}">
+      <view class="form-label">
+        <text class="label-icon">🔐</text>
+        <text class="label-text">新密码</text>
+      </view>
+      <view class="input-wrapper">
+        <input 
+          class="form-input" 
+          type="{{showNewPassword ? 'text' : 'password'}}"
+          placeholder="请输入新密码（6-20位）"
+          value="{{form.newPassword}}"
+          bindinput="onNewPasswordInput"
+          maxlength="20"
+        />
+        <view class="password-toggle" bindtap="toggleNewPassword">
+          <text class="toggle-icon">{{showNewPassword ? '👁' : '🙈'}}</text>
+        </view>
+      </view>
+      <view class="error-message" wx:if="{{errors.newPassword}}">
+        <text class="error-icon">⚠️</text>
+        <text class="error-text">{{errors.newPassword}}</text>
+      </view>
+    </view>
+
+    <!-- 确认密码 -->
+    <view class="form-item {{errors.confirmPassword ? 'error' : ''}}">
+      <view class="form-label">
+        <text class="label-icon">✅</text>
+        <text class="label-text">确认密码</text>
+      </view>
+      <view class="input-wrapper">
+        <input 
+          class="form-input" 
+          type="{{showConfirmPassword ? 'text' : 'password'}}"
+          placeholder="请再次输入新密码"
+          value="{{form.confirmPassword}}"
+          bindinput="onConfirmPasswordInput"
+          maxlength="20"
+        />
+        <view class="password-toggle" bindtap="toggleConfirmPassword">
+          <text class="toggle-icon">{{showConfirmPassword ? '👁' : '🙈'}}</text>
+        </view>
+      </view>
+      <view class="error-message" wx:if="{{errors.confirmPassword}}">
+        <text class="error-icon">⚠️</text>
+        <text class="error-text">{{errors.confirmPassword}}</text>
+      </view>
+    </view>
+
+    <!-- 提交按钮 -->
+    <button 
+      class="submit-btn {{loading ? 'loading' : ''}}"
+      bindtap="handleSubmit"
+      disabled="{{loading}}"
+      hover-class="btn-hover"
+    >
+      <text wx:if="{{loading}}" class="loading-icon">⏳</text>
+      <text>{{loading ? '重置中...' : '重置密码'}}</text>
+    </button>
+
+    <!-- 返回登录 -->
+    <view class="back-login" bindtap="backToLogin">
+      <text>想起密码了？</text>
+      <text class="link">返回登录</text>
+    </view>
+  </view>
+</view>
+

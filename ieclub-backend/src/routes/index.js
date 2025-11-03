@@ -125,6 +125,22 @@ router.post('/auth/bind-phone',
   AuthController.bindPhone
 );
 
+// 解绑微信（API限制）
+router.post('/auth/unbind-wechat', 
+  authenticate, 
+  rateLimiters.api, 
+  csrf, 
+  AuthController.unbindWechat
+);
+
+// 注销账号（严格限制）
+router.delete('/auth/account', 
+  authenticate, 
+  rateLimiters.auth, 
+  csrf, 
+  AuthController.deleteAccount
+);
+
 // 登出（API限制）
 router.post('/auth/logout', 
   authenticate, 

@@ -1,0 +1,104 @@
+<!--pages/settings/delete-account/index.wxml-->
+<view class="container">
+  <!-- Warning Header -->
+  <view class="warning-header">
+    <view class="warning-icon">⚠️</view>
+    <view class="warning-title">账号注销</view>
+    <view class="warning-text">此操作不可逆，请谨慎操作</view>
+  </view>
+
+  <!-- 注销说明 -->
+  <view class="notice-card">
+    <view class="notice-title">📋 注销须知</view>
+    <view class="notice-list">
+      <view class="notice-item">• 账号注销后，所有个人数据将被删除</view>
+      <view class="notice-item">• 发布的内容将被匿名化处理</view>
+      <view class="notice-item">• 积分、等级等信息将永久丢失</view>
+      <view class="notice-item">• 已绑定的第三方账号将自动解绑</view>
+      <view class="notice-item">• 注销后30天内可联系客服恢复</view>
+    </view>
+  </view>
+
+  <!-- 注销表单 -->
+  <view class="form-container">
+    <!-- 注销原因选择 -->
+    <view class="form-section">
+      <view class="section-title">请告诉我们注销原因（可选）</view>
+      <view class="reason-options">
+        <view 
+          wx:for="{{reasonOptions}}" 
+          wx:key="value"
+          class="reason-option {{selectedReason === item.value ? 'selected' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="selectReason"
+        >
+          <text class="option-icon">{{item.icon}}</text>
+          <text class="option-label">{{item.label}}</text>
+          <text wx:if="{{selectedReason === item.value}}" class="check-icon">✓</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 详细说明 -->
+    <view class="form-section">
+      <view class="section-title">补充说明（可选）</view>
+      <textarea 
+        class="reason-textarea"
+        placeholder="您的宝贵意见将帮助我们改进产品..."
+        value="{{reason}}"
+        bindinput="onReasonInput"
+        maxlength="200"
+        show-confirm-bar="{{false}}"
+      />
+      <view class="char-count">{{reason.length}}/200</view>
+    </view>
+
+    <!-- 密码确认 -->
+    <view class="form-section">
+      <view class="section-title">输入密码确认</view>
+      <view class="password-input-wrapper">
+        <input 
+          class="password-input" 
+          type="{{showPassword ? 'text' : 'password'}}"
+          placeholder="请输入账号密码"
+          value="{{password}}"
+          bindinput="onPasswordInput"
+        />
+        <view class="password-toggle" bindtap="togglePassword">
+          <text class="toggle-icon">{{showPassword ? '👁' : '🙈'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 确认勾选 -->
+    <view class="confirm-section">
+      <view class="checkbox-wrapper" bindtap="toggleConfirm">
+        <view class="checkbox {{confirmed ? 'checked' : ''}}">
+          <text wx:if="{{confirmed}}" class="check-icon">✓</text>
+        </view>
+        <text class="checkbox-label">我已阅读并理解注销须知，确认注销账号</text>
+      </view>
+    </view>
+
+    <!-- 注销按钮 -->
+    <button 
+      class="delete-btn {{loading ? 'loading' : ''}}"
+      bindtap="handleSubmit"
+      disabled="{{loading}}"
+      hover-class="btn-hover"
+    >
+      <text wx:if="{{loading}}" class="loading-icon">⏳</text>
+      <text>{{loading ? '注销中...' : '确认注销账号'}}</text>
+    </button>
+
+    <!-- 返回按钮 -->
+    <button 
+      class="cancel-btn"
+      bindtap="navigateBack"
+      hover-class="cancel-hover"
+    >
+      我再想想
+    </button>
+  </view>
+</view>
+
