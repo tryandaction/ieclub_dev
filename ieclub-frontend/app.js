@@ -42,8 +42,9 @@ App({
     token: '',
     userInfo: null,
     systemInfo: null,
-    // API 基础地址 - 使用HTTPS域名（带www，与微信后台配置一致）
-    apiBase: 'https://www.ieclub.online/api'
+    // API 基础地址 - 使用HTTPS域名（确保与服务端配置一致）
+    // 生产环境使用域名，开发环境可切换到本地
+    apiBase: 'https://ieclub.online/api' // 不带 www，与后端 CORS 配置一致
   }
 })
 

@@ -1,24 +1,110 @@
 <!--pages/community/index.wxml-->
 <view class="community-page">
-  <view class="header">
-    <text class="title">发现伙伴</text>
+  <!-- 顶部标题卡片 -->
+  <view class="header-card">
+    <view class="header-content">
+      <text class="header-title">发现伙伴</text>
+      <text class="header-subtitle">找到志同道合的学习伙伴</text>
+    </view>
+    <view class="header-icon">🤝</view>
   </view>
 
-  <scroll-view scroll-y class="content">
-    <view class="user-grid">
-      <view wx:for="{{users}}" wx:key="id" class="user-card" data-index="{{index}}">
-        <text class="avatar">{{item.avatar}}</text>
-        <text class="name">{{item.name}}</text>
-        <text class="major">{{item.major}}</text>
-        <view class="level">LV{{item.level}}</view>
+  <!-- 用户列表 -->
+  <scroll-view 
+    scroll-y 
+    class="content-scroll"
+    refresher-enabled
+    refresher-triggered="{{refreshing}}"
+    bindrefresherrefresh="onRefresh"
+    bindscrolltolower="onLoadMore"
+    lower-threshold="100"
+    enable-back-to-top
+  >
+    <!-- 骨架屏 -->
+    <view wx:if="{{loading && users.length === 0}}" class="skeleton-container">
+      <view wx:for="{{[1,2,3,4,5,6]}}" wx:key="*this" class="skeleton-card">
+        <view class="skeleton-avatar skeleton-shimmer"></view>
+        <view class="skeleton-name skeleton-shimmer"></view>
+        <view class="skeleton-major skeleton-shimmer"></view>
+        <view class="skeleton-stats">
+          <view class="skeleton-stat skeleton-shimmer"></view>
+          <view class="skeleton-stat skeleton-shimmer"></view>
+        </view>
+        <view class="skeleton-btn skeleton-shimmer"></view>
+      </view>
+    </view>
+
+    <!-- 用户网格 -->
+    <view wx:else class="user-grid">
+      <view 
+        wx:for="{{users}}" 
+        wx:key="id" 
+        class="user-card"
+        data-id="{{item.id}}"
+        bindtap="viewUserDetail"
+        hover-class="user-card-hover"
+        hover-stay-time="100"
+      >
+        <!-- 头像 -->
+        <view class="avatar-wrapper">
+          <text class="avatar">{{item.avatar}}</text>
+          <!-- 在线状态指示器 -->
+          <view wx:if="{{item.online}}" class="online-dot"></view>
+        </view>
+
+        <!-- 用户信息 -->
+        <view class="user-info">
+          <text class="name">{{item.name}}</text>
+          <text class="major">{{item.major}} · {{item.grade || '未设置年级'}}</text>
+        </view>
+
+        <!-- 等级和积分 -->
+        <view class="user-stats">
+          <view class="stat-badge level-badge">
+            <text class="badge-text">LV{{item.level}}</text>
+          </view>
+          <view class="stat-badge score-badge">
+            <text class="badge-icon">⭐</text>
+            <text class="badge-text">{{item.score}}</text>
+          </view>
+        </view>
+
+        <!-- 标签 -->
+        <view wx:if="{{item.tags && item.tags.length > 0}}" class="user-tags">
+          <view wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag" class="tag-item">
+            <text class="tag-text">{{tag}}</text>
+          </view>
+        </view>
+
+        <!-- 关注按钮 -->
         <button 
           class="follow-btn {{item.isFollowing ? 'following' : ''}}" 
           bindtap="toggleFollow" 
           data-index="{{index}}"
+          data-id="{{item.id}}"
+          catchtap="toggleFollow"
+          hover-class="follow-btn-hover"
         >
-          {{item.isFollowing ? '已关注' : '+ 关注'}}
+          <text class="btn-text">{{item.isFollowing ? '已关注' : '+ 关注'}}</text>
         </button>
       </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view wx:if="{{hasMore && !loading}}" class="load-more">
+      <text class="load-more-text">加载更多...</text>
+    </view>
+
+    <!-- 没有更多 -->
+    <view wx:if="{{!hasMore && users.length > 0}}" class="no-more">
+      <text class="no-more-text">没有更多了</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:if="{{!loading && users.length === 0}}" class="empty-state">
+      <text class="empty-emoji">👥</text>
+      <text class="empty-title">暂无用户</text>
+      <text class="empty-desc">快来成为第一个用户吧！</text>
     </view>
   </scroll-view>
 </view>

@@ -1,14 +1,14 @@
 // pages/plaza/index.js
 import { getTopics, likeTopic, unlikeTopic } from '../../api/topic'
+import { mixinPage } from '../../utils/mixin'
+import paginationMixin from '../../mixins/paginationMixin'
 
-Page({
+mixinPage({
+  mixins: [paginationMixin],
+  
   data: {
     activeTab: 'all',
-    topics: [],
-    loading: true,
-    page: 1,
-    pageSize: 10,
-    hasMore: true,
+    isLogin: false,
     tabs: [
       { id: 'all', label: '推荐', icon: '✨' },
       { id: 'offer', label: '我来讲', icon: '🎤' },
@@ -18,122 +18,66 @@ Page({
   },
 
   onLoad() {
-    console.log('话题广场页加载')
-    this.loadTopics()
+    console.log('✅ 话题广场页加载')
+    this.checkLoginStatus()
+    
+    // 初始化分页
+    this.initPagination({
+      dataKey: 'topics',
+      pageSize: 10,
+      autoLoad: true
+    })
   },
 
   onShow() {
-    console.log('话题广场页显示')
+    console.log('✅ 话题广场页显示')
+    this.checkLoginStatus()
+    
     // 如果是从发布页返回，刷新列表
-    if (this.data.topics.length > 0) {
-      this.refreshTopics()
+    if (this.data.topics && this.data.topics.length > 0) {
+      this.refresh()
     }
   },
 
   /**
-   * 下拉刷新
+   * 检查登录状态
    */
-  onPullDownRefresh() {
-    this.refreshTopics().then(() => {
-      wx.stopPullDownRefresh()
-    })
-  },
-
-  /**
-   * 上拉加载更多
-   */
-  onReachBottom() {
-    if (this.data.hasMore && !this.data.loading) {
-      this.setData({
-        page: this.data.page + 1
-      })
-      this.loadTopics()
-    }
-  },
-
-  /**
-   * 刷新话题列表
-   */
-  async refreshTopics() {
+  checkLoginStatus() {
+    const token = wx.getStorageSync('token')
+    const app = getApp()
     this.setData({
-      page: 1,
-      topics: [],
-      hasMore: true
+      isLogin: !!token || !!app.globalData.isLogin
     })
-    await this.loadTopics()
+    console.log('🔐 登录状态:', this.data.isLogin)
   },
 
   /**
-   * 加载话题列表
+   * 获取数据（供分页混入调用）
    */
-  async loadTopics() {
-    if (this.data.loading && this.data.page > 1) {
-      return
+  async fetchData(params) {
+    // 添加类型筛选
+    if (this.data.activeTab !== 'all') {
+      params.type = this.data.activeTab
     }
+    
+    return await getTopics(params)
+  },
 
-    try {
-      this.setData({ loading: true })
-
-      const params = {
-        page: this.data.page,
-        limit: this.data.pageSize
+  /**
+   * 格式化数据（供分页混入调用）
+   */
+  formatItem(topic) {
+    return {
+      ...topic,
+      cover: this.getTopicIcon(topic.type),
+      author: topic.author || { name: '匿名用户', avatar: '👤', level: 0 },
+      tags: topic.tags || [],
+      stats: {
+        views: topic.viewCount || 0,
+        likes: topic.likeCount || 0,
+        comments: topic.commentCount || 0,
+        wantCount: topic.wantCount || 0
       }
-
-      if (this.data.activeTab !== 'all') {
-        params.type = this.data.activeTab
-      }
-
-      const result = await getTopics(params)
-      
-      // 处理不同的返回格式
-      let topics = []
-      let total = 0
-      
-      if (result.list) {
-        topics = result.list
-        total = result.total || 0
-      } else if (Array.isArray(result)) {
-        topics = result
-        total = result.length
-      } else if (result.data) {
-        topics = result.data.list || result.data
-        total = result.data.total || 0
-      }
-
-      // 格式化话题数据
-      const formattedTopics = topics.map(topic => ({
-        ...topic,
-        cover: this.getTopicIcon(topic.type),
-        author: topic.author || { name: '匿名用户', avatar: '👤', level: 0 },
-        tags: topic.tags || [],
-        stats: {
-          views: topic.viewCount || 0,
-          likes: topic.likeCount || 0,
-          comments: topic.commentCount || 0,
-          wantCount: topic.wantCount || 0
-        }
-      }))
-
-      this.setData({
-        topics: this.data.page === 1 ? formattedTopics : [...this.data.topics, ...formattedTopics],
-        hasMore: this.data.topics.length + formattedTopics.length < total,
-        loading: false
-      })
-
-      console.log('✅ 加载话题列表成功:', {
-        page: this.data.page,
-        count: formattedTopics.length,
-        total
-      })
-    } catch (error) {
-      console.error('❌ 加载话题列表失败:', error)
-      this.setData({ loading: false })
-      
-      wx.showToast({
-        title: error.message || '加载失败',
-        icon: 'none',
-        duration: 2000
-      })
     }
   },
 
@@ -156,15 +100,9 @@ Page({
     const { tab } = e.currentTarget.dataset
     if (tab === this.data.activeTab) return
     
-    this.setData({
-      activeTab: tab,
-      page: 1,
-      topics: [],
-      hasMore: true
-    })
-    
-    console.log('切换到:', tab)
-    this.loadTopics()
+    this.setData({ activeTab: tab })
+    console.log('🔄 切换到:', tab)
+    this.refresh()
   },
 
   /**
@@ -172,6 +110,7 @@ Page({
    */
   onTopicTap(e) {
     const { id } = e.currentTarget.dataset
+    console.log('🎯 点击话题:', id)
     wx.navigateTo({
       url: `/pages/topic-detail/topic-detail?id=${id}`
     })
@@ -183,23 +122,24 @@ Page({
   async handleLike(e) {
     const { id, index } = e.currentTarget.dataset
     
-    try {
-      // 检查登录状态
-      const token = wx.getStorageSync('token')
-      if (!token) {
-        wx.showToast({
-          title: '请先登录',
-          icon: 'none',
-          duration: 1500
+    console.log('❤️ 点赞操作:', { id, index })
+    
+    // 检查登录状态
+    if (!this.data.isLogin) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none',
+        duration: 1500
+      })
+      setTimeout(() => {
+        wx.navigateTo({
+          url: '/pages/auth/index'
         })
-        setTimeout(() => {
-          wx.reLaunch({
-            url: '/pages/auth/index'
-          })
-        }, 1500)
-        return
-      }
+      }, 1500)
+      return
+    }
 
+    try {
       const topics = [...this.data.topics]
       const topic = topics[index]
       const isLiked = topic.isLiked
@@ -212,11 +152,11 @@ Page({
       // 调用 API
       if (isLiked) {
         await unlikeTopic(id)
+        console.log('✅ 取消点赞成功')
       } else {
         await likeTopic(id)
+        console.log('✅ 点赞成功')
       }
-
-      console.log('✅ 点赞操作成功:', { id, isLiked: !isLiked })
     } catch (error) {
       console.error('❌ 点赞操作失败:', error)
       
@@ -233,6 +173,33 @@ Page({
         duration: 2000
       })
     }
+  },
+
+  /**
+   * 跳转到登录页
+   */
+  goToLogin() {
+    wx.navigateTo({
+      url: '/pages/auth/index'
+    })
+  },
+
+  /**
+   * 跳转到注册页
+   */
+  goToRegister() {
+    wx.navigateTo({
+      url: '/pages/auth/index'
+    })
+  },
+
+  /**
+   * 跳转到发布页
+   */
+  goToPublish() {
+    wx.navigateTo({
+      url: '/pages/publish/index'
+    })
   }
 })
 

@@ -1,110 +1,47 @@
 // pages/community/index.js
 import { getUsers, followUser, unfollowUser } from '../../api/user'
+import { mixinPage } from '../../utils/mixin'
+import paginationMixin from '../../mixins/paginationMixin'
 
-Page({
-  data: {
-    users: [],
-    loading: true,
-    page: 1,
-    pageSize: 20,
-    hasMore: true
-  },
+mixinPage({
+  mixins: [paginationMixin],
+  
+  data: {},
 
   onLoad() {
-    console.log('社区页加载')
-    this.loadUsers()
-  },
-
-  /**
-   * 下拉刷新
-   */
-  onPullDownRefresh() {
-    this.setData({
-      page: 1,
-      users: [],
-      hasMore: true
-    })
-    this.loadUsers().then(() => {
-      wx.stopPullDownRefresh()
+    console.log('✅ 社区页加载')
+    
+    // 初始化分页
+    this.initPagination({
+      dataKey: 'users',
+      pageSize: 20,
+      autoLoad: true
     })
   },
 
-  /**
-   * 上拉加载更多
-   */
-  onReachBottom() {
-    if (this.data.hasMore && !this.data.loading) {
-      this.setData({
-        page: this.data.page + 1
-      })
-      this.loadUsers()
-    }
+  onShow() {
+    console.log('✅ 社区页显示')
   },
 
   /**
-   * 加载用户列表
+   * 获取数据（供分页混入调用）
    */
-  async loadUsers() {
-    if (this.data.loading && this.data.page > 1) {
-      return
-    }
+  async fetchData(params) {
+    return await getUsers(params)
+  },
 
-    try {
-      this.setData({ loading: true })
-
-      const params = {
-        page: this.data.page,
-        limit: this.data.pageSize
-      }
-
-      const result = await getUsers(params)
-      
-      // 处理不同的返回格式
-      let users = []
-      let total = 0
-      
-      if (result.list) {
-        users = result.list
-        total = result.total || 0
-      } else if (Array.isArray(result)) {
-        users = result
-        total = result.length
-      } else if (result.data) {
-        users = result.data.list || result.data
-        total = result.data.total || 0
-      }
-
-      // 格式化用户数据
-      const formattedUsers = users.map(user => ({
-        ...user,
-        name: user.nickname || user.name || '匿名用户',
-        avatar: user.avatar || '👤',
-        major: user.major || '未设置专业',
-        level: user.level || 0,
-        score: user.score || 0,
-        isFollowing: user.isFollowing || false
-      }))
-
-      this.setData({
-        users: this.data.page === 1 ? formattedUsers : [...this.data.users, ...formattedUsers],
-        hasMore: this.data.users.length + formattedUsers.length < total,
-        loading: false
-      })
-
-      console.log('✅ 加载用户列表成功:', {
-        page: this.data.page,
-        count: formattedUsers.length,
-        total
-      })
-    } catch (error) {
-      console.error('❌ 加载用户列表失败:', error)
-      this.setData({ loading: false })
-      
-      wx.showToast({
-        title: error.message || '加载失败',
-        icon: 'none',
-        duration: 2000
-      })
+  /**
+   * 格式化数据（供分页混入调用）
+   */
+  formatItem(user) {
+    return {
+      ...user,
+      name: user.nickname || user.name || '匿名用户',
+      avatar: user.avatar || '👤',
+      major: user.major || '未设置专业',
+      level: user.level || 0,
+      score: user.score || 0,
+      isFollowing: user.isFollowing || false
     }
   },
 
@@ -175,8 +112,15 @@ Page({
    */
   viewUserDetail(e) {
     const { id } = e.currentTarget.dataset
+    console.log('🎯 查看用户详情:', id)
     wx.navigateTo({
-      url: `/pages/user-detail/user-detail?id=${id}`
+      url: `/pages/user-detail/user-detail?id=${id}`,
+      fail: () => {
+        wx.showToast({
+          title: '页面开发中',
+          icon: 'none'
+        })
+      }
     })
   }
 })
