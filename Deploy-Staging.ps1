@@ -193,14 +193,40 @@ function Deploy-Web-Staging {
     
     Set-Location -Path $WebDir
     
-    # 打包构建产物
-    Write-Info "打包前端文件..."
-    if (Test-Path "web-staging.zip") {
-        Remove-Item "web-staging.zip" -Force
+    # 验证构建产物存在
+    if (-not (Test-Path "dist")) {
+        Write-Error "构建产物不存在！请先运行构建步骤"
+        exit 1
     }
     
-    Compress-Archive -Path "dist\*" -DestinationPath "web-staging.zip"
-    Write-Success "打包完成"
+    # 检查构建产物是否是最新的（5分钟内）
+    $distModified = (Get-Item "dist").LastWriteTime
+    $timeDiff = (Get-Date) - $distModified
+    if ($timeDiff.TotalMinutes -gt 5) {
+        Write-Warning "构建产物可能不是最新的！上次修改时间: $distModified"
+        Write-Warning "建议重新构建前端"
+    }
+    
+    # 强制删除旧的打包文件
+    Write-Info "清理旧的打包文件..."
+    if (Test-Path "web-staging.zip") {
+        Remove-Item "web-staging.zip" -Force
+        Write-Host "  已删除旧的 web-staging.zip" -ForegroundColor Gray
+    }
+    
+    # 打包构建产物
+    Write-Info "打包前端文件（基于最新构建）..."
+    Compress-Archive -Path "dist\*" -DestinationPath "web-staging.zip" -Force
+    
+    # 验证打包文件
+    if (Test-Path "web-staging.zip") {
+        $zipSize = (Get-Item "web-staging.zip").Length / 1KB
+        $zipTime = (Get-Item "web-staging.zip").LastWriteTime
+        Write-Success "打包完成: web-staging.zip ($('{0:N2}' -f $zipSize) KB, $zipTime)"
+    } else {
+        Write-Error "打包失败！web-staging.zip 不存在"
+        exit 1
+    }
     
     # 上传到服务器
     Write-Info "上传到测试服务器..."
@@ -234,10 +260,27 @@ function Deploy-Backend-Staging {
         }
     }
     
+    # 验证源代码存在
+    if (-not (Test-Path "src")) {
+        Write-Error "源代码目录不存在！"
+        exit 1
+    }
+    
+    # 检查源代码是否最新（确保不是旧代码）
+    $srcModified = (Get-ChildItem "src" -Recurse -Filter "*.js" | Sort-Object LastWriteTime -Descending | Select-Object -First 1).LastWriteTime
+    $timeDiff = (Get-Date) - $srcModified
+    Write-Info "最新源代码文件修改时间: $srcModified"
+    if ($timeDiff.TotalHours -gt 24) {
+        Write-Warning "源代码可能不是最新的！上次修改: $srcModified"
+    }
+    
     # 打包后端代码
-    Write-Info "打包后端代码..."
+    Write-Info "打包后端代码（确保使用最新源代码）..."
+    
+    # 强制删除旧的打包文件
     if (Test-Path "backend-staging.zip") {
         Remove-Item "backend-staging.zip" -Force
+        Write-Host "  已删除旧的 backend-staging.zip" -ForegroundColor Gray
     }
     
     # 创建临时目录用于打包（避免包含日志文件和其他不需要的文件）
@@ -269,7 +312,17 @@ function Deploy-Backend-Staging {
     
     # 清理临时目录
     Remove-Item $tempDir -Recurse -Force
-    Write-Success "后端打包完成（已排除 logs、node_modules 等文件）"
+    
+    # 验证打包文件
+    if (Test-Path "backend-staging.zip") {
+        $zipSize = (Get-Item "backend-staging.zip").Length / 1KB
+        $zipTime = (Get-Item "backend-staging.zip").LastWriteTime
+        Write-Success "后端打包完成: backend-staging.zip ($('{0:N2}' -f $zipSize) KB, $zipTime)"
+        Write-Info "已排除: logs、node_modules 等文件"
+    } else {
+        Write-Error "打包失败！backend-staging.zip 不存在"
+        exit 1
+    }
     
     # 上传到服务器
     Write-Info "上传后端代码到测试服务器..."

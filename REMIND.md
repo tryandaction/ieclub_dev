@@ -449,6 +449,7 @@ A:
 - **QUICK_START.ps1** - 一键启动脚本
 - **ieclub-backend/QUICK_START.md** - 后端详细文档
 - **README.md** - 项目总览
+- **MINIPROGRAM_CODE_OPTIMIZATION_2025_11_03.md** - 小程序代码优化报告 ✨新增
 
 ---
 

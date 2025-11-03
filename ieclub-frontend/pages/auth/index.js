@@ -1,336 +1,587 @@
 // pages/auth/index.js
-import { login, loginWithCode, register, sendVerifyCode } from '../../api/auth'
+import { login, register, sendVerifyCode } from '../../api/auth'
 
+/**
+ * 认证页面（登录/注册）
+ * 专业高端版本 - 2025年11月3日重制
+ */
 Page({
   data: {
-    isRegister: false,    // 是否为注册模式
-    useCode: false,       // 是否使用验证码登录
+    // Tab 状态
+    tabIndex: 0, // 0: 登录, 1: 注册
     
-    email: '',
-    password: '',
-    code: '',
+    // 显示控制
+    showPassword: false,
+    showConfirmPassword: false,
     
-    countdown: 0,         // 验证码倒计时
-    timer: null,
-    loading: false,       // 提交loading
-    
-    // 错误提示
-    emailError: '',
-    passwordError: '',
-    codeError: ''
-  },
-
-  onLoad(options) {
-    // 支持从外部指定模式（例如 ?mode=register）
-    if (options.mode === 'register') {
-      this.setData({ isRegister: true })
-    }
-  },
-
-  onUnload() {
-    // 清理定时器
-    if (this.data.timer) {
-      clearInterval(this.data.timer)
-    }
-  },
-
-  // 返回
-  goBack() {
-    wx.navigateBack({
-      fail: () => {
-        // 如果返回失败，跳转到首页
-        wx.switchTab({ url: '/pages/plaza/index' })
-      }
-    })
-  },
-
-  // 切换登录/注册模式
-  toggleMode() {
-    this.setData({
-      isRegister: !this.data.isRegister,
+    // 登录表单
+    loginForm: {
       email: '',
-      password: '',
+      password: ''
+    },
+    
+    // 注册表单
+    registerForm: {
+      email: '',
       code: '',
-      useCode: false,
-      emailError: '',
-      passwordError: '',
-      codeError: ''
-    })
+      password: '',
+      confirmPassword: ''
+    },
+    
+    // 表单验证错误
+    loginErrors: {
+      email: '',
+      password: ''
+    },
+    
+    registerErrors: {
+      email: '',
+      code: '',
+      password: '',
+      confirmPassword: ''
+    },
+    
+    // 加载状态
+    loginLoading: false,
+    registerLoading: false,
+    codeSending: false,
+    countdown: 0,
+    
+    // 系统信息
+    statusBarHeight: 0,
+    navBarHeight: 0
   },
 
-  // 切换验证码登录
-  toggleCodeLogin() {
+  /**
+   * 页面加载
+   */
+  onLoad(options) {
+    console.log('✅ [Auth] 认证页面加载')
+    console.log('📡 [Auth] API Base URL:', getApp().globalData.apiBase)
+    
+    // 检查来源参数，决定默认显示登录还是注册
+    const tab = options.tab || '0'
+    const tabIndex = parseInt(tab)
+    console.log('📋 [Auth] 默认Tab:', tabIndex === 0 ? '登录' : '注册')
+    
+    // 获取系统信息
+    const systemInfo = wx.getSystemInfoSync()
+    const statusBarHeight = systemInfo.statusBarHeight || 0
+    const navBarHeight = statusBarHeight + 44
+    
+    console.log('📱 [Auth] 系统信息:', {
+      statusBarHeight,
+      navBarHeight,
+      platform: systemInfo.platform,
+      version: systemInfo.version,
+      screenWidth: systemInfo.screenWidth,
+      screenHeight: systemInfo.screenHeight
+    })
+    
     this.setData({
-      useCode: !this.data.useCode,
-      password: '',
-      code: '',
-      passwordError: '',
-      codeError: ''
+      tabIndex,
+      statusBarHeight,
+      navBarHeight
+    })
+    
+    // 检查登录状态
+    this.checkLoginStatus()
+  },
+
+  /**
+   * 页面显示时
+   */
+  onShow() {
+    console.log('👁️ [Auth] 页面显示')
+  },
+
+  /**
+   * 检查登录状态
+   */
+  checkLoginStatus() {
+    const token = wx.getStorageSync('token')
+    const user = wx.getStorageSync('user')
+    
+    if (token && user) {
+      console.log('🔑 [Auth] 用户已登录，跳转到广场')
+      wx.switchTab({
+        url: '/pages/plaza/index',
+        fail: (err) => {
+          console.error('❌ [Auth] 跳转失败:', err)
+        }
+      })
+    } else {
+      console.log('🔓 [Auth] 用户未登录')
+    }
+  },
+
+  /**
+   * 切换 Tab
+   */
+  switchTab(e) {
+    const index = e.currentTarget.dataset.index
+    console.log('🔄 [Auth] 切换Tab:', index === 0 ? '登录' : '注册')
+    
+    this.setData({
+      tabIndex: index
+    })
+    
+    // 清除表单错误
+    this.clearErrors()
+  },
+
+  /**
+   * 清除表单错误
+   */
+  clearErrors() {
+    this.setData({
+      loginErrors: { email: '', password: '' },
+      registerErrors: { email: '', code: '', password: '', confirmPassword: '' }
     })
   },
 
-  // 验证邮箱格式
-  validateEmail(email) {
-    if (!email) {
-      return '请输入邮箱'
-    }
-    
-    // 支持 @mail.sustech.edu.cn 和 @sustech.edu.cn
-    const emailReg = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/
-    if (!emailReg.test(email)) {
-      return '请使用南科大邮箱（@sustech.edu.cn 或 @mail.sustech.edu.cn）'
-    }
-    
-    return ''
-  },
+  // ==================== 登录相关 ====================
 
-  // 验证密码
-  validatePassword(password) {
-    if (!password) {
-      return '请输入密码'
-    }
-    if (password.length < 8) {
-      return '密码至少8位'
-    }
-    if (password.length > 50) {
-      return '密码最多50位'
-    }
-    // 注册时进行完整的密码强度验证
-    if (this.data.isRegister) {
-      if (!/[a-zA-Z]/.test(password)) {
-        return '密码需包含字母'
-      }
-      if (!/[0-9]/.test(password)) {
-        return '密码需包含数字'
-      }
-    }
-    return ''
-  },
-
-  // 验证验证码
-  validateCode(code) {
-    if (!code) {
-      return '请输入验证码'
-    }
-    if (code.length !== 6) {
-      return '验证码为6位数字'
-    }
-    return ''
-  },
-
-  // 输入事件
-  onEmailInput(e) {
-    const email = e.detail.value.trim()
-    this.setData({ 
-      email,
-      emailError: ''
+  /**
+   * 登录表单 - 邮箱输入
+   */
+  onLoginEmailInput(e) {
+    const email = e.detail.value
+    this.setData({
+      'loginForm.email': email,
+      'loginErrors.email': ''
     })
   },
 
-  onPasswordInput(e) {
+  /**
+   * 登录表单 - 密码输入
+   */
+  onLoginPasswordInput(e) {
     const password = e.detail.value
-    this.setData({ 
-      password,
-      passwordError: ''
+    this.setData({
+      'loginForm.password': password,
+      'loginErrors.password': ''
     })
   },
 
-  onCodeInput(e) {
-    const code = e.detail.value.trim()
-    this.setData({ 
-      code,
-      codeError: ''
+  /**
+   * 切换密码显示
+   */
+  togglePassword() {
+    this.setData({
+      showPassword: !this.data.showPassword
     })
   },
 
-  // 发送验证码
-  async sendCode() {
-    const { email, countdown, isRegister } = this.data
-
-    // 倒计时中不允许重复发送
-    if (countdown > 0) {
-      return
-    }
+  /**
+   * 验证登录表单
+   */
+  validateLoginForm() {
+    const { email, password } = this.data.loginForm
+    const errors = {}
+    let isValid = true
 
     // 验证邮箱
-    const emailError = this.validateEmail(email)
-    if (emailError) {
-      this.setData({ emailError })
-      wx.showToast({ title: emailError, icon: 'none' })
+    if (!email) {
+      errors.email = '请输入邮箱'
+      isValid = false
+    } else {
+      const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/
+      if (!emailRegex.test(email)) {
+        errors.email = '请使用南科大邮箱'
+        isValid = false
+      }
+    }
+
+    // 验证密码
+    if (!password) {
+      errors.password = '请输入密码'
+      isValid = false
+    } else if (password.length < 6) {
+      errors.password = '密码长度至少6位'
+      isValid = false
+    }
+
+    this.setData({ loginErrors: errors })
+    return isValid
+  },
+
+  /**
+   * 处理登录
+   */
+  async handleLogin() {
+    console.log('🔐 [Auth] 开始登录流程')
+
+    // 验证表单
+    if (!this.validateLoginForm()) {
+      console.log('❌ [Auth] 表单验证失败')
+      wx.vibrateShort()
       return
     }
 
+    const { email, password } = this.data.loginForm
+
+    this.setData({ loginLoading: true })
+
     try {
-      wx.showLoading({ title: '发送中...', mask: true })
+      console.log('📤 [Auth] 发送登录请求:', { email })
       
-      // 根据模式发送不同类型的验证码
-      const type = isRegister ? 'register' : 'login'
-      await sendVerifyCode(email, type)
+      const result = await login({ email, password })
       
-      wx.hideLoading()
-      wx.showToast({ title: '验证码已发送到邮箱', icon: 'success', duration: 2000 })
+      console.log('✅ [Auth] 登录成功:', result)
       
-      // 开始倒计时
-      this.startCountdown()
+      const { token, user } = result
+      
+      // 存储登录信息
+      wx.setStorageSync('token', token)
+      wx.setStorageSync('user', user)
+      
+      console.log('💾 [Auth] 已保存Token和用户信息')
+
+      // 更新全局状态
+      const app = getApp()
+      app.globalData.isLogin = true
+      app.globalData.token = token
+      app.globalData.userInfo = user
+
+      // 显示成功提示
+      wx.showToast({
+        title: '登录成功',
+        icon: 'success',
+        duration: 1500
+      })
+
+      // 延迟跳转到首页
+      setTimeout(() => {
+        console.log('🚀 [Auth] 跳转到广场页面')
+        wx.switchTab({
+          url: '/pages/plaza/index',
+          success: () => {
+            console.log('✅ [Auth] 跳转成功')
+          },
+          fail: (err) => {
+            console.error('❌ [Auth] 跳转失败:', err)
+          }
+        })
+      }, 1500)
+
     } catch (error) {
-      wx.hideLoading()
-      const errorMsg = error.message || '发送失败，请稍后重试'
-      wx.showToast({ 
-        title: errorMsg, 
+      console.error('❌ [Auth] 登录失败:', error)
+      
+      this.setData({ loginLoading: false })
+      
+      wx.vibrateShort()
+      wx.showToast({
+        title: error.message || '登录失败',
         icon: 'none',
         duration: 2000
       })
     }
   },
 
-  // 倒计时
-  startCountdown() {
-    this.setData({ countdown: 60 })
-    
-    const timer = setInterval(() => {
-      const { countdown } = this.data
-      
-      if (countdown <= 1) {
-        clearInterval(timer)
-        this.setData({ countdown: 0, timer: null })
-      } else {
-        this.setData({ countdown: countdown - 1 })
-      }
-    }, 1000)
-    
-    this.setData({ timer })
+  // ==================== 注册相关 ====================
+
+  /**
+   * 注册表单 - 邮箱输入
+   */
+  onRegisterEmailInput(e) {
+    const email = e.detail.value
+    this.setData({
+      'registerForm.email': email,
+      'registerErrors.email': ''
+    })
   },
 
-  // 提交
-  async handleSubmit() {
-    const { isRegister, useCode, email, password, code, loading } = this.data
-
-    // 防止重复提交
-    if (loading) {
-      return
-    }
-
-    // 清空之前的错误
+  /**
+   * 注册表单 - 验证码输入
+   */
+  onRegisterCodeInput(e) {
+    const code = e.detail.value
     this.setData({
-      emailError: '',
-      passwordError: '',
-      codeError: ''
+      'registerForm.code': code,
+      'registerErrors.code': ''
     })
+  },
 
-    // 表单验证
-    const emailError = this.validateEmail(email)
-    if (emailError) {
-      this.setData({ emailError })
-      wx.showToast({ title: emailError, icon: 'none' })
-      return
-    }
+  /**
+   * 注册表单 - 密码输入
+   */
+  onRegisterPasswordInput(e) {
+    const password = e.detail.value
+    this.setData({
+      'registerForm.password': password,
+      'registerErrors.password': ''
+    })
+  },
 
-    // 验证码模式需要验证码
-    if (isRegister || useCode) {
-      const codeError = this.validateCode(code)
-      if (codeError) {
-        this.setData({ codeError })
-        wx.showToast({ title: codeError, icon: 'none' })
-        return
+  /**
+   * 注册表单 - 确认密码输入
+   */
+  onRegisterConfirmPasswordInput(e) {
+    const confirmPassword = e.detail.value
+    this.setData({
+      'registerForm.confirmPassword': confirmPassword,
+      'registerErrors.confirmPassword': ''
+    })
+  },
+
+  /**
+   * 切换确认密码显示
+   */
+  toggleConfirmPassword() {
+    this.setData({
+      showConfirmPassword: !this.data.showConfirmPassword
+    })
+  },
+
+  /**
+   * 验证注册表单
+   */
+  validateRegisterForm() {
+    const { email, code, password, confirmPassword } = this.data.registerForm
+    const errors = {}
+    let isValid = true
+
+    // 验证邮箱
+    if (!email) {
+      errors.email = '请输入邮箱'
+      isValid = false
+    } else {
+      const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/
+      if (!emailRegex.test(email)) {
+        errors.email = '请使用南科大邮箱'
+        isValid = false
       }
     }
 
-    // 密码验证
-    const passwordError = this.validatePassword(password)
-    if (passwordError) {
-      this.setData({ passwordError })
-      wx.showToast({ title: passwordError, icon: 'none' })
+    // 验证验证码
+    if (!code) {
+      errors.code = '请输入验证码'
+      isValid = false
+    } else if (code.length !== 6) {
+      errors.code = '验证码为6位数字'
+      isValid = false
+    }
+
+    // 验证密码
+    if (!password) {
+      errors.password = '请输入密码'
+      isValid = false
+    } else if (password.length < 6 || password.length > 20) {
+      errors.password = '密码长度为6-20位'
+      isValid = false
+    }
+
+    // 验证确认密码
+    if (!confirmPassword) {
+      errors.confirmPassword = '请再次输入密码'
+      isValid = false
+    } else if (password !== confirmPassword) {
+      errors.confirmPassword = '两次密码不一致'
+      isValid = false
+    }
+
+    this.setData({ registerErrors: errors })
+    return isValid
+  },
+
+  /**
+   * 发送验证码
+   */
+  async sendCode() {
+    console.log('📧 [Auth] 发送验证码')
+    
+    const { email } = this.data.registerForm
+    
+    // 验证邮箱
+    if (!email) {
+      this.setData({
+        'registerErrors.email': '请输入邮箱'
+      })
+      wx.vibrateShort()
       return
     }
+
+    const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/
+    if (!emailRegex.test(email)) {
+      this.setData({
+        'registerErrors.email': '请使用南科大邮箱'
+      })
+      wx.vibrateShort()
+      return
+    }
+
+    this.setData({ codeSending: true })
 
     try {
-      this.setData({ loading: true })
-      wx.showLoading({ 
-        title: isRegister ? '注册中...' : '登录中...',
-        mask: true
+      console.log('📤 [Auth] 发送验证码请求:', { email })
+      
+      await sendVerifyCode(email, 'register')
+      
+      console.log('✅ [Auth] 验证码发送成功')
+      
+      wx.showToast({
+        title: '验证码已发送',
+        icon: 'success',
+        duration: 1500
+      })
+
+      // 开始倒计时
+      this.startCountdown()
+      
+    } catch (error) {
+      console.error('❌ [Auth] 验证码发送失败:', error)
+      
+      this.setData({ codeSending: false })
+      
+      wx.vibrateShort()
+      wx.showToast({
+        title: error.message || '发送失败',
+        icon: 'none',
+        duration: 2000
+      })
+    }
+  },
+
+  /**
+   * 开始倒计时
+   */
+  startCountdown() {
+    this.setData({ 
+      countdown: 60,
+      codeSending: false
+    })
+    
+    const timer = setInterval(() => {
+      const countdown = this.data.countdown - 1
+      
+      if (countdown <= 0) {
+        clearInterval(timer)
+        this.setData({ countdown: 0 })
+      } else {
+        this.setData({ countdown })
+      }
+    }, 1000)
+  },
+
+  /**
+   * 处理注册
+   */
+  async handleRegister() {
+    console.log('📝 [Auth] 开始注册流程')
+
+    // 验证表单
+    if (!this.validateRegisterForm()) {
+      console.log('❌ [Auth] 表单验证失败')
+      wx.vibrateShort()
+      return
+    }
+
+    const { email, code, password } = this.data.registerForm
+
+    this.setData({ registerLoading: true })
+
+    try {
+      console.log('📤 [Auth] 发送注册请求:', { email })
+      
+      const result = await register({
+        email,
+        password,
+        verificationCode: code
       })
       
-      let result
-      
-      if (isRegister) {
-        // 注册
-        result = await register({
-          email,
-          password,
-          verifyCode: code,
-          nickname: email.split('@')[0],
-          gender: 0
+      console.log('✅ [Auth] 注册成功:', result)
+
+      wx.showToast({
+        title: '注册成功',
+        icon: 'success',
+        duration: 1500
+      })
+
+      // 切换到登录页，并预填邮箱
+      setTimeout(() => {
+        this.setData({
+          tabIndex: 0,
+          'loginForm.email': email,
+          'loginForm.password': '',
+          registerForm: {
+            email: '',
+            code: '',
+            password: '',
+            confirmPassword: ''
+          },
+          registerLoading: false
         })
         
-        wx.showToast({ 
-          title: '注册成功！', 
-          icon: 'success',
-          duration: 2000
-        })
-      } else if (useCode) {
-        // 验证码登录
-        result = await loginWithCode({ email, code })
-        wx.showToast({ 
-          title: '登录成功！', 
-          icon: 'success',
-          duration: 2000
-        })
-      } else {
-        // 密码登录
-        result = await login({ email, password })
-        wx.showToast({ 
-          title: '登录成功！', 
-          icon: 'success',
-          duration: 2000
-        })
-      }
-
-      // 存储token和用户信息
-      const { token, user } = result
-      wx.setStorageSync('token', token)
-      wx.setStorageSync('user', user)
-
-      // 更新全局数据
-      const app = getApp()
-      app.globalData.isLogin = true
-      app.globalData.token = token
-      app.globalData.userInfo = user
-
-      // 延迟跳转，让用户看到成功提示
-      setTimeout(() => {
-        wx.switchTab({ 
-          url: '/pages/plaza/index',
-          success: () => {
-            // 触发广场页面刷新
-            const pages = getCurrentPages()
-            const plazaPage = pages.find(page => page.route === 'pages/plaza/index')
-            if (plazaPage && plazaPage.onShow) {
-              plazaPage.onShow()
-            }
-          }
+        wx.showToast({
+          title: '请登录',
+          icon: 'none',
+          duration: 1500
         })
       }, 1500)
 
     } catch (error) {
-      wx.hideLoading()
-      this.setData({ loading: false })
+      console.error('❌ [Auth] 注册失败:', error)
       
-      const errorMsg = error.message || (isRegister ? '注册失败' : '登录失败')
+      this.setData({ registerLoading: false })
       
-      wx.showToast({ 
-        title: errorMsg, 
+      wx.vibrateShort()
+      wx.showToast({
+        title: error.message || '注册失败',
         icon: 'none',
-        duration: 2500
+        duration: 2000
       })
-      
-      // 根据错误类型设置对应的错误提示
-      if (errorMsg.includes('邮箱')) {
-        this.setData({ emailError: errorMsg })
-      } else if (errorMsg.includes('密码')) {
-        this.setData({ passwordError: errorMsg })
-      } else if (errorMsg.includes('验证码')) {
-        this.setData({ codeError: errorMsg })
-      }
     }
+  },
+
+  // ==================== 其他功能 ====================
+
+  /**
+   * 跳转到忘记密码
+   */
+  goToForgotPassword() {
+    wx.showToast({
+      title: '功能开发中',
+      icon: 'none',
+      duration: 1500
+    })
+  },
+
+  /**
+   * 跳转到微信登录
+   */
+  goToWechatLogin() {
+    console.log('🚀 [Auth] 跳转到微信登录')
+    wx.navigateTo({
+      url: '/pages/login/index',
+      success: () => {
+        console.log('✅ [Auth] 跳转成功')
+      },
+      fail: (err) => {
+        console.error('❌ [Auth] 跳转失败:', err)
+      }
+    })
+  },
+
+  /**
+   * 查看用户协议
+   */
+  viewUserAgreement() {
+    wx.showModal({
+      title: '用户协议',
+      content: '用户协议内容开发中...',
+      showCancel: false
+    })
+  },
+
+  /**
+   * 查看隐私政策
+   */
+  viewPrivacyPolicy() {
+    wx.showModal({
+      title: '隐私政策',
+      content: '隐私政策内容开发中...',
+      showCancel: false
+    })
   }
 })

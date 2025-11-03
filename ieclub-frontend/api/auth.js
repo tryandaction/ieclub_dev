@@ -111,6 +111,64 @@ export const bindWechat = (data) => {
 }
 
 /**
+ * 解绑微信
+ * @returns {Promise}
+ */
+export const unbindWechat = () => {
+  return request('/auth/unbind-wechat', {
+    method: 'POST'
+  })
+}
+
+/**
+ * 修改密码
+ * @param {object} data - { oldPassword, newPassword }
+ * @returns {Promise}
+ */
+export const changePassword = (data) => {
+  return request('/auth/change-password', {
+    method: 'PUT',
+    data
+  })
+}
+
+/**
+ * 忘记密码
+ * @param {string} email - 邮箱
+ * @returns {Promise}
+ */
+export const forgotPassword = (email) => {
+  return request('/auth/forgot-password', {
+    method: 'POST',
+    data: { email }
+  })
+}
+
+/**
+ * 重置密码（通过验证码）
+ * @param {object} data - { email, code, newPassword }
+ * @returns {Promise}
+ */
+export const resetPasswordByCode = (data) => {
+  return request('/auth/reset-password-by-code', {
+    method: 'POST',
+    data
+  })
+}
+
+/**
+ * 注销账号
+ * @param {object} data - { password, reason }
+ * @returns {Promise}
+ */
+export const deleteAccount = (data) => {
+  return request('/auth/account', {
+    method: 'DELETE',
+    data
+  })
+}
+
+/**
  * 获取当前用户信息
  * @returns {Promise<object>}
  */

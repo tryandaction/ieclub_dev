@@ -37,13 +37,12 @@ function validateApiConfig() {
       errors.push('小程序必须使用 HTTPS 协议')
     }
 
-    // 检查是否包含 www（常见错误）
-    if (apiBase.includes('www.ieclub.online')) {
-      errors.push('API 地址不应包含 www 前缀，应使用 ieclub.online')
-    }
-
     // 检查是否是正确的域名
-    if (!apiBase.includes('ieclub.online') && !apiBase.includes('localhost')) {
+    const hasValidDomain = apiBase.includes('ieclub.online') || 
+                           apiBase.includes('localhost') || 
+                           apiBase.includes('127.0.0.1')
+    
+    if (!hasValidDomain) {
       warnings.push('API 地址可能不正确，请确认域名')
     }
 

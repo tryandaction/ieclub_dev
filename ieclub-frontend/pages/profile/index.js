@@ -1,158 +1,155 @@
 // pages/profile/index.js
 import { getCurrentUser, logout } from '../../api/auth'
-import { getMyActivities } from '../../api/activity'
+import { mixinPage } from '../../utils/mixin'
+import dataLoadMixin from '../../mixins/dataLoadMixin'
 
-Page({
+mixinPage({
+  mixins: [dataLoadMixin],
+  
   data: {
-    user: null,
-    loading: true,
-    menuItems: [
-      { id: 'topics', label: '我的话题', icon: '📝', path: '/pages/my-topics/my-topics' },
-      { id: 'activities', label: '我的活动', icon: '📅', path: '/pages/my-activities/my-activities' },
-      { id: 'favorites', label: '我的收藏', icon: '⭐', path: '/pages/my-favorites/my-favorites' },
-      { id: 'following', label: '我的关注', icon: '👥', path: '/pages/my-following/my-following' },
-      { id: 'settings', label: '设置', icon: '⚙️', path: '/pages/settings/settings' }
-    ]
+    isLogin: false,
+    stats: {
+      topics: 0,
+      followers: 0,
+      following: 0
+    }
   },
 
   onLoad() {
-    console.log('个人中心页加载')
+    console.log('✅ 个人中心页加载')
+    this.checkLoginAndLoadUser()
   },
 
   onShow() {
-    console.log('个人中心页显示')
-    this.loadUserInfo()
+    console.log('✅ 个人中心页显示')
+    this.checkLoginAndLoadUser()
   },
 
   /**
-   * 加载用户信息
+   * 检查登录并加载用户信息
    */
-  async loadUserInfo() {
-    try {
-      // 检查登录状态
-      const token = wx.getStorageSync('token')
-      if (!token) {
-        this.setData({
-          user: null,
-          loading: false
-        })
-        return
-      }
-
-      this.setData({ loading: true })
-
-      const user = await getCurrentUser()
-      
-      // 格式化用户数据
-      const formattedUser = {
-        ...user,
-        name: user.nickname || user.name || '未设置昵称',
-        avatar: user.avatar || '👤',
-        major: user.major || '未设置专业',
-        grade: user.grade || '未设置年级',
-        level: user.level || 0,
-        score: user.score || 0,
-        stats: {
-          topics: user.topicCount || 0,
-          followers: user.followerCount || 0,
-          following: user.followingCount || 0
-        }
-      }
-
-      this.setData({
-        user: formattedUser,
-        loading: false
-      })
-
-      // 保存到本地存储
-      wx.setStorageSync('user', JSON.stringify(formattedUser))
-
-      console.log('✅ 加载用户信息成功:', formattedUser)
-    } catch (error) {
-      console.error('❌ 加载用户信息失败:', error)
-      this.setData({ loading: false })
-      
-      // 如果是 401 错误，清除登录状态
-      if (error.code === 401) {
-        wx.removeStorageSync('token')
-        wx.removeStorageSync('user')
-        this.setData({ user: null })
-      }
-    }
-  },
-
-  /**
-   * 点击菜单项
-   */
-  onMenuTap(e) {
-    const { path, label } = e.currentTarget.dataset
+  async checkLoginAndLoadUser() {
+    const token = wx.getStorageSync('token')
+    const app = getApp()
     
-    // 检查登录状态
-    const token = wx.getStorageSync('token')
-    if (!token) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none',
-        duration: 1500
-      })
-      setTimeout(() => {
-        wx.reLaunch({
-          url: '/pages/auth/index'
-        })
-      }, 1500)
+    if (!token && !app.globalData.isLogin) {
+      this.setData({ isLogin: false })
       return
     }
-
-    if (path) {
-      wx.navigateTo({
-        url: path,
-        fail: () => {
-          wx.showToast({
-            title: `${label}功能开发中`,
-            icon: 'none',
-            duration: 2000
-          })
-        }
+    
+    this.setData({ isLogin: true })
+    
+    // 使用数据加载混入
+    if (!this.dataLoadInitialized) {
+      this.initDataLoad({
+        dataKey: 'user',
+        autoLoad: true
       })
+      this.dataLoadInitialized = true
     } else {
-      wx.showToast({
-        title: label,
-        icon: 'none',
-        duration: 2000
-      })
+      this.loadData()
     }
   },
 
   /**
-   * 编辑个人资料
+   * 获取数据（供混入调用）
    */
-  editProfile() {
-    // 检查登录状态
-    const token = wx.getStorageSync('token')
-    if (!token) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none',
-        duration: 1500
-      })
-      setTimeout(() => {
-        wx.reLaunch({
-          url: '/pages/auth/index'
-        })
-      }, 1500)
-      return
+  async fetchData() {
+    return await getCurrentUser()
+  },
+
+  /**
+   * 格式化数据（供混入调用）
+   */
+  formatData(user) {
+    return {
+      ...user,
+      nickname: user.nickname || user.name || '未设置昵称',
+      avatar: user.avatar || '👤',
+      major: user.major || '未设置专业',
+      grade: user.grade || '',
+      level: user.level || 1,
+      score: user.score || 0
+    }
+  },
+
+  /**
+   * 数据加载成功回调
+   */
+  onDataLoaded(user) {
+    // 格式化统计数据
+    const stats = {
+      topics: user.topicCount || 0,
+      followers: user.followerCount || 0,
+      following: user.followingCount || 0
     }
 
-    wx.navigateTo({
-      url: '/pages/edit-profile/edit-profile',
-      fail: () => {
-        wx.showToast({
-          title: '编辑资料功能开发中',
-          icon: 'none',
-          duration: 2000
-        })
-      }
-    })
+    this.setData({ stats })
+
+    // 更新全局状态
+    const app = getApp()
+    app.globalData.userInfo = this.data.user
+
+    console.log('✅ 加载用户信息成功')
+  },
+
+  /**
+   * 数据加载失败回调
+   */
+  onDataLoadError(error) {
+    console.error('❌ 加载用户信息失败:', error)
+    
+    // 如果是 401 错误，清除登录状态
+    if (error.code === 401 || error.statusCode === 401) {
+      wx.removeStorageSync('token')
+      wx.removeStorageSync('user')
+      this.setData({ isLogin: false, user: null })
+    }
+  },
+
+  // 跳转到我的话题
+  goToMyTopics() {
+    wx.showToast({ title: '功能开发中', icon: 'none' })
+  },
+
+  // 跳转到我的收藏
+  goToFavorites() {
+    wx.showToast({ title: '功能开发中', icon: 'none' })
+  },
+
+  // 跳转到参与的活动
+  goToParticipated() {
+    wx.showToast({ title: '功能开发中', icon: 'none' })
+  },
+
+  // 跳转到数据统计
+  goToStats() {
+    wx.showToast({ title: '功能开发中', icon: 'none' })
+  },
+
+  // 跳转到设置
+  goToSettings() {
+    wx.showToast({ title: '功能开发中', icon: 'none' })
+  },
+
+  // 跳转到意见反馈
+  goToFeedback() {
+    wx.showToast({ title: '功能开发中', icon: 'none' })
+  },
+
+  // 跳转到关于我们
+  goToAbout() {
+    wx.showToast({ title: '功能开发中', icon: 'none' })
+  },
+
+  // 跳转到粉丝列表
+  goToFollowers() {
+    wx.showToast({ title: '功能开发中', icon: 'none' })
+  },
+
+  // 跳转到关注列表
+  goToFollowing() {
+    wx.showToast({ title: '功能开发中', icon: 'none' })
   },
 
   /**
@@ -224,4 +221,3 @@ Page({
     })
   }
 })
-

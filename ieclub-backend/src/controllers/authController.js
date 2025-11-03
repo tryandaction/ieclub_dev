@@ -1121,6 +1121,132 @@ class AuthController {
     }
   }
 
+  // 解绑微信
+  static async unbindWechat(req, res, next) {
+    try {
+      const userId = req.user.id;
+
+      // 检查用户是否绑定了微信
+      const binding = await prisma.userBinding.findFirst({
+        where: {
+          userId,
+          type: 'wechat'
+        }
+      });
+
+      if (!binding) {
+        return res.status(400).json({
+          success: false,
+          message: '当前未绑定微信'
+        });
+      }
+
+      // 检查用户是否设置了密码（如果没有密码，不能解绑微信，否则无法登录）
+      const user = await prisma.user.findUnique({
+        where: { id: userId }
+      });
+
+      if (!user.password || user.password === '') {
+        return res.status(400).json({
+          success: false,
+          message: '请先设置密码后再解绑微信，否则将无法登录'
+        });
+      }
+
+      // 删除绑定记录
+      await prisma.userBinding.delete({
+        where: { id: binding.id }
+      });
+
+      // 清除用户的openid和unionid
+      await prisma.user.update({
+        where: { id: userId },
+        data: { 
+          openid: null, 
+          unionid: null,
+          sessionKey: null
+        }
+      });
+
+      logger.info('用户解绑微信:', { userId });
+
+      res.json({
+        success: true,
+        message: '微信解绑成功'
+      });
+    } catch (error) {
+      logger.error('解绑微信失败:', { userId: req.user?.id, error: error.message });
+      next(error);
+    }
+  }
+
+  // 注销账号
+  static async deleteAccount(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const { password, reason } = req.body;
+
+      // 验证密码
+      const user = await prisma.user.findUnique({
+        where: { id: userId }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: '用户不存在'
+        });
+      }
+
+      // 如果用户有密码，需要验证密码
+      if (user.password && user.password !== '') {
+        if (!password) {
+          return res.status(400).json({
+            success: false,
+            message: '请输入密码确认注销'
+          });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+          return res.status(401).json({
+            success: false,
+            message: '密码错误'
+          });
+        }
+      }
+
+      // 软删除：将用户状态设置为deleted，保留数据
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          status: 'deleted',
+          email: `deleted_${userId}_${user.email}`, // 避免邮箱冲突
+          openid: null,
+          unionid: null,
+          sessionKey: null,
+          phone: null,
+          updatedAt: new Date()
+        }
+      });
+
+      // 记录注销原因（可选）
+      if (reason) {
+        logger.info('用户注销账号:', { userId, reason });
+      } else {
+        logger.info('用户注销账号:', { userId });
+      }
+
+      res.json({
+        success: true,
+        message: '账号注销成功'
+      });
+    } catch (error) {
+      logger.error('注销账号失败:', { userId: req.user?.id, error: error.message });
+      next(error);
+    }
+  }
+
   // 退出登录
   static async logout(req, res, next) {
     try {
@@ -1137,7 +1263,7 @@ class AuthController {
     }
   }
 
-  // 微信小程序登录
+  // 微信小程序登录（完善版）
   static async wechatLogin(req, res, next) {
     try {
       const { code, nickName, avatarUrl, gender } = req.body;
@@ -1151,45 +1277,116 @@ class AuthController {
 
       // TODO: 调用微信服务器换取openid和session_key
       // 这里需要配置微信小程序的appid和secret
+      // const wechatService = require('../services/wechatService');
       // const wechatData = await wechatService.code2Session(code);
-      // const { openid, session_key, unionid } = wechatData;
+      // const { openid, sessionKey, unionid } = wechatData;
 
       // 临时方案：使用code作为openid（仅用于开发测试）
       const openid = `wx_${code}_${Date.now()}`;
+      const sessionKey = null;
       const unionid = null;
 
-      // 查找或创建用户
-      let user = await prisma.user.findUnique({
-        where: { openid }
+      logger.info('微信登录:', { openid, hasNickName: !!nickName });
+
+      // 1. 先查找是否已绑定微信
+      const binding = await prisma.userBinding.findUnique({
+        where: {
+          type_bindValue: {
+            type: 'wechat',
+            bindValue: openid
+          }
+        },
+        include: {
+          user: true
+        }
       });
 
-      if (!user) {
-        // 首次微信登录，创建新用户
-        user = await prisma.user.create({
-          data: {
-            openid,
-            unionid,
-            nickname: nickName || '微信用户',
-            avatar: avatarUrl || '',
-            gender: gender || 0,
-            email: `${openid}@temp.ieclub.online`, // 临时邮箱，等待用户绑定
-            password: '', // 微信登录无需密码
-            lastLoginAt: new Date(),
-            lastActiveAt: new Date()
-          }
-        });
-      } else {
-        // 已有用户，更新最后登录时间
-        await prisma.user.update({
+      let user;
+      let isNewUser = false;
+      let needBindEmail = false;
+
+      if (binding) {
+        // 已绑定：直接登录
+        user = binding.user;
+
+        // 检查用户状态
+        if (user.status === 'deleted') {
+          return res.status(403).json({
+            success: false,
+            message: '该账号已注销'
+          });
+        }
+
+        if (user.status === 'banned') {
+          return res.status(403).json({
+            success: false,
+            message: '该账号已被封禁'
+          });
+        }
+
+        // 更新最后登录时间和微信信息
+        user = await prisma.user.update({
           where: { id: user.id },
           data: {
             lastLoginAt: new Date(),
             lastActiveAt: new Date(),
-            // 更新微信信息
             nickname: nickName || user.nickname,
-            avatar: avatarUrl || user.avatar
+            avatar: avatarUrl || user.avatar,
+            gender: gender || user.gender
           }
         });
+
+        logger.info('已绑定用户登录:', { userId: user.id, email: user.email });
+      } else {
+        // 未绑定：查找是否有同openid的用户（旧数据兼容）
+        user = await prisma.user.findUnique({
+          where: { openid }
+        });
+
+        if (user) {
+          // 存在旧数据，创建绑定记录
+          await prisma.userBinding.create({
+            data: {
+              userId: user.id,
+              type: 'wechat',
+              bindValue: openid,
+              metadata: JSON.stringify({ unionid, nickname: nickName, avatar: avatarUrl })
+            }
+          });
+
+          logger.info('旧用户创建绑定记录:', { userId: user.id });
+        } else {
+          // 首次微信登录：创建新用户（临时账号，需要绑定邮箱）
+          isNewUser = true;
+          needBindEmail = true;
+
+          user = await prisma.user.create({
+            data: {
+              openid,
+              unionid,
+              sessionKey,
+              nickname: nickName || '微信用户',
+              avatar: avatarUrl || '',
+              gender: gender || 0,
+              email: `temp_${openid}@ieclub.online`, // 临时邮箱
+              password: '', // 无密码，必须先绑定邮箱
+              lastLoginAt: new Date(),
+              lastActiveAt: new Date()
+            }
+          });
+
+          // 创建绑定记录
+          await prisma.userBinding.create({
+            data: {
+              userId: user.id,
+              type: 'wechat',
+              bindValue: openid,
+              metadata: JSON.stringify({ unionid, nickname: nickName, avatar: avatarUrl })
+            }
+          });
+
+          logger.info('新用户首次微信登录:', { userId: user.id, openid });
+        }
       }
 
       // 记录登录日志
@@ -1210,9 +1407,14 @@ class AuthController {
         { expiresIn: config.jwt.expiresIn }
       );
 
+      // 检查是否需要绑定邮箱（临时账号）
+      if (!needBindEmail && user.email && user.email.startsWith('temp_')) {
+        needBindEmail = true;
+      }
+
       res.json({
         success: true,
-        message: '登录成功',
+        message: isNewUser ? '首次登录成功，请绑定学校邮箱' : '登录成功',
         data: {
           token,
           user: {
@@ -1220,15 +1422,18 @@ class AuthController {
             openid: user.openid,
             nickname: user.nickname,
             avatar: user.avatar,
-            email: user.email,
+            email: needBindEmail ? null : user.email, // 临时邮箱不返回
             level: user.level,
+            credits: user.credits,
             isCertified: user.isCertified,
-            needBindEmail: !user.email || user.email.endsWith('@temp.ieclub.online') // 是否需要绑定邮箱
+            isNewUser,
+            needBindEmail, // 是否需要绑定邮箱
+            hasPassword: !!(user.password && user.password !== '') // 是否设置了密码
           }
         }
       });
     } catch (error) {
-      logger.error('微信登录失败:', { code: req.body.code, error: error.message });
+      logger.error('微信登录失败:', { code: req.body.code, error: error.message, stack: error.stack });
       next(error);
     }
   }

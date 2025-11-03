@@ -1,11 +1,13 @@
 // pages/activity-detail/activity-detail.js
 import { getActivityDetail, toggleParticipation, checkIn, generateCheckInQRCode, getCheckInStats } from '../../api/activity'
+import { mixinPage } from '../../utils/mixin'
+import dataLoadMixin from '../../mixins/dataLoadMixin'
 
-Page({
+mixinPage({
+  mixins: [dataLoadMixin],
+  
   data: {
     activityId: '',
-    activity: null,
-    loading: true,
     isParticipating: false,
     hasCheckedIn: false,
     isOrganizer: false
@@ -14,51 +16,59 @@ Page({
   onLoad(options) {
     if (options.id) {
       this.setData({ activityId: options.id })
-      this.loadActivityDetail()
+      
+      // 使用数据加载混入
+      this.initDataLoad({
+        dataKey: 'activity',
+        autoLoad: true
+      })
     }
   },
 
   /**
-   * 加载活动详情
+   * 获取数据（供混入调用）
    */
-  async loadActivityDetail() {
-    try {
-      this.setData({ loading: true })
-      
-      const activity = await getActivityDetail(this.data.activityId)
-      
-      // 获取当前用户信息
-      const userStr = wx.getStorageSync('user')
-      const currentUserId = userStr ? JSON.parse(userStr).id : null
-      
-      this.setData({
-        activity,
-        isParticipating: activity.isParticipating || false,
-        hasCheckedIn: activity.hasCheckedIn || false,
-        isOrganizer: activity.organizer?.id === currentUserId,
-        loading: false
-      })
+  async fetchData() {
+    return await getActivityDetail(this.data.activityId)
+  },
 
-      console.log('✅ 加载活动详情成功:', {
-        id: activity.id,
-        title: activity.title,
-        isParticipating: activity.isParticipating,
-        isOrganizer: activity.organizer?.id === currentUserId
-      })
-    } catch (error) {
-      console.error('❌ 加载活动详情失败:', error)
-      wx.showToast({
-        title: error.message || '加载失败',
-        icon: 'none',
-        duration: 2000
-      })
-      this.setData({ loading: false })
-      
-      // 如果加载失败，返回上一页
-      setTimeout(() => {
-        wx.navigateBack()
-      }, 2000)
-    }
+  /**
+   * 数据加载成功回调
+   */
+  onDataLoaded(activity) {
+    // 获取当前用户信息
+    const userStr = wx.getStorageSync('user')
+    const currentUserId = userStr ? JSON.parse(userStr).id : null
+    
+    this.setData({
+      isParticipating: activity.isParticipating || false,
+      hasCheckedIn: activity.hasCheckedIn || false,
+      isOrganizer: activity.organizer?.id === currentUserId
+    })
+
+    console.log('✅ 加载活动详情成功:', {
+      id: activity.id,
+      title: activity.title,
+      isParticipating: activity.isParticipating,
+      isOrganizer: activity.organizer?.id === currentUserId
+    })
+  },
+
+  /**
+   * 数据加载失败回调
+   */
+  onDataLoadError(error) {
+    console.error('❌ 加载活动详情失败:', error)
+    wx.showToast({
+      title: error.message || '加载失败',
+      icon: 'none',
+      duration: 2000
+    })
+    
+    // 如果加载失败，返回上一页
+    setTimeout(() => {
+      wx.navigateBack()
+    }, 2000)
   },
 
   /**
@@ -98,7 +108,7 @@ Page({
       })
 
       // 重新加载详情以更新参与人数
-      this.loadActivityDetail()
+      this.loadData()
     } catch (error) {
       wx.hideLoading()
       console.error('❌ 报名操作失败:', error)
@@ -171,7 +181,7 @@ Page({
             })
 
             // 重新加载详情
-            this.loadActivityDetail()
+            this.loadData()
           } catch (error) {
             wx.hideLoading()
             console.error('❌ 签到失败:', error)
@@ -294,4 +304,3 @@ Page({
     }
   }
 })
-
