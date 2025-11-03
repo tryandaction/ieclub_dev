@@ -2,119 +2,252 @@
 .login-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #f5f3ff 0%, #fce7f3 100%);
-  padding: 100rpx 40rpx 40rpx;
+  padding: 120rpx 48rpx 80rpx;
   position: relative;
   overflow: hidden;
+}
+
+/* IE风格背景装饰 */
+.login-page::before {
+  content: '';
+  position: fixed;
+  top: -10%;
+  right: -15%;
+  width: 500rpx;
+  height: 500rpx;
+  background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: float 6s ease-in-out infinite;
+}
+
+.login-page::after {
+  content: '';
+  position: fixed;
+  bottom: -20%;
+  left: -15%;
+  width: 400rpx;
+  height: 400rpx;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.2) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: float 7s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-30rpx) scale(1.05);
+  }
 }
 
 /* Logo 区域 */
 .logo-section {
   text-align: center;
   margin-bottom: 120rpx;
+  position: relative;
+  z-index: 10;
 }
 
 .logo {
-  width: 160rpx;
-  height: 160rpx;
-  margin: 0 auto 30rpx;
+  width: 180rpx;
+  height: 180rpx;
+  margin: 0 auto 36rpx;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 40rpx;
+  border-radius: 44rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 72rpx;
+  font-size: 80rpx;
   font-weight: bold;
-  box-shadow: 0 20rpx 40rpx rgba(102, 126, 234, 0.3);
-  animation: float 3s ease-in-out infinite;
+  box-shadow: 0 24rpx 48rpx rgba(102, 126, 234, 0.35);
+  animation: logoFloat 3s ease-in-out infinite;
+  position: relative;
 }
 
-@keyframes float {
+/* Logo光晕效果 */
+.logo::before {
+  content: '';
+  position: absolute;
+  inset: -4rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 48rpx;
+  opacity: 0.3;
+  filter: blur(20rpx);
+  z-index: -1;
+  animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
   0%, 100% {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-20rpx);
+    transform: translateY(-16rpx);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.05);
   }
 }
 
 .app-name {
-  font-size: 56rpx;
+  font-size: 64rpx;
   font-weight: bold;
   background: linear-gradient(135deg, #667eea 0%, #ec4899 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
+  letter-spacing: 2rpx;
 }
 
 .app-slogan {
   font-size: 28rpx;
   color: #6b7280;
-  opacity: 0.8;
+  opacity: 0.9;
+  letter-spacing: 4rpx;
 }
 
 /* 说明文字 */
 .description {
-  margin-bottom: 100rpx;
+  margin-bottom: 120rpx;
+  position: relative;
+  z-index: 10;
 }
 
 .desc-item {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 32rpx;
+  margin-bottom: 36rpx;
+  padding: 24rpx 32rpx;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 20rpx;
+  backdrop-filter: blur(10rpx);
+  transition: all 0.3s;
+}
+
+.desc-item:active {
+  transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .desc-icon {
-  font-size: 40rpx;
-  margin-right: 20rpx;
+  font-size: 44rpx;
+  margin-right: 24rpx;
 }
 
 .desc-text {
   font-size: 28rpx;
-  color: #4b5563;
+  color: #374151;
+  font-weight: 500;
 }
 
 /* 登录区域 */
 .login-section {
   position: fixed;
   bottom: 80rpx;
-  left: 40rpx;
-  right: 40rpx;
+  left: 48rpx;
+  right: 48rpx;
+  z-index: 10;
 }
 
 .login-btn {
   width: 100%;
-  height: 96rpx;
+  height: 100rpx;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 48rpx;
+  border-radius: 50rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 16rpx 32rpx rgba(102, 126, 234, 0.4);
+  box-shadow: 0 20rpx 40rpx rgba(102, 126, 234, 0.4);
   transition: all 0.3s;
   border: none;
-  margin-bottom: 30rpx;
+  margin-bottom: 28rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 按钮波纹效果 */
+.login-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.login-btn:active::before {
+  width: 600rpx;
+  height: 600rpx;
 }
 
 .login-btn:active {
   transform: scale(0.98);
-  box-shadow: 0 8rpx 16rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 12rpx 24rpx rgba(102, 126, 234, 0.3);
 }
 
 .login-btn.loading {
-  opacity: 0.7;
+  opacity: 0.8;
+  pointer-events: none;
 }
 
 .login-icon {
-  font-size: 36rpx;
+  font-size: 40rpx;
   margin-right: 16rpx;
 }
 
 .login-text {
   font-size: 32rpx;
   color: #fff;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+}
+
+/* 其他登录方式 */
+.other-login {
+  text-align: center;
+  margin-bottom: 28rpx;
+}
+
+.other-login-text {
+  font-size: 28rpx;
+  color: #8b5cf6;
   font-weight: 600;
+  padding: 16rpx 32rpx;
+  position: relative;
+  display: inline-block;
+}
+
+.other-login-text::after {
+  content: '';
+  position: absolute;
+  bottom: 8rpx;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 80%;
+  height: 3rpx;
+  background: linear-gradient(90deg, transparent, #8b5cf6, transparent);
+  transition: transform 0.3s;
+}
+
+.other-login-text:active::after {
+  transform: translateX(-50%) scaleX(1);
 }
 
 /* 用户协议 */
@@ -122,6 +255,7 @@
   text-align: center;
   font-size: 22rpx;
   color: #9ca3af;
+  line-height: 1.6;
 }
 
 .agreement-text {
@@ -130,60 +264,61 @@
 
 .agreement-link {
   color: #8b5cf6;
+  font-weight: 600;
 }
 
-/* 底部装饰 */
+/* 底部装饰圆 */
 .decoration {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 300rpx;
+  height: 400rpx;
   pointer-events: none;
-  z-index: -1;
+  z-index: 1;
 }
 
 .decoration-circle {
   position: absolute;
   border-radius: 50%;
-  opacity: 0.1;
+  opacity: 0.15;
 }
 
 .decoration-1 {
-  width: 200rpx;
-  height: 200rpx;
-  background: #667eea;
-  bottom: -50rpx;
-  left: -50rpx;
-  animation: pulse 4s ease-in-out infinite;
+  width: 240rpx;
+  height: 240rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  bottom: -80rpx;
+  left: -80rpx;
+  animation: decorPulse 5s ease-in-out infinite;
 }
 
 .decoration-2 {
-  width: 150rpx;
-  height: 150rpx;
-  background: #ec4899;
-  bottom: 100rpx;
-  right: 50rpx;
-  animation: pulse 5s ease-in-out infinite;
+  width: 180rpx;
+  height: 180rpx;
+  background: linear-gradient(135deg, #ec4899 0%, #f5576c 100%);
+  bottom: 120rpx;
+  right: 60rpx;
+  animation: decorPulse 6s ease-in-out infinite;
 }
 
 .decoration-3 {
-  width: 100rpx;
-  height: 100rpx;
-  background: #764ba2;
-  bottom: 50rpx;
+  width: 140rpx;
+  height: 140rpx;
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  bottom: 60rpx;
   left: 50%;
   transform: translateX(-50%);
-  animation: pulse 3s ease-in-out infinite;
+  animation: decorPulse 4s ease-in-out infinite;
 }
 
-@keyframes pulse {
+@keyframes decorPulse {
   0%, 100% {
     transform: scale(1);
-    opacity: 0.1;
+    opacity: 0.15;
   }
   50% {
-    transform: scale(1.1);
-    opacity: 0.2;
+    transform: scale(1.2);
+    opacity: 0.25;
   }
 }

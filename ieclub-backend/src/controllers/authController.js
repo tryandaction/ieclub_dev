@@ -33,17 +33,11 @@ function validatePasswordStrength(password) {
   if (password.length < 8) {
     return { valid: false, message: '密码至少8位' };
   }
-  if (!/[a-z]/.test(password)) {
-    return { valid: false, message: '密码需包含小写字母' };
-  }
-  if (!/[A-Z]/.test(password)) {
-    return { valid: false, message: '密码需包含大写字母' };
+  if (!/[a-zA-Z]/.test(password)) {
+    return { valid: false, message: '密码需包含字母' };
   }
   if (!/[0-9]/.test(password)) {
     return { valid: false, message: '密码需包含数字' };
-  }
-  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-    return { valid: false, message: '密码需包含特殊字符(!@#$%^&*等)' };
   }
   return { valid: true };
 }
@@ -562,12 +556,12 @@ class AuthController {
     }
   }
 
-  // 重置密码
+  // 重置密码（支持验证码方式和token方式）
   static async resetPassword(req, res, next) {
     try {
-      const { token, newPassword } = req.body;
+      const { token, email, code, newPassword } = req.body;
 
-      if (!token || !newPassword) {
+      if (!newPassword) {
         return res.status(400).json({
           success: false,
           message: '缺少必要参数'
@@ -583,24 +577,90 @@ class AuthController {
         });
       }
 
-      // 验证token
-      const decoded = jwt.verify(token, config.jwt.secret);
-      if (decoded.type !== 'password_reset') {
+      let userId;
+
+      // 方式1: 使用验证码重置（前端使用）
+      if (email && code) {
+        // 验证邮箱格式
+        const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/;
+        if (!emailRegex.test(email)) {
+          return res.status(400).json({
+            success: false,
+            message: '请使用南科大邮箱'
+          });
+        }
+
+        // 验证验证码
+        const stored = await prisma.verificationCode.findFirst({
+          where: {
+            email,
+            code,
+            type: 'reset',
+            used: false
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        });
+
+        if (!stored || stored.expiresAt < new Date()) {
+          return res.status(400).json({
+            success: false,
+            message: '验证码错误或已过期'
+          });
+        }
+
+        // 查找用户
+        const user = await prisma.user.findUnique({
+          where: { email }
+        });
+
+        if (!user) {
+          return res.status(404).json({
+            success: false,
+            message: '该邮箱未注册'
+          });
+        }
+
+        userId = user.id;
+
+        // 标记验证码为已使用
+        await prisma.verificationCode.update({
+          where: { id: stored.id },
+          data: { 
+            used: true,
+            usedAt: new Date()
+          }
+        });
+      } 
+      // 方式2: 使用token重置（邮件链接方式）
+      else if (token) {
+        // 验证token
+        const decoded = jwt.verify(token, config.jwt.secret);
+        if (decoded.type !== 'password_reset') {
+          return res.status(400).json({
+            success: false,
+            message: '无效的重置链接'
+          });
+        }
+
+        // 查找用户
+        const user = await prisma.user.findUnique({
+          where: { id: decoded.userId }
+        });
+
+        if (!user) {
+          return res.status(404).json({
+            success: false,
+            message: '用户不存在'
+          });
+        }
+
+        userId = user.id;
+      } else {
         return res.status(400).json({
           success: false,
-          message: '无效的重置链接'
-        });
-      }
-
-      // 查找用户
-      const user = await prisma.user.findUnique({
-        where: { id: decoded.userId }
-      });
-
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: '用户不存在'
+          message: '缺少必要参数'
         });
       }
 
@@ -609,7 +669,7 @@ class AuthController {
 
       // 更新密码
       await prisma.user.update({
-        where: { id: user.id },
+        where: { id: userId },
         data: { 
           password: hashedPassword,
           updatedAt: new Date()

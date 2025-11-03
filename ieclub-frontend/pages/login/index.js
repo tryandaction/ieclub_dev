@@ -19,6 +19,13 @@ Page({
     }
   },
 
+  // 跳转到邮箱登录页
+  goToAuth() {
+    wx.navigateTo({
+      url: '/pages/auth/index'
+    })
+  },
+
   // 微信快速登录
   handleWechatLogin() {
     this.setData({ loading: true })

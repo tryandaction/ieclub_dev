@@ -31,6 +31,20 @@ export const login = (data) => {
 }
 
 /**
+ * 验证码登录
+ * @param {object} data - 登录数据
+ * @param {string} data.email - 邮箱
+ * @param {string} data.code - 验证码
+ * @returns {Promise<{token: string, user: object}>}
+ */
+export const loginWithCode = (data) => {
+  return request('/auth/login-with-code', {
+    method: 'POST',
+    data
+  })
+}
+
+/**
  * 邮箱注册
  * @param {object} data - 注册数据
  * @param {string} data.email - 邮箱

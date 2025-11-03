@@ -1,167 +1,124 @@
 <!--pages/auth/index.wxml-->
-<view class="auth-page" style="padding-top: {{navBarHeight + 20}}px;">
-  <!-- Logo 区域 -->
-  <view class="logo-section">
-    <view class="logo">IE</view>
-    <view class="app-name">IEClub</view>
-    <view class="app-slogan">学习 · 科研 · 项目 · 创业</view>
+<view class="auth-page">
+  <!-- 顶部返回按钮 -->
+  <view class="nav-bar">
+    <view class="nav-back" bindtap="goBack">
+      <text class="back-icon">←</text>
+      <text class="back-text">返回</text>
+    </view>
   </view>
 
-  <!-- Tab 切换 -->
-  <view class="tab-section">
-    <view class="tab-item {{tabIndex === 0 ? 'active' : ''}}" bindtap="switchTab" data-index="0">
-      <text class="tab-text">登录</text>
+  <!-- 主内容区 -->
+  <view class="content">
+    <!-- 标题区域 -->
+    <view class="header">
+      <text class="title">{{isRegister ? '注册账号' : '邮箱登录'}}</text>
+      <text class="subtitle">{{isRegister ? '创建您的IEClub账号' : '使用南科大邮箱登录'}}</text>
     </view>
-    <view class="tab-item {{tabIndex === 1 ? 'active' : ''}}" bindtap="switchTab" data-index="1">
-      <text class="tab-text">注册</text>
-    </view>
-    <view class="tab-indicator" style="transform: translateX({{tabIndex * 100}}%)"></view>
-  </view>
 
-  <!-- 登录表单 -->
-  <view class="form-section" wx:if="{{tabIndex === 0}}">
-    <!-- 邮箱 -->
-    <view class="form-item">
-      <view class="input-wrapper">
-        <text class="input-icon">📧</text>
+    <!-- 表单 -->
+    <view class="form">
+      <!-- 邮箱 -->
+      <view class="form-item">
+        <view class="label">
+          <text class="icon">📧</text>
+          <text>邮箱地址</text>
+        </view>
         <input 
-          class="input" 
+          class="input {{emailError ? 'error' : ''}}" 
           type="text"
           placeholder="请输入学校邮箱"
-          value="{{loginForm.email}}"
-          bindinput="onLoginEmailInput"
+          value="{{email}}"
+          bindinput="onEmailInput"
+          bindblur="onEmailInput"
         />
+        <text wx:if="{{emailError}}" class="error-tip">{{emailError}}</text>
       </view>
-    </view>
 
-    <!-- 密码 -->
-    <view class="form-item">
-      <view class="input-wrapper">
-        <text class="input-icon">🔒</text>
+      <!-- 密码（登录密码模式） -->
+      <view class="form-item" wx:if="{{!isRegister && !useCode}}">
+        <view class="label">
+          <text class="icon">🔒</text>
+          <text>密码</text>
+        </view>
         <input 
-          class="input" 
-          type="{{showPassword ? 'text' : 'password'}}"
+          class="input {{passwordError ? 'error' : ''}}" 
+          type="password"
           placeholder="请输入密码"
-          value="{{loginForm.password}}"
-          bindinput="onLoginPasswordInput"
+          value="{{password}}"
+          bindinput="onPasswordInput"
         />
-        <text class="eye-icon" bindtap="togglePassword">{{showPassword ? '👁️' : '👁️‍🗨️'}}</text>
+        <text wx:if="{{passwordError}}" class="error-tip">{{passwordError}}</text>
       </view>
-    </view>
 
-    <!-- 忘记密码 -->
-    <view class="forgot-password">
-      <text class="forgot-link" bindtap="goToForgotPassword">忘记密码？</text>
-    </view>
+      <!-- 验证码 -->
+      <view class="form-item" wx:if="{{useCode || isRegister}}">
+        <view class="label">
+          <text class="icon">🔑</text>
+          <text>验证码</text>
+        </view>
+        <view class="code-input-wrapper">
+          <input 
+            class="input code-input {{codeError ? 'error' : ''}}" 
+            type="number"
+            maxlength="6"
+            placeholder="请输入6位验证码"
+            value="{{code}}"
+            bindinput="onCodeInput"
+          />
+          <button 
+            class="code-btn {{countdown > 0 ? 'disabled' : ''}}" 
+            bindtap="sendCode"
+            disabled="{{countdown > 0}}"
+          >
+            {{countdown > 0 ? countdown + 's' : '获取验证码'}}
+          </button>
+        </view>
+        <text wx:if="{{codeError}}" class="error-tip">{{codeError}}</text>
+      </view>
 
-    <!-- 登录按钮 -->
-    <button 
-      class="submit-btn {{loginLoading ? 'loading' : ''}}"
-      bindtap="handleLogin"
-      disabled="{{loginLoading}}"
-    >
-      {{loginLoading ? '登录中...' : '登录'}}
-    </button>
-
-    <!-- 微信登录 -->
-    <view class="divider">
-      <view class="divider-line"></view>
-      <text class="divider-text">或</text>
-      <view class="divider-line"></view>
-    </view>
-
-    <button 
-      class="wechat-btn"
-      bindtap="goToWechatLogin"
-    >
-      <text class="wechat-icon">💬</text>
-      <text>微信快速登录</text>
-    </button>
-  </view>
-
-  <!-- 注册表单 -->
-  <view class="form-section" wx:if="{{tabIndex === 1}}">
-    <!-- 邮箱 -->
-    <view class="form-item">
-      <view class="input-wrapper">
-        <text class="input-icon">📧</text>
+      <!-- 密码（注册时） -->
+      <view class="form-item" wx:if="{{isRegister}}">
+        <view class="label">
+          <text class="icon">🔒</text>
+          <text>设置密码</text>
+        </view>
         <input 
-          class="input" 
-          type="text"
-          placeholder="请输入学校邮箱"
-          value="{{registerForm.email}}"
-          bindinput="onRegisterEmailInput"
+          class="input {{passwordError ? 'error' : ''}}" 
+          type="password"
+          placeholder="至少8位，包含字母和数字"
+          value="{{password}}"
+          bindinput="onPasswordInput"
         />
+        <view class="password-tip">
+          <text class="tip-text">密码要求：至少8位，包含字母和数字</text>
+        </view>
+        <text wx:if="{{passwordError}}" class="error-tip">{{passwordError}}</text>
       </view>
-    </view>
 
-    <!-- 验证码 -->
-    <view class="form-item">
-      <view class="input-wrapper">
-        <text class="input-icon">🔢</text>
-        <input 
-          class="input code-input" 
-          type="text"
-          placeholder="请输入验证码"
-          value="{{registerForm.code}}"
-          bindinput="onRegisterCodeInput"
-        />
-        <button 
-          class="code-btn {{codeSending ? 'disabled' : ''}}"
-          bindtap="sendCode"
-          disabled="{{codeSending || countdown > 0}}"
-        >
-          {{countdown > 0 ? countdown + 's' : '获取验证码'}}
-        </button>
+      <!-- 登录方式切换（仅登录时） -->
+      <view class="switch-line" wx:if="{{!isRegister}}">
+        <text class="link" bindtap="toggleCodeLogin">
+          {{useCode ? '密码登录' : '验证码登录'}}
+        </text>
       </view>
-    </view>
 
-    <!-- 密码 -->
-    <view class="form-item">
-      <view class="input-wrapper">
-        <text class="input-icon">🔒</text>
-        <input 
-          class="input" 
-          type="{{showPassword ? 'text' : 'password'}}"
-          placeholder="请输入密码（6-20位）"
-          value="{{registerForm.password}}"
-          bindinput="onRegisterPasswordInput"
-        />
-        <text class="eye-icon" bindtap="togglePassword">{{showPassword ? '👁️' : '👁️‍🗨️'}}</text>
+      <!-- 提交按钮 -->
+      <button 
+        class="submit-btn {{loading ? 'loading' : ''}}" 
+        bindtap="handleSubmit"
+        disabled="{{loading}}"
+      >
+        {{loading ? (isRegister ? '注册中...' : '登录中...') : (isRegister ? '立即注册' : '登录')}}
+      </button>
+
+      <!-- 底部切换 -->
+      <view class="footer">
+        <text class="footer-text">{{isRegister ? '已有账号？' : '还没有账号？'}}</text>
+        <text class="footer-link" bindtap="toggleMode">
+          {{isRegister ? '去登录' : '立即注册'}}
+        </text>
       </view>
-    </view>
-
-    <!-- 确认密码 -->
-    <view class="form-item">
-      <view class="input-wrapper">
-        <text class="input-icon">🔒</text>
-        <input 
-          class="input" 
-          type="{{showConfirmPassword ? 'text' : 'password'}}"
-          placeholder="请再次输入密码"
-          value="{{registerForm.confirmPassword}}"
-          bindinput="onRegisterConfirmPasswordInput"
-        />
-        <text class="eye-icon" bindtap="toggleConfirmPassword">{{showConfirmPassword ? '👁️' : '👁️‍🗨️'}}</text>
-      </view>
-    </view>
-
-    <!-- 注册按钮 -->
-    <button 
-      class="submit-btn {{registerLoading ? 'loading' : ''}}"
-      bindtap="handleRegister"
-      disabled="{{registerLoading}}"
-    >
-      {{registerLoading ? '注册中...' : '注册'}}
-    </button>
-
-    <!-- 用户协议 -->
-    <view class="agreement">
-      <text class="agreement-text">注册即代表同意</text>
-      <text class="agreement-link">《用户协议》</text>
-      <text class="agreement-text">和</text>
-      <text class="agreement-link">《隐私政策》</text>
     </view>
   </view>
 </view>
-

@@ -57,8 +57,8 @@ class Validator {
    * 验证密码强度
    */
   static isStrongPassword(password) {
-    // 至少8位，包含大小写字母、数字
-    const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
+    // 至少8位，包含字母和数字
+    const strongRegex = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
     return strongRegex.test(password);
   }
 

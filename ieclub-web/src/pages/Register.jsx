@@ -89,13 +89,29 @@ export default function Register() {
     }
   }
 
+  // 密码强度验证
+  const validatePassword = (password) => {
+    if (password.length < 8) {
+      return '密码至少8位'
+    }
+    if (!/[a-zA-Z]/.test(password)) {
+      return '密码需包含字母'
+    }
+    if (!/[0-9]/.test(password)) {
+      return '密码需包含数字'
+    }
+    return null
+  }
+
   // 步骤2: 设置密码
   const handleStep2 = (e) => {
     e.preventDefault()
     setError('')
 
-    if (!password || password.length < 6) {
-      setError('密码至少6位')
+    // 验证密码强度
+    const passwordError = validatePassword(password)
+    if (passwordError) {
+      setError(passwordError)
       return
     }
 
@@ -273,7 +289,7 @@ export default function Register() {
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="至少6位，建议包含字母和数字"
+                      placeholder="至少8位，包含字母和数字"
                       className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all pr-12"
                     />
                     <button
@@ -284,6 +300,20 @@ export default function Register() {
                       {showPassword ? '👁️' : '👁️‍🗨️'}
                     </button>
                   </div>
+                  {/* 密码强度提示 */}
+                  {password && (
+                    <div className="mt-2 space-y-1 text-xs">
+                      <div className={password.length >= 8 ? 'text-green-600' : 'text-gray-400'}>
+                        {password.length >= 8 ? '✓' : '○'} 至少8位字符
+                      </div>
+                      <div className={/[a-zA-Z]/.test(password) ? 'text-green-600' : 'text-gray-400'}>
+                        {/[a-zA-Z]/.test(password) ? '✓' : '○'} 包含字母
+                      </div>
+                      <div className={/[0-9]/.test(password) ? 'text-green-600' : 'text-gray-400'}>
+                        {/[0-9]/.test(password) ? '✓' : '○'} 包含数字
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div>

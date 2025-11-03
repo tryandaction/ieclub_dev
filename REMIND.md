@@ -1,5 +1,138 @@
 # ⚠️ 重要提醒 - 需要你做的事情
 
+## 🚨 测试环境部署 - 需要你手动操作
+
+你刚刚运行了 `Deploy-Staging.ps1`，测试环境部署**几乎完成**了，但还需要你做三件事：
+
+### 步骤 1：在阿里云添加 DNS 解析 ⚡
+
+1. 登录阿里云控制台：https://dns.console.aliyun.com/
+2. 找到域名 `ieclub.online`
+3. 添加一条新的 DNS 记录：
+   - **记录类型**：A
+   - **主机记录**：test
+   - **记录值**：39.108.160.112
+   - **TTL**：10分钟（默认）
+   - **线路类型**：默认
+
+4. 点击"确认"保存
+
+### 步骤 2：等待 DNS 生效并申请 SSL 证书 ⏳
+
+DNS 解析通常需要 5-30 分钟生效。等待期间，你可以这样检查：
+
+```powershell
+# 在本地 PowerShell 中运行
+nslookup test.ieclub.online
+
+# 如果看到 39.108.160.112，说明 DNS 已生效
+```
+
+DNS 生效后，SSH 到服务器申请 SSL 证书：
+
+```bash
+# SSH 连接到服务器
+ssh root@ieclub.online
+
+# 申请 SSL 证书
+certbot certonly --webroot -w /var/www/certbot -d test.ieclub.online
+
+# 证书申请成功后，恢复完整的 HTTPS 配置
+mv /etc/nginx/sites-available/test.ieclub.online.full /etc/nginx/sites-available/test.ieclub.online
+nginx -t
+systemctl reload nginx
+
+# 退出 SSH
+exit
+```
+
+### 步骤 3：配置测试环境数据库 🗄️
+
+测试环境需要独立的数据库，SSH 到服务器执行：
+
+```bash
+# SSH 连接到服务器
+ssh root@ieclub.online
+
+# 连接 MySQL（需要你提供 root 密码）
+mysql -u root -p
+
+# 在 MySQL 中执行以下命令：
+```
+
+```sql
+-- 创建测试数据库
+CREATE DATABASE IF NOT EXISTS ieclub_staging 
+  CHARACTER SET utf8mb4 
+  COLLATE utf8mb4_unicode_ci;
+
+-- 创建测试数据库用户
+DROP USER IF EXISTS 'ieclub_staging_user'@'localhost';
+CREATE USER 'ieclub_staging_user'@'localhost' IDENTIFIED BY 'IEclub2024Staging!';
+
+-- 授予权限
+GRANT ALL PRIVILEGES ON ieclub_staging.* TO 'ieclub_staging_user'@'localhost';
+FLUSH PRIVILEGES;
+
+-- 验证
+SHOW DATABASES LIKE 'ieclub%';
+
+-- 退出 MySQL
+EXIT;
+```
+
+然后更新测试环境后端配置：
+
+```bash
+# 进入测试环境目录
+cd /opt/ieclub-staging
+
+# 创建正确的 .env 文件
+cat > .env <<'EOF'
+# 测试环境配置
+NODE_ENV=staging
+PORT=3001
+
+# 数据库配置
+DATABASE_URL="mysql://ieclub_staging_user:IEclub2024Staging!@localhost:3306/ieclub_staging"
+
+# JWT 配置
+JWT_SECRET="ieclub-staging-jwt-secret-2024-test-environment"
+
+# 文件上传配置
+UPLOAD_DIR=./uploads
+MAX_FILE_SIZE=10485760
+
+# 日志配置
+LOG_LEVEL=debug
+
+# 其他配置
+CORS_ORIGIN=https://test.ieclub.online
+EOF
+
+# 运行数据库迁移
+npm run prisma:migrate:deploy
+
+# 重启测试环境后端
+pm2 restart ieclub-backend-staging
+
+# 查看状态
+pm2 status
+
+# 退出 SSH
+exit
+```
+
+### ✅ 完成！
+
+完成上述三个步骤后，访问：
+- **前端**：https://test.ieclub.online
+- **API**：https://test.ieclub.online/api/health
+
+如果一切正常，你会看到测试环境的页面和 API 响应。
+
+---
+
 ## 🌐 环境说明
 
 IEClub 项目支持三种环境：

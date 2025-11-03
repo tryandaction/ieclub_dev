@@ -26,13 +26,18 @@
   <!-- 登录按钮 -->
   <view class="login-section">
     <button 
-      class="login-btn {{loading ? 'loading' : ''}}" 
+      class="login-btn primary {{loading ? 'loading' : ''}}" 
       bindtap="handleWechatLogin"
       disabled="{{loading}}"
     >
       <text class="login-icon">🔐</text>
       <text class="login-text">{{loading ? '登录中...' : '微信快速登录'}}</text>
     </button>
+
+    <!-- 其他登录方式 -->
+    <view class="other-login">
+      <text class="other-login-text" bindtap="goToAuth">邮箱账号登录</text>
+    </view>
 
     <!-- 用户协议 -->
     <view class="agreement">
