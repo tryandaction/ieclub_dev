@@ -601,6 +601,18 @@ Write-Host "  2. 检查用户反馈" -ForegroundColor White
 Write-Host "  3. 如有问题，可回滚到备份版本" -ForegroundColor White
 Write-Host ""
 
+# 切换回 develop 分支
+Write-Section "切换回开发分支"
+Set-Location -Path $ProjectRoot
+try {
+    git switch develop
+    Write-Success "已切换回 develop 分支"
+    Write-Info "现在可以继续开发新功能了"
+} catch {
+    Write-Warning "无法切换到 develop 分支: $_"
+    Write-Info "请手动执行: git switch develop"
+}
+
 # 返回项目根目录
 Set-Location -Path $ProjectRoot
 
