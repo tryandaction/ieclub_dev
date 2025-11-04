@@ -138,7 +138,7 @@ export default function ForgotPassword() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="例如：12345678@mail.sustech.edu.cn"
+                    placeholder="@mail.sustech.edu.cn 或 @sustech.edu.cn"
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   />
                 </div>
