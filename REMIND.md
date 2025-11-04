@@ -53,6 +53,16 @@ ssh root@ieclub.online "pm2 restart staging-backend"
 ssh root@ieclub.online "pm2 logs staging-backend --lines 50"
 ```
 
+**快速自动检测修复**：
+
+```powershell
+# Windows - 一键检测并修复
+.\scripts\Monitor-Staging.ps1 -AutoFix
+
+# 详细报告
+.\scripts\Monitor-Staging.ps1 -Detailed
+```
+
 **常见问题快速修复**：
 
 ```bash
@@ -553,8 +563,10 @@ A:
 - **INSTALL_DOCKER.md** - Docker 完整安装教程
 - **QUICK_START.ps1** - 一键启动脚本
 - **ieclub-backend/QUICK_START.md** - 后端详细文档
+- **docs/STAGING_MONITORING.md** - 测试环境监控指南 ✨新增
+- **docs/deployment/Deployment_guide.md** - 完整部署指南
+- **STAGING_DEPLOYMENT_SUCCESS.md** - 测试环境部署成功文档
 - **README.md** - 项目总览
-- **MINIPROGRAM_CODE_OPTIMIZATION_2025_11_03.md** - 小程序代码优化报告 ✨新增
 
 ---
 
@@ -582,3 +594,58 @@ A:
 3. 遇到错误看"常见问题"部分
 
 **就这么简单！** 🚀
+
+---
+
+## 🔍 测试环境监控工具
+
+为了确保测试环境稳定运行，我们提供了自动化监控脚本。
+
+### 监控功能
+
+监控脚本会检查以下项目：
+- ✅ 后端健康检查（Health Check）
+- ✅ PM2 进程状态
+- ✅ 进程重启次数
+- ✅ 内存和 CPU 使用情况
+
+### 使用方法
+
+```powershell
+# Windows - 基础检查
+.\scripts\Monitor-Staging.ps1
+
+# Windows - 推荐（自动修复+持续监控）
+.\scripts\Monitor-Staging.ps1 -AutoFix -Continuous
+
+# Linux/Mac - 基础检查
+./scripts/monitor-staging.sh
+
+# Linux/Mac - 推荐
+./scripts/monitor-staging.sh --auto-fix --continuous
+```
+
+或直接双击：`scripts\start-monitor.bat`
+
+### 自动化部署
+
+**Windows任务计划（每5分钟）**：
+```
+程序: powershell.exe
+参数: -ExecutionPolicy Bypass -File "路径\scripts\Monitor-Staging.ps1" -AutoFix
+```
+
+**Linux Cron（每5分钟）**：
+```bash
+*/5 * * * * /path/to/scripts/monitor-staging.sh --auto-fix >> /var/log/staging-monitor.log 2>&1
+```
+
+### 故障排查
+
+| 问题 | 解决方法 |
+|------|---------|
+| SSH连接失败 | `ssh root@ieclub.online` 测试连接 |
+| 健康检查失败 | `ssh root@ieclub.online "pm2 logs staging-backend"` |
+| 权限错误(Linux) | `chmod +x scripts/monitor-staging.sh` |
+
+日志：`logs/staging-monitor.log`
