@@ -1,10 +1,70 @@
 # ⚠️ 重要提醒
 
-## ✅ 测试环境已部署完成 (2025-11-03)
+## ✅ 测试环境部署成功！(2025-11-04)
 
-**状态**: 🟢 正常运行
-- 后端: https://test.ieclub.online/api/health
-- RBAC系统: 5个表、36个权限、5个角色已初始化
+**状态**: 🟢 测试环境后端服务运行正常
+**服务**: staging-backend (PM2管理，端口3001)
+**环境**: staging环境，使用.env.staging配置
+**访问**: http://ieclub.online:3001/health
+
+### 🎯 测试环境快速指南
+
+#### 服务管理
+
+```bash
+# 查看服务状态
+ssh root@ieclub.online "pm2 status"
+
+# 查看日志
+ssh root@ieclub.online "pm2 logs staging-backend --lines 50"
+
+# 重启服务
+ssh root@ieclub.online "pm2 restart staging-backend"
+
+# 健康检查
+curl http://ieclub.online:3001/health
+```
+
+#### 部署新版本
+
+```bash
+# 从本地上传更新
+scp -r ieclub-backend/src root@ieclub.online:/root/IEclub_dev_staging/ieclub-backend/
+
+# 重启服务
+ssh root@ieclub.online "pm2 restart staging-backend"
+```
+
+#### 服务配置
+
+- **进程名**: staging-backend
+- **端口**: 3001
+- **环境**: staging (.env.staging)
+- **PM2配置**: ecosystem.staging.config.js
+- **启动脚本**: server-simple.js (直接加载.env.staging)
+
+---
+
+### 🔧 故障排查
+
+如遇问题，先查看日志：
+
+```bash
+ssh root@ieclub.online "pm2 logs staging-backend --lines 50"
+```
+
+**常见问题快速修复**：
+
+```bash
+# 服务无响应 → 重启
+ssh root@ieclub.online "pm2 restart staging-backend"
+
+# 数据库连接失败 → 检查MySQL
+ssh root@ieclub.online "systemctl status mysql && systemctl start mysql"
+
+# 端口占用 → 停止旧进程
+ssh root@ieclub.online "pm2 delete staging-backend && pm2 start /root/IEclub_dev_staging/ieclub-backend/ecosystem.staging.config.js"
+```
 
 ## 🔧 常用命令
 

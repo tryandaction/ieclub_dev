@@ -953,11 +953,554 @@ curl -X POST https://ieclub.online/api/auth/send-verify-code \
 
 ---
 
+## 🔍 部署后检测与验证
+
+### 一键检测脚本（推荐）
+
+部署完成后，运行以下命令进行全面检测：
+
+```bash
+# SSH到服务器
+ssh root@ieclub.online
+
+# 下载并运行检测脚本
+curl -o check-deployment.sh https://raw.githubusercontent.com/yourusername/ieclub/main/scripts/check-deployment.sh
+chmod +x check-deployment.sh
+./check-deployment.sh staging  # 检测测试环境
+./check-deployment.sh production  # 检测生产环境
+```
+
+**检测内容**：
+- ✅ PM2进程状态
+- ✅ 端口监听情况
+- ✅ 数据库连接
+- ✅ Redis连接
+- ✅ API健康检查
+- ✅ 前端文件部署
+- ✅ Nginx配置
+- ✅ SSL证书状态
+- ✅ 磁盘空间
+- ✅ 内存使用
+
+---
+
+### 手动检测步骤（详细）
+
+#### 1️⃣ 基础服务检测
+
+```bash
+# 连接服务器
+ssh root@ieclub.online
+
+# 检查PM2状态
+pm2 status
+# 应该看到：
+# - ieclub-backend-staging: online, restart < 5
+# - ieclub-backend: online, restart < 5
+
+# 检查进程详情
+pm2 describe ieclub-backend-staging
+pm2 describe ieclub-backend
+
+# 查看最近日志
+pm2 logs ieclub-backend-staging --lines 50 --nostream
+pm2 logs ieclub-backend --lines 50 --nostream
+```
+
+**正常输出**：
+- Status: `online`
+- Restart: 小于5次
+- Uptime: 持续增加
+- CPU: 0-5%
+- Memory: < 200MB
+
+**异常情况**：
+- Status: `errored` / `stopped` / `launching`
+- Restart: 持续增加
+- 日志中有Error/Exception
+
+#### 2️⃣ 端口和网络检测
+
+```bash
+# 检查端口监听
+netstat -tulpn | grep :3000  # 生产环境
+netstat -tulpn | grep :3001  # 测试环境
+netstat -tulpn | grep :80    # HTTP
+netstat -tulpn | grep :443   # HTTPS
+
+# 或使用lsof
+lsof -i :3000
+lsof -i :3001
+
+# 测试本地API访问
+curl -v http://localhost:3000/api/health  # 生产
+curl -v http://localhost:3001/api/health  # 测试
+
+# 测试外部API访问
+curl -v https://ieclub.online/api/health  # 生产
+curl -v https://test.ieclub.online/api/health  # 测试
+```
+
+**正常输出**：
+```json
+{
+  "status": "ok",
+  "timestamp": "2025-11-04T10:00:00.000Z",
+  "uptime": 3600,
+  "environment": "production"  // 或 "staging"
+}
+```
+
+**异常情况**：
+- Connection refused → 服务未启动
+- 404 Not Found → Nginx配置错误
+- 502 Bad Gateway → 后端服务异常
+- 超时 → 防火墙或网络问题
+
+#### 3️⃣ 数据库连接检测
+
+```bash
+# 检查MySQL服务
+systemctl status mysql
+# 应该显示 active (running)
+
+# 测试数据库连接
+mysql -u ieclub_user -p -e "SHOW DATABASES;"
+# 应该看到 ieclub 和 ieclub_staging
+
+# 检查表结构
+mysql -u ieclub_user -p ieclub -e "SHOW TABLES;"
+mysql -u ieclub_user -p ieclub_staging -e "SHOW TABLES;"
+
+# 测试Prisma连接（在后端目录）
+cd /root/IEclub_dev/ieclub-backend
+npx prisma db pull
+
+cd /root/IEclub_dev_staging/ieclub-backend
+npx prisma db pull
+```
+
+**正常输出**：
+- MySQL服务运行正常
+- 能够连接数据库
+- 所有必需的表都存在
+
+**异常情况**：
+- MySQL未运行 → `systemctl start mysql`
+- Access denied → 检查.env中的密码
+- Table doesn't exist → 执行迁移
+
+#### 4️⃣ Redis连接检测
+
+```bash
+# 检查Redis服务
+systemctl status redis
+# 应该显示 active (running)
+
+# 测试Redis连接
+redis-cli ping
+# 应该返回 PONG
+
+# 检查Redis连接数
+redis-cli info clients
+
+# 测试读写
+redis-cli set test "hello"
+redis-cli get test
+redis-cli del test
+```
+
+**正常输出**：
+- Redis服务运行正常
+- PING返回PONG
+- 可以正常读写
+
+**异常情况**：
+- Redis未运行 → `systemctl start redis`
+- Connection refused → 检查配置
+- 未安装 → `apt install redis-server`
+
+#### 5️⃣ Nginx配置检测
+
+```bash
+# 测试Nginx配置
+nginx -t
+# 应该显示 syntax is ok, test is successful
+
+# 查看Nginx状态
+systemctl status nginx
+# 应该显示 active (running)
+
+# 查看配置文件
+cat /etc/nginx/sites-available/ieclub
+cat /etc/nginx/sites-available/test.ieclub.online
+
+# 检查软链接
+ls -la /etc/nginx/sites-enabled/
+
+# 查看Nginx日志
+tail -50 /var/log/nginx/access.log
+tail -50 /var/log/nginx/error.log
+```
+
+**正常输出**：
+- 配置文件语法正确
+- Nginx运行正常
+- 软链接存在
+- 日志无明显错误
+
+**异常情况**：
+- Syntax error → 修复配置文件
+- Nginx stopped → `systemctl start nginx`
+- 404错误 → 检查root路径
+
+#### 6️⃣ SSL证书检测
+
+```bash
+# 检查证书文件
+ls -la /etc/letsencrypt/live/ieclub.online/
+ls -la /etc/letsencrypt/live/test.ieclub.online/
+
+# 查看证书有效期
+certbot certificates
+
+# 测试SSL连接
+openssl s_client -connect ieclub.online:443 -servername ieclub.online < /dev/null
+openssl s_client -connect test.ieclub.online:443 -servername test.ieclub.online < /dev/null
+
+# 在线检测（可选）
+# 浏览器访问: https://www.ssllabs.com/ssltest/
+```
+
+**正常输出**：
+- 证书文件存在
+- 有效期 > 30天
+- SSL握手成功
+
+**异常情况**：
+- 证书不存在 → 重新申请
+- 即将过期 → `certbot renew`
+- SSL错误 → 检查Nginx配置
+
+#### 7️⃣ 前端文件检测
+
+```bash
+# 检查前端文件
+ls -lh /var/www/ieclub/  # 生产环境
+ls -lh /var/www/test.ieclub.online/  # 测试环境
+
+# 检查index.html
+cat /var/www/ieclub/index.html | head -20
+cat /var/www/test.ieclub.online/index.html | head -20
+
+# 检查文件权限
+ls -la /var/www/ieclub/
+ls -la /var/www/test.ieclub.online/
+
+# 检查文件更新时间
+stat /var/www/ieclub/index.html
+stat /var/www/test.ieclub.online/index.html
+```
+
+**正常输出**：
+- 文件存在且完整
+- 权限正确（755目录，644文件）
+- 更新时间与部署时间一致
+
+**异常情况**：
+- 文件不存在 → 重新部署
+- 权限错误 → `chmod -R 755 /var/www/ieclub/`
+- 旧版本 → 清除缓存重新部署
+
+#### 8️⃣ 系统资源检测
+
+```bash
+# 检查磁盘空间
+df -h
+# 确保 / 和 /var 分区有足够空间（至少20%空闲）
+
+# 检查内存使用
+free -h
+# 确保有足够的可用内存
+
+# 检查CPU负载
+uptime
+top -n 1
+
+# 检查系统日志
+journalctl -xe --no-pager | tail -50
+dmesg | tail -50
+```
+
+**正常输出**：
+- 磁盘空间 > 20%
+- 内存使用 < 80%
+- CPU负载正常（< CPU核心数）
+
+**异常情况**：
+- 磁盘满 → 清理日志和临时文件
+- 内存不足 → 重启或升级服务器
+- CPU过高 → 检查异常进程
+
+#### 9️⃣ 功能测试
+
+**API测试**：
+```bash
+# 健康检查
+curl https://ieclub.online/api/health
+curl https://test.ieclub.online/api/health
+
+# 测试认证API
+curl -X POST https://ieclub.online/api/auth/send-verify-code \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@mail.sustech.edu.cn","type":"register"}'
+
+# 测试活动列表API
+curl https://ieclub.online/api/activities
+
+# 测试用户API（需要token）
+curl https://ieclub.online/api/users/profile \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**前端测试**：
+```bash
+# 在本地浏览器访问
+https://ieclub.online
+https://test.ieclub.online
+
+# 检查项：
+# - 页面能正常加载
+# - 样式正确显示
+# - 图片能正常加载
+# - API请求成功
+# - 控制台无错误
+```
+
+**数据库测试**：
+```bash
+# 测试写入
+mysql -u ieclub_user -p ieclub -e "INSERT INTO test_table VALUES (1, 'test');"
+
+# 测试读取
+mysql -u ieclub_user -p ieclub -e "SELECT * FROM users LIMIT 5;"
+
+# 测试Redis
+redis-cli set test_key "test_value"
+redis-cli get test_key
+```
+
+#### 🔟 日志监控
+
+```bash
+# 实时监控PM2日志
+pm2 logs
+
+# 监控特定服务
+pm2 logs ieclub-backend-staging
+pm2 logs ieclub-backend
+
+# 监控Nginx日志
+tail -f /var/log/nginx/access.log
+tail -f /var/log/nginx/error.log
+
+# 监控系统日志
+journalctl -f
+
+# 监控应用日志
+tail -f /root/IEclub_dev/ieclub-backend/logs/combined.log
+tail -f /root/IEclub_dev/ieclub-backend/logs/error.log
+tail -f /root/IEclub_dev_staging/ieclub-backend/logs/combined.log
+```
+
+---
+
+### 快速检测命令（一键复制）
+
+**测试环境全面检测**：
+```bash
+ssh root@ieclub.online << 'EOF'
+echo "=== PM2状态 ==="
+pm2 status
+echo ""
+echo "=== 端口监听 ==="
+netstat -tulpn | grep -E ":(3001|80|443)"
+echo ""
+echo "=== 本地API ==="
+curl -s http://localhost:3001/api/health | jq .
+echo ""
+echo "=== 外部API ==="
+curl -s https://test.ieclub.online/api/health | jq .
+echo ""
+echo "=== 数据库 ==="
+systemctl status mysql | grep Active
+echo ""
+echo "=== Redis ==="
+redis-cli ping
+echo ""
+echo "=== Nginx ==="
+nginx -t
+echo ""
+echo "=== 磁盘空间 ==="
+df -h | grep -E "(Filesystem|/dev/vda)"
+echo ""
+echo "=== 内存 ==="
+free -h
+echo ""
+echo "=== 最近错误 ==="
+pm2 logs ieclub-backend-staging --lines 10 --nostream --err
+EOF
+```
+
+**生产环境全面检测**：
+```bash
+ssh root@ieclub.online << 'EOF'
+echo "=== PM2状态 ==="
+pm2 status
+echo ""
+echo "=== 端口监听 ==="
+netstat -tulpn | grep -E ":(3000|80|443)"
+echo ""
+echo "=== 本地API ==="
+curl -s http://localhost:3000/api/health | jq .
+echo ""
+echo "=== 外部API ==="
+curl -s https://ieclub.online/api/health | jq .
+echo ""
+echo "=== 数据库 ==="
+systemctl status mysql | grep Active
+echo ""
+echo "=== Redis ==="
+redis-cli ping
+echo ""
+echo "=== Nginx ==="
+nginx -t
+echo ""
+echo "=== 磁盘空间 ==="
+df -h | grep -E "(Filesystem|/dev/vda)"
+echo ""
+echo "=== 内存 ==="
+free -h
+echo ""
+echo "=== 最近错误 ==="
+pm2 logs ieclub-backend --lines 10 --nostream --err
+EOF
+```
+
+---
+
+### 检测结果判断标准
+
+#### ✅ 部署成功标准
+
+**必须满足**：
+- [ ] PM2进程status为`online`
+- [ ] 重启次数 < 5
+- [ ] API健康检查返回`{"status":"ok"}`
+- [ ] 前端页面能正常访问
+- [ ] 数据库连接正常
+- [ ] Redis连接正常
+- [ ] Nginx配置测试通过
+- [ ] 无明显错误日志
+
+**可选检查**：
+- [ ] SSL证书有效
+- [ ] 磁盘空间充足（> 20%）
+- [ ] 内存使用正常（< 80%）
+- [ ] CPU负载正常
+- [ ] 日志无警告
+
+#### ⚠️ 需要关注
+
+- PM2重启次数 5-20次 → 可能有间歇性错误
+- 内存使用 > 80% → 考虑优化或升级
+- 磁盘空间 < 20% → 清理日志和临时文件
+- SSL证书 < 30天 → 计划更新
+
+#### ❌ 部署失败标准
+
+**立即修复**：
+- PM2进程status为`errored`或`stopped`
+- 重启次数 > 50次
+- API返回502/503/504
+- 前端页面无法访问
+- 数据库或Redis连接失败
+- Nginx配置测试失败
+- 持续的错误日志
+
+---
+
+### 常见问题快速诊断
+
+#### 问题：服务疯狂重启
+
+**诊断**：
+```bash
+pm2 status  # 查看restart次数
+pm2 logs ieclub-backend-staging --lines 100 --nostream  # 查看错误
+```
+
+**可能原因**：
+1. 端口被占用 → 检查端口
+2. 数据库连接失败 → 检查MySQL
+3. 依赖缺失 → `npm install`
+4. 环境变量错误 → 检查.env
+5. 内存不足 → 检查系统资源
+
+#### 问题：API返回502
+
+**诊断**：
+```bash
+curl http://localhost:3001/api/health  # 测试本地
+pm2 status  # 检查服务状态
+nginx -t  # 测试Nginx配置
+```
+
+**可能原因**：
+1. 后端服务未启动
+2. Nginx配置错误
+3. 端口号不匹配
+4. 防火墙阻止
+
+#### 问题：前端显示旧版本
+
+**诊断**：
+```bash
+ls -lht /var/www/test.ieclub.online/ | head -10  # 检查文件时间
+cat /var/www/test.ieclub.online/index.html | grep -i "version\|timestamp"
+```
+
+**解决方案**：
+1. 清除浏览器缓存（Ctrl+F5）
+2. 检查Nginx缓存配置
+3. 确认文件已正确部署
+4. 检查CDN缓存（如果有）
+
+#### 问题：数据库表不存在
+
+**诊断**：
+```bash
+cd /root/IEclub_dev_staging/ieclub-backend
+mysql -u ieclub_user -p ieclub_staging -e "SHOW TABLES;"
+npx prisma migrate status
+```
+
+**解决方案**：
+```bash
+npx prisma generate
+npx prisma migrate deploy
+# 或
+npx prisma db push
+```
+
+---
+
 ## 📞 Support
 
 - **Documentation**: See README.md in project root
 - **Issues**: Create issue on GitHub
 - **Emergency**: Contact team lead
+- **Quick Help**: Check REMIND.md for common solutions
 
 ---
 
