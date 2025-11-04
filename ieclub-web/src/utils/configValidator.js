@@ -62,7 +62,9 @@ class ConfigValidator {
    */
   validateEnvironment() {
     const mode = import.meta.env.MODE
-    const validModes = ['development', 'production', 'test']
+    
+    // 识别所有有效的运行模式
+    const validModes = ['development', 'staging', 'production', 'test']
 
     if (!validModes.includes(mode)) {
       this.warnings.push(`未知的运行模式: ${mode}`)
@@ -71,6 +73,11 @@ class ConfigValidator {
     // 开发环境警告
     if (mode === 'development') {
       console.log('🔧 运行在开发模式')
+    }
+
+    // 测试环境警告
+    if (mode === 'staging') {
+      console.log('🧪 运行在测试模式')
     }
 
     // 生产环境检查
