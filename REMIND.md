@@ -85,9 +85,9 @@ ssh root@ieclub.online
 
 ### 服务管理
 ```bash
-pm2 list                              # 查看服务状态
-pm2 logs ieclub-backend-staging       # 查看日志
-pm2 restart ieclub-backend-staging    # 重启服务
+pm2 list                          # 查看服务状态
+pm2 logs staging-backend          # 查看日志
+pm2 restart staging-backend       # 重启服务
 ```
 
 ### 数据库
@@ -229,7 +229,7 @@ EOF
 npm run prisma:migrate:deploy
 
 # 重启测试环境后端
-pm2 restart ieclub-backend-staging
+pm2 restart staging-backend
 
 # 查看状态
 pm2 status
