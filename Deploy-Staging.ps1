@@ -472,8 +472,8 @@ echo "生成 Prisma 客户端..."
 npx prisma generate 2>&1 | tail -5
 echo "✅ Prisma 客户端生成完成"
 echo "重启后端服务..."
-pm2 delete ieclub-backend-staging 2>/dev/null || true
-pm2 start src/server-staging.js --name "ieclub-backend-staging" --time
+pm2 delete staging-backend 2>/dev/null || true
+pm2 start src/server-staging.js --name "staging-backend" --time
 pm2 save
 sleep 3
 echo ""
@@ -481,7 +481,7 @@ echo "=========================================="
 echo "  测试环境后端部署完成"
 echo "=========================================="
 pm2 status
-pm2 logs ieclub-backend-staging --lines 10 --nostream
+pm2 logs staging-backend --lines 10 --nostream
 '@
     
     # 保存为 Unix 格式并上传
@@ -511,7 +511,7 @@ pm2 logs ieclub-backend-staging --lines 10 --nostream
     if (-not $apiHealthCheckPassed) {
         Write-Error "后端健康检查失败！"
         Write-Info "查看最近日志..."
-        ssh -p $ServerPort "${ServerUser}@${ServerHost}" "pm2 logs ieclub-backend-staging --lines 20 --nostream"
+        ssh -p $ServerPort "${ServerUser}@${ServerHost}" "pm2 logs staging-backend --lines 20 --nostream"
         
         if ($backendBackupPath) {
             Write-Warning "是否回滚到上一版本？(Y/N)"
