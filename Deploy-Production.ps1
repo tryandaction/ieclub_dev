@@ -14,6 +14,12 @@
 #   .\Deploy-Production.ps1 -Target web
 # ============================================
 
+# 🔧 设置控制台编码为UTF-8，解决中文乱码问题
+$OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding = [System.Text.Encoding]::UTF8
+$PSDefaultParameterValues['*:Encoding'] = 'utf8'
+
 param(
     [Parameter(Mandatory=$true)]
     [ValidateSet("web", "weapp", "backend", "all")]

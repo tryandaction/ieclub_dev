@@ -12,6 +12,12 @@
 #   .\Deploy-Staging.ps1 -Target web
 # ============================================
 
+# 🔧 设置控制台编码为UTF-8，解决中文乱码问题
+$OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding = [System.Text.Encoding]::UTF8
+$PSDefaultParameterValues['*:Encoding'] = 'utf8'
+
 param(
     [Parameter(Mandatory=$true)]
     [ValidateSet("web", "backend", "all")]
@@ -446,39 +452,86 @@ function Deploy-Backend-Staging {
     $backendScript = @'
 #!/bin/bash
 set -e
-echo "创建测试环境目录..."
+
+echo "========================================"
+echo "  测试环境后端部署开始"
+echo "========================================"
+
+# 步骤 1: 创建目录
+echo ""
+echo "[1/8] 创建测试环境目录..."
 mkdir -p /root/IEclub_dev_staging/ieclub-backend
 cd /root/IEclub_dev_staging/ieclub-backend
-echo "解压代码..."
+
+# 步骤 2: 解压代码
+echo "[2/8] 解压代码..."
 unzip -oq /tmp/backend-staging.zip
 rm -f /tmp/backend-staging.zip
-echo "检查配置文件..."
+echo "✅ 代码解压完成"
+
+# 步骤 3: 检查配置文件
+echo "[3/8] 检查配置文件..."
 if [ ! -f .env.staging ]; then
-    echo "⚠️  错误: .env.staging 文件不存在！"
+    echo "❌ 错误: .env.staging 文件不存在！"
     echo "请先在服务器上创建 .env.staging 文件"
     exit 1
 fi
 echo "✅ 配置文件已存在"
-echo "安装依赖..."
+
+# 步骤 4: 安装依赖
+echo "[4/8] 安装依赖..."
 npm install --omit=dev --loglevel=error 2>&1 | head -20
-echo "✅ 依赖安装完成"
-echo "运行数据库迁移..."
+if [ $? -eq 0 ]; then
+    echo "✅ 依赖安装完成"
+else
+    echo "❌ 依赖安装失败！"
+    exit 1
+fi
+
+# 步骤 5: 数据库迁移
+echo "[5/8] 运行数据库迁移..."
 npx prisma migrate deploy 2>&1 | tail -10
-echo "✅ 数据库迁移完成"
-echo "生成 Prisma 客户端..."
+if [ $? -eq 0 ]; then
+    echo "✅ 数据库迁移完成"
+else
+    echo "⚠️  数据库迁移失败（继续部署）"
+fi
+
+# 步骤 6: 生成 Prisma 客户端
+echo "[6/8] 生成 Prisma 客户端..."
 npx prisma generate 2>&1 | tail -5
-echo "✅ Prisma 客户端生成完成"
-echo "重启后端服务..."
+if [ $? -eq 0 ]; then
+    echo "✅ Prisma 客户端生成完成"
+else
+    echo "❌ Prisma 客户端生成失败！"
+    exit 1
+fi
+
+# 步骤 7: 重启后端服务
+echo "[7/8] 重启后端服务..."
 pm2 delete staging-backend 2>/dev/null || true
-pm2 start src/server-staging.js --name "staging-backend" --time
+pm2 start src/server-staging.js --name "staging-backend" --time --log-date-format "YYYY-MM-DD HH:mm:ss Z"
 pm2 save
-sleep 3
+
+# 步骤 8: 等待启动并检查
+echo "[8/8] 等待服务启动..."
+sleep 5
+
 echo ""
-echo "=========================================="
+echo "========================================"
 echo "  测试环境后端部署完成"
-echo "=========================================="
+echo "========================================"
+echo ""
+echo "📊 PM2 状态:"
 pm2 status
-pm2 logs staging-backend --lines 10 --nostream
+
+echo ""
+echo "📋 最近日志 (最新15行):"
+pm2 logs staging-backend --lines 15 --nostream 2>&1 || echo "暂无日志"
+
+echo ""
+echo "💡 查看完整日志: pm2 logs staging-backend"
+echo "💡 查看实时日志: pm2 logs staging-backend --lines 50"
 '@
     
     # 保存为 Unix 格式并上传
@@ -507,8 +560,42 @@ pm2 logs staging-backend --lines 10 --nostream
     
     if (-not $apiHealthCheckPassed) {
         Write-Error "后端健康检查失败！"
-        Write-Info "查看最近日志..."
-        ssh -p $ServerPort "${ServerUser}@${ServerHost}" "pm2 logs staging-backend --lines 20 --nostream"
+        Write-Host ""
+        Write-Section "🔍 诊断信息"
+        
+        # 1. 检查 PM2 状态
+        Write-Info "1️⃣ 检查 PM2 进程状态..."
+        ssh -p $ServerPort "${ServerUser}@${ServerHost}" "pm2 status" 2>&1
+        
+        # 2. 查看最近日志
+        Write-Host ""
+        Write-Info "2️⃣ 查看最近日志 (最新30行)..."
+        ssh -p $ServerPort "${ServerUser}@${ServerHost}" "pm2 logs staging-backend --lines 30 --nostream 2>&1 || echo '无法获取日志'" 2>&1
+        
+        # 3. 检查端口占用
+        Write-Host ""
+        Write-Info "3️⃣ 检查端口占用情况 (${StagingPort})..."
+        ssh -p $ServerPort "${ServerUser}@${ServerHost}" "lsof -i :${StagingPort} 2>/dev/null || netstat -tlnp 2>/dev/null | grep ${StagingPort} || echo '端口未被占用'" 2>&1
+        
+        # 4. 检查服务器资源
+        Write-Host ""
+        Write-Info "4️⃣ 检查服务器资源..."
+        ssh -p $ServerPort "${ServerUser}@${ServerHost}" "echo '内存使用:' && free -h && echo '' && echo '磁盘使用:' && df -h | grep -E '^/dev|使用率'" 2>&1
+        
+        # 5. 测试本地健康检查
+        Write-Host ""
+        Write-Info "5️⃣ 测试服务器本地健康检查..."
+        ssh -p $ServerPort "${ServerUser}@${ServerHost}" "curl -s http://localhost:${StagingPort}/health 2>&1 || echo '本地健康检查失败'" 2>&1
+        
+        Write-Host ""
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Red
+        Write-Host "💡 诊断提示:" -ForegroundColor Yellow
+        Write-Host "   - 检查 .env.staging 配置是否正确" -ForegroundColor Gray
+        Write-Host "   - 检查数据库连接 (DATABASE_URL)" -ForegroundColor Gray
+        Write-Host "   - 检查 Redis 连接 (REDIS_HOST)" -ForegroundColor Gray
+        Write-Host "   - 查看完整日志: ssh root@ieclub.online 'pm2 logs staging-backend'" -ForegroundColor Gray
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Red
+        Write-Host ""
         
         if ($backendBackupPath) {
             Write-Warning "是否回滚到上一版本？(Y/N)"

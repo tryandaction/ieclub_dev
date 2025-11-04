@@ -346,18 +346,20 @@ IEclub_dev/
 │   └── prisma/               # 数据库配置
 │
 ├── docs/                     # 📚 文档中心
-│   ├── deployment/           # 部署文档
-│   │   └── Deployment_guide.md
-│   ├── development/          # 开发文档
-│   │   ├── DEVELOPMENT_PLAN.md
-│   │   ├── PROJECT_ARCHITECTURE.md
-│   │   └── SECURITY_AND_FUNCTIONALITY_CHECKLIST.md
-│   ├── features/             # 功能文档
-│   │   ├── NEW_FEATURES.md
-│   │   └── CREDIT_SYSTEM_SUMMARY.md
-│   └── API_REFERENCE.md      # API 参考文档
+│   ├── README.md             # 文档索引
+│   ├── DOCUMENTATION_GUIDE.md # 文档维护指南
+│   ├── GIT_PROXY_SETUP.md    # Git配置指南
+│   └── deployment/           # 部署文档
+│       └── Deployment_guide.md
 │
-├── ieclub_v2_demo.tsx        # 设计原型（保留参考）
+├── 🚀 部署脚本
+│   ├── Deploy-Staging.ps1        # 测试环境部署
+│   ├── Deploy-Production.ps1     # 生产环境部署
+│   ├── Check-Backend-Health.ps1  # 后端健康检查
+│   └── Check-Deploy-Ready.ps1    # 部署检查
+│
+├── REMIND.md                 # ⚠️ 重要提醒（必读）
+├── QUICK_START.ps1           # 快速启动脚本
 └── README.md                 # 项目总览（本文件）
 ```
 
@@ -473,20 +475,22 @@ IEclub_dev/
 
 ### 📚 详细文档
 
-#### 核心文档
-- [API 参考文档](docs/API_REFERENCE.md) - 完整的 API 接口文档
-- [新功能总览](docs/features/NEW_FEATURES.md) - 最新功能介绍
-
-#### 开发文档
-- [开发规划](docs/development/DEVELOPMENT_PLAN.md) - 详细开发计划
-- [系统架构](docs/development/PROJECT_ARCHITECTURE.md) - 技术架构说明
-- [安全检查清单](docs/development/SECURITY_AND_FUNCTIONALITY_CHECKLIST.md) - 安全与功能检查
-
-#### 功能文档
-- [积分系统](docs/features/CREDIT_SYSTEM_SUMMARY.md) - 积分系统详解
-
-#### 部署文档
+#### 🔥 必读文档
+- [REMIND.md](REMIND.md) - **重要提醒和快速参考**（必读）
+- [文档索引](docs/README.md) - 所有文档导航
 - [部署指南](docs/deployment/Deployment_guide.md) - 完整部署流程
+
+#### 💻 开发相关
+- [后端快速开始](ieclub-backend/QUICK_START.md) - 后端开发快速上手
+- [后端README](ieclub-backend/README.md) - 后端项目说明
+- [脚本工具说明](ieclub-backend/scripts/README.md) - 后端工具脚本
+
+#### 🔧 配置指南
+- [Git代理配置](docs/GIT_PROXY_SETUP.md) - Git网络问题解决方案
+- [文档维护指南](docs/DOCUMENTATION_GUIDE.md) - 文档编写规范
+
+#### 📝 更新记录
+- [后端CHANGELOG](ieclub-backend/CHANGELOG.md) - 后端更新日志
 
 ---
 
