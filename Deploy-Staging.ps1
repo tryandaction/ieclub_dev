@@ -130,7 +130,7 @@ function Rollback-Deployment {
     Write-Warning "开始回滚到: $BackupPath"
     
     try {
-        $rollbackCmd = "if [ -d '$BackupPath' ]; then rm -rf '$RemotePath' && mv '$BackupPath' '$RemotePath' && echo 'Rollback completed'; if [[ '$Target' == 'backend' ]]; then pm2 restart ieclub-backend-staging; fi; else echo 'Backup not found: $BackupPath' && exit 1; fi"
+        $rollbackCmd = "if [ -d '$BackupPath' ]; then rm -rf '$RemotePath' && mv '$BackupPath' '$RemotePath' && echo 'Rollback completed'; if [[ '$Target' == 'backend' ]]; then pm2 restart staging-backend; fi; else echo 'Backup not found: $BackupPath' && exit 1; fi"
         ssh -p $ServerPort "${ServerUser}@${ServerHost}" $rollbackCmd
         Write-Success "回滚成功"
         return $true
@@ -501,9 +501,9 @@ pm2 logs staging-backend --lines 10 --nostream
     
     # 🔍 健康检查
     Write-Info "等待后端服务启动..."
-    Start-Sleep -Seconds 5
+    Start-Sleep -Seconds 8
     
-    $apiHealthCheckPassed = Test-HealthCheck -Url "https://test.ieclub.online/api/health" -MaxRetries 5 -RetryDelay 3
+    $apiHealthCheckPassed = Test-HealthCheck -Url "https://test.ieclub.online/api/health" -MaxRetries 6 -RetryDelay 5
     
     if (-not $apiHealthCheckPassed) {
         Write-Error "后端健康检查失败！"
