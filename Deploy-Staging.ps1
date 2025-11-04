@@ -19,13 +19,15 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 $PSDefaultParameterValues['*:Encoding'] = 'utf8'
 
 param(
-    [Parameter(Mandatory=$true)]
     [ValidateSet("web", "backend", "all")]
     [string]$Target,
     
-    [Parameter(Mandatory=$false)]
-    [string]$Message = "Staging deployment"
+    [string]$Message
 )
+
+# 设置默认值
+if (-not $Target) { $Target = "all" }
+if (-not $Message) { $Message = "Staging deployment" }
 
 # --- Configuration ---
 $ProjectRoot = $PSScriptRoot
