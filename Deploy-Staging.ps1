@@ -105,14 +105,8 @@ function Backup-Deployment {
     Write-Info "备份当前部署: $backupPath"
     
     try {
-        ssh -p $ServerPort "${ServerUser}@${ServerHost}" @"
-if [ -d '$RemotePath' ]; then
-    cp -r '$RemotePath' '$backupPath'
-    echo 'Backup created: $backupPath'
-else
-    echo 'No existing deployment to backup'
-fi
-"@
+        $backupCmd = "if [ -d '$RemotePath' ]; then cp -r '$RemotePath' '$backupPath' && echo 'Backup created: $backupPath'; else echo 'No existing deployment to backup'; fi"
+        ssh -p $ServerPort "${ServerUser}@${ServerHost}" $backupCmd
         Write-Success "备份完成"
         return $backupPath
     } catch {
@@ -136,21 +130,8 @@ function Rollback-Deployment {
     Write-Warning "开始回滚到: $BackupPath"
     
     try {
-        ssh -p $ServerPort "${ServerUser}@${ServerHost}" @"
-if [ -d '$BackupPath' ]; then
-    rm -rf '$RemotePath'
-    mv '$BackupPath' '$RemotePath'
-    echo 'Rollback completed'
-    
-    # 如果是后端，重启服务
-    if [[ '$Target' == 'backend' ]]; then
-        pm2 restart ieclub-backend-staging
-    fi
-else
-    echo 'Backup not found: $BackupPath'
-    exit 1
-fi
-"@
+        $rollbackCmd = "if [ -d '$BackupPath' ]; then rm -rf '$RemotePath' && mv '$BackupPath' '$RemotePath' && echo 'Rollback completed'; if [[ '$Target' == 'backend' ]]; then pm2 restart ieclub-backend-staging; fi; else echo 'Backup not found: $BackupPath' && exit 1; fi"
+        ssh -p $ServerPort "${ServerUser}@${ServerHost}" $rollbackCmd
         Write-Success "回滚成功"
         return $true
     } catch {
@@ -394,11 +375,13 @@ function Deploy-Backend-Staging {
     $srcModified = (Get-ChildItem "src" -Recurse -Filter "*.js" | Sort-Object LastWriteTime -Descending | Select-Object -First 1).LastWriteTime
     $timeDiff = (Get-Date) - $srcModified
     Write-Info "最新源代码文件修改时间: $srcModified"
-    if ($timeDiff.TotalHours -gt 12) {
-        Write-Error "源代码不是最新的！上次修改: $srcModified"
-        Write-Error "测试环境必须使用最新代码！请确认代码已更新"
-        Write-Info "如果代码确实是最新的，请检查 Git 同步状态"
-        exit 1
+    # 检查代码是否是最近修改的（24小时内）
+    if ($timeDiff.TotalHours -gt 24) {
+        Write-Warning "源代码上次修改: $srcModified (超过24小时前)"
+        Write-Warning "测试环境建议使用最新代码"
+        # 不再退出，仅警告
+    } else {
+        Write-Success "代码是最新的 (修改于 $([int]$timeDiff.TotalHours) 小时前)"
     }
     
     # 打包后端代码

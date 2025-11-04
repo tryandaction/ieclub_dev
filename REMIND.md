@@ -6,21 +6,41 @@
 - 后端: https://test.ieclub.online/api/health
 - RBAC系统: 5个表、36个权限、5个角色已初始化
 
-## 🔧 常用SSH命令
+## 🔧 常用命令
 
+### SSH连接
 ```bash
-# 连接服务器
 ssh root@ieclub.online
+```
 
-# 查看服务状态
-pm2 list
-pm2 logs ieclub-backend-staging
+### 服务管理
+```bash
+pm2 list                              # 查看服务状态
+pm2 logs ieclub-backend-staging       # 查看日志
+pm2 restart ieclub-backend-staging    # 重启服务
+```
 
-# 重启服务
-pm2 restart ieclub-backend-staging
-
-# 数据库
+### 数据库
+```bash
 mysql -u ieclub_staging -pIEClubYuQoSYpUnL57@2024
+```
+
+### DNS问题解决（如果nslookup超时）
+你的本地DNS(198.18.0.2)有问题。两种解决方案：
+
+**方案1：修改DNS服务器（推荐）**
+```
+1. 打开"设置" → "网络和Internet" → "以太网/WiFi"
+2. 点击"编辑DNS服务器分配"
+3. 选择"手动"
+4. IPv4: 8.8.8.8 (Google DNS) 或 223.5.5.5 (阿里DNS)
+5. 保存
+```
+
+**方案2：直接用IP测试**
+```powershell
+# 在 C:\Windows\System32\drivers\etc\hosts 添加
+47.97.166.201 test.ieclub.online
 ```
 
 ---

@@ -185,9 +185,15 @@ function requestLogger(options = {}) {
       // 记录日志
       logger[logLevel](logMessage, responseInfo);
       
-      // 设置响应头
-      res.setHeader('X-Request-Id', requestId);
-      res.setHeader('X-Response-Time', `${duration}ms`);
+      // 设置响应头（避免重复设置）
+      if (!res.headersSent) {
+        try {
+          res.setHeader('X-Request-Id', requestId);
+          res.setHeader('X-Response-Time', `${duration}ms`);
+        } catch (err) {
+          // 忽略headers已发送的错误
+        }
+      }
     });
     
     // 监听错误
