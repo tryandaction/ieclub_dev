@@ -400,13 +400,12 @@ function Deploy-Backend-Staging {
     }
     New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
     
-    # 只复制需要的文件和目录
+    # 只复制需要的文件和目录（不包含.env.staging，避免覆盖服务器配置）
     $includeItems = @(
         "src",
         "prisma",
         "package.json",
-        "package-lock.json",
-        ".env.staging"
+        "package-lock.json"
     )
     
     Write-Info "复制必要文件到临时目录..."
@@ -438,9 +437,7 @@ function Deploy-Backend-Staging {
     Write-Info "上传后端代码到测试服务器..."
     scp -P $ServerPort "backend-staging.zip" "${ServerUser}@${ServerHost}:/tmp/"
     
-    # 上传测试环境配置模板
-    Write-Info "上传测试环境配置模板..."
-    scp -P $ServerPort "env.staging.template" "${ServerUser}@${ServerHost}:/tmp/env.staging.template"
+    # 不上传.env文件，保留服务器上的现有配置
     
     # 在服务器上部署
     Write-Info "部署后端到测试环境..."
@@ -455,13 +452,13 @@ cd /root/IEclub_dev_staging/ieclub-backend
 echo "解压代码..."
 unzip -oq /tmp/backend-staging.zip
 rm -f /tmp/backend-staging.zip
-echo "配置环境变量..."
-if [ ! -f .env ]; then
-    echo "首次部署，使用模板创建 .env 文件"
-    cp /tmp/env.staging.template .env
-    echo "⚠️  请手动编辑 .env 文件，配置数据库密码等敏感信息"
+echo "检查配置文件..."
+if [ ! -f .env.staging ]; then
+    echo "⚠️  错误: .env.staging 文件不存在！"
+    echo "请先在服务器上创建 .env.staging 文件"
+    exit 1
 fi
-rm -f /tmp/env.staging.template
+echo "✅ 配置文件已存在"
 echo "安装依赖..."
 npm install --omit=dev --loglevel=error 2>&1 | head -20
 echo "✅ 依赖安装完成"
@@ -506,7 +503,7 @@ pm2 logs staging-backend --lines 10 --nostream
     Write-Info "等待后端服务启动..."
     Start-Sleep -Seconds 5
     
-    $apiHealthCheckPassed = Test-HealthCheck -Url "http://ieclub.online:$StagingPort/health" -MaxRetries 5 -RetryDelay 3
+    $apiHealthCheckPassed = Test-HealthCheck -Url "https://test.ieclub.online/api/health" -MaxRetries 5 -RetryDelay 3
     
     if (-not $apiHealthCheckPassed) {
         Write-Error "后端健康检查失败！"
@@ -527,8 +524,9 @@ pm2 logs staging-backend --lines 10 --nostream
     }
     
     Write-Success "后端部署完成并通过健康检查 (测试环境)"
-    Write-Info "API地址: https://test.ieclub.online/api (端口 $StagingPort)"
-    Write-Info "健康检查: http://ieclub.online:$StagingPort/health"
+    Write-Info "API地址: https://test.ieclub.online/api"
+    Write-Info "健康检查: https://test.ieclub.online/api/health"
+    Write-Info "内部端口: $StagingPort (通过Nginx代理访问)"
     Write-Warning "注意: 使用独立的测试数据库 (ieclub_staging)"
 }
 
