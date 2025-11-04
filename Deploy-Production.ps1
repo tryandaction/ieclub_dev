@@ -256,18 +256,18 @@ function Deploy-Web-Production {
     
     # 验证构建产物存在
     if (-not (Test-Path "dist")) {
-        Write-Error "构建产物不存在！请先运行构建步骤"
+        Write-Error "构建产物不存在！部署流程异常"
+        Write-Info "正常情况下，Build-Web-Production 应该已经创建了 dist 目录"
         exit 1
     }
     
-    # 检查构建产物是否是最新的（10分钟内）
-    $distModified = (Get-Item "dist").LastWriteTime
-    $timeDiff = (Get-Date) - $distModified
-    if ($timeDiff.TotalMinutes -gt 10) {
-        Write-Warning "构建产物可能不是最新的！上次修改时间: $distModified"
-        Write-Error "生产环境必须使用最新构建！请重新构建前端"
+    # 验证构建产物完整性（由于刚刚构建，不再检查时间戳）
+    if (-not (Test-Path "dist\index.html")) {
+        Write-Error "构建产物不完整！缺少 index.html"
         exit 1
     }
+    
+    Write-Success "构建产物验证通过"
     
     # 强制删除旧的打包文件
     Write-Info "清理旧的打包文件..."

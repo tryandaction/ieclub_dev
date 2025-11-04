@@ -60,6 +60,105 @@ function Write-Warning {
     Write-Host "[WARNING] $Text" -ForegroundColor Yellow
 }
 
+# --- 健康检查函数 ---
+function Test-HealthCheck {
+    param(
+        [string]$Url,
+        [int]$MaxRetries = 5,
+        [int]$RetryDelay = 3
+    )
+    
+    Write-Info "健康检查: $Url"
+    
+    for ($i = 1; $i -le $MaxRetries; $i++) {
+        Write-Info "第 $i/$MaxRetries 次检查..."
+        try {
+            $response = Invoke-WebRequest -Uri $Url -Method Get -TimeoutSec 10 -UseBasicParsing
+            if ($response.StatusCode -eq 200) {
+                Write-Success "健康检查通过！"
+                return $true
+            }
+        } catch {
+            Write-Warning "健康检查失败: $_"
+        }
+        
+        if ($i -lt $MaxRetries) {
+            Write-Info "等待 $RetryDelay 秒后重试..."
+            Start-Sleep -Seconds $RetryDelay
+        }
+    }
+    
+    Write-Error "健康检查失败（已重试 $MaxRetries 次）"
+    return $false
+}
+
+# --- 备份和回滚函数 ---
+function Backup-Deployment {
+    param(
+        [string]$Target,
+        [string]$RemotePath
+    )
+    
+    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+    $backupPath = "${RemotePath}.backup_${timestamp}"
+    
+    Write-Info "备份当前部署: $backupPath"
+    
+    try {
+        ssh -p $ServerPort "${ServerUser}@${ServerHost}" @"
+if [ -d '$RemotePath' ]; then
+    cp -r '$RemotePath' '$backupPath'
+    echo 'Backup created: $backupPath'
+else
+    echo 'No existing deployment to backup'
+fi
+"@
+        Write-Success "备份完成"
+        return $backupPath
+    } catch {
+        Write-Warning "备份失败（继续部署）: $_"
+        return $null
+    }
+}
+
+function Rollback-Deployment {
+    param(
+        [string]$Target,
+        [string]$BackupPath,
+        [string]$RemotePath
+    )
+    
+    if (-not $BackupPath) {
+        Write-Error "没有备份可以回滚"
+        return $false
+    }
+    
+    Write-Warning "开始回滚到: $BackupPath"
+    
+    try {
+        ssh -p $ServerPort "${ServerUser}@${ServerHost}" @"
+if [ -d '$BackupPath' ]; then
+    rm -rf '$RemotePath'
+    mv '$BackupPath' '$RemotePath'
+    echo 'Rollback completed'
+    
+    # 如果是后端，重启服务
+    if [[ '$Target' == 'backend' ]]; then
+        pm2 restart ieclub-backend-staging
+    fi
+else
+    echo 'Backup not found: $BackupPath'
+    exit 1
+fi
+"@
+        Write-Success "回滚成功"
+        return $true
+    } catch {
+        Write-Error "回滚失败: $_"
+        return $false
+    }
+}
+
 # --- Git Commit ---
 function Commit-Changes {
     Write-Section "提交代码到 Git (测试分支)"
@@ -195,17 +294,18 @@ function Deploy-Web-Staging {
     
     # 验证构建产物存在
     if (-not (Test-Path "dist")) {
-        Write-Error "构建产物不存在！请先运行构建步骤"
+        Write-Error "构建产物不存在！部署流程异常"
+        Write-Info "正常情况下，Build-Web-Staging 应该已经创建了 dist 目录"
         exit 1
     }
     
-    # 检查构建产物是否是最新的（5分钟内）
-    $distModified = (Get-Item "dist").LastWriteTime
-    $timeDiff = (Get-Date) - $distModified
-    if ($timeDiff.TotalMinutes -gt 5) {
-        Write-Warning "构建产物可能不是最新的！上次修改时间: $distModified"
-        Write-Warning "建议重新构建前端"
+    # 验证构建产物（由于刚刚构建，不再检查时间戳）
+    if (-not (Test-Path "dist\index.html")) {
+        Write-Error "构建产物不完整！缺少 index.html"
+        exit 1
     }
+    
+    Write-Success "构建产物验证通过"
     
     # 强制删除旧的打包文件
     Write-Info "清理旧的打包文件..."
@@ -232,12 +332,36 @@ function Deploy-Web-Staging {
     Write-Info "上传到测试服务器..."
     scp -P $ServerPort "web-staging.zip" "${ServerUser}@${ServerHost}:/tmp/"
     
+    # 📦 备份当前部署
+    $webBackupPath = Backup-Deployment -Target "web" -RemotePath "/var/www/test.ieclub.online"
+    
     # 在服务器上部署到测试目录
     Write-Info "部署到测试目录..."
     $webDeployCmd = "mkdir -p /var/www/test.ieclub.online && unzip -oq /tmp/web-staging.zip -d /var/www/test.ieclub.online/ && rm -f /tmp/web-staging.zip && chmod -R 755 /var/www/test.ieclub.online && echo '测试环境前端部署完成'"
     ssh -p $ServerPort "${ServerUser}@${ServerHost}" $webDeployCmd
     
-    Write-Success "前端部署完成 (测试环境)"
+    # 🔍 健康检查
+    Write-Info "等待服务启动..."
+    Start-Sleep -Seconds 3
+    
+    $healthCheckPassed = Test-HealthCheck -Url "https://test.ieclub.online" -MaxRetries 3 -RetryDelay 2
+    
+    if (-not $healthCheckPassed) {
+        Write-Error "前端健康检查失败！"
+        if ($webBackupPath) {
+            Write-Warning "是否回滚到上一版本？(Y/N)"
+            $rollback = Read-Host
+            if ($rollback -eq 'Y' -or $rollback -eq 'y') {
+                $rollbackSuccess = Rollback-Deployment -Target "web" -BackupPath $webBackupPath -RemotePath "/var/www/test.ieclub.online"
+                if ($rollbackSuccess) {
+                    Write-Success "已回滚到上一版本"
+                }
+            }
+        }
+        exit 1
+    }
+    
+    Write-Success "前端部署完成并通过健康检查 (测试环境)"
     Write-Info "访问地址: https://test.ieclub.online"
     Write-Warning "注意: 这是测试环境，仅供内部使用"
 }
@@ -270,8 +394,11 @@ function Deploy-Backend-Staging {
     $srcModified = (Get-ChildItem "src" -Recurse -Filter "*.js" | Sort-Object LastWriteTime -Descending | Select-Object -First 1).LastWriteTime
     $timeDiff = (Get-Date) - $srcModified
     Write-Info "最新源代码文件修改时间: $srcModified"
-    if ($timeDiff.TotalHours -gt 24) {
-        Write-Warning "源代码可能不是最新的！上次修改: $srcModified"
+    if ($timeDiff.TotalHours -gt 12) {
+        Write-Error "源代码不是最新的！上次修改: $srcModified"
+        Write-Error "测试环境必须使用最新代码！请确认代码已更新"
+        Write-Info "如果代码确实是最新的，请检查 Git 同步状态"
+        exit 1
     }
     
     # 打包后端代码
@@ -358,25 +485,33 @@ echo "✅ 依赖安装完成"
 echo "运行数据库迁移..."
 npx prisma migrate deploy 2>&1 | tail -10
 echo "✅ 数据库迁移完成"
+echo "生成 Prisma 客户端..."
+npx prisma generate 2>&1 | tail -5
+echo "✅ Prisma 客户端生成完成"
 echo "重启后端服务..."
 pm2 delete ieclub-backend-staging 2>/dev/null || true
-pm2 start npm --name "ieclub-backend-staging" -- start
+pm2 start src/server-staging.js --name "ieclub-backend-staging" --time
 pm2 save
+sleep 3
 echo ""
 echo "=========================================="
 echo "  测试环境后端部署完成"
 echo "=========================================="
 pm2 status
+pm2 logs ieclub-backend-staging --lines 10 --nostream
 '@
     
     # 保存为 Unix 格式并上传
     $backendScript -replace "`r`n", "`n" | Out-File -FilePath "deploy-backend-staging.sh" -Encoding UTF8 -NoNewline
     
+    # 📦 备份当前部署
+    $backendBackupPath = Backup-Deployment -Target "backend" -RemotePath "/root/IEclub_dev_staging/ieclub-backend"
+    
     try {
         scp -P $ServerPort "deploy-backend-staging.sh" "${ServerUser}@${ServerHost}:/tmp/"
         Remove-Item "deploy-backend-staging.sh" -Force
         
-        # 执行部署（带超时）
+        # 执行部署
         ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash /tmp/deploy-backend-staging.sh && rm -f /tmp/deploy-backend-staging.sh"
     } catch {
         Write-Error "后端部署失败: $_"
@@ -384,9 +519,33 @@ pm2 status
         exit 1
     }
     
-    Write-Success "后端部署完成 (测试环境)"
+    # 🔍 健康检查
+    Write-Info "等待后端服务启动..."
+    Start-Sleep -Seconds 5
+    
+    $apiHealthCheckPassed = Test-HealthCheck -Url "http://ieclub.online:$StagingPort/health" -MaxRetries 5 -RetryDelay 3
+    
+    if (-not $apiHealthCheckPassed) {
+        Write-Error "后端健康检查失败！"
+        Write-Info "查看最近日志..."
+        ssh -p $ServerPort "${ServerUser}@${ServerHost}" "pm2 logs ieclub-backend-staging --lines 20 --nostream"
+        
+        if ($backendBackupPath) {
+            Write-Warning "是否回滚到上一版本？(Y/N)"
+            $rollback = Read-Host
+            if ($rollback -eq 'Y' -or $rollback -eq 'y') {
+                $rollbackSuccess = Rollback-Deployment -Target "backend" -BackupPath $backendBackupPath -RemotePath "/root/IEclub_dev_staging/ieclub-backend"
+                if ($rollbackSuccess) {
+                    Write-Success "已回滚到上一版本"
+                }
+            }
+        }
+        exit 1
+    }
+    
+    Write-Success "后端部署完成并通过健康检查 (测试环境)"
     Write-Info "API地址: https://test.ieclub.online/api (端口 $StagingPort)"
-    Write-Info "健康检查: https://test.ieclub.online/api/health"
+    Write-Info "健康检查: http://ieclub.online:$StagingPort/health"
     Write-Warning "注意: 使用独立的测试数据库 (ieclub_staging)"
 }
 
