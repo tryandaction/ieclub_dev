@@ -7,13 +7,7 @@ const bcrypt = require('bcryptjs');
 const config = require('../config');
 const logger = require('../utils/logger');
 const emailService = require('../services/emailService');
-
-// 辅助函数
-function validateEmail(email) {
-  // 基本邮箱格式验证
-  const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  return regex.test(email);
-}
+const { validateEmail } = require('../utils/common');
 
 // 密码强度验证函数
 function validatePasswordStrength(password) {

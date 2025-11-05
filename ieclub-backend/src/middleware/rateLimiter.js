@@ -95,8 +95,8 @@ function createRateLimiter(options = {}) {
         
         throw new AppError(
           `请求过于频繁，请在${ttl}秒后重试`,
-          'RATE_LIMIT_EXCEEDED',
-          429
+          429,
+          'RATE_LIMIT_EXCEEDED'
         );
       }
 
@@ -125,8 +125,8 @@ function createRateLimiter(options = {}) {
         
         throw new AppError(
           `请求过于频繁，已被封禁${finalBlockDuration}秒`,
-          'RATE_LIMIT_EXCEEDED',
-          429
+          429,
+          'RATE_LIMIT_EXCEEDED'
         );
       }
 

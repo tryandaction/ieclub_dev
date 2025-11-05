@@ -150,14 +150,11 @@ function validateNumberRange(value, min, max, fieldName = '字段') {
 /**
  * 验证邮箱格式
  * @param {string} email - 邮箱地址
- * @throws {Error} 如果邮箱格式不正确
+ * @returns {boolean} 邮箱格式是否正确
  */
 function validateEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  
-  if (!emailRegex.test(email)) {
-    throw new Error('邮箱格式不正确');
-  }
+  return emailRegex.test(email);
 }
 
 /**
