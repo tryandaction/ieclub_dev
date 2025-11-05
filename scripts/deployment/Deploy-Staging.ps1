@@ -1,20 +1,28 @@
 ﻿# ============================================
-# IEClub 测试环境部署脚本
+# IEClub 测试环境一键部署脚本 v3.0
 # ============================================
 # 用途：内部测试，不影响线上用户
 # 执行后：仅团队内部可访问，用于调试和验证
 # 
+# 支持部署：
+#   - 用户网页端（React Web）
+#   - 管理员网页端（React Admin）
+#   - 后端API服务
+#   - 小程序（仅显示配置说明）
+# 
 # 使用方法：
-#   .\Deploy-Staging.ps1 -Target <web|backend|all> [-Message "提交信息"]
+#   .\Deploy-Staging.ps1 -Target <web|admin|backend|all> [-Message "提交信息"]
 #
 # 示例：
-#   .\Deploy-Staging.ps1 -Target all -Message "测试新功能"
-#   .\Deploy-Staging.ps1 -Target web
+#   .\Deploy-Staging.ps1 -Target all -Message "测试新功能"      # 全部部署
+#   .\Deploy-Staging.ps1 -Target web                           # 仅用户网页
+#   .\Deploy-Staging.ps1 -Target admin                         # 仅管理员网页
+#   .\Deploy-Staging.ps1 -Target backend                       # 仅后端
 # ============================================
 
 # param 块必须是脚本的第一个可执行语句
 param(
-    [ValidateSet("web", "backend", "all")]
+    [ValidateSet("web", "admin", "backend", "all")]
     [string]$Target,
     
     [string]$Message
@@ -34,7 +42,9 @@ if (-not $Message) { $Message = "Staging deployment" }
 # 脚本在 scripts/deployment/ 下，需要向上两级到达项目根目录
 $ProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $WebDir = "${ProjectRoot}\ieclub-web"
+$AdminWebDir = "${ProjectRoot}\admin-web"
 $BackendDir = "${ProjectRoot}\ieclub-backend"
+$MiniprogramDir = "${ProjectRoot}\ieclub-frontend"
 
 # 测试环境服务器配置
 $ServerUser = "root"
@@ -362,8 +372,122 @@ function Deploy-Web-Staging {
         exit 1
     }
     
-    Write-Success "前端部署完成并通过健康检查 (测试环境)"
+    Write-Success "用户前端部署完成并通过健康检查 (测试环境)"
     Write-Info "访问地址: https://test.ieclub.online"
+    Write-Warning "注意: 这是测试环境，仅供内部使用"
+}
+
+# --- Build Admin Web (Staging) ---
+function Build-Admin-Web-Staging {
+    Write-Section "构建管理员前端 (测试环境)"
+    Set-Location -Path $AdminWebDir
+    
+    Write-Info "检查管理员前端项目..."
+    if (-not (Test-Path "package.json")) {
+        Write-Error "管理员前端项目不存在！路径: $AdminWebDir"
+        Write-Info "请确保 admin-web 目录存在并已初始化"
+        exit 1
+    }
+    
+    Write-Info "安装依赖..."
+    npm install
+    
+    Write-Info "构建管理员前端 (测试版)..."
+    # 设置环境变量指向测试环境
+    $env:VITE_API_URL = "https://test.ieclub.online/api"
+    npm run build
+    
+    if (Test-Path "dist") {
+        Write-Success "管理员前端构建完成 (测试版)"
+        
+        # 添加测试环境标识
+        $indexPath = "dist\index.html"
+        if (Test-Path $indexPath) {
+            $content = Get-Content $indexPath -Raw
+            $content = $content -replace '<title>(.*?)</title>', '<title>$1 - 管理后台 (测试版)</title>'
+            $content | Out-File -FilePath $indexPath -Encoding UTF8 -NoNewline
+            Write-Success "已添加管理后台测试环境标识"
+        }
+        
+        Write-Info "构建产物:"
+        Get-ChildItem dist | Select-Object Name | ForEach-Object { Write-Host "  - $($_.Name)" }
+    } else {
+        Write-Error "管理员前端构建失败 - dist 目录不存在"
+        exit 1
+    }
+}
+
+# --- Deploy Admin Web to Staging ---
+function Deploy-Admin-Web-Staging {
+    Write-Section "部署管理员前端到测试环境"
+    
+    Set-Location -Path $AdminWebDir
+    
+    # 验证构建产物存在
+    if (-not (Test-Path "dist")) {
+        Write-Error "构建产物不存在！"
+        exit 1
+    }
+    
+    if (-not (Test-Path "dist\index.html")) {
+        Write-Error "构建产物不完整！缺少 index.html"
+        exit 1
+    }
+    
+    Write-Success "构建产物验证通过"
+    
+    # 强制删除旧的打包文件
+    Write-Info "清理旧的打包文件..."
+    if (Test-Path "admin-web-staging.zip") {
+        Remove-Item "admin-web-staging.zip" -Force
+    }
+    
+    # 打包构建产物
+    Write-Info "打包管理员前端文件..."
+    Compress-Archive -Path "dist\*" -DestinationPath "admin-web-staging.zip" -Force
+    
+    # 验证打包文件
+    if (Test-Path "admin-web-staging.zip") {
+        $zipSize = (Get-Item "admin-web-staging.zip").Length / 1KB
+        Write-Success "打包完成: admin-web-staging.zip ($('{0:N2}' -f $zipSize) KB)"
+    } else {
+        Write-Error "打包失败！"
+        exit 1
+    }
+    
+    # 上传到服务器
+    Write-Info "上传到测试服务器..."
+    scp -P $ServerPort "admin-web-staging.zip" "${ServerUser}@${ServerHost}:/tmp/"
+    
+    # 备份当前部署
+    $adminBackupPath = Backup-Deployment -Target "admin-web" -RemotePath "/var/www/test.ieclub.online/admin"
+    
+    # 在服务器上部署到测试目录
+    Write-Info "部署到测试目录..."
+    $adminDeployCmd = "mkdir -p /var/www/test.ieclub.online/admin && unzip -oq /tmp/admin-web-staging.zip -d /var/www/test.ieclub.online/admin/ && rm -f /tmp/admin-web-staging.zip && chmod -R 755 /var/www/test.ieclub.online/admin && echo '管理员前端部署完成'"
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" $adminDeployCmd
+    
+    # 健康检查
+    Write-Info "等待服务启动..."
+    Start-Sleep -Seconds 3
+    
+    $healthCheckPassed = Test-HealthCheck -Url "https://test.ieclub.online/admin" -MaxRetries 3 -RetryDelay 2
+    
+    if (-not $healthCheckPassed) {
+        Write-Error "管理员前端健康检查失败！"
+        if ($adminBackupPath) {
+            Write-Warning "是否回滚到上一版本？(Y/N)"
+            $rollback = Read-Host
+            if ($rollback -eq 'Y' -or $rollback -eq 'y') {
+                Rollback-Deployment -Target "admin-web" -BackupPath $adminBackupPath -RemotePath "/var/www/test.ieclub.online/admin"
+            }
+        }
+        exit 1
+    }
+    
+    Write-Success "管理员前端部署完成并通过健康检查 (测试环境)"
+    Write-Info "访问地址: https://test.ieclub.online/admin"
+    Write-Info "默认账号: admin@ieclub.com (需先在服务器初始化)"
     Write-Warning "注意: 这是测试环境，仅供内部使用"
 }
 
@@ -652,26 +776,85 @@ switch ($Target) {
         Build-Web-Staging
         Deploy-Web-Staging
     }
+    "admin" {
+        Build-Admin-Web-Staging
+        Deploy-Admin-Web-Staging
+    }
     "backend" {
         Deploy-Backend-Staging
     }
     "all" {
+        # 部署所有端
         Build-Web-Staging
         Deploy-Web-Staging
+        
+        Build-Admin-Web-Staging
+        Deploy-Admin-Web-Staging
+        
         Deploy-Backend-Staging
+        
+        # 显示小程序配置说明
+        Write-Section "📱 小程序配置说明"
+        Write-Host "小程序需要在微信开发者工具中手动配置：" -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "1️⃣ 打开项目目录: $MiniprogramDir" -ForegroundColor White
+        Write-Host ""
+        Write-Host "2️⃣ 修改 API 地址（测试环境）:" -ForegroundColor White
+        Write-Host "   文件: ieclub-frontend/utils/config.js" -ForegroundColor Gray
+        Write-Host "   const API_BASE_URL = 'https://test.ieclub.online/api'" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "3️⃣ 在微信开发者工具中:" -ForegroundColor White
+        Write-Host "   - 导入项目" -ForegroundColor Gray
+        Write-Host "   - AppID: [你的测试环境 AppID]" -ForegroundColor Gray
+        Write-Host "   - 点击「上传」按钮发布体验版" -ForegroundColor Gray
+        Write-Host ""
+        Write-Host "4️⃣ 在微信公众平台:" -ForegroundColor White
+        Write-Host "   - 登录 mp.weixin.qq.com" -ForegroundColor Gray
+        Write-Host "   - 进入「版本管理」" -ForegroundColor Gray
+        Write-Host "   - 将体验版设置为体验版本" -ForegroundColor Gray
+        Write-Host ""
+        Write-Host "📝 详细文档: docs/deployment/WECHAT_MINIPROGRAM_GUIDE.md" -ForegroundColor Cyan
+        Write-Host ""
     }
 }
 
-Write-Section "测试环境部署完成"
+Write-Section "🎉 测试环境部署完成"
 Write-Host "✅ 部署成功！" -ForegroundColor Green
 Write-Host ""
-Write-Host "测试环境访问地址:" -ForegroundColor Cyan
-Write-Host "  - 前端: https://test.ieclub.online" -ForegroundColor White
-Write-Host "  - API: https://test.ieclub.online/api" -ForegroundColor White
+Write-Host "=" * 60 -ForegroundColor Cyan
+Write-Host " 测试环境访问地址" -ForegroundColor Cyan
+Write-Host "=" * 60 -ForegroundColor Cyan
+Write-Host "  📱 用户网页: https://test.ieclub.online" -ForegroundColor White
+Write-Host "  🔧 管理后台: https://test.ieclub.online/admin" -ForegroundColor White
+Write-Host "  🔌 后端API:  https://test.ieclub.online/api" -ForegroundColor White
+Write-Host "  ❤️  健康检查: https://test.ieclub.online/api/health" -ForegroundColor White
+Write-Host "  📱 小程序:   手动配置（见上方说明）" -ForegroundColor White
 Write-Host ""
-Write-Host "下一步:" -ForegroundColor Yellow
+Write-Host "=" * 60 -ForegroundColor Cyan
+Write-Host " 管理员账号设置" -ForegroundColor Cyan
+Write-Host "=" * 60 -ForegroundColor Cyan
+Write-Host "首次使用需要初始化管理员账号：" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "  1. SSH 登录服务器：" -ForegroundColor White
+Write-Host "     ssh root@ieclub.online" -ForegroundColor Gray
+Write-Host ""
+Write-Host "  2. 进入测试环境目录：" -ForegroundColor White
+Write-Host "     cd /root/IEclub_dev_staging/ieclub-backend" -ForegroundColor Gray
+Write-Host ""
+Write-Host "  3. 初始化管理员：" -ForegroundColor White
+Write-Host "     NODE_ENV=staging node scripts/init-admin.js" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "  4. 按提示设置管理员账号和密码" -ForegroundColor White
+Write-Host ""
+Write-Host "  5. 使用管理员账号登录: https://test.ieclub.online/admin" -ForegroundColor White
+Write-Host ""
+Write-Host "=" * 60 -ForegroundColor Cyan
+Write-Host " 下一步" -ForegroundColor Cyan
+Write-Host "=" * 60 -ForegroundColor Cyan
 Write-Host "  1. 在测试环境进行功能验证" -ForegroundColor White
-Write-Host "  2. 确认无误后使用 Deploy-Production.ps1 发布到生产环境" -ForegroundColor White
+Write-Host "  2. 测试管理后台功能" -ForegroundColor White
+Write-Host "  3. 确认无误后使用以下命令发布到生产环境：" -ForegroundColor White
+Write-Host "     .\scripts\deployment\Deploy-Production.ps1 -Target all" -ForegroundColor Cyan
 Write-Host ""
 
 # 返回项目根目录
