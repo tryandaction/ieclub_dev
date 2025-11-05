@@ -190,15 +190,35 @@ mysql -u ieclub_user -p ieclub_staging       # 测试数据库
    - 策略选择：`DIRECT`（直连）
 5. 保存并重启Clash
 
-**方法2：临时关闭Clash**
-- Windows：右键托盘图标 → "退出系统代理" 或 "退出Clash"
-- macOS：点击菜单栏图标 → "Quit Clash" 或 "Set as System Proxy"关闭
+**方法2：临时关闭Clash（推荐先用这个）** ⭐⭐⭐
 
-**验证修复**：
-```powershell
-.\scripts\health-check\Check-Network.ps1
+**关键：必须完全退出Clash，仅"关闭系统代理"还不够！**
+
+步骤：
+1. **完全退出Clash程序**：
+   - Windows：右键托盘图标 → **"退出Clash"** 或 **"Quit"**（不是"退出系统代理"）
+   - macOS：点击菜单栏图标 → **"Quit Clash"**
+   
+2. **运行修复脚本**（清除系统代理残留）：
+   ```powershell
+   .\scripts\health-check\Fix-Proxy.ps1
+   ```
+
+3. **重启PowerShell**（必须！）：
+   - 关闭当前PowerShell窗口
+   - 打开新的PowerShell窗口
+   - 导航到项目目录
+
+4. **验证修复**：
+   ```powershell
+   .\scripts\health-check\Deep-Diagnose.ps1
+   ```
+   
+应该看到：
 ```
-如果输出显示 `OK: No proxy interference detected`，说明已修复。
+OK: No proxy detected
+OK: SSH connection successful
+```
 
 **详细配置指南**：请参考 [Clash代理配置文档](./docs/configuration/CLASH_PROXY_SETUP.md)
 
