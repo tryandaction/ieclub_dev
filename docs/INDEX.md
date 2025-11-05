@@ -23,7 +23,9 @@
 
 | 文档 | 说明 |
 |------|------|
+| **ENVIRONMENT_CONFIG.md** | 三环境配置对照表（开发/测试/生产） ⭐ |
 | **CONFIGURE_REAL_EMAIL.md** | 邮件服务配置指南 |
+| **SECURITY_GUIDE.md** | 安全配置指南 |
 | **SENDGRID_SETUP_COMPLETE.md** | SendGrid 配置完成报告 |
 
 ### 🧪 测试文档 (`docs/testing/`)
@@ -31,14 +33,16 @@
 | 文档/脚本 | 说明 |
 |-----------|------|
 | **WEB_FRONTEND_TEST_GUIDE.md** | Web前端详细测试指南 |
-| **test-complete-flow.sh** | Bash自动化测试脚本 |
+| **test-email-service.ps1** | 邮件服务自动化测试脚本 ⭐ |
 | **test-registration-flow.py** | Python自动化测试脚本（推荐） |
+| **test-complete-flow.sh** | Bash自动化测试脚本 |
 
 ### 🚀 部署文档 (`docs/deployment/`)
 
 | 文档/脚本 | 说明 |
 |-----------|------|
 | **Deployment_guide.md** | 完整部署指南 |
+| **PRE_PRODUCTION_CHECKLIST.md** | 生产环境部署前检查清单 ⭐ |
 | **Deploy_server.sh** | 服务器部署脚本 |
 | **ecosystem.staging.config.js** | PM2测试环境配置 |
 | **docker-compose.prod.yml** | Docker生产环境配置 |
@@ -67,6 +71,13 @@
 | **NEXT_STEPS.md** | 下一步操作清单 |
 | **DOCUMENTATION_INDEX.md** | 旧版文档索引 |
 | **CLEANUP_SUMMARY.md** | 清理总结 |
+
+### 🐛 调试文档 (`docs/debugging/`)
+
+| 文档 | 说明 |
+|------|------|
+| **QUICK_FIX_EMAIL_500.md** | 邮件500错误快速修复 |
+| **EMAIL_SERVICE_FIX_2025_11_05.md** | 邮件服务修复记录 (2025-11-05) |
 
 ### 📚 其他文档 (`docs/`)
 
@@ -98,7 +109,16 @@
 
 #### 🚀 部署到服务器
 → 查看 **docs/deployment/Deployment_guide.md**  
+→ 部署前检查 **docs/deployment/PRE_PRODUCTION_CHECKLIST.md** ⭐  
 → 运行 **scripts/deployment/Deploy-Staging.ps1**
+
+#### ⚙️ 查看环境配置
+→ 查看 **docs/configuration/ENVIRONMENT_CONFIG.md** ⭐  
+→ 快速对比开发/测试/生产环境的配置差异
+
+#### 📧 测试邮件服务
+→ 运行 **.\docs\testing\test-email-service.ps1** ⭐  
+→ 自动测试所有环境的邮件服务
 
 #### 🔍 查看历史记录
 → 查看 **docs/archive/** 目录
@@ -157,6 +177,8 @@ IEclub_dev/
 
 | 日期 | 更新内容 |
 |------|---------|
+| 2025-11-05 | ✅ 添加环境配置对照表和生产部署检查清单 |
+| 2025-11-05 | ✅ 添加邮件服务自动化测试脚本 |
 | 2025-11-05 | 重新组织文档结构，创建分类目录 |
 | 2025-11-05 | 归档历史修复文档 |
 | 2025-11-03 | 创建部署和配置文档 |

@@ -61,17 +61,30 @@ class EmailService {
    * @param {string} options.text - 纯文本内容
    */
   async sendEmail({ to, subject, html, text }) {
-    // 开发/测试环境：模拟发送成功
+    const env = process.env.NODE_ENV || 'development';
+    
+    // 开发/测试环境：模拟发送成功（即使邮件未配置）
+    // 生产环境：如果未配置则返回失败
     if (!this.initialized) {
-      const env = process.env.NODE_ENV || 'development';
-      logger.warn(`[${env}] 邮件服务未配置，模拟发送邮件到: ${to}`);
-      logger.info(`[${env}] 邮件主题: ${subject}`);
+      if (env === 'production') {
+        logger.error('[PRODUCTION] 邮件服务未配置，无法发送邮件');
+        return { 
+          success: false, 
+          error: '邮件服务未配置',
+          message: '请联系管理员配置邮件服务'
+        };
+      }
+      
+      // 开发/测试环境：模拟成功
+      logger.warn(`[${env.toUpperCase()}] 邮件服务未配置，模拟发送邮件到: ${to}`);
+      logger.info(`[${env.toUpperCase()}] 邮件主题: ${subject}`);
       
       return { 
         success: true, 
         messageId: `mock-${Date.now()}`,
         mock: true,
-        message: '邮件服务未配置，已模拟发送'
+        env,
+        message: `[${env}环境] 邮件服务未配置，已模拟发送`
       };
     }
 
