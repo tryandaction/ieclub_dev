@@ -32,8 +32,10 @@
 
 | 文档/脚本 | 说明 |
 |-----------|------|
+| **README.md** | 测试文档目录和工具使用指南 ⭐ |
+| **LOGIN_TEST_RESULTS_2025_11_05.md** | 登录功能完整测试报告 ⭐ |
 | **WEB_FRONTEND_TEST_GUIDE.md** | Web前端详细测试指南 |
-| **test-email-service.ps1** | 邮件服务自动化测试脚本 ⭐ |
+| **test-email-service.ps1** | 邮件服务自动化测试脚本 |
 | **test-registration-flow.py** | Python自动化测试脚本（推荐） |
 | **test-complete-flow.sh** | Bash自动化测试脚本 |
 
@@ -41,9 +43,12 @@
 
 | 文档/脚本 | 说明 |
 |-----------|------|
-| **Deployment_guide.md** | 完整部署指南 |
-| **PRE_PRODUCTION_CHECKLIST.md** | 生产环境部署前检查清单 ⭐ |
-| **Deploy_server.sh** | 服务器部署脚本 |
+| **Deployment_guide.md** | 完整部署指南（三环境详细说明） ⭐ |
+| **DEPLOYMENT_CHECKLIST.md** | 部署检查清单（部署前/中/后） ⭐⭐⭐ |
+| **WECHAT_MINIPROGRAM_GUIDE.md** | 微信小程序开发与发布完整指南 ⭐⭐ |
+| **QUICK_REFERENCE.md** | 快速参考卡（常用命令速查表） ⭐⭐ |
+| **PRE_PRODUCTION_CHECKLIST.md** | 生产环境部署前检查清单 |
+| **Deploy_server.sh** | 服务器端部署脚本 |
 | **ecosystem.staging.config.js** | PM2测试环境配置 |
 | **docker-compose.prod.yml** | Docker生产环境配置 |
 | **nginx-dual-platform.conf** | Nginx双平台配置 |
@@ -53,12 +58,17 @@
 
 | 脚本 | 说明 |
 |------|------|
-| **QUICK_START.ps1** | 一键启动本地开发环境 |
-| **deployment/Deploy-Production.ps1** | 生产环境部署脚本 |
-| **deployment/Deploy-Staging.ps1** | 测试环境部署脚本 |
+| **QUICK_START.ps1** | 一键启动本地开发环境 ⭐⭐⭐ |
+| **deployment/README.md** | 部署脚本使用指南 ⭐⭐⭐ |
+| **deployment/Deploy-And-Verify.ps1** | 测试环境部署+验证（推荐） ⭐⭐⭐ |
+| **deployment/Deploy-Production-OneClick.ps1** | 生产环境一键安全部署 ⭐⭐⭐ |
+| **deployment/Deploy-Staging.ps1** | 测试环境部署脚本 ⭐⭐ |
+| **deployment/Deploy-Production.ps1** | 生产环境部署脚本 ⭐⭐ |
+| **health-check/README.md** | 测试工具文档和使用指南 ⭐ |
 | **health-check/Check-Backend-Health.ps1** | 后端健康检查脚本 |
 | **health-check/Check-Deploy-Ready.ps1** | 部署前检查脚本 |
-| **start-staging.sh** | 测试环境启动脚本 |
+| **health-check/create-test-user-simple.js** | 创建测试用户脚本 ⭐ |
+| **health-check/test-login.sh** | 登录功能自动化测试脚本 ⭐ |
 
 ### 📦 归档文档 (`docs/archive/`)
 
@@ -104,13 +114,20 @@
 → 查看 **docs/configuration/CONFIGURE_REAL_EMAIL.md**
 
 #### 🧪 测试系统功能
-→ 查看 **docs/testing/WEB_FRONTEND_TEST_GUIDE.md**  
-→ 运行 `python3 docs/testing/test-registration-flow.py`
+→ 查看 **docs/testing/README.md** ⭐  
+→ 登录测试: **docs/testing/LOGIN_TEST_RESULTS_2025_11_05.md**  
+→ 运行 `bash scripts/health-check/test-login.sh production`
 
 #### 🚀 部署到服务器
-→ 查看 **docs/deployment/Deployment_guide.md**  
-→ 部署前检查 **docs/deployment/PRE_PRODUCTION_CHECKLIST.md** ⭐  
-→ 运行 **scripts/deployment/Deploy-Staging.ps1**
+→ 查看 **docs/deployment/Deployment_guide.md** - 完整指南  
+→ 查看 **docs/deployment/QUICK_REFERENCE.md** - 快速参考卡 ⭐⭐⭐  
+→ 查看 **docs/deployment/DEPLOYMENT_CHECKLIST.md** - 检查清单 ⭐⭐⭐  
+→ 测试环境: **scripts/deployment/Deploy-And-Verify.ps1** ⭐  
+→ 生产环境: **scripts/deployment/Deploy-Production-OneClick.ps1** ⭐
+
+#### 📱 发布微信小程序
+→ 查看 **docs/deployment/WECHAT_MINIPROGRAM_GUIDE.md** ⭐⭐⭐  
+→ 包含开发者工具配置、调试、审核、发布全流程
 
 #### ⚙️ 查看环境配置
 → 查看 **docs/configuration/ENVIRONMENT_CONFIG.md** ⭐  
@@ -177,6 +194,9 @@ IEclub_dev/
 
 | 日期 | 更新内容 |
 |------|---------|
+| 2025-11-05 | ✅ 添加登录功能测试报告和自动化测试工具 |
+| 2025-11-05 | ✅ 创建测试用户脚本和登录测试脚本 |
+| 2025-11-05 | ✅ 解决Content-Type导致的JSON解析问题 |
 | 2025-11-05 | ✅ 添加环境配置对照表和生产部署检查清单 |
 | 2025-11-05 | ✅ 添加邮件服务自动化测试脚本 |
 | 2025-11-05 | 重新组织文档结构，创建分类目录 |

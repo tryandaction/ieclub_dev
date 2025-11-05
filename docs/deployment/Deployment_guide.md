@@ -1495,6 +1495,115 @@ npx prisma db push
 
 ---
 
+## 🧪 功能测试
+
+### 创建测试用户
+
+在新部署的环境中，需要先创建测试用户才能测试登录功能：
+
+```bash
+# 方法1: 直接上传到后端目录运行 (推荐)
+scp scripts/health-check/create-test-user-simple.js root@ieclub.online:/root/IEclub_dev/ieclub-backend/
+ssh root@ieclub.online 'cd /root/IEclub_dev/ieclub-backend && node create-test-user-simple.js'
+
+# 方法2: 使用原始脚本
+cd scripts/health-check
+scp create-test-user.js root@ieclub.online:/root/IEclub_dev/ieclub-backend/
+ssh root@ieclub.online 'cd /root/IEclub_dev/ieclub-backend && node create-test-user.js'
+```
+
+**输出示例**：
+```
+=== 创建测试用户 ===
+Email: admin@sustech.edu.cn
+Nickname: Admin
+
+✅ 用户创建成功:
+{
+  id: 'cmhlqzbcd000087r20tlbclpz',
+  email: 'admin@sustech.edu.cn',
+  nickname: 'Admin',
+  status: 'active'
+}
+
+您现在可以使用以下凭据登录:
+Email: admin@sustech.edu.cn
+Password: Test123456
+```
+
+### 测试登录功能
+
+创建测试用户后，可以测试登录API：
+
+```bash
+# 方法1: 使用测试脚本
+cd scripts/health-check
+chmod +x test-login.sh
+
+# 测试生产环境
+scp test-login.sh root@ieclub.online:/tmp/
+ssh root@ieclub.online 'bash /tmp/test-login.sh'
+
+# 方法2: 直接curl测试
+ssh root@ieclub.online 'curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"admin@sustech.edu.cn\",\"password\":\"Test123456\"}"'
+```
+
+**成功响应示例**：
+```json
+{
+  "success": true,
+  "message": "登录成功",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": "cmhlqzbcd000087r20tlbclpz",
+      "email": "admin@sustech.edu.cn",
+      "nickname": "Admin",
+      "avatar": "",
+      "level": 1,
+      "isCertified": false
+    }
+  }
+}
+```
+
+### 测试其他API端点
+
+**健康检查**：
+```bash
+curl http://localhost:3000/health
+# 应返回: {"status":"ok","timestamp":"...","environment":"production","uptime":...}
+```
+
+**获取用户信息**（需要token）：
+```bash
+TOKEN="your_jwt_token_here"
+curl http://localhost:3000/api/auth/profile \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**发送验证码**：
+```bash
+curl -X POST http://localhost:3000/api/auth/send-verify-code \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@sustech.edu.cn","type":"register"}'
+```
+
+### 注意事项
+
+⚠️ **重要**: 在通过SSH执行curl命令时，必须注意：
+
+1. **Content-Type必须设置**: 必须包含 `-H "Content-Type: application/json"`，否则后端无法解析JSON body
+2. **使用文件或脚本**: 对于复杂的JSON数据，建议使用脚本文件避免引号转义问题
+3. **检查响应**: 注意区分以下错误：
+   - `请使用南科大邮箱`: 邮箱格式验证失败（可能是Content-Type未设置导致body为空）
+   - `邮箱或密码错误`: 用户不存在或密码错误（body解析正常）
+   - `CSRF Token验证失败`: 需要先获取CSRF token（部分端点需要）
+
+---
+
 ## 📞 Support
 
 - **Documentation**: See README.md in project root
@@ -1513,9 +1622,12 @@ npx prisma db push
 
 ---
 
-**Last Updated**: 2025-11-02
+**Last Updated**: 2025-11-05
 
 **Changelog**:
+- 2025-11-05: 添加功能测试章节（登录测试、用户创建）
+- 2025-11-05: 添加测试工具脚本（create-test-user.js、test-login.sh）
+- 2025-11-05: 修复SSH curl命令中JSON解析问题的文档说明
 - 2025-11-02: 添加三环境部署系统（本地、测试、生产）
 - 2025-11-02: 添加自动化部署脚本和配置模板系统
 - 2025-11-02: 修复 alertSystem.js bug

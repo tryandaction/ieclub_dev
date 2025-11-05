@@ -217,13 +217,30 @@ IEClub 采用**双端原生开发**策略，确保最佳性能和用户体验。
 ### ⚡ 一键启动（推荐）
 
 ```powershell
-# Windows PowerShell
-.\Start-Services.ps1
+# Windows PowerShell - 本地开发
+.\scripts\QUICK_START.ps1
 
 # 自动在两个窗口中启动前端和后端
 # 前端: http://localhost:5173
 # 后端: http://localhost:3000
 ```
+
+### 🚀 部署到服务器
+
+```powershell
+# 测试环境部署 + 验证（推荐用于日常开发）
+cd scripts\deployment
+.\Deploy-And-Verify.ps1 -Target all -Message "描述本次更新"
+
+# 生产环境一键部署（正式发布）
+.\Deploy-Production-OneClick.ps1 -Target all -Message "v1.0.0"
+```
+
+📚 **部署文档**:
+- [部署完整指南](docs/deployment/Deployment_guide.md) - 详细的三环境部署说明
+- [快速参考卡](docs/deployment/QUICK_REFERENCE.md) - 常用命令速查表
+- [部署检查清单](docs/deployment/DEPLOYMENT_CHECKLIST.md) - 确保每次部署安全
+- [微信小程序发布](docs/deployment/WECHAT_MINIPROGRAM_GUIDE.md) - 小程序审核发布指南
 
 ### 🗄️ 数据库设置
 
