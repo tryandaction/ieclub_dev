@@ -14,12 +14,7 @@
 #   .\Deploy-Production.ps1 -Target web
 # ============================================
 
-# 🔧 设置控制台编码为UTF-8，解决中文乱码问题
-$OutputEncoding = [System.Text.Encoding]::UTF8
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-[Console]::InputEncoding = [System.Text.Encoding]::UTF8
-$PSDefaultParameterValues['*:Encoding'] = 'utf8'
-
+# param 块必须是脚本的第一个可执行语句
 param(
     [ValidateSet("web", "weapp", "backend", "all")]
     [string]$Target,
@@ -29,12 +24,19 @@ param(
     [switch]$SkipConfirm
 )
 
+# 🔧 设置控制台编码为UTF-8，解决中文乱码问题
+$OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding = [System.Text.Encoding]::UTF8
+$PSDefaultParameterValues['*:Encoding'] = 'utf8'
+
 # 设置默认值
 if (-not $Target) { $Target = "all" }
 if (-not $Message) { $Message = "Production deployment" }
 
 # --- Configuration ---
-$ProjectRoot = $PSScriptRoot
+# 脚本在 scripts/deployment/ 下，需要向上两级到达项目根目录
+$ProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $WebDir = "${ProjectRoot}\ieclub-web"
 $WeappDir = "${ProjectRoot}\ieclub-frontend"
 $BackendDir = "${ProjectRoot}\ieclub-backend"
@@ -165,9 +167,19 @@ function Commit-Changes {
     Write-Success "已提交更改: $Message"
     
     # 推送到远程
-    Write-Info "推送到远程仓库..."
+    Write-Info "推送到远程仓库 (origin/main)..."
     git push origin main
-    Write-Success "已推送到 GitHub"
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "推送失败！请检查网络连接和 GitHub 权限"
+        Write-Warning "可能的原因："
+        Write-Warning "  1. 网络连接问题"
+        Write-Warning "  2. GitHub 凭证过期"
+        Write-Warning "  3. 代码中包含敏感信息（API Key、密码等）"
+        Write-Warning "  4. 仓库规则限制"
+        exit 1
+    }
+    Write-Success "已推送到 GitHub (origin/main)"
 }
 
 # --- Build Web Frontend (Production) ---

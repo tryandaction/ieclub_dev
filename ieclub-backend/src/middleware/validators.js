@@ -56,22 +56,6 @@ const updateProfileValidation = [
     .trim()
     .isLength({ max: 200 }).withMessage('个人简介不能超过200个字符'),
   
-  body('school')
-    .optional()
-    .trim()
-    .isLength({ max: 100 }).withMessage('学校名称不能超过100个字符'),
-  
-  body('major')
-    .optional()
-    .trim()
-    .isLength({ max: 100 }).withMessage('专业名称不能超过100个字符'),
-  
-  body('grade')
-    .optional()
-    .trim()
-    .isIn(['大一', '大二', '大三', '大四', '研一', '研二', '研三', '其他'])
-    .withMessage('请选择有效的年级'),
-  
   body('gender')
     .optional()
     .isInt({ min: 0, max: 2 }).withMessage('性别参数无效')

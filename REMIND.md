@@ -153,7 +153,7 @@ A: 可以，但建议根据邮件量选择合适的付费方案
 
 ```powershell
 # 一键启动所有服务（推荐）
-.\QUICK_START.ps1
+.\scripts\QUICK_START.ps1
 
 # 或者分别启动
 cd ieclub-backend && npm run dev
@@ -164,16 +164,16 @@ cd ieclub-web && npm run dev
 
 ```powershell
 # 部署到测试环境（建议先测试）
-.\Deploy-Staging.ps1 -Target all -Message "功能描述"
+.\scripts\deployment\Deploy-Staging.ps1 -Target all -Message "功能描述"
 
 # 部署到生产环境（谨慎操作）
-.\Deploy-Production.ps1 -Target all -Message "版本说明"
+.\scripts\deployment\Deploy-Production.ps1 -Target all -Message "版本说明"
 
 # 只部署后端
-.\Deploy-Staging.ps1 -Target backend
+.\scripts\deployment\Deploy-Staging.ps1 -Target backend
 
 # 只部署Web前端
-.\Deploy-Staging.ps1 -Target web
+.\scripts\deployment\Deploy-Staging.ps1 -Target web
 ```
 
 ### 服务器管理
@@ -196,8 +196,8 @@ ssh root@ieclub.online "pm2 restart ieclub-backend"
 ssh root@ieclub.online "pm2 restart staging-backend"
 
 # 健康检查诊断
-.\Check-Backend-Health.ps1 -Environment staging
-.\Check-Backend-Health.ps1 -Environment production
+.\scripts\health-check\Check-Backend-Health.ps1 -Environment staging
+.\scripts\health-check\Check-Backend-Health.ps1 -Environment production
 ```
 
 ### 数据库操作
@@ -240,7 +240,7 @@ npm run init-rbac
 
 2. **部署到测试环境**
    ```powershell
-   .\Deploy-Staging.ps1 -Target all -Message "测试新功能"
+   .\scripts\deployment\Deploy-Staging.ps1 -Target all -Message "测试新功能"
    ```
 
 3. **测试环境验证**
@@ -250,14 +250,14 @@ npm run init-rbac
 
 4. **部署到生产环境**
    ```powershell
-   .\Deploy-Production.ps1 -Target all -Message "v1.x.x 正式发布"
+   .\scripts\deployment\Deploy-Production.ps1 -Target all -Message "v1.x.x 正式发布"
    ```
 
 ### 部署检查清单
 
 部署前运行：
 ```powershell
-.\Check-Deploy-Ready.ps1
+.\scripts\health-check\Check-Deploy-Ready.ps1
 ```
 
 手动检查：
@@ -275,7 +275,7 @@ npm run init-rbac
 
 **快速诊断**：
 ```powershell
-.\Check-Backend-Health.ps1 -Environment staging
+.\scripts\health-check\Check-Backend-Health.ps1 -Environment staging
 ```
 
 **常见原因**：
@@ -501,7 +501,7 @@ systemctl restart nginx       # 重启Nginx
 
 1. **快速诊断**
    ```powershell
-   .\Check-Backend-Health.ps1 -Environment production
+   .\scripts\health-check\Check-Backend-Health.ps1 -Environment production
    ```
 
 2. **查看日志**
@@ -510,7 +510,7 @@ systemctl restart nginx       # 重启Nginx
    ```
 
 3. **回滚（如必要）**
-   - 测试环境：`.\Deploy-Staging.ps1` 会提示回滚选项
+   - 测试环境：`.\scripts\deployment\Deploy-Staging.ps1` 会提示回滚选项
    - 生产环境：谨慎操作，联系技术负责人
 
 4. **临时修复**

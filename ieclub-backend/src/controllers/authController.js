@@ -4,27 +4,14 @@
 const prisma = require('../config/database');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
 const config = require('../config');
 const logger = require('../utils/logger');
-
-// 邮件发送器配置
-const transporter = nodemailer.createTransport({
-  host: 'smtp.qq.com', // 使用QQ邮箱SMTP，可改为其他
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER, // 发件邮箱
-    pass: process.env.EMAIL_PASS  // 授权码
-  }
-});
-
-// 验证码存储（现在使用数据库）
-// const verifyCodeStore = new Map(); // 已弃用
+const emailService = require('../services/emailService');
 
 // 辅助函数
 function validateEmail(email) {
-  const regex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/;
+  // 基本邮箱格式验证
+  const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   return regex.test(email);
 }
 
@@ -44,21 +31,6 @@ function validatePasswordStrength(password) {
 
 function generateVerificationCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-async function sendEmail(to, subject, html) {
-  try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to,
-      subject,
-      html
-    });
-    logger.info('邮件发送成功:', { to, subject });
-  } catch (error) {
-    logger.error('邮件发送失败:', { to, subject, error: error.message });
-    throw error;
-  }
 }
 
 class AuthController {
@@ -94,14 +66,17 @@ class AuthController {
       }
 
       // 检查邮箱域名是否允许
-      const allowedDomains = process.env.ALLOWED_EMAIL_DOMAINS?.split(',') || [];
-      const emailDomain = email.split('@')[1];
-
-      if (allowedDomains.length > 0 && !allowedDomains.includes(emailDomain)) {
-        return res.status(400).json({
-          code: 400,
-          message: `仅允许以下邮箱注册: ${allowedDomains.join(', ')}`
-        });
+      const allowedDomainsStr = process.env.ALLOWED_EMAIL_DOMAINS?.trim();
+      if (allowedDomainsStr) {
+        const allowedDomains = allowedDomainsStr.split(',').map(d => d.trim()).filter(d => d);
+        const emailDomain = email.split('@')[1];
+        
+        if (allowedDomains.length > 0 && !allowedDomains.includes(emailDomain)) {
+          return res.status(400).json({
+            code: 400,
+            message: `仅允许以下邮箱注册: ${allowedDomains.join(', ')}`
+          });
+        }
       }
 
       // 注册时检查邮箱是否已存在
@@ -146,27 +121,8 @@ class AuthController {
         }
       });
 
-      // 发送邮件
-      const typeMap = {
-        register: '注册',
-        reset: '密码重置',
-        login: '登录'
-      };
-      const subject = `IEClub ${typeMap[type] || ''}验证码`;
-      const html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #3b82f6;">IEClub ${typeMap[type] || ''}验证</h2>
-          <p>您好！</p>
-          <p>您的验证码是：</p>
-          <h1 style="color: #3b82f6; font-size: 32px; letter-spacing: 5px;">${code}</h1>
-          <p style="color: #ef4444;">验证码将在10分钟后过期，请尽快使用。</p>
-          <p>如果这不是您本人的操作，请忽略此邮件。</p>
-          <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-          <p style="color: #9ca3af; font-size: 12px;">此邮件由系统自动发送，请勿回复。</p>
-        </div>
-      `;
-
-      await sendEmail(email, subject, html);
+      // 发送邮件（使用 emailService）
+      await emailService.sendVerificationCode(email, code, type);
 
       res.json({
         code: 200,
@@ -243,12 +199,25 @@ class AuthController {
       const { email, password, verifyCode, nickname, gender } = req.body;
 
       // 验证邮箱格式
-      const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/;
-      if (!emailRegex.test(email)) {
+      if (!validateEmail(email)) {
         return res.status(400).json({
           success: false,
-          message: '请使用南科大邮箱'
+          message: '邮箱格式不正确'
         });
+      }
+
+      // 检查邮箱域名是否允许（如果配置了 ALLOWED_EMAIL_DOMAINS）
+      const allowedDomainsStr = process.env.ALLOWED_EMAIL_DOMAINS?.trim();
+      if (allowedDomainsStr) {
+        const allowedDomains = allowedDomainsStr.split(',').map(d => d.trim()).filter(d => d);
+        const emailDomain = email.split('@')[1];
+        
+        if (allowedDomains.length > 0 && !allowedDomains.includes(emailDomain)) {
+          return res.status(400).json({
+            success: false,
+            message: `仅允许以下邮箱注册: ${allowedDomains.join(', ')}`
+          });
+        }
       }
 
       // 验证验证码
@@ -705,12 +674,8 @@ class AuthController {
           nickname: true,
           avatar: true,
           bio: true,
-          school: true,
-          major: true,
-          grade: true,
           interests: true,
           skills: true,
-          verified: true,
           level: true,
           credits: true,
           exp: true,
@@ -742,15 +707,12 @@ class AuthController {
   static async updateProfile(req, res, next) {
     try {
       const userId = req.user.id;
-      const { nickname, bio, school, major, grade, skills, interests } = req.body;
+      const { nickname, bio, skills, interests } = req.body;
 
       // 构建更新数据
       const updateData = {};
       if (nickname !== undefined) updateData.nickname = nickname;
       if (bio !== undefined) updateData.bio = bio;
-      if (school !== undefined) updateData.school = school;
-      if (major !== undefined) updateData.major = major;
-      if (grade !== undefined) updateData.grade = grade;
       if (skills !== undefined) updateData.skills = JSON.stringify(skills);
       if (interests !== undefined) updateData.interests = JSON.stringify(interests);
 
@@ -763,9 +725,6 @@ class AuthController {
           nickname: true,
           avatar: true,
           bio: true,
-          school: true,
-          major: true,
-          grade: true,
           skills: true,
           interests: true
         }

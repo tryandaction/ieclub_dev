@@ -10,7 +10,7 @@
 >
 > **Recent Updates** (2025-11-02):
 > - ✅ **三环境部署系统完成** - 本地开发、测试环境、生产环境
-> - ✅ 自动化部署脚本 (Deploy-Staging.ps1, Deploy-Production.ps1)
+> - ✅ 自动化部署脚本 (scripts\deployment\Deploy-Staging.ps1, scripts\deployment\Deploy-Production.ps1)
 > - ✅ 环境配置模板系统 (.env.staging.template, .env.production.template)
 > - ✅ 修复 alertSystem.js 的 undefined.toFixed() 错误
 > - ✅ 测试环境独立数据库和端口配置
@@ -27,7 +27,7 @@
 ```powershell
 # 快速启动
 cd C:\universe\GitHub_try\IEclub_dev
-.\QUICK_START.ps1
+.\scripts\QUICK_START.ps1
 
 # 或手动启动
 cd C:\universe\GitHub_try\IEclub_dev\ieclub-backend
@@ -52,15 +52,15 @@ npm run dev  # 前端: http://localhost:5173
 ```powershell
 # 部署全部
 cd C:\universe\GitHub_try\IEclub_dev
-.\Deploy-Staging.ps1 -Target all -Message "测试"
+.\scripts\deployment\Deploy-Staging.ps1 -Target all -Message "测试"
 
 # 仅部署前端
 cd C:\universe\GitHub_try\IEclub_dev
-.\Deploy-Staging.ps1 -Target web
+.\scripts\deployment\Deploy-Staging.ps1 -Target web
 
 # 仅部署后端
 cd C:\universe\GitHub_try\IEclub_dev
-.\Deploy-Staging.ps1 -Target backend
+.\scripts\deployment\Deploy-Staging.ps1 -Target backend
 ```
 
 **访问地址**: https://test.ieclub.online
@@ -82,15 +82,15 @@ cd C:\universe\GitHub_try\IEclub_dev
 ```powershell
 # 部署全部（需要输入 YES 确认）
 cd C:\universe\GitHub_try\IEclub_dev
-.\Deploy-Production.ps1 -Target all -Message "正式发布"
+.\scripts\deployment\Deploy-Production.ps1 -Target all -Message "正式发布"
 
 # 仅部署前端
 cd C:\universe\GitHub_try\IEclub_dev
-.\Deploy-Production.ps1 -Target web
+.\scripts\deployment\Deploy-Production.ps1 -Target web
 
 # 仅部署后端
 cd C:\universe\GitHub_try\IEclub_dev
-.\Deploy-Production.ps1 -Target backend
+.\scripts\deployment\Deploy-Production.ps1 -Target backend
 ```
 
 **访问地址**: https://ieclub.online
@@ -111,7 +111,7 @@ cd C:\universe\GitHub_try\IEclub_dev
 
 **在执行任何部署前，请先运行部署就绪检查**：
 ```powershell
-.\Check-Deploy-Ready.ps1
+.\scripts\health-check\Check-Deploy-Ready.ps1
 ```
 
 这个脚本会检查：
@@ -126,25 +126,25 @@ cd C:\universe\GitHub_try\IEclub_dev
 
 ### 本地开发
 ```powershell
-.\QUICK_START.ps1
+.\scripts\QUICK_START.ps1
 ```
 
 ### 测试环境部署
 ```powershell
 # 1. 检查代码状态
-.\Check-Deploy-Ready.ps1
+.\scripts\health-check\Check-Deploy-Ready.ps1
 
 # 2. 部署测试环境
-.\Deploy-Staging.ps1 -Target all -Message "测试新功能"
+.\scripts\deployment\Deploy-Staging.ps1 -Target all -Message "测试新功能"
 ```
 
 ### 生产环境部署
 ```powershell
 # 1. 检查代码状态（必须通过）
-.\Check-Deploy-Ready.ps1
+.\scripts\health-check\Check-Deploy-Ready.ps1
 
 # 2. 部署生产环境
-.\Deploy-Production.ps1 -Target all -Message "正式发布"
+.\scripts\deployment\Deploy-Production.ps1 -Target all -Message "正式发布"
 ```
 
 ### 小程序编译
@@ -558,7 +558,7 @@ sudo chown -R root:root /root/IEclub_dev_staging
 
 ```powershell
 # 在本地执行
-.\Deploy-Staging.ps1 -Target all -Message "首次部署测试环境"
+.\scripts\deployment\Deploy-Staging.ps1 -Target all -Message "首次部署测试环境"
 ```
 
 ### 6. 配置敏感信息
@@ -616,7 +616,7 @@ curl https://ieclub.online/api/health
    ↓ 功能完成，代码提交
    
 2. 部署到测试环境
-   ↓ Deploy-Staging.ps1
+   ↓ scripts\deployment\Deploy-Staging.ps1
    
 3. 测试环境验证
    ↓ 访问 test.ieclub.online 测试
@@ -625,7 +625,7 @@ curl https://ieclub.online/api/health
    ↓ 合并到 main 分支
    
 5. 部署到生产环境
-   ↓ Deploy-Production.ps1 (需要输入 YES 确认)
+   ↓ scripts\deployment\Deploy-Production.ps1 (需要输入 YES 确认)
    
 6. 生产环境监控
    ↓ 访问 ieclub.online 验证
@@ -787,7 +787,7 @@ pm2 monit  # 实时监控
 - [ ] DNS 已配置（test.ieclub.online）
 
 **部署中**:
-- [ ] 运行 `.\Deploy-Staging.ps1 -Target all`
+- [ ] 运行 `.\scripts\deployment\Deploy-Staging.ps1 -Target all`
 - [ ] 前端构建成功
 - [ ] 后端打包成功
 - [ ] 文件上传完成
@@ -811,7 +811,7 @@ pm2 monit  # 实时监控
 - [ ] 准备好回滚方案
 
 **部署中**:
-- [ ] 运行 `.\Deploy-Production.ps1 -Target all`
+- [ ] 运行 `.\scripts\deployment\Deploy-Production.ps1 -Target all`
 - [ ] 输入 'YES' 确认部署
 - [ ] 前端构建成功
 - [ ] 后端打包成功
@@ -1508,8 +1508,8 @@ npx prisma db push
 
 - **快速启动**: 查看根目录 `REMIND.md`
 - **环境变量**: 查看配置模板文件（.template）
-- **部署脚本**: `Deploy-Staging.ps1` / `Deploy-Production.ps1`
-- **本地开发**: `QUICK_START.ps1`
+- **部署脚本**: `scripts\deployment\Deploy-Staging.ps1` / `scripts\deployment\Deploy-Production.ps1`
+- **本地开发**: `scripts\QUICK_START.ps1`
 
 ---
 

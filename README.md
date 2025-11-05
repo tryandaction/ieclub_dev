@@ -1,4 +1,4 @@
-# IEClub - 创造线上线下交互的无限可能
+# IEClub - 连接思想，创造可能
 
 <div align="center">
 
@@ -17,7 +17,7 @@
 
 ## 📖 项目简介
 
-**IEClub：创造线上线下交互的无限可能！**
+**IEClub：连接思想，创造可能！**
 
 我们现阶段将立足南科大，打造线上线下的学术交流空间与分享、交流、互助的氛围，让南科学子在遇到学业、科研、项目以及创业等方面问题的时候都能想到IEClub。
 
@@ -346,20 +346,40 @@ IEclub_dev/
 │   └── prisma/               # 数据库配置
 │
 ├── docs/                     # 📚 文档中心
-│   ├── README.md             # 文档索引
+│   ├── INDEX.md              # 📖 文档索引（推荐）
 │   ├── DOCUMENTATION_GUIDE.md # 文档维护指南
 │   ├── GIT_PROXY_SETUP.md    # Git配置指南
-│   └── deployment/           # 部署文档
-│       └── Deployment_guide.md
+│   │
+│   ├── configuration/        # ⚙️ 配置文档
+│   │   ├── CONFIGURE_REAL_EMAIL.md
+│   │   └── SENDGRID_SETUP_COMPLETE.md
+│   │
+│   ├── testing/              # 🧪 测试文档
+│   │   ├── WEB_FRONTEND_TEST_GUIDE.md
+│   │   ├── test-complete-flow.sh
+│   │   └── test-registration-flow.py
+│   │
+│   ├── deployment/           # 🚀 部署文档
+│   │   ├── Deployment_guide.md
+│   │   └── ...
+│   │
+│   └── archive/              # 📦 归档文档
+│       └── ...
 │
-├── 🚀 部署脚本
-│   ├── Deploy-Staging.ps1        # 测试环境部署
-│   ├── Deploy-Production.ps1     # 生产环境部署
-│   ├── Check-Backend-Health.ps1  # 后端健康检查
-│   └── Check-Deploy-Ready.ps1    # 部署检查
+├── scripts/                  # 🔧 执行脚本
+│   ├── QUICK_START.ps1       # 快速启动
+│   ├── deployment/           # 部署脚本
+│   │   ├── Deploy-Staging.ps1
+│   │   ├── Deploy-Production.ps1
+│   │   └── ...
+│   ├── health-check/         # 健康检查
+│   │   ├── Check-Deploy-Ready.ps1
+│   │   ├── Check-Backend-Health.ps1
+│   │   └── ...
+│   └── testing/              # 测试脚本
+│       └── ...
 │
 ├── REMIND.md                 # ⚠️ 重要提醒（必读）
-├── QUICK_START.ps1           # 快速启动脚本
 └── README.md                 # 项目总览（本文件）
 ```
 
@@ -476,8 +496,8 @@ IEclub_dev/
 ### 📚 详细文档
 
 #### 🔥 必读文档
-- [REMIND.md](REMIND.md) - **重要提醒和快速参考**（必读）
-- [文档索引](docs/README.md) - 所有文档导航
+- [REMIND.md](REMIND.md) - **重要提醒和快速参考**（必读⭐）
+- [文档索引](docs/INDEX.md) - **所有文档导航**（推荐⭐）
 - [部署指南](docs/deployment/Deployment_guide.md) - 完整部署流程
 
 #### 💻 开发相关
@@ -486,8 +506,13 @@ IEclub_dev/
 - [脚本工具说明](ieclub-backend/scripts/README.md) - 后端工具脚本
 
 #### 🔧 配置指南
+- [邮件服务配置](docs/configuration/CONFIGURE_REAL_EMAIL.md) - SendGrid邮件配置
 - [Git代理配置](docs/GIT_PROXY_SETUP.md) - Git网络问题解决方案
 - [文档维护指南](docs/DOCUMENTATION_GUIDE.md) - 文档编写规范
+
+#### 🧪 测试指南
+- [Web前端测试](docs/testing/WEB_FRONTEND_TEST_GUIDE.md) - Web前端测试步骤
+- [自动化测试脚本](docs/testing/test-registration-flow.py) - Python测试脚本
 
 #### 📝 更新记录
 - [后端CHANGELOG](ieclub-backend/CHANGELOG.md) - 后端更新日志
