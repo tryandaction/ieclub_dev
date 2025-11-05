@@ -2,12 +2,14 @@
 
 > 📌 **最后更新**: 2025-11-04  
 > 📌 **项目状态**: ✅ 测试环境和生产环境均正常运行
+> ⚠️ **重要**: 测试环境需配置真实邮件服务，详见[邮件服务配置](#邮件服务配置)
 
 ---
 
 ## 📋 快速导航
 
 - [服务状态](#服务状态)
+- [邮件服务配置](#邮件服务配置)
 - [常用命令](#常用命令)
 - [部署指南](#部署指南)
 - [故障排查](#故障排查)
@@ -37,6 +39,111 @@
 - **AppID**: wx5c959d4b00c7f61b
 - **生产API**: https://ieclub.online/api
 - **测试API**: https://test.ieclub.online/api
+
+---
+
+## 📧 邮件服务配置
+
+### ⚠️ 重要：测试环境需配置真实邮件服务
+
+**当前问题**：
+- 测试环境使用的是 Ethereal Email（模拟邮件服务）
+- ❌ 邮件不会真实发送
+- ❌ 用户无法收到验证码
+- ❌ 无法测试真实用户注册流程
+
+**解决方案**：配置真实邮件服务
+
+### 方案一：SendGrid（推荐，5分钟配置）
+
+**优势**：
+- ✅ 免费版每天 100 封邮件
+- ✅ 配置简单，无需域名
+- ✅ 稳定可靠
+
+**快速配置**：
+
+```bash
+# 1. 运行配置脚本
+./configure-sendgrid.sh
+
+# 2. 按提示操作：
+#    - 注册 SendGrid 账号（https://signup.sendgrid.com/）
+#    - 创建 API Key
+#    - 验证发件人邮箱
+#    - 输入配置信息
+
+# 3. 测试邮件功能
+./test-email-service.sh
+```
+
+**详细文档**：查看 `CONFIGURE_REAL_EMAIL.md`
+
+### 方案二：腾讯企业邮箱（国内推荐）
+
+**优势**：
+- ✅ 国内服务，速度快
+- ✅ 免费版支持50个账号
+- ✅ 稳定可靠
+
+**前置要求**：
+- 需要有自己的域名
+- 需要配置域名 MX 记录
+
+**快速配置**：
+
+```bash
+# 运行配置脚本
+./configure-tencent-email.sh
+```
+
+### 测试邮件功能
+
+配置完成后，运行测试脚本验证：
+
+```bash
+./test-email-service.sh
+```
+
+测试内容：
+1. 发送注册验证码
+2. 完整注册流程
+3. 找回密码验证码
+
+### 手动测试
+
+```bash
+# 发送验证码
+curl -X POST https://test.ieclub.online/api/auth/send-verification-code \
+  -H 'Content-Type: application/json' \
+  -d '{"email": "your-email@example.com", "type": "register"}'
+
+# 检查邮箱是否收到验证码
+```
+
+### 查看日志
+
+```bash
+# 查看邮件发送日志
+ssh root@ieclub.online "pm2 logs ieclub-staging --lines 100 | grep -i email"
+
+# 查看当前邮件配置
+ssh root@ieclub.online "cat /root/IEclub_dev_staging/ieclub-backend/.env | grep EMAIL_"
+```
+
+### 常见问题
+
+**Q: 邮件进垃圾箱怎么办？**
+A: 
+- 完成 SendGrid 的 Domain Authentication
+- 配置 SPF 和 DKIM 记录
+- 添加退订链接
+
+**Q: SendGrid 免费版够用吗？**
+A: 测试环境完全够用，每天 100 封邮件足够测试需求
+
+**Q: 生产环境也用 SendGrid？**
+A: 可以，但建议根据邮件量选择合适的付费方案
 
 ---
 
