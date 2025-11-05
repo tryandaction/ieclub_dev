@@ -122,13 +122,30 @@ class AuthController {
       });
 
       // 发送邮件（使用 emailService）
-      await emailService.sendVerificationCode(email, code, type);
+      const sendResult = await emailService.sendVerificationCode(email, code, type);
+      
+      // 检查邮件发送结果
+      if (!sendResult || !sendResult.success) {
+        logger.error('邮件发送失败:', { email, error: sendResult?.error });
+        
+        // 即使邮件发送失败，验证码仍然有效（已保存到数据库）
+        return res.json({
+          code: 200,
+          message: '验证码已生成，但邮件发送失败。验证码为: ' + code,
+          data: {
+            expiresIn: 600, // 10分钟
+            emailSent: false,
+            code: process.env.NODE_ENV === 'development' ? code : undefined // 开发环境返回验证码
+          }
+        });
+      }
 
       res.json({
         code: 200,
         message: '验证码已发送，请查收邮件',
         data: {
-          expiresIn: 600 // 10分钟
+          expiresIn: 600, // 10分钟
+          emailSent: true
         }
       });
     } catch (error) {
@@ -498,22 +515,16 @@ class AuthController {
       );
 
       // 发送重置邮件
-      const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:10086'}/reset-password?token=${resetToken}`;
-      const subject = 'IEClub 密码重置';
-      const html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #3b82f6;">IEClub 密码重置</h2>
-          <p>您好！</p>
-          <p>您请求重置密码，请点击下面的链接完成重置：</p>
-          <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background: #3b82f6; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0;">重置密码</a>
-          <p style="color: #ef4444;">链接将在1小时后过期，请尽快使用。</p>
-          <p>如果这不是您本人的操作，请忽略此邮件。</p>
-          <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-          <p style="color: #9ca3af; font-size: 12px;">此邮件由系统自动发送，请勿回复。</p>
-        </div>
-      `;
-
-      await sendEmail(email, subject, html);
+      const sendResult = await emailService.sendPasswordResetEmail(email, resetToken);
+      
+      // 检查邮件发送结果
+      if (!sendResult || !sendResult.success) {
+        logger.error('密码重置邮件发送失败:', { email, error: sendResult?.error });
+        return res.status(500).json({
+          success: false,
+          message: '邮件发送失败，请稍后重试'
+        });
+      }
 
       res.json({
         success: true,
