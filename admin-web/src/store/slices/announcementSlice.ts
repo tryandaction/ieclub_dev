@@ -6,6 +6,7 @@ import type { PaginationResponse } from '@/types/common';
 
 interface AnnouncementState {
   list: Announcement[];
+  announcements?: Announcement[]; // 别名
   currentAnnouncement: Announcement | null;
   pagination: {
     page: number;
@@ -13,6 +14,7 @@ interface AnnouncementState {
     total: number;
     totalPages: number;
   };
+  total?: number; // total 别名
   loading: boolean;
   error: string | null;
 }
@@ -117,7 +119,9 @@ const announcementSlice = createSlice({
     builder.addCase(fetchAnnouncements.fulfilled, (state, action: PayloadAction<PaginationResponse<Announcement>>) => {
       state.loading = false;
       state.list = action.payload.list;
+      state.announcements = action.payload.list; // 同步别名
       state.pagination = action.payload.pagination;
+      state.total = action.payload.pagination.total; // 同步total
     });
     builder.addCase(fetchAnnouncements.rejected, (state, action) => {
       state.loading = false;

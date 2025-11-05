@@ -4,12 +4,17 @@ export interface User {
   id: string;
   nickname: string;
   email: string;
+  username?: string; // 用户名
+  realName?: string; // 真实姓名
   school?: string;
+  schoolName?: string; // 学校名称别名
   major?: string;
   grade?: string;
   avatar?: string;
   bio?: string;
   status: UserStatus;
+  isBanned?: boolean; // 是否被封禁
+  warningCount?: number; // 警告次数
   isVerified: boolean;
   level: number;
   credits: number;
@@ -19,6 +24,9 @@ export interface User {
   followersCount: number;
   followingCount: number;
   likesReceivedCount: number;
+  role?: 'student' | 'teacher'; // 角色
+  studentId?: string; // 学号/工号
+  phone?: string; // 联系方式
   createdAt: string;
   updatedAt: string;
   lastLoginAt?: string;

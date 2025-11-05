@@ -6,6 +6,7 @@ import type { PaginationResponse } from '@/types/common';
 
 interface UserState {
   list: User[];
+  users?: User[]; // 别名
   currentUser: UserDetail | null;
   pagination: {
     page: number;
@@ -13,6 +14,7 @@ interface UserState {
     total: number;
     totalPages: number;
   };
+  total?: number; // total 别名
   loading: boolean;
   error: string | null;
 }
@@ -55,6 +57,55 @@ export const fetchUserDetail = createAsyncThunk(
   }
 );
 
+// 用户操作相关的异步thunks
+export const banUser = createAsyncThunk(
+  'user/ban',
+  async (id: number | string, { rejectWithValue }) => {
+    try {
+      await userApi.ban(String(id), { reason: '违规', duration: 7, notifyUser: true });
+      return id;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || '封禁用户失败');
+    }
+  }
+);
+
+export const unbanUser = createAsyncThunk(
+  'user/unban',
+  async (id: number | string, { rejectWithValue }) => {
+    try {
+      await userApi.unban(String(id), { reason: '解除封禁' });
+      return id;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || '解封用户失败');
+    }
+  }
+);
+
+export const warnUser = createAsyncThunk(
+  'user/warn',
+  async (id: number | string, { rejectWithValue }) => {
+    try {
+      await userApi.warn(String(id), { reason: '违规警告', content: '请注意言行', level: 'minor' });
+      return id;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || '警告用户失败');
+    }
+  }
+);
+
+export const deleteUser = createAsyncThunk(
+  'user/delete',
+  async (id: number | string, { rejectWithValue }) => {
+    try {
+      await userApi.delete(String(id));
+      return id;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || '删除用户失败');
+    }
+  }
+);
+
 const userSlice = createSlice({
   name: 'user',
   initialState,
@@ -78,7 +129,9 @@ const userSlice = createSlice({
     builder.addCase(fetchUsers.fulfilled, (state, action: PayloadAction<PaginationResponse<User>>) => {
       state.loading = false;
       state.list = action.payload.list;
+      state.users = action.payload.list; // 同步别名
       state.pagination = action.payload.pagination;
+      state.total = action.payload.pagination.total; // 同步total
     });
     builder.addCase(fetchUsers.rejected, (state, action) => {
       state.loading = false;

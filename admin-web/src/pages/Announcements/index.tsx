@@ -49,7 +49,7 @@ const Announcements: React.FC = () => {
   const { announcements, loading, total } = useAppSelector((state) => state.announcement);
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [viewModalVisible, setViewModalVisible] = useState(false);
   const [viewingAnnouncement, setViewingAnnouncement] = useState<Announcement | null>(null);
 

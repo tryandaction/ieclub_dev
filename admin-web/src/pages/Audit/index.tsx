@@ -35,8 +35,8 @@ const Audit: React.FC = () => {
     try {
       setLoading(true);
       const response = await auditApi.getLogs(filters);
-      setLogs(response.data.logs);
-      setTotal(response.data.total);
+      setLogs(response.data.list);
+      setTotal(response.data.pagination.total);
     } catch (error) {
       console.error('Failed to load audit logs:', error);
     } finally {

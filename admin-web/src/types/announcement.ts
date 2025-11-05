@@ -11,13 +11,21 @@ export interface Announcement {
   targetAudience: TargetAudience;
   publishAt?: string;
   expireAt?: string;
+  startTime?: string; // 开始时间别名
+  endTime?: string; // 结束时间别名
   viewCount: number;
   clickCount: number;
   closeCount: number;
   createdBy: string;
+  publisherId?: string; // 发布者ID别名
   createdAt: string;
   updatedAt: string;
   creator?: {
+    id: string;
+    username: string;
+    realName?: string;
+  };
+  publisher?: {
     id: string;
     username: string;
     realName?: string;

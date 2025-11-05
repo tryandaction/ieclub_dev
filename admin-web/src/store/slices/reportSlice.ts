@@ -6,6 +6,7 @@ import type { PaginationResponse } from '@/types/common';
 
 interface ReportState {
   list: Report[];
+  reports?: Report[]; // 别名
   currentReport: Report | null;
   pagination: {
     page: number;
@@ -13,6 +14,7 @@ interface ReportState {
     total: number;
     totalPages: number;
   };
+  total?: number; // total 别名
   loading: boolean;
   error: string | null;
 }
@@ -47,10 +49,22 @@ export const fetchReportDetail = createAsyncThunk(
   'report/fetchDetail',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await reportApi.get(id);
+      const response = await reportApi.get(String(id));
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || '获取举报详情失败');
+    }
+  }
+);
+
+export const handleReport = createAsyncThunk(
+  'report/handle',
+  async ({ id, data }: { id: number | string; data: any }, { rejectWithValue }) => {
+    try {
+      const response = await reportApi.handleReport(String(id), data);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || '处理举报失败');
     }
   }
 );
@@ -78,7 +92,9 @@ const reportSlice = createSlice({
     builder.addCase(fetchReports.fulfilled, (state, action: PayloadAction<PaginationResponse<Report>>) => {
       state.loading = false;
       state.list = action.payload.list;
+      state.reports = action.payload.list; // 同步别名
       state.pagination = action.payload.pagination;
+      state.total = action.payload.pagination.total; // 同步total
     });
     builder.addCase(fetchReports.rejected, (state, action) => {
       state.loading = false;
