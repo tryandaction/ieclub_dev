@@ -4,14 +4,15 @@
 const express = require('express');
 const router = express.Router();
 const communityController = require('../controllers/communityController');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, optionalAuth } = require('../middleware/auth');
 
 /**
  * 获取用户列表
  * GET /api/community/users
  * Query: page, pageSize, sortBy, keyword
+ * Note: 改为可选认证，未登录也可访问但功能受限
  */
-router.get('/users', authenticate, communityController.getUserList);
+router.get('/users', optionalAuth, communityController.getUserList);
 
 /**
  * 搜索用户
