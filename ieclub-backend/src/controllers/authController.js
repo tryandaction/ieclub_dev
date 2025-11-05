@@ -7,6 +7,8 @@ const bcrypt = require('bcryptjs');
 const config = require('../config');
 const logger = require('../utils/logger');
 const emailService = require('../services/emailService');
+const smsService = require('../services/smsService');
+const wechatService = require('../services/wechatService');
 const { validateEmail } = require('../utils/common');
 
 // 密码强度验证函数
@@ -988,6 +990,110 @@ class AuthController {
     }
   }
 
+  // 发送手机验证码
+  static async sendPhoneCode(req, res, next) {
+    try {
+      const { phone, type = 'bind' } = req.body; // type: bind, login
+
+      // 验证手机号格式
+      if (!/^1[3-9]\d{9}$/.test(phone)) {
+        return res.status(400).json({
+          code: 400,
+          message: '手机号格式不正确'
+        });
+      }
+
+      // 频率限制：同一手机号1分钟内只能发送1次
+      const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+      const recentCode = await prisma.verificationCode.findFirst({
+        where: {
+          email: phone, // 复用email字段存储手机号
+          createdAt: { gte: oneMinuteAgo }
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      if (recentCode) {
+        const waitSeconds = Math.ceil((recentCode.createdAt.getTime() + 60000 - Date.now()) / 1000);
+        return res.status(429).json({
+          code: 429,
+          message: `验证码发送过于频繁，请${waitSeconds}秒后重试`
+        });
+      }
+
+      // 绑定手机时检查是否已被绑定
+      if (type === 'bind') {
+        const existingUser = await prisma.user.findUnique({
+          where: { phone }
+        });
+
+        if (existingUser && existingUser.id !== req.user?.id) {
+          return res.status(400).json({
+            code: 400,
+            message: '该手机号已被其他账号绑定'
+          });
+        }
+      }
+
+      // 手机登录时检查手机号是否存在
+      if (type === 'login') {
+        const user = await prisma.user.findUnique({
+          where: { phone }
+        });
+
+        if (!user) {
+          return res.status(404).json({
+            code: 404,
+            message: '该手机号未绑定账号'
+          });
+        }
+      }
+
+      // 生成验证码
+      const code = generateVerificationCode();
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10分钟后过期
+
+      // 保存验证码到数据库
+      await prisma.verificationCode.create({
+        data: {
+          email: phone, // 复用email字段
+          code,
+          type: type === 'bind' ? 'bind_phone' : 'login',
+          expiresAt
+        }
+      });
+
+      // 发送短信
+      const sendResult = await smsService.sendVerificationCode(phone, code, type);
+      
+      if (!sendResult || !sendResult.success) {
+        logger.error('短信发送失败:', { phone, error: sendResult?.error });
+        
+        return res.json({
+          code: 200,
+          message: '验证码已生成，但短信发送失败',
+          data: {
+            expiresIn: 600,
+            smsSent: false,
+            code: process.env.NODE_ENV === 'development' ? code : undefined
+          }
+        });
+      }
+
+      res.json({
+        code: 200,
+        message: '验证码已发送',
+        data: {
+          expiresIn: 600,
+          smsSent: true
+        }
+      });
+    } catch (error) {
+      logger.error('发送手机验证码失败:', { phone: req.body.phone, error: error.message });
+      next(error);
+    }
+  }
+
   // 绑定手机号
   static async bindPhone(req, res, next) {
     try {
@@ -1081,6 +1187,168 @@ class AuthController {
       });
     } catch (error) {
       logger.error('绑定手机号失败:', { userId: req.user?.id, error: error.message });
+      next(error);
+    }
+  }
+
+  // 手机号登录
+  static async loginWithPhone(req, res, next) {
+    try {
+      const { phone, code } = req.body;
+
+      // 验证手机号格式
+      if (!/^1[3-9]\d{9}$/.test(phone)) {
+        return res.status(400).json({
+          success: false,
+          message: '手机号格式不正确'
+        });
+      }
+
+      // 验证验证码
+      const stored = await prisma.verificationCode.findFirst({
+        where: {
+          email: phone,
+          code,
+          type: 'login',
+          used: false
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+
+      if (!stored || stored.expiresAt < new Date()) {
+        return res.status(400).json({
+          success: false,
+          message: '验证码错误或已过期'
+        });
+      }
+
+      // 查找用户
+      const user = await prisma.user.findUnique({
+        where: { phone }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: '该手机号未绑定账号'
+        });
+      }
+
+      // 检查用户状态
+      if (user.status !== 'active') {
+        return res.status(401).json({
+          success: false,
+          message: '账户已被禁用，请联系管理员'
+        });
+      }
+
+      // 标记验证码为已使用
+      await prisma.verificationCode.update({
+        where: { id: stored.id },
+        data: { 
+          used: true,
+          usedAt: new Date()
+        }
+      });
+
+      // 更新最后登录时间
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { 
+          lastLoginAt: new Date(),
+          lastActiveAt: new Date()
+        }
+      });
+
+      // 记录登录日志
+      await prisma.loginLog.create({
+        data: {
+          userId: user.id,
+          ipAddress: req.ip || req.connection.remoteAddress,
+          userAgent: req.get('user-agent'),
+          loginMethod: 'phone',
+          status: 'success'
+        }
+      });
+
+      // 生成token
+      const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        config.jwt.secret,
+        { expiresIn: config.jwt.expiresIn }
+      );
+
+      res.json({
+        success: true,
+        message: '登录成功',
+        data: {
+          token,
+          user: {
+            id: user.id,
+            email: user.email,
+            phone: user.phone,
+            nickname: user.nickname,
+            avatar: user.avatar,
+            level: user.level,
+            isCertified: user.isCertified
+          }
+        }
+      });
+    } catch (error) {
+      logger.error('手机号登录失败:', { phone: req.body.phone, error: error.message });
+      next(error);
+    }
+  }
+
+  // 解绑手机号
+  static async unbindPhone(req, res, next) {
+    try {
+      const userId = req.user.id;
+
+      // 检查用户是否绑定了手机号
+      const user = await prisma.user.findUnique({
+        where: { id: userId }
+      });
+
+      if (!user || !user.phone) {
+        return res.status(400).json({
+          success: false,
+          message: '当前未绑定手机号'
+        });
+      }
+
+      // 检查是否至少有一种登录方式（密码或微信）
+      if (!user.password && !user.openid) {
+        return res.status(400).json({
+          success: false,
+          message: '请先设置密码或绑定微信后再解绑手机号，否则将无法登录'
+        });
+      }
+
+      // 删除绑定记录
+      await prisma.userBinding.deleteMany({
+        where: {
+          userId,
+          type: 'phone'
+        }
+      });
+
+      // 清除用户手机号
+      await prisma.user.update({
+        where: { id: userId },
+        data: { phone: null }
+      });
+
+      logger.info('用户解绑手机号:', { userId, phone: user.phone });
+
+      res.json({
+        success: true,
+        message: '手机号解绑成功'
+      });
+    } catch (error) {
+      logger.error('解绑手机号失败:', { userId: req.user?.id, error: error.message });
       next(error);
     }
   }
@@ -1239,18 +1507,34 @@ class AuthController {
         });
       }
 
-      // TODO: 调用微信服务器换取openid和session_key
-      // 这里需要配置微信小程序的appid和secret
-      // const wechatService = require('../services/wechatService');
-      // const wechatData = await wechatService.code2Session(code);
-      // const { openid, sessionKey, unionid } = wechatData;
+      let openid, sessionKey, unionid;
 
-      // 临时方案：使用code作为openid（仅用于开发测试）
-      const openid = `wx_${code}_${Date.now()}`;
-      const sessionKey = null;
-      const unionid = null;
+      try {
+        // 调用微信服务器换取openid和session_key
+        const wechatData = await wechatService.code2Session(code);
+        openid = wechatData.openid;
+        sessionKey = wechatData.sessionKey;
+        unionid = wechatData.unionid;
+        
+        logger.info('微信登录成功获取openid:', { openid, hasUnionid: !!unionid });
+      } catch (wechatError) {
+        logger.error('微信code2Session失败:', wechatError);
+        
+        // 开发环境：使用临时方案
+        if (process.env.NODE_ENV === 'development') {
+          logger.warn('开发环境：使用临时openid');
+          openid = `wx_dev_${code}_${Date.now()}`;
+          sessionKey = null;
+          unionid = null;
+        } else {
+          return res.status(500).json({
+            success: false,
+            message: '微信登录失败，请重试'
+          });
+        }
+      }
 
-      logger.info('微信登录:', { openid, hasNickName: !!nickName });
+      logger.info('微信登录处理:', { openid, hasNickName: !!nickName });
 
       // 1. 先查找是否已绑定微信
       const binding = await prisma.userBinding.findUnique({

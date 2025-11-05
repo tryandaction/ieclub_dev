@@ -1,27 +1,28 @@
-// ieclub-backend/src/routes/posts.js
-// 帖子路由
+// routes/posts.js
+// 发布系统路由
 
-const express = require('express');
-const router = express.Router();
-const postController = require('../controllers/postController');
-const { authenticate } = require('../middleware/auth');
+const express = require('express')
+const router = express.Router()
+const postController = require('../controllers/postController')
+const { authenticate, optionalAuth } = require('../middleware/auth')
+const { apiLimiter } = require('../middleware/rateLimiter')
 
-// 公开路由
-router.get('/', postController.getPosts);
-router.get('/:postId', postController.getPostById);
+// 解析外链信息（需要登录）
+router.post('/parse-link', authenticate, postController.parseLink)
 
-// 需要认证的路由
-router.post('/', authenticate, postController.createPost);
-router.put('/:postId', authenticate, postController.updatePost);
-router.delete('/:postId', authenticate, postController.deletePost);
+// 创建发布内容（需要登录）
+router.post('/', authenticate, apiLimiter, postController.createPost)
 
-// 点赞和收藏
-router.post('/:postId/like', authenticate, postController.toggleLikePost);
-router.post('/:postId/favorite', authenticate, postController.toggleFavoritePost);
+// 获取发布列表（可选登录）
+router.get('/', optionalAuth, postController.getPosts)
 
-// 用户相关
-router.get('/user/:userId', postController.getUserPosts);
-router.get('/favorites/me', authenticate, postController.getMyFavorites);
+// 获取发布详情（可选登录）
+router.get('/:id', optionalAuth, postController.getPostById)
 
-module.exports = router;
+// 更新发布内容（需要登录）
+router.put('/:id', authenticate, postController.updatePost)
 
+// 删除发布内容（需要登录）
+router.delete('/:id', authenticate, postController.deletePost)
+
+module.exports = router

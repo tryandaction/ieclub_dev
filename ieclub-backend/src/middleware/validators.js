@@ -15,10 +15,12 @@ const registerValidation = [
     .normalizeEmail(),
   
   body('password')
-    .isLength({ min: 6, max: 32 }).withMessage('密码长度必须在6-32个字符之间')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('密码必须包含大小写字母和数字'),
+    .isLength({ min: 8, max: 32 }).withMessage('密码长度必须在8-32个字符之间')
+    .matches(/[a-zA-Z]/).withMessage('密码必须包含字母')
+    .matches(/\d/).withMessage('密码必须包含数字'),
   
   body('nickname')
+    .optional()
     .trim()
     .isLength({ min: 2, max: 20 }).withMessage('昵称长度必须在2-20个字符之间')
     .matches(/^[\u4e00-\u9fa5a-zA-Z0-9_]+$/).withMessage('昵称只能包含中文、字母、数字和下划线'),
@@ -26,7 +28,11 @@ const registerValidation = [
   body('verifyCode')
     .trim()
     .isLength({ min: 6, max: 6 }).withMessage('验证码必须是6位数字')
-    .isNumeric().withMessage('验证码只能包含数字')
+    .isNumeric().withMessage('验证码只能包含数字'),
+  
+  body('gender')
+    .optional()
+    .isInt({ min: 0, max: 2 }).withMessage('性别参数无效')
 ];
 
 /**
@@ -49,16 +55,42 @@ const updateProfileValidation = [
   body('nickname')
     .optional()
     .trim()
-    .isLength({ min: 2, max: 20 }).withMessage('昵称长度必须在2-20个字符之间'),
+    .isLength({ min: 2, max: 20 }).withMessage('昵称长度必须在2-20个字符之间')
+    .matches(/^[\u4e00-\u9fa5a-zA-Z0-9_]+$/).withMessage('昵称只能包含中文、字母、数字和下划线'),
   
   body('bio')
     .optional()
     .trim()
-    .isLength({ max: 200 }).withMessage('个人简介不能超过200个字符'),
+    .isLength({ max: 500 }).withMessage('个人简介不能超过500个字符'),
   
   body('gender')
     .optional()
-    .isInt({ min: 0, max: 2 }).withMessage('性别参数无效')
+    .isInt({ min: 0, max: 2 }).withMessage('性别参数无效'),
+  
+  body('avatar')
+    .optional()
+    .trim()
+    .isURL().withMessage('头像链接格式不正确'),
+  
+  body('major')
+    .optional()
+    .trim()
+    .isLength({ max: 100 }).withMessage('专业名称不能超过100个字符'),
+  
+  body('grade')
+    .optional()
+    .trim()
+    .isLength({ max: 20 }).withMessage('年级信息不能超过20个字符'),
+  
+  body('school')
+    .optional()
+    .trim()
+    .isLength({ max: 100 }).withMessage('学校名称不能超过100个字符'),
+  
+  body('phone')
+    .optional()
+    .trim()
+    .matches(/^1[3-9]\d{9}$/).withMessage('手机号格式不正确')
 ];
 
 // ==================== 话题相关验证 ====================

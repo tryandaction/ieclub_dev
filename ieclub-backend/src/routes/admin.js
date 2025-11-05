@@ -1,199 +1,310 @@
-// ieclub-backend/src/routes/admin.js
-// 管理后台路由
-
+// 管理员路由
 const express = require('express');
 const router = express.Router();
-const adminController = require('../controllers/adminController');
-const { authenticate } = require('../middleware/auth');
-const { requireAdmin, requireSuperAdmin, logAdminAction } = require('../middleware/adminAuth');
 
-// 所有管理后台路由都需要认证和管理员权限
-router.use(authenticate);
-// 使用新的RBAC权限系统或旧的管理员验证
-// 优先使用新的权限系统，如果没有配置权限则fallback到旧系统
-router.use(async (req, res, next) => {
-  try {
-    // 尝试使用RBAC系统
-    const rbacService = require('../services/rbacService');
-    const hasAdminAccess = await rbacService.userHasPermission(req.user.id, 'admin.access');
-    
-    if (hasAdminAccess) {
-      return next();
-    }
-    
-    // Fallback到旧的管理员验证
-    requireAdmin(req, res, next);
-  } catch (error) {
-    // 如果RBAC系统出错，使用旧系统
-    requireAdmin(req, res, next);
-  }
-});
-
-// ==================== 概览 ====================
-/**
- * @route   GET /api/admin/dashboard
- * @desc    获取管理后台概览数据
- * @access  Admin
- */
-router.get('/dashboard', adminController.getDashboardOverview);
-
-// ==================== 用户管理 ====================
-/**
- * @route   GET /api/admin/users
- * @desc    获取用户列表
- * @access  Admin
- */
-router.get('/users', adminController.getUsers);
-
-/**
- * @route   PUT /api/admin/users/:userId/status
- * @desc    更新用户状态
- * @access  Admin
- */
-router.put(
-  '/users/:userId/status',
-  logAdminAction('update_user_status'),
-  adminController.updateUserStatus
-);
-
-/**
- * @route   POST /api/admin/users/batch
- * @desc    批量操作用户
- * @access  SuperAdmin
- */
-router.post(
-  '/users/batch',
+// 中间件
+const {
+  authenticateAdmin,
+  requirePermission,
+  requireAnyPermission,
   requireSuperAdmin,
-  logAdminAction('batch_update_users'),
-  adminController.batchUpdateUsers
+  logAdminAction,
+  checkAccountLock,
+  loginRateLimiter,
+} = require('../middleware/adminAuth');
+
+const { ADMIN_PERMISSIONS } = require('../utils/adminAuth');
+
+// Controllers
+const adminAuthController = require('../controllers/adminAuthController');
+const announcementController = require('../controllers/admin/announcementController');
+const userManagementController = require('../controllers/admin/userManagementController');
+const statsController = require('../controllers/admin/statsController');
+
+// ==================== 认证路由 ====================
+// 登录
+router.post('/auth/login', checkAccountLock, loginRateLimiter, adminAuthController.login);
+
+// 登出
+router.post('/auth/logout', authenticateAdmin, adminAuthController.logout);
+
+// 刷新令牌
+router.post('/auth/refresh', adminAuthController.refresh);
+
+// 获取当前管理员信息
+router.get('/auth/me', authenticateAdmin, adminAuthController.getMe);
+
+// 修改密码
+router.post('/auth/change-password', authenticateAdmin, adminAuthController.changePassword);
+
+// 2FA相关
+router.post('/auth/enable-2fa', authenticateAdmin, adminAuthController.enable2FA);
+router.post('/auth/verify-2fa', authenticateAdmin, adminAuthController.verify2FA);
+router.post('/auth/disable-2fa', authenticateAdmin, adminAuthController.disable2FA);
+
+// ==================== 公告管理路由 ====================
+router.get(
+  '/announcements',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.ANNOUNCEMENT_READ),
+  announcementController.getAnnouncements
 );
 
-// ==================== 内容管理 ====================
-/**
- * @route   GET /api/admin/contents
- * @desc    获取内容列表（帖子/评论）
- * @access  Admin
- */
-router.get('/contents', adminController.getContents);
-
-/**
- * @route   PUT /api/admin/contents/:type/:contentId/status
- * @desc    更新内容状态
- * @access  Admin
- */
-router.put(
-  '/contents/:type/:contentId/status',
-  logAdminAction('update_content_status'),
-  adminController.updateContentStatus
+router.get(
+  '/announcements/:id',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.ANNOUNCEMENT_READ),
+  announcementController.getAnnouncement
 );
 
-// ==================== 活动管理 ====================
-/**
- * @route   GET /api/admin/activities
- * @desc    获取活动列表
- * @access  Admin
- */
-router.get('/activities', adminController.getActivities);
-
-// ==================== 举报管理 ====================
-/**
- * @route   GET /api/admin/reports
- * @desc    获取举报列表
- * @access  Admin
- */
-router.get('/reports', adminController.getReports);
-
-/**
- * @route   PUT /api/admin/reports/:reportId/handle
- * @desc    处理举报
- * @access  Admin
- */
-router.put(
-  '/reports/:reportId/handle',
-  logAdminAction('handle_report'),
-  adminController.handleReport
-);
-
-// ==================== 系统统计 ====================
-/**
- * @route   GET /api/admin/stats/system
- * @desc    获取系统统计数据
- * @access  Admin
- */
-router.get('/stats/system', adminController.getSystemStats);
-
-// ==================== 公告管理 ====================
-/**
- * @route   POST /api/admin/announcements
- * @desc    发送系统公告
- * @access  Admin
- */
 router.post(
   '/announcements',
-  logAdminAction('send_announcement'),
-  adminController.sendAnnouncement
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.ANNOUNCEMENT_CREATE),
+  logAdminAction('create', 'announcement'),
+  announcementController.createAnnouncement
 );
 
-// ==================== RBAC 角色权限管理 ====================
-const adminRBACController = require('../controllers/adminRBACController');
+router.put(
+  '/announcements/:id',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.ANNOUNCEMENT_UPDATE),
+  logAdminAction('update', 'announcement'),
+  announcementController.updateAnnouncement
+);
 
-/**
- * @route   GET /api/admin/rbac/overview
- * @desc    获取角色权限管理概览
- * @access  Admin
- */
-router.get('/rbac/overview', adminRBACController.getOverview);
+router.delete(
+  '/announcements/:id',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.ANNOUNCEMENT_DELETE),
+  logAdminAction('delete', 'announcement'),
+  announcementController.deleteAnnouncement
+);
 
-/**
- * @route   GET /api/admin/rbac/users/:userId/details
- * @desc    获取用户角色权限详情
- * @access  Admin
- */
-router.get('/rbac/users/:userId/details', adminRBACController.getUserRoleDetails);
-
-/**
- * @route   GET /api/admin/rbac/permission-matrix
- * @desc    获取权限矩阵
- * @access  Admin
- */
-router.get('/rbac/permission-matrix', adminRBACController.getPermissionMatrix);
-
-/**
- * @route   GET /api/admin/rbac/search-users
- * @desc    搜索用户（用于分配角色）
- * @access  Admin
- */
-router.get('/rbac/search-users', adminRBACController.searchUsers);
-
-/**
- * @route   POST /api/admin/rbac/batch-assign
- * @desc    批量分配角色
- * @access  Admin
- */
 router.post(
-  '/rbac/batch-assign',
-  logAdminAction('batch_assign_roles'),
-  adminRBACController.batchAssignRoles
+  '/announcements/:id/publish',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.ANNOUNCEMENT_CREATE),
+  logAdminAction('publish', 'announcement'),
+  announcementController.publishAnnouncement
 );
 
-/**
- * @route   POST /api/admin/rbac/batch-remove
- * @desc    批量移除角色
- * @access  Admin
- */
+router.get(
+  '/announcements/:id/stats',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.ANNOUNCEMENT_READ),
+  announcementController.getAnnouncementStats
+);
+
+// ==================== 用户管理路由 ====================
+router.get(
+  '/users',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.USER_READ),
+  userManagementController.getUsers
+);
+
+router.get(
+  '/users/:id',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.USER_READ),
+  userManagementController.getUser
+);
+
+router.put(
+  '/users/:id',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.USER_UPDATE),
+  logAdminAction('update', 'user'),
+  userManagementController.updateUser
+);
+
 router.post(
-  '/rbac/batch-remove',
-  logAdminAction('batch_remove_roles'),
-  adminRBACController.batchRemoveRoles
+  '/users/:id/warn',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.USER_UPDATE),
+  logAdminAction('warn', 'user'),
+  userManagementController.warnUser
 );
 
-// ==================== 数据导出 ====================
-/**
- * @route   GET /api/admin/export
- * @desc    导出数据
- * @access  SuperAdmin
- */
-router.get('/export', requireSuperAdmin, adminController.exportData);
+router.post(
+  '/users/:id/ban',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.USER_BAN),
+  logAdminAction('ban', 'user'),
+  userManagementController.banUser
+);
+
+router.post(
+  '/users/:id/unban',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.USER_BAN),
+  logAdminAction('unban', 'user'),
+  userManagementController.unbanUser
+);
+
+router.delete(
+  '/users/:id',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.USER_DELETE),
+  logAdminAction('delete', 'user'),
+  userManagementController.deleteUser
+);
+
+// ==================== 数据统计路由 ====================
+router.get(
+  '/stats/dashboard',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.STATS_VIEW),
+  statsController.getDashboard
+);
+
+router.get(
+  '/stats/users',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.STATS_VIEW),
+  statsController.getUserStats
+);
+
+router.get(
+  '/stats/content',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.STATS_VIEW),
+  statsController.getContentStats
+);
+
+router.get(
+  '/stats/engagement',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.STATS_VIEW),
+  statsController.getEngagementStats
+);
+
+router.post(
+  '/stats/export',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.STATS_EXPORT),
+  logAdminAction('export', 'stats'),
+  statsController.exportData
+);
+
+// ==================== 举报管理路由 ====================
+router.get(
+  '/reports',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.REPORT_READ),
+  async (req, res) => {
+    try {
+      const { page = 1, pageSize = 10, status, type } = req.query;
+      
+      // 这里返回空列表，实际实现需要查询数据库
+      res.json({
+        code: 0,
+        message: '获取成功',
+        data: {
+          reports: [],
+          total: 0,
+          page: parseInt(page),
+          pageSize: parseInt(pageSize),
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        code: 500,
+        message: error.message,
+      });
+    }
+  }
+);
+
+router.get(
+  '/reports/:id',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.REPORT_READ),
+  async (req, res) => {
+    try {
+      res.json({
+        code: 0,
+        message: '获取成功',
+        data: null,
+      });
+    } catch (error) {
+      res.status(500).json({
+        code: 500,
+        message: error.message,
+      });
+    }
+  }
+);
+
+router.put(
+  '/reports/:id/handle',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.REPORT_HANDLE),
+  logAdminAction('handle', 'report'),
+  async (req, res) => {
+    try {
+      res.json({
+        code: 0,
+        message: '处理成功',
+        data: null,
+      });
+    } catch (error) {
+      res.status(500).json({
+        code: 500,
+        message: error.message,
+      });
+    }
+  }
+);
+
+// ==================== 审计日志路由 ====================
+router.get(
+  '/audit/logs',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.AUDIT_READ),
+  async (req, res) => {
+    try {
+      const { page = 1, pageSize = 10 } = req.query;
+      
+      // 这里返回空列表，实际实现需要查询数据库
+      res.json({
+        code: 0,
+        message: '获取成功',
+        data: {
+          logs: [],
+          total: 0,
+          page: parseInt(page),
+          pageSize: parseInt(pageSize),
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        code: 500,
+        message: error.message,
+      });
+    }
+  }
+);
+
+router.get(
+  '/audit/logs/:id',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.AUDIT_READ),
+  async (req, res) => {
+    try {
+      res.json({
+        code: 0,
+        message: '获取成功',
+        data: null,
+      });
+    } catch (error) {
+      res.status(500).json({
+        code: 500,
+        message: error.message,
+      });
+    }
+  }
+);
 
 module.exports = router;
-

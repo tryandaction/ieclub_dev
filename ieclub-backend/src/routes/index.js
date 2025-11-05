@@ -120,12 +120,32 @@ router.post('/auth/bind-wechat',
   AuthController.bindWechat
 );
 
+// 发送手机验证码（严格限制）
+router.post('/auth/send-phone-code', 
+  rateLimiters.auth, 
+  AuthController.sendPhoneCode
+);
+
 // 绑定手机（API限制）
 router.post('/auth/bind-phone', 
   authenticate, 
   rateLimiters.api, 
   csrf, 
   AuthController.bindPhone
+);
+
+// 手机号登录（严格限制，无需CSRF）
+router.post('/auth/login-with-phone', 
+  rateLimiters.auth, 
+  AuthController.loginWithPhone
+);
+
+// 解绑手机（API限制）
+router.post('/auth/unbind-phone', 
+  authenticate, 
+  rateLimiters.api, 
+  csrf, 
+  AuthController.unbindPhone
 );
 
 // 解绑微信（API限制）
@@ -276,6 +296,9 @@ router.delete('/comments/:id',
 
 // ==================== Post Routes ====================
 router.use('/posts', require('./posts'));
+
+// ==================== Profile Routes ====================
+router.use('/profile', require('./profile'));
 
 // ==================== User Routes ====================
 // 获取用户列表（API限制）

@@ -100,6 +100,16 @@ export const bindWechat = (data) => {
 }
 
 /**
+ * 发送手机验证码
+ * @param {string} phone - 手机号
+ * @param {string} type - 验证码类型 (bind, login)
+ * @returns {Promise}
+ */
+export const sendPhoneCode = (phone, type = 'bind') => {
+  return request.post('/auth/send-phone-code', { phone, type })
+}
+
+/**
  * 绑定手机号
  * @param {string} phone - 手机号
  * @param {string} code - 验证码
@@ -107,6 +117,42 @@ export const bindWechat = (data) => {
  */
 export const bindPhone = (phone, code) => {
   return request.post('/auth/bind-phone', { phone, code })
+}
+
+/**
+ * 手机号登录
+ * @param {string} phone - 手机号
+ * @param {string} code - 验证码
+ * @returns {Promise<{token: string, user: object}>}
+ */
+export const loginWithPhone = (phone, code) => {
+  return request.post('/auth/login-with-phone', { phone, code })
+}
+
+/**
+ * 解绑手机号
+ * @returns {Promise}
+ */
+export const unbindPhone = () => {
+  return request.post('/auth/unbind-phone')
+}
+
+/**
+ * 解绑微信
+ * @returns {Promise}
+ */
+export const unbindWechat = () => {
+  return request.post('/auth/unbind-wechat')
+}
+
+/**
+ * 注销账号
+ * @param {string} password - 密码确认
+ * @param {string} reason - 注销原因（可选）
+ * @returns {Promise}
+ */
+export const deleteAccount = (password, reason) => {
+  return request.delete('/auth/account', { data: { password, reason } })
 }
 
 /**

@@ -181,7 +181,7 @@ class EmailService {
           </div>
           <div class="footer">
             <p>此邮件由系统自动发送，请勿回复。</p>
-            <p>© ${new Date().getFullYear()} IEclub - 创造线上线下交互的无限可能</p>
+            <p>© ${new Date().getFullYear()} IEclub - 连接思想，创造可能</p>
           </div>
         </div>
       </body>
@@ -298,7 +298,7 @@ IEclub ${purposeText[purpose]}验证码
 
           <div style="margin-top: 30px; font-size: 14px; opacity: 0.9;">
             <p>如有任何问题，请随时联系我们。</p>
-            <p>© ${new Date().getFullYear()} IEclub - 创造线上线下交互的无限可能</p>
+            <p>© ${new Date().getFullYear()} IEclub - 连接思想，创造可能</p>
           </div>
         </div>
       </body>

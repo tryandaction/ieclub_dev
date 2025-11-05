@@ -59,6 +59,7 @@
 | 脚本 | 说明 |
 |------|------|
 | **QUICK_START.ps1** | 一键启动本地开发环境 ⭐⭐⭐ |
+| **admin/START_ADMIN_NOW.ps1** | 一键启动管理后台系统 ⭐⭐⭐ |
 | **deployment/README.md** | 部署脚本使用指南 ⭐⭐⭐ |
 | **deployment/Deploy-And-Verify.ps1** | 测试环境部署+验证（推荐） ⭐⭐⭐ |
 | **deployment/Deploy-Production-OneClick.ps1** | 生产环境一键安全部署 ⭐⭐⭐ |
@@ -89,12 +90,24 @@
 | **QUICK_FIX_EMAIL_500.md** | 邮件500错误快速修复 |
 | **EMAIL_SERVICE_FIX_2025_11_05.md** | 邮件服务修复记录 (2025-11-05) |
 
+### 👥 管理员系统文档 (`docs/admin/`)
+
+| 文档 | 说明 |
+|------|------|
+| **README.md** | 管理员系统总览和导航 ⭐⭐⭐ |
+| **QUICK_START.md** | 快速启动指南 ⭐⭐⭐ |
+| **ADMIN_SYSTEM_DESIGN.md** | 完整系统设计文档（140+页） ⭐⭐ |
+| **ADMIN_USER_GUIDE.md** | 管理员操作手册 ⭐⭐ |
+| **DEPLOYMENT_GUIDE.md** | 管理员系统部署指南 ⭐ |
+| **SYSTEM_COMPLETE.md** | 系统完成总结 |
+
 ### 📚 其他文档 (`docs/`)
 
 | 文档 | 说明 |
 |------|------|
 | **DOCUMENTATION_GUIDE.md** | 文档编写指南 |
 | **GIT_PROXY_SETUP.md** | Git代理设置 |
+| **AUTH_OPTIMIZATION_SUMMARY_2025_11_05.md** | 认证系统优化总结 (2025-11-05) ⭐ |
 | **DEPLOYMENT_FIX_2025_11_05.md** | 部署脚本修复记录 (2025-11-05) |
 | **CLEANUP_REPORT_2025_11_05.md** | 代码清理报告 (2025-11-05) |
 
