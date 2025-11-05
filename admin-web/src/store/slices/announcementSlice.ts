@@ -55,6 +55,42 @@ export const fetchAnnouncementDetail = createAsyncThunk(
   }
 );
 
+export const createAnnouncement = createAsyncThunk(
+  'announcement/create',
+  async (data: any, { rejectWithValue }) => {
+    try {
+      const response = await announcementApi.create(data);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || '创建公告失败');
+    }
+  }
+);
+
+export const updateAnnouncement = createAsyncThunk(
+  'announcement/update',
+  async ({ id, data }: { id: string; data: any }, { rejectWithValue }) => {
+    try {
+      const response = await announcementApi.update(id, data);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || '更新公告失败');
+    }
+  }
+);
+
+export const deleteAnnouncement = createAsyncThunk(
+  'announcement/delete',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await announcementApi.delete(id);
+      return id;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || '删除公告失败');
+    }
+  }
+);
+
 const announcementSlice = createSlice({
   name: 'announcement',
   initialState,

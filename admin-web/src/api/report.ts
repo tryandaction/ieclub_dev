@@ -1,11 +1,21 @@
 // 举报管理API
 import { http } from './request';
-import type { ApiResponse, Report, PaginatedResponse } from '@/types/common';
+import type { Report, PaginationResponse } from '@/types/common';
 
 export const reportApi = {
   // 获取举报列表
   getReports: (params?: any) => {
-    return http.get<PaginatedResponse<Report>>('/admin/reports', { params });
+    return http.get<PaginationResponse<Report>>('/admin/reports', { params });
+  },
+
+  // list 别名（兼容旧代码）
+  list: (params?: any) => {
+    return http.get<PaginationResponse<Report>>('/admin/reports', { params });
+  },
+
+  // get 别名（兼容旧代码）
+  get: (id: number) => {
+    return http.get<Report>(`/admin/reports/${id}`);
   },
 
   // 获取举报详情

@@ -33,6 +33,7 @@ export interface AuditLog {
     after?: any;
     changes?: any;
   };
+  metadata?: any; // 额外元数据
   ipAddress?: string;
   userAgent?: string;
   status: 'success' | 'failed';
@@ -51,17 +52,21 @@ export interface Report {
   targetType: 'post' | 'topic' | 'comment' | 'user';
   targetId: string;
   reason: string;
+  type?: string; // 举报类型别名
   category: ReportCategory;
   description?: string;
   status: ReportStatus;
   handledBy?: string;
   handledAt?: string;
   handlerNote?: string;
+  note?: string; // 处理说明别名
   action?: ReportAction;
   createdAt: string;
   reporter?: {
     id: string;
     nickname: string;
+    realName?: string; // 真实姓名
+    email?: string; // 邮箱
   };
   target?: any;
   handler?: {
@@ -111,5 +116,43 @@ export interface MenuItem {
   path?: string;
   children?: MenuItem[];
   permission?: string;
+}
+
+// 用户类型
+export interface User {
+  id: string;
+  nickname: string;
+  email: string;
+  avatar?: string;
+  username?: string;
+  realName?: string;
+  role?: 'student' | 'teacher';
+  schoolName?: string;
+  studentId?: string;
+  phone?: string;
+  isBanned?: boolean;
+  warningCount?: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// 公告类型
+export interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  type: 'system' | 'event' | 'notice' | 'update';
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  status: 'draft' | 'active' | 'scheduled' | 'expired';
+  startTime?: string;
+  endTime?: string;
+  publisherId: string;
+  publisher?: {
+    id: string;
+    username: string;
+    realName?: string;
+  };
+  createdAt: string;
+  updatedAt?: string;
 }
 

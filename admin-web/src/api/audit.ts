@@ -1,11 +1,11 @@
 // 审计日志API
 import { http } from './request';
-import type { ApiResponse, AuditLog, PaginatedResponse } from '@/types/common';
+import type { AuditLog, PaginationResponse } from '@/types/common';
 
 export const auditApi = {
   // 获取日志列表
   getLogs: (params?: any) => {
-    return http.get<PaginatedResponse<AuditLog>>('/admin/audit/logs', { params });
+    return http.get<PaginationResponse<AuditLog>>('/admin/audit/logs', { params });
   },
 
   // 获取日志详情
