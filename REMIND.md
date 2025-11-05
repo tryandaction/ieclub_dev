@@ -114,6 +114,9 @@ mysql -u ieclub_user -p ieclub_staging       # 测试数据库
 ### 健康检查
 
 ```powershell
+# 网络连接诊断（部署前必查）
+.\scripts\health-check\Check-Network.ps1
+
 # 从本地检查服务器健康状态
 .\scripts\health-check\Check-Backend-Health.ps1 -Environment production
 .\scripts\health-check\Check-Backend-Health.ps1 -Environment staging
@@ -153,11 +156,53 @@ mysql -u ieclub_user -p ieclub_staging       # 测试数据库
 ### 快速诊断
 
 ```powershell
+# 网络连接诊断
+.\scripts\health-check\Check-Network.ps1
+
 # 健康检查
 .\scripts\health-check\Check-Backend-Health.ps1 -Environment production
 ```
 
 ### 常见问题
+
+#### 0. 🚨 Clash代理干扰SSH连接（最常见）
+
+**症状**：
+- SSH连接超时：`Connection timed out during banner exchange`
+- 部署脚本卡住在SSH连接环节
+- 网络诊断显示：`Interface: Clash`
+
+**解决方案**：
+
+**方法1：配置Clash规则（推荐）**
+
+1. 打开Clash控制面板
+2. 进入 **规则（Rules）** 或 **配置（Config）** 页面
+3. 添加以下规则：
+   ```yaml
+   # 在配置文件中添加（通常在rules部分）
+   - DOMAIN,ieclub.online,DIRECT
+   - IP-CIDR,39.108.160.112/32,DIRECT
+   ```
+4. 或通过界面添加：
+   - 规则类型：`DOMAIN`
+   - 匹配内容：`ieclub.online`
+   - 策略选择：`DIRECT`（直连）
+5. 保存并重启Clash
+
+**方法2：临时关闭Clash**
+- Windows：右键托盘图标 → "退出系统代理" 或 "退出Clash"
+- macOS：点击菜单栏图标 → "Quit Clash" 或 "Set as System Proxy"关闭
+
+**验证修复**：
+```powershell
+.\scripts\health-check\Check-Network.ps1
+```
+如果输出显示 `OK: No proxy interference detected`，说明已修复。
+
+**详细配置指南**：请参考 [Clash代理配置文档](./docs/configuration/CLASH_PROXY_SETUP.md)
+
+---
 
 #### 1. 服务无法访问
 ```bash

@@ -24,6 +24,7 @@
 | 文档 | 说明 |
 |------|------|
 | **ENVIRONMENT_CONFIG.md** | 三环境配置对照表（开发/测试/生产） ⭐ |
+| **CLASH_PROXY_SETUP.md** | Clash代理配置（解决SSH连接问题） ⭐⭐ |
 | **CONFIGURE_REAL_EMAIL.md** | 邮件服务配置指南 |
 | **SECURITY_GUIDE.md** | 安全配置指南 |
 | **SENDGRID_SETUP_COMPLETE.md** | SendGrid 配置完成报告 |
@@ -66,6 +67,7 @@
 | **deployment/Deploy-Staging.ps1** | 测试环境部署脚本 ⭐⭐ |
 | **deployment/Deploy-Production.ps1** | 生产环境部署脚本 ⭐⭐ |
 | **health-check/README.md** | 测试工具文档和使用指南 ⭐ |
+| **health-check/Check-Network.ps1** | 网络连接诊断（部署前必查） ⭐⭐⭐ |
 | **health-check/Check-Backend-Health.ps1** | 后端健康检查脚本 |
 | **health-check/Check-Deploy-Ready.ps1** | 部署前检查脚本 |
 | **health-check/create-test-user-simple.js** | 创建测试用户脚本 ⭐ |
@@ -125,6 +127,10 @@
 
 #### ✉️ 配置邮件服务
 → 查看 **docs/configuration/CONFIGURE_REAL_EMAIL.md**
+
+#### 🔧 解决Clash代理问题
+→ 查看 **docs/configuration/CLASH_PROXY_SETUP.md** ⭐⭐  
+→ 运行 `.\scripts\health-check\Check-Network.ps1` 诊断网络
 
 #### 🧪 测试系统功能
 → 查看 **docs/testing/README.md** ⭐  
