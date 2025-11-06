@@ -1,341 +1,221 @@
-# 📦 IEClub 部署脚本说明
+# 部署脚本说明
 
-> 本目录包含 IEClub 项目的所有部署相关脚本
-
----
+本目录包含所有部署和维护相关的PowerShell脚本。
 
 ## 📋 脚本列表
 
-### 🧪 测试环境部署
+### 🚀 部署脚本
 
-#### 1. `Deploy-Staging.ps1` - 标准测试环境部署
-**用途**: 部署代码到测试环境 (test.ieclub.online)
+#### Deploy-Staging.ps1
+测试环境部署脚本
 
-**使用方法**:
 ```powershell
-# 部署全部（前端+后端）
-.\Deploy-Staging.ps1 -Target all -Message "测试新功能"
+# 部署后端
+.\scripts\deployment\Deploy-Staging.ps1 -Target backend
 
-# 仅部署前端
-.\Deploy-Staging.ps1 -Target web -Message "修复样式问题"
+# 部署前端
+.\scripts\deployment\Deploy-Staging.ps1 -Target frontend
 
-# 仅部署后端
-.\Deploy-Staging.ps1 -Target backend -Message "优化API性能"
-```
-
-**特点**:
-- ✅ 自动 Git 提交和推送
-- ✅ 自动构建前端
-- ✅ 自动部署到服务器
-- ✅ 包含健康检查
-- ✅ 支持自动回滚
-
----
-
-#### 2. `Deploy-And-Verify.ps1` - 部署并全面验证（推荐）
-**用途**: 部署到测试环境后自动执行全面验证
-
-**使用方法**:
-```powershell
-.\Deploy-And-Verify.ps1 -Target all -Message "完成用户模块开发"
-```
-
-**验证内容**:
-- ✓ 网页端访问验证
-- ✓ API 后端功能验证
-- ✓ 小程序兼容性验证
-- ✓ 自动生成验证报告
-
-**适用场景**:
-- 日常开发测试
-- 发布前最终验证
-- CI/CD 流水线
-
----
-
-### 🚀 生产环境部署
-
-#### 3. `Deploy-Production.ps1` - 传统生产部署
-**用途**: 手动部署到生产环境 (ieclub.online)
-
-**使用方法**:
-```powershell
 # 部署全部
-.\Deploy-Production.ps1
-
-# 仅部署前端
-.\Deploy-Production.ps1 -Frontend
-
-# 仅部署后端
-.\Deploy-Production.ps1 -Backend
+.\scripts\deployment\Deploy-Staging.ps1 -Target all
 ```
 
-**特点**:
-- ⚠️ 需要手动确认
-- ✅ 包含健康检查
-- ✅ 详细的部署日志
+**特性**：
+- ✅ 自动检测并创建配置文件（从生产环境复制）
+- ✅ 智能Git同步（避免不必要的推送）
+- ✅ 完整的健康检查
+- ✅ 详细的日志输出
 
----
+#### Deploy-Production.ps1
+生产环境部署脚本（暂未更新）
 
-#### 4. `Deploy-Production-OneClick.ps1` - 一键生产部署（推荐）
-**用途**: 从测试环境验证通过后，安全地一键部署到生产环境
+### 🔧 维护脚本
 
-**使用方法**:
-```powershell
-.\Deploy-Production-OneClick.ps1 -Target all -Message "v1.0.0 正式发布"
-```
-
-**流程**:
-1. 🔍 检查测试环境状态
-2. ⚠️ 安全确认（需输入 YES）
-3. 📦 执行部署
-4. ✅ 验证生产环境
-5. 📊 生成部署报告
-
-**安全特性**:
-- ✓ 强制测试环境验证
-- ✓ 多重确认机制
-- ✓ 自动健康检查
-- ✓ 回滚建议
-
----
-
-## 🔄 推荐工作流程
-
-### 日常开发流程
+#### Fix-Staging-All.ps1 ⭐ 推荐
+**一键诊断并修复测试环境所有常见问题**
 
 ```powershell
-# 1. 本地开发
-cd C:\universe\GitHub_try\IEclub_dev
-.\scripts\QUICK_START.ps1
+# 交互式诊断和修复（推荐）
+.\scripts\deployment\Fix-Staging-All.ps1
 
-# 2. 功能开发完成后，部署到测试环境并验证
-cd C:\universe\GitHub_try\IEclub_dev\scripts\deployment
-.\Deploy-And-Verify.ps1 -Target all -Message "新增XXX功能"
-
-# 3. 测试环境验证通过（建议至少24小时）
-
-# 4. 部署到生产环境
-.\Deploy-Production-OneClick.ps1 -Target all -Message "v1.0.0 新增XXX功能"
+# 自动修复所有问题（不询问）
+.\scripts\deployment\Fix-Staging-All.ps1 -AutoFix
 ```
 
-### 快速修复流程（Hot Fix）
+**自动检查并修复**：
+1. SSH连接
+2. 目录结构
+3. 配置文件（自动从生产环境复制）
+4. 数据库创建
+5. PM2进程状态
+6. 端口占用
+7. 健康检查
+8. 依赖安装
+9. Prisma客户端
+
+**适用场景**：
+- 🆕 首次部署测试环境
+- 🔄 重置测试环境
+- ❌ 部署失败后快速修复
+- 🚨 测试环境无法访问
+
+#### Diagnose-Staging.ps1
+**仅诊断问题，不做任何修复**
 
 ```powershell
-# 1. 修复代码后，先部署到测试环境
-.\Deploy-Staging.ps1 -Target backend -Message "修复XXX严重bug"
-
-# 2. 快速验证
-curl https://test.ieclub.online/api/health
-
-# 3. 确认修复成功后，立即部署生产
-.\Deploy-Production-OneClick.ps1 -Target backend -Message "紧急修复XXX"
+.\scripts\deployment\Diagnose-Staging.ps1
 ```
 
-### 仅前端更新流程
+**检查项目**：
+- SSH连接
+- 目录结构
+- 配置文件
+- PM2进程状态
+- 端口占用
+- 健康检查
+- 最近的错误日志
+
+**适用场景**：
+- 🔍 快速了解测试环境状态
+- 📊 生成诊断报告
+- 🎯 定位问题而不修改环境
+
+#### Fix-Staging-Env.ps1
+**修复配置文件和环境设置**
 
 ```powershell
-# 1. 测试环境
-.\Deploy-Staging.ps1 -Target web -Message "优化UI样式"
-
-# 2. 验证并部署生产
-.\Deploy-Production-OneClick.ps1 -Target web -Message "UI优化"
+.\scripts\deployment\Fix-Staging-Env.ps1
 ```
 
----
+**功能**：
+- 从生产环境复制配置
+- 自动修改为测试环境参数
+- 创建测试数据库
+- 验证配置正确性
 
-## 📊 脚本对比
+**适用场景**：
+- 📝 配置文件丢失或损坏
+- 🔄 需要从生产环境同步配置
+- 🆕 手动创建测试环境
 
-| 脚本 | 环境 | 自动验证 | 安全检查 | 推荐度 |
-|------|------|----------|----------|--------|
-| `Deploy-Staging.ps1` | 测试 | ✓ 基础 | - | ⭐⭐⭐ |
-| `Deploy-And-Verify.ps1` | 测试 | ✓ 全面 | - | ⭐⭐⭐⭐⭐ |
-| `Deploy-Production.ps1` | 生产 | ✓ 基础 | ✓ 手动 | ⭐⭐⭐ |
-| `Deploy-Production-OneClick.ps1` | 生产 | ✓ 全面 | ✓ 多重 | ⭐⭐⭐⭐⭐ |
+## 🎯 常见使用场景
 
----
-
-## 🛠️ 脚本参数说明
-
-### Target 参数
-
-| 值 | 说明 | 部署范围 |
-|----|------|----------|
-| `all` | 全部 | 前端 + 后端 |
-| `web` | 前端 | 仅网页静态文件 |
-| `backend` | 后端 | 仅 Node.js API 服务 |
-
-### Message 参数
-
-提交信息，用于 Git commit 和部署日志。
-
-**建议格式**:
-- 功能开发: `"新增XXX功能"`
-- Bug修复: `"修复XXX问题"`
-- 优化: `"优化XXX性能"`
-- 版本发布: `"v1.0.0 正式发布"`
-
----
-
-## ⚙️ 环境要求
-
-### Windows PowerShell 环境
-
+### 场景1: 首次部署测试环境
 ```powershell
-# 检查 PowerShell 版本
-$PSVersionTable.PSVersion
-# 需要 5.1 或更高版本
+# 1. 一键修复（创建所有必需的资源）
+.\scripts\deployment\Fix-Staging-All.ps1 -AutoFix
 
-# 检查执行策略
-Get-ExecutionPolicy
-# 如果是 Restricted，需要修改:
-Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+# 2. 部署代码
+.\scripts\deployment\Deploy-Staging.ps1 -Target backend
 ```
 
-### 必需工具
-
-- ✅ Node.js >= 18.0
-- ✅ npm
-- ✅ Git
-- ✅ ssh (OpenSSH)
-- ✅ scp
-
-**检查工具**:
+### 场景2: 测试环境出问题了
 ```powershell
-node --version
-npm --version
-git --version
-ssh -V
-scp
+# 直接运行一键修复
+.\scripts\deployment\Fix-Staging-All.ps1
+
+# 按提示选择是否修复各项问题
 ```
 
-### SSH 密钥配置
-
-确保已配置到服务器的 SSH 免密登录：
-
+### 场景3: 只想查看状态
 ```powershell
-# 生成密钥（如果没有）
-ssh-keygen -t rsa -b 4096
-
-# 复制公钥到服务器
-type $env:USERPROFILE\.ssh\id_rsa.pub | ssh root@ieclub.online "cat >> ~/.ssh/authorized_keys"
-
-# 测试连接
-ssh root@ieclub.online "echo 'SSH连接成功'"
+# 仅诊断，不修复
+.\scripts\deployment\Diagnose-Staging.ps1
 ```
 
----
+### 场景4: 日常部署更新
+```powershell
+# 直接部署即可（会自动检测配置）
+.\scripts\deployment\Deploy-Staging.ps1 -Target backend
+```
+
+### 场景5: 配置文件丢失
+```powershell
+# 方法1: 使用专门的配置修复脚本
+.\scripts\deployment\Fix-Staging-Env.ps1
+
+# 方法2: 使用一键修复（推荐）
+.\scripts\deployment\Fix-Staging-All.ps1
+```
+
+## ⚙️ 技术细节
+
+### SSH连接
+所有脚本都通过SSH连接到服务器：
+- Host: `ieclub.online`
+- User: `root`
+- Port: `22`
+
+### 目录结构
+- 生产环境：`/root/IEclub_dev/ieclub-backend`
+- 测试环境：`/root/IEclub_dev_staging/ieclub-backend`
+
+### 关键配置差异
+
+| 配置项 | 生产环境 | 测试环境 |
+|--------|----------|----------|
+| NODE_ENV | production | staging |
+| PORT | 3000 | 3001 |
+| DATABASE | ieclub | ieclub_staging |
+| REDIS_DB | 0 | 1 |
+| PM2名称 | ieclub-backend | staging-backend |
 
 ## 🔍 故障排查
 
-### 1. "无法运行脚本"
+### SSH连接失败
+1. 检查网络连接
+2. 确认SSH密钥已配置
+3. 如使用Clash代理，确保TUN模式已关闭
 
-**错误**: `因为在此系统上禁止运行脚本`
-
-**解决**:
+### 配置文件问题
 ```powershell
-Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+# 使用一键修复，选择修复配置文件
+.\scripts\deployment\Fix-Staging-All.ps1
 ```
 
-### 2. "SSH 连接失败"
-
-**错误**: `Permission denied (publickey)`
-
-**解决**:
+### 数据库问题
 ```powershell
-# 检查 SSH 密钥
-ls $env:USERPROFILE\.ssh\
-
-# 重新配置密钥
-ssh-copy-id root@ieclub.online
+# 一键修复会自动创建数据库
+.\scripts\deployment\Fix-Staging-All.ps1
 ```
 
-### 3. "健康检查失败"
-
-**排查**:
+### PM2进程问题
 ```powershell
-# 查看服务器日志
-ssh root@ieclub.online "pm2 logs ieclub-backend --lines 50"
-
-# 检查服务状态
-ssh root@ieclub.online "pm2 status"
-
-# 手动测试健康检查
-curl https://ieclub.online/api/health
+# 一键修复会检测并尝试修复PM2问题
+.\scripts\deployment\Fix-Staging-All.ps1
 ```
 
-### 4. "部署后无法访问"
+## 📝 脚本开发规范
 
-**检查清单**:
-```bash
-# 1. Nginx 状态
-ssh root@ieclub.online "systemctl status nginx"
+### 命名约定
+- `Deploy-*.ps1`: 部署相关
+- `Fix-*.ps1`: 修复相关
+- `Diagnose-*.ps1`: 诊断相关
+- `Check-*.ps1`: 检查相关
 
-# 2. PM2 进程
-ssh root@ieclub.online "pm2 status"
+### 输出规范
+使用统一的颜色编码：
+- ✅ 绿色：成功/正常
+- ❌ 红色：错误/失败
+- ⚠️ 黄色：警告
+- ℹ️ 蓝色/青色：信息
+- 🔧 蓝色：步骤开始
 
-# 3. 端口监听
-ssh root@ieclub.online "netstat -tlnp | grep 3000"
-
-# 4. 防火墙
-ssh root@ieclub.online "ufw status"
+### SSH命令执行
+使用 `Invoke-SSH` 函数（如果有定义）或标准SSH命令：
+```powershell
+ssh -p $ServerPort "${ServerUser}@${ServerHost}" "command"
 ```
 
----
+## 🚀 最佳实践
+
+1. **部署前检查**：使用 `Diagnose-Staging.ps1` 了解当前状态
+2. **遇到问题**：优先使用 `Fix-Staging-All.ps1` 一键修复
+3. **手动介入**：如自动修复失败，使用 `Fix-Staging-Env.ps1` 等专门脚本
+4. **定期检查**：定期运行 `Diagnose-Staging.ps1` 了解环境健康状况
 
 ## 📚 相关文档
 
 - [部署指南](../../docs/deployment/Deployment_guide.md)
-- [部署检查清单](../../docs/deployment/DEPLOYMENT_CHECKLIST.md)
-- [微信小程序发布指南](../../docs/deployment/WECHAT_MINIPROGRAM_GUIDE.md)
-- [快速开始](../QUICK_START.ps1)
-
----
-
-## 🆘 获取帮助
-
-### 查看脚本帮助
-
-```powershell
-Get-Help .\Deploy-Staging.ps1 -Detailed
-Get-Help .\Deploy-Production-OneClick.ps1 -Examples
-```
-
-### 常见问题
-
-有问题请查看：
-- [部署检查清单 - 问题排查部分](../../docs/deployment/DEPLOYMENT_CHECKLIST.md#问题排查)
-- [部署指南 - 常见问题](../../docs/deployment/Deployment_guide.md#常见问题)
-
----
-
-## 🎯 最佳实践
-
-1. ✅ **始终先在测试环境验证**
-   ```powershell
-   .\Deploy-And-Verify.ps1 -Target all -Message "描述"
-   ```
-
-2. ✅ **生产部署使用一键脚本**
-   ```powershell
-   .\Deploy-Production-OneClick.ps1 -Target all -Message "v1.0.0"
-   ```
-
-3. ✅ **重要更新前备份数据库**
-   ```bash
-   ssh root@ieclub.online
-   mysqldump -u root -p ieclub > /root/backups/ieclub_$(date +%Y%m%d).sql
-   ```
-
-4. ✅ **选择低峰时段部署生产环境**
-   - 建议时间：凌晨 2:00-5:00 或周末
-
-5. ✅ **部署后持续监控24小时**
-   ```bash
-   ssh root@ieclub.online "pm2 logs ieclub-backend"
-   ```
-
----
-
-**Happy Deploying! 🚀**
-
+- [快速提醒](../../REMIND.md)
+- [健康检查脚本](../health-check/)

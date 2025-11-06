@@ -125,6 +125,31 @@ mysql -u ieclub_user -p ieclub_staging       # 测试数据库
 .\scripts\health-check\Check-Deploy-Ready.ps1
 ```
 
+### 🔧 测试环境故障修复（一键解决）
+
+```powershell
+# 🚨 测试环境有问题？运行这个就够了！
+.\scripts\deployment\Fix-Staging-All.ps1
+
+# 自动修复所有问题（不询问）
+.\scripts\deployment\Fix-Staging-All.ps1 -AutoFix
+```
+
+**自动检查并修复**：
+- ✅ SSH连接
+- ✅ 目录结构
+- ✅ 配置文件（自动从生产环境复制）
+- ✅ 数据库创建
+- ✅ PM2进程状态
+- ✅ 端口占用
+- ✅ 依赖安装
+- ✅ Prisma客户端
+
+**修复后通常需要重新部署**：
+```powershell
+.\scripts\deployment\Deploy-Staging.ps1 -Target backend
+```
+
 ---
 
 ## 📦 部署流程
@@ -153,6 +178,16 @@ mysql -u ieclub_user -p ieclub_staging       # 测试数据库
 
 ## 🔍 故障排查
 
+### 🚨 测试环境有问题？
+
+```powershell
+# 一键诊断并修复所有问题
+.\scripts\deployment\Fix-Staging-All.ps1
+
+# 然后重新部署
+.\scripts\deployment\Deploy-Staging.ps1 -Target backend
+```
+
 ### 快速诊断
 
 ```powershell
@@ -161,6 +196,7 @@ mysql -u ieclub_user -p ieclub_staging       # 测试数据库
 
 # 健康检查
 .\scripts\health-check\Check-Backend-Health.ps1 -Environment production
+.\scripts\health-check\Check-Backend-Health.ps1 -Environment staging
 ```
 
 ### 常见问题

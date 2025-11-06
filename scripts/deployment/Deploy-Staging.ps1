@@ -607,14 +607,35 @@ unzip -oq /tmp/backend-staging.zip
 rm -f /tmp/backend-staging.zip
 echo "✅ 代码解压完成"
 
-# 步骤 3: 检查配置文件
+# 步骤 3: 检查并创建配置文件
 echo "[3/8] 检查配置文件..."
 if [ ! -f .env.staging ]; then
-    echo "❌ 错误: .env.staging 文件不存在！"
-    echo "请先在服务器上创建 .env.staging 文件"
-    exit 1
+    echo "⚠️  .env.staging 文件不存在，尝试从生产环境复制配置..."
+    
+    if [ -f /root/IEclub_dev/ieclub-backend/.env ]; then
+        # 从生产环境复制并修改为测试环境配置
+        cp /root/IEclub_dev/ieclub-backend/.env .env.staging
+        
+        # 修改关键配置
+        sed -i 's/NODE_ENV=production/NODE_ENV=staging/' .env.staging
+        sed -i 's/PORT=3000/PORT=3001/' .env.staging
+        sed -i 's/ieclub"/ieclub_staging"/' .env.staging  # 数据库名
+        sed -i 's/REDIS_DB=0/REDIS_DB=1/' .env.staging
+        
+        echo "✅ 已从生产环境创建测试配置"
+        echo "⚠️  请检查并手动调整 .env.staging 中的配置"
+    else
+        echo "❌ 错误: .env.staging 文件不存在，且无法从生产环境复制！"
+        echo ""
+        echo "请执行以下步骤之一："
+        echo "  1. 在本地运行: .\scripts\deployment\Fix-Staging-Env.ps1"
+        echo "  2. 手动创建: cp env.staging.template .env.staging"
+        echo ""
+        exit 1
+    fi
+else
+    echo "✅ 配置文件已存在"
 fi
-echo "✅ 配置文件已存在"
 
 # 步骤 4: 安装依赖
 echo "[4/8] 安装依赖..."
@@ -645,10 +666,46 @@ else
     exit 1
 fi
 
-# 步骤 7: 重启后端服务
-echo "[7/8] 重启后端服务..."
+# 步骤 7: 更新PM2配置并重启服务
+echo "[7/8] 更新PM2配置并重启服务..."
+
+# 创建ecosystem配置文件
+cat > ecosystem.staging.config.js << 'ECOSYSTEM_EOF'
+const path = require('path');
+const dotenv = require('dotenv');
+
+// Load .env.staging
+const envConfig = dotenv.config({ path: path.resolve(__dirname, '.env.staging') });
+
+if (envConfig.error) {
+  console.error('Error loading .env.staging:', envConfig.error);
+  process.exit(1);
+}
+
+module.exports = {
+  apps: [{
+    name: 'staging-backend',
+    script: 'src/server-staging-simple.js',
+    cwd: '/root/IEclub_dev_staging/ieclub-backend',
+    instances: 1,
+    exec_mode: 'fork',
+    env: envConfig.parsed,
+    error_file: '/root/.pm2/logs/staging-backend-error.log',
+    out_file: '/root/.pm2/logs/staging-backend-out.log',
+    log_date_format: 'YYYY-MM-DD HH:mm:ss',
+    merge_logs: true,
+    autorestart: true,
+    max_restarts: 10,
+    min_uptime: '10s',
+    max_memory_restart: '500M',
+    watch: false
+  }]
+};
+ECOSYSTEM_EOF
+
+# 删除旧进程并启动新进程
 pm2 delete staging-backend 2>/dev/null || true
-pm2 start src/server-staging.js --name "staging-backend" --time --log-date-format "YYYY-MM-DD HH:mm:ss Z"
+pm2 start ecosystem.staging.config.js
 pm2 save
 
 # 步骤 8: 等待启动并检查
