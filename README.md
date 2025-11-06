@@ -228,15 +228,19 @@ IEClub 采用**双端原生开发**策略，确保最佳性能和用户体验。
 ### 🚀 部署到服务器
 
 ```powershell
-# 测试环境部署 + 验证（推荐用于日常开发）
+# 测试环境部署（从 develop 分支）
 cd scripts\deployment
-.\Deploy-And-Verify.ps1 -Target all -Message "描述本次更新"
+.\Deploy-Staging.ps1 -Target all -Message "测试新功能"
 
-# 生产环境一键部署（正式发布）
-.\Deploy-Production-OneClick.ps1 -Target all -Message "v1.0.0"
+# 生产环境部署（自动合并 develop → main）
+.\Deploy-Production.ps1 -Target all -Message "正式发布 v1.0.0"
 ```
 
+**🔄 Git 工作流**: 生产部署会自动执行 `develop → main` 合并，确保代码同步！
+
 📚 **部署文档**:
+- [Git 工作流程](docs/deployment/GIT_WORKFLOW.md) ⭐⭐⭐ - **必读！** 分支管理和部署流程
+- [生产部署快速指南](docs/deployment/PRODUCTION_DEPLOY_QUICKSTART.md) ⭐⭐⭐ - 5分钟快速上手
 - [部署完整指南](docs/deployment/Deployment_guide.md) - 详细的三环境部署说明
 - [快速参考卡](docs/deployment/QUICK_REFERENCE.md) - 常用命令速查表
 - [部署检查清单](docs/deployment/DEPLOYMENT_CHECKLIST.md) - 确保每次部署安全

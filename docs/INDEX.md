@@ -45,6 +45,7 @@
 | 文档/脚本 | 说明 |
 |-----------|------|
 | **Deployment_guide.md** | 完整部署指南（三环境详细说明） ⭐ |
+| **GIT_WORKFLOW.md** | Git工作流程和分支管理策略 ⭐⭐⭐ |
 | **DEPLOYMENT_CHECKLIST.md** | 部署检查清单（部署前/中/后） ⭐⭐⭐ |
 | **WECHAT_MINIPROGRAM_GUIDE.md** | 微信小程序开发与发布完整指南 ⭐⭐ |
 | **QUICK_REFERENCE.md** | 快速参考卡（常用命令速查表） ⭐⭐ |
@@ -139,10 +140,11 @@
 
 #### 🚀 部署到服务器
 → 查看 **docs/deployment/Deployment_guide.md** - 完整指南  
+→ 查看 **docs/deployment/GIT_WORKFLOW.md** - Git工作流 ⭐⭐⭐  
 → 查看 **docs/deployment/QUICK_REFERENCE.md** - 快速参考卡 ⭐⭐⭐  
 → 查看 **docs/deployment/DEPLOYMENT_CHECKLIST.md** - 检查清单 ⭐⭐⭐  
-→ 测试环境: **scripts/deployment/Deploy-And-Verify.ps1** ⭐  
-→ 生产环境: **scripts/deployment/Deploy-Production-OneClick.ps1** ⭐
+→ 测试环境: **scripts/deployment/Deploy-Staging.ps1** ⭐  
+→ 生产环境: **scripts/deployment/Deploy-Production.ps1** ⭐⭐⭐
 
 #### 📱 发布微信小程序
 → 查看 **docs/deployment/WECHAT_MINIPROGRAM_GUIDE.md** ⭐⭐⭐  

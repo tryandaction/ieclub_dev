@@ -121,53 +121,107 @@ function Test-HealthCheck {
     return $false
 }
 
-# --- Git Commit ---
-function Commit-Changes {
-    Write-Section "提交代码到 Git (生产分支)"
+# --- Git Workflow for Production ---
+function Sync-ProductionBranch {
+    Write-Section "同步代码到生产分支 (develop → main)"
     Set-Location -Path $ProjectRoot
     
-    # 切换到 main/master 分支
+    # 获取当前分支
     $currentBranch = git branch --show-current
+    Write-Info "当前分支: $currentBranch"
+    
+    # 检查工作区状态
+    $gitStatus = git status --porcelain
+    if ($gitStatus) {
+        Write-Warning "工作区有未提交的更改："
+        git status --short
+        Write-Host ""
+        
+        $commitChanges = Read-Host "是否提交这些更改到 $currentBranch 分支？(Y/N)"
+        if ($commitChanges -eq 'Y' -or $commitChanges -eq 'y') {
+            git add .
+            git commit -m "[PRE-DEPLOY] $Message"
+            Write-Success "已提交更改到 $currentBranch"
+        } else {
+            Write-Error "请先提交或暂存您的更改"
+            exit 1
+        }
+    } else {
+        Write-Success "工作区干净，没有未提交的更改"
+    }
+    
+    # 推送当前分支到远程
+    if ($currentBranch -eq "develop") {
+        Write-Info "推送 develop 分支到远程..."
+        git push origin develop
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "推送 develop 分支失败！"
+            exit 1
+        }
+        Write-Success "已推送 develop 分支"
+    }
+    
+    # 确保 main 分支存在
+    $hasMasterBranch = git branch --list master
+    $hasMainBranch = git branch --list main
     $targetBranch = "main"
     
-    # 检查是否有 main 分支，没有则使用 master
-    $hasMaster = git branch --list master
-    if ($hasMaster -and $currentBranch -ne "main") {
+    if (-not $hasMainBranch -and $hasMasterBranch) {
         $targetBranch = "master"
     }
     
-    if ($currentBranch -ne $targetBranch) {
-        Write-Warning "当前分支: $currentBranch"
-        Write-Warning "生产环境建议从 $targetBranch 分支部署"
-        Write-Host ""
-        $switchBranch = Read-Host "是否切换到 $targetBranch 分支？(Y/N)"
-        if ($switchBranch -eq 'Y' -or $switchBranch -eq 'y') {
-            git switch $targetBranch
-            if ($LASTEXITCODE -ne 0) {
-                Write-Error "切换分支失败！"
-                exit 1
-            }
-            Write-Success "已切换到 $targetBranch 分支"
-        } else {
-            Write-Warning "继续使用当前分支: $currentBranch"
-        }
-    } else {
-        Write-Success "已在 $targetBranch 分支"
-    }
+    Write-Info "目标生产分支: $targetBranch"
     
-    git add .
-    git commit -m "[PRODUCTION] $Message"
-    Write-Success "已提交更改: $Message"
-    
-    # 推送到远程
-    Write-Info "推送到远程仓库..."
-    git push origin $currentBranch
-    
+    # 切换到目标分支
+    Write-Info "切换到 $targetBranch 分支..."
+    git checkout $targetBranch
     if ($LASTEXITCODE -ne 0) {
-        Write-Error "推送失败！请检查网络连接和 GitHub 权限"
+        Write-Error "切换到 $targetBranch 分支失败！"
+        Write-Warning "如果 $targetBranch 分支不存在，请先创建：git checkout -b $targetBranch"
         exit 1
     }
-    Write-Success "已推送到 GitHub"
+    Write-Success "已切换到 $targetBranch 分支"
+    
+    # 从远程更新 main 分支
+    Write-Info "从远程更新 $targetBranch 分支..."
+    git pull origin $targetBranch
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "从远程拉取 $targetBranch 失败，可能是首次推送"
+    }
+    
+    # 合并 develop 到 main
+    Write-Section "合并 develop 分支到 $targetBranch"
+    Write-Info "执行合并: develop → $targetBranch"
+    
+    git merge develop --no-ff -m "[RELEASE] $Message - Merge develop to $targetBranch"
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "合并失败！请解决冲突后重试"
+        Write-Warning "解决冲突步骤："
+        Write-Host "  1. 查看冲突文件: git status"
+        Write-Host "  2. 编辑并解决冲突"
+        Write-Host "  3. 标记为已解决: git add <文件>"
+        Write-Host "  4. 完成合并: git commit"
+        Write-Host "  5. 重新运行部署脚本"
+        exit 1
+    }
+    
+    Write-Success "成功合并 develop → $targetBranch"
+    
+    # 推送 main 分支到远程
+    Write-Info "推送 $targetBranch 分支到远程..."
+    git push origin $targetBranch
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "推送 $targetBranch 分支失败！"
+        exit 1
+    }
+    
+    Write-Success "✅ 代码同步完成！$targetBranch 分支已更新"
+    Write-Host ""
+    Write-Info "Git 工作流:"
+    Write-Host "  develop (开发分支) → $targetBranch (生产分支) → 部署到服务器" -ForegroundColor Cyan
+    Write-Host ""
 }
 
 # --- Build Web Frontend (Production) ---
@@ -454,8 +508,8 @@ if (-not $SkipConfirmation) {
     Write-Host ""
 }
 
-# 提交代码
-Commit-Changes
+# Git 工作流：develop → main
+Sync-ProductionBranch
 
 # 执行部署
 switch ($Target) {

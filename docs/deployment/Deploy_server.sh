@@ -147,8 +147,18 @@ deploy_backend() {
     
     # 如果是Git仓库，拉取最新代码（作为备用）
     if [ -d ".git" ] && [ ! -f "/tmp/backend-code.zip" ]; then
-        log_info "拉取最新代码..."
+        log_info "拉取最新代码（从 main 分支）..."
+        
+        # 确保在 main 分支上
+        CURRENT_BRANCH=$(git branch --show-current)
+        if [ "$CURRENT_BRANCH" != "main" ]; then
+            log_info "当前分支: $CURRENT_BRANCH，切换到 main 分支..."
+            git checkout main || log_warning "切换到 main 分支失败"
+        fi
+        
+        # 拉取最新代码
         git pull origin main || log_warning "Git pull 失败，跳过"
+        log_success "已拉取 main 分支最新代码"
     fi
     
     # 检查必需文件
