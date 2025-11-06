@@ -1,7 +1,8 @@
 # ⚠️ IEClub 项目重要提醒
 
-> 📌 **最后更新**: 2025-11-05  
-> 📌 **项目状态**: ✅ 测试环境和生产环境均正常运行
+> 📌 **最后更新**: 2025-11-06  
+> 📌 **项目状态**: ✅ 测试环境和生产环境均正常运行  
+> 🎉 **最新**: 测试环境部署系统已完整修复（7个关键问题已解决）
 
 ---
 
@@ -24,13 +25,13 @@
 - **PM2进程**: ieclub-backend (端口3000)
 - **部署路径**: `/root/IEclub_dev/ieclub-backend`
 
-### 测试环境
-- **访问地址**: https://test.ieclub.online
-- **管理后台**: https://test.ieclub.online/admin
-- **API**: https://test.ieclub.online/api
-- **健康检查**: https://test.ieclub.online/api/health
+### 测试环境 ⭐ 已修复
+- **访问地址**: https://ieclub.online/api/staging (通过主域名访问)
+- **API**: https://ieclub.online/api/staging
+- **健康检查**: https://ieclub.online/health/staging
 - **PM2进程**: staging-backend (端口3001)
 - **部署路径**: `/root/IEclub_dev_staging/ieclub-backend`
+- **快速部署**: 查看 [`docs/deployment/QUICK_DEPLOY_STAGING.md`](docs/deployment/QUICK_DEPLOY_STAGING.md)
 
 ### 小程序
 - **AppID**: wx5c959d4b00c7f61b

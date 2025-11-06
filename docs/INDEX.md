@@ -1,8 +1,8 @@
 # IEClub 文档索引
 
-> 📚 **更新日期**: 2025-11-05  
+> 📚 **更新日期**: 2025-11-06  
 > 🎯 **目的**: 快速找到所需文档  
-> ✅ **最新修复**: 部署脚本路径和语法错误已修复
+> ✅ **最新修复**: 测试环境部署系统完整修复 ⭐⭐⭐
 
 ---
 
@@ -45,13 +45,18 @@
 | 文档/脚本 | 说明 |
 |-----------|------|
 | **Deployment_guide.md** | 完整部署指南（三环境详细说明） ⭐ |
+| **STAGING_FIX_GUIDE.md** | 测试环境修复和部署指南 ⭐⭐⭐ **NEW** |
+| **STAGING_ISSUES_ANALYSIS.md** | 测试环境问题完整分析 ⭐⭐ **NEW** |
+| **STAGING_FIX_SUMMARY.md** | 测试环境修复总结 ⭐⭐ **NEW** |
+| **QUICK_DEPLOY_STAGING.md** | 测试环境5分钟速查表 ⭐⭐⭐ **NEW** |
 | **GIT_WORKFLOW.md** | Git工作流程和分支管理策略 ⭐⭐⭐ |
 | **DEPLOYMENT_CHECKLIST.md** | 部署检查清单（部署前/中/后） ⭐⭐⭐ |
 | **WECHAT_MINIPROGRAM_GUIDE.md** | 微信小程序开发与发布完整指南 ⭐⭐ |
 | **QUICK_REFERENCE.md** | 快速参考卡（常用命令速查表） ⭐⭐ |
 | **PRE_PRODUCTION_CHECKLIST.md** | 生产环境部署前检查清单 |
 | **Deploy_server.sh** | 服务器端部署脚本 |
-| **ecosystem.staging.config.js** | PM2测试环境配置 |
+| **ecosystem.staging.config.js** | PM2测试环境配置（已修复） ⭐ |
+| **nginx-staging-addon.conf** | Nginx测试环境配置扩展 ⭐ **NEW** |
 | **docker-compose.prod.yml** | Docker生产环境配置 |
 | **nginx-dual-platform.conf** | Nginx双平台配置 |
 | **ieclub-backend.service** | Systemd服务配置 |
@@ -63,6 +68,7 @@
 | **QUICK_START.ps1** | 一键启动本地开发环境 ⭐⭐⭐ |
 | **admin/START_ADMIN_NOW.ps1** | 一键启动管理后台系统 ⭐⭐⭐ |
 | **deployment/README.md** | 部署脚本使用指南 ⭐⭐⭐ |
+| **deployment/Deploy-Staging-Complete.ps1** | 测试环境完整自动部署 ⭐⭐⭐ **NEW** |
 | **deployment/Deploy-And-Verify.ps1** | 测试环境部署+验证（推荐） ⭐⭐⭐ |
 | **deployment/Deploy-Production-OneClick.ps1** | 生产环境一键安全部署 ⭐⭐⭐ |
 | **deployment/Deploy-Staging.ps1** | 测试环境部署脚本 ⭐⭐ |
@@ -143,7 +149,9 @@
 → 查看 **docs/deployment/GIT_WORKFLOW.md** - Git工作流 ⭐⭐⭐  
 → 查看 **docs/deployment/QUICK_REFERENCE.md** - 快速参考卡 ⭐⭐⭐  
 → 查看 **docs/deployment/DEPLOYMENT_CHECKLIST.md** - 检查清单 ⭐⭐⭐  
-→ 测试环境: **scripts/deployment/Deploy-Staging.ps1** ⭐  
+→ **测试环境快速部署**: **docs/deployment/QUICK_DEPLOY_STAGING.md** ⭐⭐⭐ **NEW**  
+→ 测试环境自动部署: **scripts/deployment/Deploy-Staging-Complete.ps1** ⭐⭐⭐ **NEW**  
+→ 测试环境手动部署: **docs/deployment/STAGING_FIX_GUIDE.md** ⭐⭐ **NEW**  
 → 生产环境: **scripts/deployment/Deploy-Production.ps1** ⭐⭐⭐
 
 #### 📱 发布微信小程序
@@ -215,6 +223,11 @@ IEclub_dev/
 
 | 日期 | 更新内容 |
 |------|---------|
+| 2025-11-06 | ✅ **修复测试环境部署系统（7个关键问题）** ⭐⭐⭐ |
+| 2025-11-06 | ✅ 创建测试环境完整自动部署脚本 |
+| 2025-11-06 | ✅ 修复 PM2 和 Nginx 测试环境配置 |
+| 2025-11-06 | ✅ 创建环境变量模板和配置指南 |
+| 2025-11-06 | ✅ 添加测试环境问题分析和修复文档 |
 | 2025-11-05 | ✅ 添加登录功能测试报告和自动化测试工具 |
 | 2025-11-05 | ✅ 创建测试用户脚本和登录测试脚本 |
 | 2025-11-05 | ✅ 解决Content-Type导致的JSON解析问题 |

@@ -3,11 +3,31 @@
 // 包含简化的启动检查，适合测试环境快速部署
 
 const path = require('path');
+const fs = require('fs');
 
-// 🔧 加载测试环境配置
-require('dotenv').config({ 
-  path: path.resolve(__dirname, '../.env.staging') 
-});
+// 🔧 加载测试环境配置（智能环境变量文件查找）
+// 支持多种环境变量文件命名方式，按优先级查找
+const possibleEnvFiles = [
+  path.resolve(__dirname, '../.env.staging'),  // 优先: .env.staging
+  path.resolve(__dirname, '../.env'),          // 备用: .env
+  process.env.ENV_FILE                         // 自定义: ENV_FILE 环境变量指定
+].filter(Boolean);
+
+let envFileLoaded = false;
+for (const envFile of possibleEnvFiles) {
+  if (fs.existsSync(envFile)) {
+    require('dotenv').config({ path: envFile });
+    console.log(`✅ 已加载环境变量文件: ${envFile}`);
+    envFileLoaded = true;
+    break;
+  }
+}
+
+if (!envFileLoaded) {
+  console.warn('⚠️  未找到环境变量文件，使用系统环境变量');
+  console.warn('   查找路径:', possibleEnvFiles);
+  require('dotenv').config(); // 尝试默认加载
+}
 
 const app = require('./app');
 const config = require('./config');
