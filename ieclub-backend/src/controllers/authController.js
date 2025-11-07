@@ -10,6 +10,7 @@ const emailService = require('../services/emailService');
 const smsService = require('../services/smsService');
 const wechatService = require('../services/wechatService');
 const { validateEmail } = require('../utils/common');
+const { checkEmailAllowed } = require('../utils/emailDomainChecker');
 
 // 密码强度验证函数
 function validatePasswordStrength(password) {
@@ -27,45 +28,6 @@ function validatePasswordStrength(password) {
 
 function generateVerificationCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-function checkEmailAllowed(email, purpose = 'general') {
-  if (!validateEmail(email)) {
-    return { valid: false, message: '邮箱格式不正确' };
-  }
-
-  const allowedDomainsStr = process.env.ALLOWED_EMAIL_DOMAINS?.trim();
-  if (!allowedDomainsStr) {
-    return { valid: true };
-  }
-
-  const allowedDomains = allowedDomainsStr
-    .split(',')
-    .map(domain => domain.trim())
-    .filter(Boolean);
-
-  if (allowedDomains.length === 0) {
-    return { valid: true };
-  }
-
-  const emailDomain = email.split('@')[1];
-  if (allowedDomains.includes(emailDomain)) {
-    return { valid: true };
-  }
-
-  const purposeMessages = {
-    register: '仅允许以下邮箱注册: ',
-    login: '仅允许以下邮箱登录: ',
-    reset: '仅允许以下邮箱操作: ',
-    bind: '仅允许以下邮箱绑定: ',
-  };
-
-  const prefix = purposeMessages[purpose] || '仅允许以下邮箱使用: ';
-
-  return {
-    valid: false,
-    message: `${prefix}${allowedDomains.join(', ')}`
-  };
 }
 
 class AuthController {

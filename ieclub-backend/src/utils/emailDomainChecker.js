@@ -7,22 +7,25 @@ const config = require('../config');
 
 /**
  * 获取允许的邮箱域名列表
- * @returns {string[]} 允许的域名数组
+ * @returns {string[] | null} 允许的域名数组，null表示不限制
  */
 function getAllowedDomains() {
   // 从环境变量读取允许的域名列表
   const domainsEnv = process.env.ALLOWED_EMAIL_DOMAINS || config.email?.allowedDomains;
   
-  if (domainsEnv) {
-    // 分割、清理并过滤空字符串
-    return domainsEnv
-      .split(',')
-      .map(domain => domain.trim())
-      .filter(domain => domain.length > 0);
+  // 如果未设置或为空字符串，返回 null 表示不限制
+  if (!domainsEnv || domainsEnv.trim() === '') {
+    return null;
   }
   
-  // 默认只允许南科大邮箱
-  return ['sustech.edu.cn', 'mail.sustech.edu.cn'];
+  // 分割、清理并过滤空字符串
+  const domains = domainsEnv
+    .split(',')
+    .map(domain => domain.trim())
+    .filter(domain => domain.length > 0);
+  
+  // 如果解析后为空数组，返回 null 表示不限制
+  return domains.length > 0 ? domains : null;
 }
 
 /**
@@ -53,6 +56,14 @@ function checkEmailAllowed(email, type = 'register') {
   
   // 获取允许的域名列表
   const allowedDomains = getAllowedDomains();
+  
+  // 如果 allowedDomains 为 null，表示不限制邮箱域名
+  if (allowedDomains === null) {
+    return {
+      valid: true,
+      message: '邮箱验证通过'
+    };
+  }
   
   // 检查邮箱域名是否在白名单中
   const isAllowed = allowedDomains.some(domain => 

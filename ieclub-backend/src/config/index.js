@@ -54,6 +54,7 @@ module.exports = {
     user: process.env.EMAIL_USER,
     password: process.env.EMAIL_PASSWORD,
     from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+    allowedDomains: process.env.ALLOWED_EMAIL_DOMAINS, // 允许的邮箱域名（逗号分隔），留空表示不限制
   },
 
   // 文件上传限制
