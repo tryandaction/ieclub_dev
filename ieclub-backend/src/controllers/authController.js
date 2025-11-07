@@ -29,17 +29,57 @@ function generateVerificationCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+function checkEmailAllowed(email, purpose = 'general') {
+  if (!validateEmail(email)) {
+    return { valid: false, message: '邮箱格式不正确' };
+  }
+
+  const allowedDomainsStr = process.env.ALLOWED_EMAIL_DOMAINS?.trim();
+  if (!allowedDomainsStr) {
+    return { valid: true };
+  }
+
+  const allowedDomains = allowedDomainsStr
+    .split(',')
+    .map(domain => domain.trim())
+    .filter(Boolean);
+
+  if (allowedDomains.length === 0) {
+    return { valid: true };
+  }
+
+  const emailDomain = email.split('@')[1];
+  if (allowedDomains.includes(emailDomain)) {
+    return { valid: true };
+  }
+
+  const purposeMessages = {
+    register: '仅允许以下邮箱注册: ',
+    login: '仅允许以下邮箱登录: ',
+    reset: '仅允许以下邮箱操作: ',
+    bind: '仅允许以下邮箱绑定: ',
+  };
+
+  const prefix = purposeMessages[purpose] || '仅允许以下邮箱使用: ';
+
+  return {
+    valid: false,
+    message: `${prefix}${allowedDomains.join(', ')}`
+  };
+}
+
 class AuthController {
   // 发送邮箱验证码
   static async sendVerifyCode(req, res, next) {
     try {
       const { email, type = 'register' } = req.body; // type: register, reset, login
 
-      // 验证邮箱格式
-      if (!validateEmail(email)) {
+      // 验证邮箱格式与域名限制
+      const emailCheck = checkEmailAllowed(email, type);
+      if (!emailCheck.valid) {
         return res.status(400).json({
           code: 400,
-          message: '邮箱格式不正确'
+          message: emailCheck.message
         });
       }
 
@@ -59,20 +99,6 @@ class AuthController {
           code: 429,
           message: `验证码发送过于频繁，请${waitSeconds}秒后重试`
         });
-      }
-
-      // 检查邮箱域名是否允许
-      const allowedDomainsStr = process.env.ALLOWED_EMAIL_DOMAINS?.trim();
-      if (allowedDomainsStr) {
-        const allowedDomains = allowedDomainsStr.split(',').map(d => d.trim()).filter(d => d);
-        const emailDomain = email.split('@')[1];
-        
-        if (allowedDomains.length > 0 && !allowedDomains.includes(emailDomain)) {
-          return res.status(400).json({
-            code: 400,
-            message: `仅允许以下邮箱注册: ${allowedDomains.join(', ')}`
-          });
-        }
       }
 
       // 注册时检查邮箱是否已存在
@@ -211,26 +237,13 @@ class AuthController {
     try {
       const { email, password, verifyCode, nickname, gender } = req.body;
 
-      // 验证邮箱格式
-      if (!validateEmail(email)) {
+      // 验证邮箱格式与域名限制
+      const emailCheck = checkEmailAllowed(email, 'register');
+      if (!emailCheck.valid) {
         return res.status(400).json({
           success: false,
-          message: '邮箱格式不正确'
+          message: emailCheck.message
         });
-      }
-
-      // 检查邮箱域名是否允许（如果配置了 ALLOWED_EMAIL_DOMAINS）
-      const allowedDomainsStr = process.env.ALLOWED_EMAIL_DOMAINS?.trim();
-      if (allowedDomainsStr) {
-        const allowedDomains = allowedDomainsStr.split(',').map(d => d.trim()).filter(d => d);
-        const emailDomain = email.split('@')[1];
-        
-        if (allowedDomains.length > 0 && !allowedDomains.includes(emailDomain)) {
-          return res.status(400).json({
-            success: false,
-            message: `仅允许以下邮箱注册: ${allowedDomains.join(', ')}`
-          });
-        }
       }
 
       // 验证验证码
@@ -349,12 +362,12 @@ class AuthController {
     try {
       const { email, password } = req.body;
 
-      // 验证邮箱格式
-      const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/;
-      if (!emailRegex.test(email)) {
+      // 验证邮箱格式与域名限制
+      const emailCheck = checkEmailAllowed(email, 'login');
+      if (!emailCheck.valid) {
         return res.status(400).json({
           success: false,
-          message: '请使用南科大邮箱'
+          message: emailCheck.message
         });
       }
 
@@ -482,12 +495,12 @@ class AuthController {
     try {
       const { email } = req.body;
 
-      // 验证邮箱格式
-      const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/;
-      if (!emailRegex.test(email)) {
+      // 验证邮箱格式与域名限制
+      const emailCheck = checkEmailAllowed(email, 'reset');
+      if (!emailCheck.valid) {
         return res.status(400).json({
           success: false,
-          message: '请使用南科大邮箱'
+          message: emailCheck.message
         });
       }
 
@@ -557,12 +570,12 @@ class AuthController {
 
       // 方式1: 使用验证码重置（前端使用）
       if (email && code) {
-        // 验证邮箱格式
-        const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/;
-        if (!emailRegex.test(email)) {
+        // 验证邮箱格式与域名限制
+        const emailCheck = checkEmailAllowed(email, 'reset');
+        if (!emailCheck.valid) {
           return res.status(400).json({
             success: false,
-            message: '请使用南科大邮箱'
+            message: emailCheck.message
           });
         }
 
@@ -753,12 +766,12 @@ class AuthController {
     try {
       const { email, code } = req.body;
 
-      // 验证邮箱格式
-      const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/;
-      if (!emailRegex.test(email)) {
+      // 验证邮箱格式与域名限制
+      const emailCheck = checkEmailAllowed(email, 'login');
+      if (!emailCheck.valid) {
         return res.status(400).json({
           success: false,
-          message: '请使用南科大邮箱'
+          message: emailCheck.message
         });
       }
 

@@ -1,8 +1,8 @@
 # IEClub 文档索引
 
-> 📚 **更新日期**: 2025-11-06  
+> 📚 **更新日期**: 2025-11-07  
 > 🎯 **目的**: 快速找到所需文档  
-> ✅ **最新修复**: 测试环境部署系统完整修复 ⭐⭐⭐
+> ✅ **最新更新**: 开发者完整指南发布 ⭐⭐⭐
 
 ---
 
@@ -19,10 +19,18 @@
 
 ## 📁 分类文档
 
+### 👨‍💻 开发文档 (`docs/`)
+
+| 文档 | 说明 |
+|------|------|
+| **DEVELOPER_GUIDE.md** | 完整开发者指南（环境、工作流、部署、管理员操作） ⭐⭐⭐ |
+
 ### 🔧 配置文档 (`docs/configuration/`)
 
 | 文档 | 说明 |
 |------|------|
+| **README.md** | 配置文档目录和索引 ⭐ |
+| **EMAIL_DOMAIN_WHITELIST.md** | 邮箱域名白名单配置指南 ⭐⭐⭐ |
 | **ENVIRONMENT_CONFIG.md** | 三环境配置对照表（开发/测试/生产） ⭐ |
 | **CLASH_PROXY_SETUP.md** | Clash代理配置（解决SSH连接问题） ⭐⭐ |
 | **CONFIGURE_REAL_EMAIL.md** | 邮件服务配置指南 |
@@ -67,18 +75,8 @@
 | **health-check/Check-Deploy-Ready.ps1** | 部署前检查脚本 |
 | **health-check/create-test-user-simple.js** | 创建测试用户脚本 ⭐ |
 | **health-check/test-login.sh** | 登录功能自动化测试脚本 ⭐ |
+| **testing/test-email-domain-validation.js** | 邮箱域名验证测试脚本 ⭐⭐ |
 
-### 📦 归档文档 (`docs/archive/`)
-
-历史文档和已完成任务的总结：
-
-| 文档 | 说明 |
-|------|------|
-| **COMPLETE_FIX_SUMMARY.md** | 2025-11-05 修复总结 |
-| **SYSTEM_STATUS_REPORT.md** | 系统状态报告 |
-| **NEXT_STEPS.md** | 下一步操作清单 |
-| **DOCUMENTATION_INDEX.md** | 旧版文档索引 |
-| **CLEANUP_SUMMARY.md** | 清理总结 |
 
 
 ### 👥 管理员系统文档 (`docs/admin/`)
@@ -106,6 +104,10 @@
 #### ✉️ 配置邮件服务
 → 查看 **docs/configuration/CONFIGURE_REAL_EMAIL.md**
 
+#### 🔒 配置邮箱域名白名单
+→ 查看 **docs/configuration/EMAIL_DOMAIN_WHITELIST.md** ⭐⭐⭐  
+→ 运行 `cd ieclub-backend && node ../scripts/testing/test-email-domain-validation.js` 测试验证
+
 #### 🔧 解决Clash代理问题
 → 查看 **docs/configuration/CLASH_PROXY_SETUP.md** ⭐⭐  
 → 运行 `.\scripts\health-check\Check-Network.ps1` 诊断网络
@@ -113,6 +115,10 @@
 #### 🧪 测试系统功能
 → 查看 **docs/testing/README.md** ⭐  
 → 运行 `bash scripts/health-check/test-login.sh production`
+
+#### 👨‍💻 开发团队完整指南
+→ 查看 **docs/DEVELOPER_GUIDE.md** - 开发者完整指南 ⭐⭐⭐  
+→ 包含环境说明、工作流程、部署操作、管理员操作等
 
 #### 🚀 部署到服务器
 → 查看 **docs/deployment/Deployment_guide.md** - 完整部署指南 ⭐⭐⭐  
@@ -131,9 +137,6 @@
 → 运行 **.\docs\testing\test-email-service.ps1** ⭐  
 → 自动测试所有环境的邮件服务
 
-#### 🔍 查看历史记录
-→ 查看 **docs/archive/** 目录
-
 ---
 
 ## 📂 目录结构
@@ -145,22 +148,34 @@ IEclub_dev/
 │
 ├── docs/                        # 文档目录
 │   ├── INDEX.md                 # 本文档
+│   ├── README.md                # 文档说明
+│   ├── DEVELOPER_GUIDE.md       # 开发者完整指南 ⭐⭐⭐
+│   │
+│   ├── admin/                   # 管理员系统文档
+│   │   ├── README.md
+│   │   ├── QUICK_START.md
+│   │   ├── ADMIN_SYSTEM_DESIGN.md
+│   │   └── ADMIN_USER_GUIDE.md
 │   │
 │   ├── configuration/           # 配置文档
+│   │   ├── README.md
+│   │   ├── EMAIL_DOMAIN_WHITELIST.md
+│   │   ├── ENVIRONMENT_CONFIG.md
+│   │   ├── CLASH_PROXY_SETUP.md
 │   │   ├── CONFIGURE_REAL_EMAIL.md
-│   │   └── SENDGRID_SETUP_COMPLETE.md
+│   │   └── SECURITY_GUIDE.md
 │   │
 │   ├── testing/                 # 测试文档
+│   │   ├── README.md
 │   │   ├── WEB_FRONTEND_TEST_GUIDE.md
 │   │   ├── test-complete-flow.sh
+│   │   ├── test-email-service.ps1
 │   │   └── test-registration-flow.py
 │   │
-│   ├── deployment/              # 部署文档
-│   │   ├── Deployment_guide.md
-│   │   └── ...
-│   │
-│   └── archive/                 # 归档文档
-│       ├── COMPLETE_FIX_SUMMARY.md
+│   └── deployment/              # 部署文档
+│       ├── Deployment_guide.md
+│       ├── WECHAT_MINIPROGRAM_GUIDE.md
+│       ├── Deploy_server.sh
 │       └── ...
 │
 ├── scripts/                     # 执行脚本
@@ -184,29 +199,22 @@ IEclub_dev/
 
 ---
 
-## 🔄 文档更新记录
+## 💡 文档组织原则
 
-| 日期 | 更新内容 |
-|------|---------|
-| 2025-11-06 | ✅ 清理冗余文档，精简文档结构 |
-| 2025-11-06 | ✅ 修复测试环境部署配置 |
-| 2025-11-05 | ✅ 完成认证系统优化和测试 |
-| 2025-11-05 | ✅ 添加邮件服务自动化测试 |
-| 2025-11-03 | 创建部署和配置文档 |
+### 文档分类
+1. **开发文档** → `docs/DEVELOPER_GUIDE.md` - 开发者完整指南
+2. **配置文档** → `docs/configuration/` - 系统配置相关
+3. **测试文档** → `docs/testing/` - 测试脚本和指南
+4. **部署文档** → `docs/deployment/` - 部署流程和配置
+5. **管理员文档** → `docs/admin/` - 管理后台系统
+6. **项目根文档** → 项目核心说明文档
 
----
+### 文档维护规范
+- ✅ **保留**: 系统架构、配置指南、操作手册等长期文档
+- ❌ **删除**: 阶段性总结、临时问题报告、修复日志等
 
-## 💡 文档编写规范
-
-如需添加新文档，请遵循以下规范：
-
-1. **配置类文档** → `docs/configuration/`
-2. **测试类文档** → `docs/testing/`
-3. **部署类文档** → `docs/deployment/`
-4. **已完成任务** → `docs/archive/`
-5. **通用文档** → `docs/`
-
-详细规范请查看: **docs/DOCUMENTATION_GUIDE.md**
+### 核心原则
+> **作为CEO/CTO**: 文档应该清晰、实用、易维护，避免冗余和过时信息
 
 ---
 

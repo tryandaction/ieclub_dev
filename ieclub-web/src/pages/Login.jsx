@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { sendCode, sendPhoneCode, login, loginWithPhone } from '../api/auth'
 import { useAuth } from '../contexts/AuthContext'
 import { showToast } from '../components/Toast'
+import { validateEmail, getEmailErrorMessage, getEmailPlaceholder } from '../utils/emailValidator'
 
 export default function Login() {
   const [loginMode, setLoginMode] = useState('password') // 'password', 'email_code', 'phone'
@@ -20,12 +21,6 @@ export default function Login() {
   
   // 获取登录前的页面路径
   const from = location.state?.from?.pathname || '/plaza'
-
-  // 南科大邮箱验证
-  const validateEmail = (email) => {
-    const emailReg = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/
-    return emailReg.test(email)
-  }
 
   // 手机号验证
   const validatePhone = (phone) => {
@@ -46,7 +41,7 @@ export default function Login() {
       if (loginMode === 'email_code') {
         // 邮箱验证码登录
         if (!validateEmail(email)) {
-          setError('请输入正确的南科大邮箱')
+          setError(getEmailErrorMessage())
           return
         }
         await sendCode(email, 'login')

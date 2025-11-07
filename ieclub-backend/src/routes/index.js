@@ -21,6 +21,8 @@ const { csrfProtection } = require('../middleware/csrf');
 const { rateLimiters } = require('../middleware/rateLimiter');
 const { requestLogger } = require('../middleware/requestLogger');
 const { performanceMiddleware } = require('../utils/performanceMonitor');
+const { sendVerifyCodeValidation, registerValidation, loginValidation } = require('../middleware/validators');
+const { validationResult } = require('express-validator');
 
 // ==================== 全局中间件 ====================
 // 请求日志（记录所有请求）
@@ -44,10 +46,25 @@ const csrfIgnorePaths = [
 
 const csrf = csrfProtection({ ignorePaths: csrfIgnorePaths });
 
+// 验证错误处理中间件
+const handleValidationErrors = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      code: 400,
+      message: errors.array()[0].msg,
+      errors: errors.array()
+    });
+  }
+  next();
+};
+
 // ==================== Authentication Routes ====================
 // 发送验证码（严格限制，无需CSRF）
 router.post('/auth/send-verify-code', 
-  rateLimiters.auth, 
+  rateLimiters.auth,
+  sendVerifyCodeValidation,
+  handleValidationErrors,
   AuthController.sendVerifyCode
 );
 
@@ -59,13 +76,17 @@ router.post('/auth/verify-code',
 
 // 注册（严格限制，无需CSRF - 新用户没有session）
 router.post('/auth/register', 
-  rateLimiters.auth, 
+  rateLimiters.auth,
+  registerValidation,
+  handleValidationErrors,
   AuthController.register
 );
 
 // 密码登录（严格限制，无需CSRF）
 router.post('/auth/login', 
-  rateLimiters.auth, 
+  rateLimiters.auth,
+  loginValidation,
+  handleValidationErrors,
   AuthController.login
 );
 

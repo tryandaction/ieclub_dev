@@ -8,21 +8,33 @@
 
 ```
 scripts/
-├── QUICK_START.ps1              # 🚀 快速启动本地开发环境
+├── QUICK_START.ps1                      # 🚀 快速启动本地开发环境
+├── README.md                            # 本文档
 │
-├── deployment/                  # 🚀 部署脚本
-│   ├── Deploy-Staging.ps1       # 测试环境部署
-│   ├── Deploy-Production.ps1    # 生产环境部署
-│   ├── Deploy-Staging-Full.ps1  # 测试环境完整部署
-│   └── ...
+├── admin/                               # 👨‍💼 管理员系统脚本
+│   └── START_ADMIN_NOW.ps1              # 快速启动管理后台
 │
-├── health-check/                # 🏥 健康检查脚本
-│   ├── Check-Deploy-Ready.ps1   # 部署前检查
-│   ├── Check-Backend-Health.ps1 # 后端健康检查
-│   └── ...
+├── deployment/                          # 🚀 部署脚本
+│   ├── Deploy-Staging.ps1               # 测试环境部署（标准）⭐
+│   ├── Deploy-Staging-Complete.ps1      # 测试环境完整部署
+│   ├── Deploy-And-Verify.ps1            # 部署+自动验证
+│   ├── Deploy-Production.ps1            # 生产环境部署 ⭐
+│   ├── Deploy-Production-OneClick.ps1   # 生产环境一键部署
+│   ├── Fix-Staging-All.ps1              # 测试环境一键修复 ⭐
+│   ├── Fix-Staging-Env.ps1              # 测试环境配置修复
+│   ├── Diagnose-Staging.ps1             # 测试环境诊断
+│   └── README.md                        # 部署脚本详细说明
 │
-└── testing/                     # 🧪 测试脚本
-    └── ...
+├── health-check/                        # 🏥 健康检查脚本
+│   ├── Check-Deploy-Ready.ps1           # 部署前检查 ⭐
+│   ├── Fix-Server-Complete.ps1          # 服务器完整修复
+│   ├── create-test-user.js              # 创建测试用户
+│   ├── create-test-user-simple.js       # 创建测试用户（简化版）
+│   └── test-login.sh                    # 登录测试
+│
+└── testing/                             # 🧪 测试脚本
+    ├── comprehensive-test.js            # 综合测试
+    └── test-email-domain-validation.js  # 邮箱域名验证测试
 ```
 
 ---
@@ -83,27 +95,54 @@ cd C:\universe\GitHub_try\IEclub_dev
 - ✅ 环境配置文件
 - ✅ 依赖包完整性
 
-### 后端健康检查
+### 测试环境诊断与修复
 
-检查后端服务运行状态：
+**诊断测试环境**（仅查看状态，不修复）：
 
 ```powershell
 cd C:\universe\GitHub_try\IEclub_dev
-.\scripts\health-check\Check-Backend-Health.ps1 -Environment staging
-.\scripts\health-check\Check-Backend-Health.ps1 -Environment production
+.\scripts\deployment\Diagnose-Staging.ps1
 ```
 
-**检查项目**：
-- ✅ API 健康端点响应
-- ✅ 数据库连接状态
-- ✅ Redis 连接状态
-- ✅ 关键服务可用性
+**一键修复测试环境**（推荐）⭐：
+
+```powershell
+cd C:\universe\GitHub_try\IEclub_dev
+.\scripts\deployment\Fix-Staging-All.ps1
+# 或自动修复所有问题
+.\scripts\deployment\Fix-Staging-All.ps1 -AutoFix
+```
+
+**检查并修复项目**：
+- ✅ SSH连接
+- ✅ 目录结构
+- ✅ 配置文件
+- ✅ 数据库
+- ✅ PM2进程
+- ✅ 端口占用
+- ✅ 健康检查
 
 ---
 
 ## 🧪 测试脚本
 
-测试脚本将在未来添加到 `testing/` 目录。
+### 邮箱域名验证测试
+
+测试邮箱域名白名单功能：
+
+```powershell
+cd C:\universe\GitHub_try\IEclub_dev
+node .\scripts\testing\test-email-domain-validation.js
+```
+
+### 综合测试
+
+运行完整的系统测试：
+
+```powershell
+cd C:\universe\GitHub_try\IEclub_dev
+node .\scripts\testing\comprehensive-test.js
+```
 
 ---
 
@@ -211,5 +250,20 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ---
 
-**Last Updated**: 2025-11-05
+**Last Updated**: 2025-11-07
+
+---
+
+## 🎯 最近更新
+
+### 2025-11-07
+- ✅ 清理冗余脚本，精简目录结构
+- ✅ 删除临时部署脚本（Direct-Redeploy、Quick-Redeploy等）
+- ✅ 删除临时修复脚本（Fix-All-Production-Issues等）
+- ✅ 删除临时监控和数据库脚本
+- ✅ 保留核心部署、健康检查和测试脚本
+
+### 脚本清理原则
+- ✅ **保留**: 标准化的、长期维护的核心脚本
+- ❌ **删除**: 临时解决方案、重复功能的脚本
 

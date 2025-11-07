@@ -2,8 +2,31 @@
 // 常用的验证规则集合
 
 const { body, param, query } = require('express-validator');
+const { checkEmailAllowed } = require('../utils/emailDomainChecker');
 
 // ==================== 用户相关验证 ====================
+
+/**
+ * 发送验证码验证
+ */
+const sendVerifyCodeValidation = [
+  body('email')
+    .trim()
+    .isEmail().withMessage('请输入有效的邮箱地址')
+    .normalizeEmail()
+    .custom((email, { req }) => {
+      const type = req.body.type || 'register';
+      const emailCheck = checkEmailAllowed(email, type);
+      if (!emailCheck.valid) {
+        throw new Error(emailCheck.message);
+      }
+      return true;
+    }),
+  
+  body('type')
+    .optional()
+    .isIn(['register', 'reset', 'login']).withMessage('验证码类型无效')
+];
 
 /**
  * 注册验证
@@ -12,7 +35,14 @@ const registerValidation = [
   body('email')
     .trim()
     .isEmail().withMessage('请输入有效的邮箱地址')
-    .normalizeEmail(),
+    .normalizeEmail()
+    .custom((email) => {
+      const emailCheck = checkEmailAllowed(email, 'register');
+      if (!emailCheck.valid) {
+        throw new Error(emailCheck.message);
+      }
+      return true;
+    }),
   
   body('password')
     .isLength({ min: 8, max: 32 }).withMessage('密码长度必须在8-32个字符之间')
@@ -42,7 +72,14 @@ const loginValidation = [
   body('email')
     .trim()
     .isEmail().withMessage('请输入有效的邮箱地址')
-    .normalizeEmail(),
+    .normalizeEmail()
+    .custom((email) => {
+      const emailCheck = checkEmailAllowed(email, 'login');
+      if (!emailCheck.valid) {
+        throw new Error(emailCheck.message);
+      }
+      return true;
+    }),
   
   body('password')
     .notEmpty().withMessage('密码不能为空')
@@ -295,6 +332,7 @@ const idParamValidation = [
 
 module.exports = {
   // 用户相关
+  sendVerifyCodeValidation,
   registerValidation,
   loginValidation,
   updateProfileValidation,

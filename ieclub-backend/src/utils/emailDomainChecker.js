@@ -1,0 +1,97 @@
+/**
+ * 邮箱域名检查器
+ * 统一管理允许的邮箱域名白名单
+ */
+
+const config = require('../config');
+
+/**
+ * 获取允许的邮箱域名列表
+ * @returns {string[]} 允许的域名数组
+ */
+function getAllowedDomains() {
+  // 从环境变量读取允许的域名列表
+  const domainsEnv = process.env.ALLOWED_EMAIL_DOMAINS || config.email?.allowedDomains;
+  
+  if (domainsEnv) {
+    // 分割、清理并过滤空字符串
+    return domainsEnv
+      .split(',')
+      .map(domain => domain.trim())
+      .filter(domain => domain.length > 0);
+  }
+  
+  // 默认只允许南科大邮箱
+  return ['sustech.edu.cn', 'mail.sustech.edu.cn'];
+}
+
+/**
+ * 检查邮箱是否在允许的域名列表中
+ * @param {string} email - 要检查的邮箱地址
+ * @param {string} type - 操作类型 (register, login, reset等)
+ * @returns {Object} 检查结果 { valid: boolean, message: string }
+ */
+function checkEmailAllowed(email, type = 'register') {
+  if (!email) {
+    return {
+      valid: false,
+      message: '邮箱地址不能为空'
+    };
+  }
+  
+  // 基本的邮箱格式验证
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!emailRegex.test(email)) {
+    return {
+      valid: false,
+      message: '请输入有效的邮箱地址'
+    };
+  }
+  
+  // 提取域名部分
+  const emailDomain = email.split('@')[1];
+  
+  // 获取允许的域名列表
+  const allowedDomains = getAllowedDomains();
+  
+  // 检查邮箱域名是否在白名单中
+  const isAllowed = allowedDomains.some(domain => 
+    emailDomain.toLowerCase() === domain.toLowerCase()
+  );
+  
+  if (!isAllowed) {
+    // 根据操作类型生成不同的错误消息
+    let message;
+    const domainList = allowedDomains.join(', ');
+    
+    switch (type) {
+      case 'register':
+        message = `注册仅限使用以下邮箱：${domainList}`;
+        break;
+      case 'login':
+        message = `登录仅限使用以下邮箱：${domainList}`;
+        break;
+      case 'reset':
+        message = `密码重置仅限使用以下邮箱：${domainList}`;
+        break;
+      default:
+        message = `该邮箱不在允许的域名列表中`;
+    }
+    
+    return {
+      valid: false,
+      message
+    };
+  }
+  
+  return {
+    valid: true,
+    message: '邮箱验证通过'
+  };
+}
+
+module.exports = {
+  getAllowedDomains,
+  checkEmailAllowed
+};
+
