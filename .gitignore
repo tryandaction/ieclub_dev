@@ -132,3 +132,5 @@ test-results/
 # 取消以下注释可忽略锁定文件
 # package-lock.json
 # yarn.lock
+backend-production.zip
+web-production.zip

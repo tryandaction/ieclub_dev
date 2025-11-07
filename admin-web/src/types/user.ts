@@ -1,0 +1,110 @@
+// 用户相关类型定义
+
+export interface User {
+  id: string;
+  nickname: string;
+  email: string;
+  username?: string; // 用户名
+  realName?: string; // 真实姓名
+  school?: string;
+  schoolName?: string; // 学校名称别名
+  major?: string;
+  grade?: string;
+  avatar?: string;
+  bio?: string;
+  status: UserStatus;
+  isBanned?: boolean; // 是否被封禁
+  warningCount?: number; // 警告次数
+  isVerified: boolean;
+  level: number;
+  credits: number;
+  topicsCount: number;
+  postsCount: number;
+  commentsCount: number;
+  followersCount: number;
+  followingCount: number;
+  likesReceivedCount: number;
+  role?: 'student' | 'teacher'; // 角色
+  studentId?: string; // 学号/工号
+  phone?: string; // 联系方式
+  createdAt: string;
+  updatedAt: string;
+  lastLoginAt?: string;
+}
+
+export type UserStatus = 'active' | 'banned' | 'deleted';
+
+export interface UserDetail extends User {
+  recentTopics: Array<{
+    id: string;
+    title: string;
+    createdAt: string;
+  }>;
+  recentPosts: Array<{
+    id: string;
+    content: string;
+    createdAt: string;
+  }>;
+  warnings: UserWarning[];
+  bans: UserBan[];
+  reportCount: number;
+}
+
+export interface UserWarning {
+  id: string;
+  userId: string;
+  adminId: string;
+  reason: string;
+  content: string;
+  level: WarningLevel;
+  relatedPostId?: string;
+  relatedTopicId?: string;
+  isRead: boolean;
+  createdAt: string;
+  admin?: {
+    username: string;
+    realName?: string;
+  };
+}
+
+export type WarningLevel = 'minor' | 'serious' | 'final';
+
+export interface UserBan {
+  id: string;
+  userId: string;
+  adminId: string;
+  reason: string;
+  duration?: number;
+  status: BanStatus;
+  startAt: string;
+  expireAt?: string;
+  unbannedAt?: string;
+  unbannedBy?: string;
+  unbannedReason?: string;
+  createdAt: string;
+  admin?: {
+    username: string;
+    realName?: string;
+  };
+}
+
+export type BanStatus = 'active' | 'expired' | 'revoked';
+
+export interface WarnUserRequest {
+  reason: string;
+  content: string;
+  level: WarningLevel;
+  relatedPostId?: string;
+  relatedTopicId?: string;
+}
+
+export interface BanUserRequest {
+  reason: string;
+  duration?: number;
+  notifyUser: boolean;
+}
+
+export interface UnbanUserRequest {
+  reason: string;
+}
+

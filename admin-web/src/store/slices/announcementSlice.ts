@@ -1,0 +1,148 @@
+// 公告状态管理
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { announcementApi } from '@/api/announcement';
+import type { Announcement } from '@/types/announcement';
+import type { PaginationResponse } from '@/types/common';
+
+interface AnnouncementState {
+  list: Announcement[];
+  announcements?: Announcement[]; // 别名
+  currentAnnouncement: Announcement | null;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  total?: number; // total 别名
+  loading: boolean;
+  error: string | null;
+}
+
+const initialState: AnnouncementState = {
+  list: [],
+  currentAnnouncement: null,
+  pagination: {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+  },
+  loading: false,
+  error: null,
+};
+
+// 异步Actions
+export const fetchAnnouncements = createAsyncThunk(
+  'announcement/fetchList',
+  async (params: any, { rejectWithValue }) => {
+    try {
+      const response = await announcementApi.list(params);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || '获取公告列表失败');
+    }
+  }
+);
+
+export const fetchAnnouncementDetail = createAsyncThunk(
+  'announcement/fetchDetail',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await announcementApi.get(id);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || '获取公告详情失败');
+    }
+  }
+);
+
+export const createAnnouncement = createAsyncThunk(
+  'announcement/create',
+  async (data: any, { rejectWithValue }) => {
+    try {
+      const response = await announcementApi.create(data);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || '创建公告失败');
+    }
+  }
+);
+
+export const updateAnnouncement = createAsyncThunk(
+  'announcement/update',
+  async ({ id, data }: { id: string; data: any }, { rejectWithValue }) => {
+    try {
+      const response = await announcementApi.update(id, data);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || '更新公告失败');
+    }
+  }
+);
+
+export const deleteAnnouncement = createAsyncThunk(
+  'announcement/delete',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await announcementApi.delete(id);
+      return id;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || '删除公告失败');
+    }
+  }
+);
+
+const announcementSlice = createSlice({
+  name: 'announcement',
+  initialState,
+  reducers: {
+    setCurrentAnnouncement: (state, action: PayloadAction<Announcement | null>) => {
+      state.currentAnnouncement = action.payload;
+    },
+    updateAnnouncementInList: (state, action: PayloadAction<Announcement>) => {
+      const index = state.list.findIndex((item) => item.id === action.payload.id);
+      if (index !== -1) {
+        state.list[index] = action.payload;
+      }
+    },
+    removeAnnouncementFromList: (state, action: PayloadAction<string>) => {
+      state.list = state.list.filter((item) => item.id !== action.payload);
+    },
+  },
+  extraReducers: (builder) => {
+    // Fetch List
+    builder.addCase(fetchAnnouncements.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(fetchAnnouncements.fulfilled, (state, action: PayloadAction<PaginationResponse<Announcement>>) => {
+      state.loading = false;
+      state.list = action.payload.list;
+      state.announcements = action.payload.list; // 同步别名
+      state.pagination = action.payload.pagination;
+      state.total = action.payload.pagination.total; // 同步total
+    });
+    builder.addCase(fetchAnnouncements.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
+
+    // Fetch Detail
+    builder.addCase(fetchAnnouncementDetail.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(fetchAnnouncementDetail.fulfilled, (state, action: PayloadAction<Announcement>) => {
+      state.loading = false;
+      state.currentAnnouncement = action.payload;
+    });
+    builder.addCase(fetchAnnouncementDetail.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
+  },
+});
+
+export const { setCurrentAnnouncement, updateAnnouncementInList, removeAnnouncementFromList } = announcementSlice.actions;
+export default announcementSlice.reducer;
+

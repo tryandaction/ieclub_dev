@@ -2,7 +2,7 @@
 // 数据库模型定义
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
@@ -12,145 +12,159 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // 登录认证 - 支持邮箱和微信小程序双登录
-  email       String   @unique @db.VarChar(100)
-  password    String   @db.VarChar(255) // 密码哈希
-  openid      String?  @unique // 微信小程序openid（可选）
-  unionid     String?  // 微信unionid（可选）
-  sessionKey  String?  // 微信session_key（可选）
+  email      String  @unique @db.VarChar(100)
+  password   String  @db.VarChar(255) // 密码哈希
+  openid     String? @unique // 微信小程序openid（可选）
+  unionid    String? // 微信unionid（可选）
+  sessionKey String? // 微信session_key（可选）
 
   // 基本信息
-  nickname    String   @db.VarChar(50)
-  avatar      String?  @default("") @db.Text // 头像可选
-  gender      Int      @default(0) @db.TinyInt
-  phone       String?  @unique @db.VarChar(20)
-  bio         String?  @db.Text
-  
+  nickname String  @db.VarChar(50)
+  avatar   String? @default("") @db.Text // 头像可选
+  gender   Int     @default(0) @db.TinyInt
+  phone    String? @unique @db.VarChar(20)
+  bio      String? @db.Text
+
+  // 个人主页信息
+  coverImage   String? @db.Text // 个人主页封面图
+  motto        String? @db.VarChar(200) // 个人座右铭
+  introduction String? @db.Text // 详细个人介绍
+  website      String? @db.VarChar(200) // 个人网站
+  github       String? @db.VarChar(200) // GitHub
+  bilibili     String? @db.VarChar(200) // B站主页
+  wechat       String? @db.VarChar(100) // 微信号
+
   // 学校信息
-  school      String?  @db.VarChar(100) // 学校
-  major       String?  @db.VarChar(100) // 专业
-  grade       String?  @db.VarChar(20)  // 年级
-  verified    Boolean  @default(false)  // 是否认证
+  school   String? @db.VarChar(100) // 学校
+  major    String? @db.VarChar(100) // 专业
+  grade    String? @db.VarChar(20) // 年级
+  verified Boolean @default(false) // 是否认证
 
   // 技能和兴趣
-  skills      String?  @db.Text // 技能标签数组 (JSON字符串)
-  interests   String?  @db.Text // 兴趣标签数组 (JSON字符串)
+  skills    String? @db.Text // 技能标签数组 (JSON字符串)
+  interests String? @db.Text // 兴趣标签数组 (JSON字符串)
+
+  // 个人成就
+  achievements String? @db.Text // 成就列表 (JSON字符串)
+  projectsData String? @db.Text // 个人项目列表 (JSON字符串) - 重命名避免冲突
 
   // 统计数据
-  credits     Int      @default(0)
-  level       Int      @default(1)
-  exp         Int      @default(0)
+  credits Int @default(0)
+  level   Int @default(1)
+  exp     Int @default(0)
 
   // 计数器
-  topicsCount     Int @default(0)
-  commentsCount   Int @default(0)
-  likesCount      Int @default(0)
-  fansCount       Int @default(0)
-  followsCount    Int @default(0)
+  topicsCount   Int @default(0)
+  commentsCount Int @default(0)
+  likesCount    Int @default(0)
+  fansCount     Int @default(0)
+  followsCount  Int @default(0)
 
   // 状态
-  status      String   @default("active") @db.VarChar(20) // active, banned, deleted
-  isCertified Boolean  @default(false)
-  isVip       Boolean  @default(false)
+  status      String  @default("active") @db.VarChar(20) // active, banned, deleted
+  isCertified Boolean @default(false)
+  isVip       Boolean @default(false)
 
   // 时间戳
-  lastLoginAt     DateTime?
-  lastActiveAt    DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  lastLoginAt  DateTime?
+  lastActiveAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   // 关联关系
-  topics          Topic[]
-  projects        Project[]
-  comments        Comment[]
-  likes           Like[]
-  bookmarks       Bookmark[]
-  follows         Follow[] @relation("UserFollows")
-  followers       Follow[] @relation("UserFollowers")
-  sentNotifications     Notification[] @relation("NotificationSender")
-  receivedNotifications Notification[] @relation("NotificationReceiver")
-  userActions     UserAction[]
-  topicQuickActions TopicQuickAction[]
-  topicActions    TopicAction[]
-  projectActions  ProjectAction[]
-  activities      Activity[]
-  activityParticipants ActivityParticipant[]
-  activityLikes   ActivityLike[]
-  activityComments ActivityComment[]
-  userBindings    UserBinding[]
-  loginLogs       LoginLog[]
-  feedbacks       Feedback[]
-  feedbackReplies FeedbackReply[] @relation("AdminReplies")
-  creditLogs      CreditLog[]
-  badgeRecords    UserBadgeRecord[]
-  checkIns        DailyCheckIn[]
-  roles           UserRole[]
-  operationLogs   OperationLog[]
+  topics                Topic[]
+  projects              Project[]
+  posts                 Post[] // 新增：发布内容表
+  comments              Comment[]
+  likes                 Like[]
+  bookmarks             Bookmark[]
+  follows               Follow[]              @relation("UserFollows")
+  followers             Follow[]              @relation("UserFollowers")
+  sentNotifications     Notification[]        @relation("NotificationSender")
+  receivedNotifications Notification[]        @relation("NotificationReceiver")
+  userActions           UserAction[]
+  topicQuickActions     TopicQuickAction[]
+  topicActions          TopicAction[]
+  projectActions        ProjectAction[]
+  activities            Activity[]
+  activityParticipants  ActivityParticipant[]
+  activityLikes         ActivityLike[]
+  activityComments      ActivityComment[]
+  userBindings          UserBinding[]
+  loginLogs             LoginLog[]
+  feedbacks             Feedback[]
+  feedbackReplies       FeedbackReply[]       @relation("AdminReplies")
+  creditLogs            CreditLog[]
+  badgeRecords          UserBadgeRecord[]
+  checkIns              DailyCheckIn[]
+  roles                 UserRole[]
+  operationLogs         OperationLog[]
 
   @@map("users")
 }
 
 model Topic {
-  id          String   @id @default(cuid())
+  id String @id @default(cuid())
 
   // 基本信息
-  title       String   @db.VarChar(200)
-  content     String   @db.LongText
-  contentType String   @default("topic_offer") @db.VarChar(20) // topic_offer（我来讲）, topic_demand（想听）, project（项目宣传）
-  summary     String?  @db.Text
-  category    String   @db.VarChar(50)
-  tags        String?  @db.Text // 标签数组 (JSON字符串)
-  
+  title       String  @db.VarChar(200)
+  content     String  @db.LongText
+  contentType String  @default("topic_offer") @db.VarChar(20) // topic_offer（我来讲）, topic_demand（想听）, project（项目宣传）
+  summary     String? @db.Text
+  category    String  @db.VarChar(50)
+  tags        String? @db.Text // 标签数组 (JSON字符串)
+
   // 话题类型 - 融入开发代码的核心创新
-  topicType   String   @default("discussion") @db.VarChar(20) // discussion, demand, supply, collaboration
-  
-    // 供需匹配机制 - 来自开发代码的15人成团创新
-    demandType      String?  @db.VarChar(20) // 人员, 项目, 资金, 资源
-    skillsNeeded    String?  @db.Text // 需要的技能 (JSON字符串)
-    skillsProvided  String?  @db.Text // 提供的技能 (JSON字符串)
-    threshold       Int      @default(15) // 成团阈值（默认15人）
-    wantToHearCount Int      @default(0) // 想听人数
-    canTellCount    Int      @default(0) // 我能讲人数
-    status          String   @default("collecting") @db.VarChar(20) // collecting, scheduled, completed
-  
-    // 项目特有字段 - 项目宣传功能
-    teamSize        Int?     // 团队规模
-    lookingForRoles Json?    // 寻找的角色 (JSON数组)
-    projectStage    String?  @db.VarChar(50) // 项目阶段
-    website         String?  @db.VarChar(200)
-    github          String?  @db.VarChar(200)
-    interestedCount Int      @default(0) // 感兴趣人数
-  
-    // 时间安排 - 来自开发代码的功能
-    duration        String?  @db.VarChar(50) // 预计时长
-    targetAudience  String?  @db.Text // 目标听众
-    scheduledTime   DateTime? // 安排时间
-  deadline    DateTime?
-  budget      String?  @db.VarChar(100)
-  contactInfo String?  @db.Text
+  topicType String @default("discussion") @db.VarChar(20) // discussion, demand, supply, collaboration
+
+  // 供需匹配机制 - 来自开发代码的15人成团创新
+  demandType      String? @db.VarChar(20) // 人员, 项目, 资金, 资源
+  skillsNeeded    String? @db.Text // 需要的技能 (JSON字符串)
+  skillsProvided  String? @db.Text // 提供的技能 (JSON字符串)
+  threshold       Int     @default(15) // 成团阈值（默认15人）
+  wantToHearCount Int     @default(0) // 想听人数
+  canTellCount    Int     @default(0) // 我能讲人数
+  status          String  @default("collecting") @db.VarChar(20) // collecting, scheduled, completed
+
+  // 项目特有字段 - 项目宣传功能
+  teamSize        Int? // 团队规模
+  lookingForRoles Json? // 寻找的角色 (JSON数组)
+  projectStage    String? @db.VarChar(50) // 项目阶段
+  website         String? @db.VarChar(200)
+  github          String? @db.VarChar(200)
+  interestedCount Int     @default(0) // 感兴趣人数
+
+  // 时间安排 - 来自开发代码的功能
+  duration       String?   @db.VarChar(50) // 预计时长
+  targetAudience String?   @db.Text // 目标听众
+  scheduledTime  DateTime? // 安排时间
+  deadline       DateTime?
+  budget         String?   @db.VarChar(100)
+  contactInfo    String?   @db.Text
 
   // 媒体文件
-  images      String?  @db.Text // 图片数组 (JSON字符串)
-  documents   String?  @db.Text // 文档数组 (JSON字符串)
-  videos      String?  @db.Text // 视频数组 (JSON字符串)
-  links       String?  @db.Text // 链接数组 (JSON字符串)
+  images    String? @db.Text // 图片数组 (JSON字符串)
+  documents String? @db.Text // 文档数组 (JSON字符串)
+  videos    String? @db.Text // 视频数组 (JSON字符串)
+  links     String? @db.Text // 链接数组 (JSON字符串)
 
   // 快速操作
   quickActions String? @db.Text // 快速操作配置 (JSON字符串)
 
   // 可见性
-  visibility  String   @default("public") @db.VarChar(20) // public, private, followers
+  visibility String @default("public") @db.VarChar(20) // public, private, followers
 
   // 统计数据
-  viewsCount      Int @default(0)
-  likesCount      Int @default(0)
-  commentsCount   Int @default(0)
-  bookmarksCount  Int @default(0)
-  hotScore        Float @default(0)
-  trendingScore   Float @default(0)
-  isHot           Boolean @default(false)
+  viewsCount     Int     @default(0)
+  likesCount     Int     @default(0)
+  commentsCount  Int     @default(0)
+  bookmarksCount Int     @default(0)
+  hotScore       Float   @default(0)
+  trendingScore  Float   @default(0)
+  isHot          Boolean @default(false)
 
   // 状态 - 融入开发代码的状态管理
   publishedAt DateTime?
@@ -161,15 +175,15 @@ model Topic {
   updatedAt    DateTime @updatedAt
 
   // 关联关系
-  author       User @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  authorId     String
-  comments     Comment[]
-  likes        Like[] @relation("LikeTopic")
-  bookmarks    Bookmark[]
-  notifications Notification[] @relation("NotificationTopic")
-  userActions  UserAction[] @relation("UserActionTopic")
+  author           User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId         String
+  comments         Comment[]
+  likes            Like[]             @relation("LikeTopic")
+  bookmarks        Bookmark[]
+  notifications    Notification[]     @relation("NotificationTopic")
+  userActions      UserAction[]       @relation("UserActionTopic")
   quickActionsList TopicQuickAction[]
-  actions      TopicAction[]
+  actions          TopicAction[]
 
   @@index([category, createdAt(sort: Desc)])
   @@index([topicType, createdAt(sort: Desc)])
@@ -182,54 +196,54 @@ model Topic {
 }
 
 model Comment {
-  id          String   @id @default(cuid())
+  id String @id @default(cuid())
 
   // 评论内容
-  content     String   @db.Text
-  images      String?  @db.Text // 图片数组 (JSON字符串)
+  content String  @db.Text
+  images  String? @db.Text // 图片数组 (JSON字符串)
 
   // 评论层级
-  parentId    String?  // 父评论ID
-  rootId      String?  // 根评论ID（如果是回复）
+  parentId     String? // 父评论ID
+  rootId       String? // 根评论ID（如果是回复）
   repliesCount Int     @default(0)
 
   // 统计数据
-  likesCount  Int      @default(0)
+  likesCount Int @default(0)
 
   // 状态
-  status      String   @default("published") @db.VarChar(20) // published, deleted
+  status String @default("published") @db.VarChar(20) // published, deleted
 
   // 时间戳
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // 关联关系
-  topic       Topic? @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  topicId     String?
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId   String?
-  author      User @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  authorId    String
-  parent      Comment? @relation("CommentReplies", fields: [parentId], references: [id])
-  replies     Comment[] @relation("CommentReplies")
-  likes       Like[] @relation("LikeComment")
+  topic         Topic?         @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId       String?
+  project       Project?       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId     String?
+  author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId      String
+  parent        Comment?       @relation("CommentReplies", fields: [parentId], references: [id])
+  replies       Comment[]      @relation("CommentReplies")
+  likes         Like[]         @relation("LikeComment")
   notifications Notification[] @relation("NotificationComment")
 
   @@map("comments")
 }
 
 model Like {
-  id        String   @id @default(cuid())
-  targetType String  @db.VarChar(20) // topic, comment
+  id         String @id @default(cuid())
+  targetType String @db.VarChar(20) // topic, comment
   targetId   String
 
   createdAt DateTime @default(now())
 
   // 关联关系
-  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  topic     Topic? @relation("LikeTopic", fields: [targetId], references: [id], map: "likes_topic_targetId_fkey")
-  comment   Comment? @relation("LikeComment", fields: [targetId], references: [id], map: "likes_comment_targetId_fkey")
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  topic   Topic?   @relation("LikeTopic", fields: [targetId], references: [id], map: "likes_topic_targetId_fkey")
+  comment Comment? @relation("LikeComment", fields: [targetId], references: [id], map: "likes_comment_targetId_fkey")
 
   @@unique([userId, targetType, targetId])
   @@map("likes")
@@ -240,23 +254,23 @@ model Bookmark {
   createdAt DateTime @default(now())
 
   // 关联关系
-  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  topic     Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  topicId   String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  topic   Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId String
 
   @@unique([userId, topicId])
   @@map("bookmarks")
 }
 
 model Follow {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
 
   // 关联关系
-  follower    User @relation("UserFollows", fields: [followerId], references: [id], onDelete: Cascade)
+  follower    User   @relation("UserFollows", fields: [followerId], references: [id], onDelete: Cascade)
   followerId  String
-  following   User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+  following   User   @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
   followingId String
 
   @@unique([followerId, followingId])
@@ -264,34 +278,34 @@ model Follow {
 }
 
 model Notification {
-  id          String   @id @default(cuid())
+  id String @id @default(cuid())
 
   // 通知类型
-  type        String   @db.VarChar(20) // like, comment, reply, follow, match, system
+  type String @db.VarChar(20) // like, comment, reply, follow, match, system
 
   // 通知内容
-  title       String   @db.VarChar(100)
-  content     String   @db.Text
+  title   String @db.VarChar(100)
+  content String @db.Text
 
   // 状态
-  isRead      Boolean  @default(false)
-  readAt      DateTime?
+  isRead Boolean   @default(false)
+  readAt DateTime?
 
   // 跳转链接
-  link        String?  @db.Text
+  link String? @db.Text
 
   // 时间戳
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   // 关联关系
-  user        User @relation("NotificationReceiver", fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
-  actor       User? @relation("NotificationSender", fields: [actorId], references: [id])
-  actorId     String?
-  topic       Topic? @relation("NotificationTopic", fields: [targetId], references: [id], map: "notifications_topic_targetId_fkey")
-  comment     Comment? @relation("NotificationComment", fields: [targetId], references: [id], map: "notifications_comment_targetId_fkey")
-  targetType  String   @db.VarChar(20) // topic, comment, user
-  targetId    String
+  user       User     @relation("NotificationReceiver", fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  actor      User?    @relation("NotificationSender", fields: [actorId], references: [id])
+  actorId    String?
+  topic      Topic?   @relation("NotificationTopic", fields: [targetId], references: [id], map: "notifications_topic_targetId_fkey")
+  comment    Comment? @relation("NotificationComment", fields: [targetId], references: [id], map: "notifications_comment_targetId_fkey")
+  targetType String   @db.VarChar(20) // topic, comment, user
+  targetId   String
 
   @@index([userId])
   @@index([isRead])
@@ -302,43 +316,43 @@ model Notification {
 }
 
 model UserAction {
-  id          String   @id @default(cuid())
+  id String @id @default(cuid())
 
   // 行为类型
-  actionType  String   @db.VarChar(20) // view, like, comment, bookmark, click, share
+  actionType String @db.VarChar(20) // view, like, comment, bookmark, click, share
 
   // 目标
-  targetType  String   @db.VarChar(20) // topic, comment, user
-  targetId    String
+  targetType String @db.VarChar(20) // topic, comment, user
+  targetId   String
 
   // 元数据
-  metadata    String?  @db.Text // 元数据 (JSON字符串)
+  metadata String? @db.Text // 元数据 (JSON字符串)
 
   // 时间戳
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   // 关联关系
-  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
-  topic       Topic? @relation("UserActionTopic", fields: [targetId], references: [id], map: "user_actions_topic_targetId_fkey")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  topic  Topic? @relation("UserActionTopic", fields: [targetId], references: [id], map: "user_actions_topic_targetId_fkey")
 
   @@map("user_actions")
 }
 
 model TopicQuickAction {
-  id          String   @id @default(cuid())
+  id String @id @default(cuid())
 
   // 操作类型
-  actionType  String   @db.VarChar(20) // interested, can_help, want_collab
+  actionType String @db.VarChar(20) // interested, can_help, want_collab
 
   // 时间戳
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   // 关联关系
-  topic       Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  topicId     String
-  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
+  topic   Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
 
   @@unique([topicId, userId, actionType])
   @@map("topic_quick_actions")
@@ -346,16 +360,16 @@ model TopicQuickAction {
 
 // ==================== 新增：话题互动表（来自开发代码） ====================
 model TopicAction {
-  id          String   @id @default(cuid())
-  type        String   @db.VarChar(20) // like, want_hear, can_tell
+  id   String @id @default(cuid())
+  type String @db.VarChar(20) // like, want_hear, can_tell
 
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  topicId     String
-  topic       Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId String
+  topic   Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([userId, topicId, type])
   @@index([userId])
@@ -365,16 +379,16 @@ model TopicAction {
 
 // ==================== 新增：项目互动表（来自开发代码） ====================
 model ProjectAction {
-  id          String   @id @default(cuid())
-  type        String   @db.VarChar(20) // like, interested
+  id   String @id @default(cuid())
+  type String @db.VarChar(20) // like, interested
 
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  projectId   String
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([userId, projectId, type])
   @@index([userId])
@@ -384,36 +398,36 @@ model ProjectAction {
 
 // ==================== 新增：项目表（来自开发代码） ====================
 model Project {
-  id              String      @id @default(cuid())
-  category        String      @db.VarChar(50)
-  title           String      @db.VarChar(200)
-  description     String      @db.LongText
-  tags            String?     @db.Text // JSON数组
+  id          String  @id @default(cuid())
+  category    String  @db.VarChar(50)
+  title       String  @db.VarChar(200)
+  description String  @db.LongText
+  tags        String? @db.Text // JSON数组
 
   // 项目特有字段（来自开发代码）
   teamSize        Int?
-  lookingForRoles Json?       // JSON数组
-  projectStage    String?     @db.VarChar(50)
-  website         String?     @db.VarChar(200)
-  github          String?     @db.VarChar(200)
+  lookingForRoles Json? // JSON数组
+  projectStage    String? @db.VarChar(50)
+  website         String? @db.VarChar(200)
+  github          String? @db.VarChar(200)
 
   // 统计数据
-  viewCount       Int         @default(0)
-  likeCount       Int         @default(0)
-  commentCount    Int         @default(0)
-  interestedCount Int         @default(0)
+  viewCount       Int @default(0)
+  likeCount       Int @default(0)
+  commentCount    Int @default(0)
+  interestedCount Int @default(0)
 
   // 媒体文件
-  images          String?     @db.Text // JSON数组
+  images String? @db.Text // JSON数组
 
-  authorId        String
-  author          User        @relation(fields: [authorId], references: [id])
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
 
-  comments        Comment[]
-  actions         ProjectAction[]
+  comments Comment[]
+  actions  ProjectAction[]
 
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([authorId])
   @@index([category])
@@ -423,38 +437,38 @@ model Project {
 
 // ==================== 新增：活动表 ====================
 model Activity {
-  id              String      @id @default(cuid())
-  title           String      @db.VarChar(200)
-  description     String      @db.LongText
-  location        String      @db.VarChar(200)
+  id              String    @id @default(cuid())
+  title           String    @db.VarChar(200)
+  description     String    @db.LongText
+  location        String    @db.VarChar(200)
   startTime       DateTime
   endTime         DateTime?
   maxParticipants Int?
-  category        String      @db.VarChar(50)
-  tags            String?     @db.Text // JSON数组
-  cover           String?     @db.Text
-  images          String?     @db.Text // JSON数组
-  
+  category        String    @db.VarChar(50)
+  tags            String?   @db.Text // JSON数组
+  cover           String?   @db.Text
+  images          String?   @db.Text // JSON数组
+
   // 统计数据
-  participantsCount Int       @default(0)
-  likesCount        Int       @default(0)
-  commentsCount     Int       @default(0)
-  checkedInCount    Int       @default(0) // 签到人数
-  
+  participantsCount Int @default(0)
+  likesCount        Int @default(0)
+  commentsCount     Int @default(0)
+  checkedInCount    Int @default(0) // 签到人数
+
   // 状态
-  status          String      @default("published") @db.VarChar(20) // published, draft, deleted
-  
+  status String @default("published") @db.VarChar(20) // published, draft, deleted
+
   // 时间戳
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // 关联关系
-  organizerId     String      // 改名为 organizerId 更语义化
-  organizer       User        @relation(fields: [organizerId], references: [id])
-  participants    ActivityParticipant[]
-  likes           ActivityLike[]
-  comments        ActivityComment[]
-  
+  organizerId  String // 改名为 organizerId 更语义化
+  organizer    User                  @relation(fields: [organizerId], references: [id])
+  participants ActivityParticipant[]
+  likes        ActivityLike[]
+  comments     ActivityComment[]
+
   @@index([organizerId, createdAt(sort: Desc)])
   @@index([category, startTime])
   @@index([startTime, status])
@@ -466,26 +480,26 @@ model Activity {
 
 // ==================== 活动参与表 ====================
 model ActivityParticipant {
-  id          String    @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // 报名状态
-  status      String    @default("approved") @db.VarChar(20) // approved, pending, rejected
-  note        String?   @db.Text // 报名备注
-  
+  status String  @default("approved") @db.VarChar(20) // approved, pending, rejected
+  note   String? @db.Text // 报名备注
+
   // 签到信息
   checkedIn   Boolean   @default(false)
   checkedInAt DateTime?
-  
+
   // 时间戳
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // 关联关系
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  activityId  String
-  activity    Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-  
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  activityId String
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
   @@unique([userId, activityId])
   @@index([userId])
   @@index([activityId])
@@ -495,15 +509,15 @@ model ActivityParticipant {
 
 // ==================== 活动点赞表 ====================
 model ActivityLike {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
   // 关联关系
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  activityId  String
-  activity    Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-  
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  activityId String
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
   @@unique([userId, activityId])
   @@index([userId])
   @@index([activityId])
@@ -512,44 +526,134 @@ model ActivityLike {
 
 // ==================== 活动评论表 ====================
 model ActivityComment {
-  id          String   @id @default(cuid())
-  content     String   @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // 关联关系
-  authorId    String
-  author      User     @relation(fields: [authorId], references: [id])
-  activityId  String
-  activity    Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-  
+  authorId   String
+  author     User     @relation(fields: [authorId], references: [id])
+  activityId String
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
   @@index([authorId])
   @@index([activityId])
   @@index([createdAt])
   @@map("activity_comments")
 }
 
+// ==================== 新增：统一发布内容表 ====================
+model Post {
+  id String @id @default(cuid())
+
+  // 发布类型：我想听、我来讲、分享、活动、项目
+  type String @db.VarChar(20) // want_hear, can_tell, share, activity, project
+
+  // 基本信息
+  title   String  @db.VarChar(200)
+  content String  @db.LongText
+  summary String? @db.Text
+  cover   String? @db.Text // 封面图
+
+  // 分类和标签
+  category String  @db.VarChar(50)
+  tags     String? @db.Text // JSON数组
+
+  // "我想听"/"我来讲" 特有字段
+  topic         String?   @db.VarChar(200) // 话题标题
+  duration      String?   @db.VarChar(50) // 预计时长
+  audience      String?   @db.Text // 目标听众
+  skillsNeeded  String?   @db.Text // 需要的技能 JSON数组
+  threshold     Int? // 成团人数阈值
+  wantHearCount Int       @default(0) // 想听人数
+  canTellCount  Int       @default(0) // 能讲人数
+  scheduledAt   DateTime? // 安排时间
+
+  // "分享" 特有字段
+  linkType   String? @db.VarChar(20) // article, wechat, bilibili, zhihu, github, other
+  linkUrl    String? @db.Text // 外链地址
+  linkTitle  String? @db.VarChar(200) // 外链标题
+  linkDesc   String? @db.Text // 外链描述
+  linkImage  String? @db.Text // 外链缩略图
+  linkAuthor String? @db.VarChar(100) // 外链作者
+  linkSource String? @db.VarChar(100) // 来源
+
+  // "活动" 特有字段
+  location             String?   @db.VarChar(200) // 活动地点
+  startTime            DateTime? // 开始时间
+  endTime              DateTime? // 结束时间
+  maxParticipants      Int? // 最大参与人数
+  registrationDeadline DateTime? // 报名截止时间
+  participantsCount    Int       @default(0) // 参与人数
+
+  // "项目" 特有字段
+  projectStage String? @db.VarChar(50) // 项目阶段
+  teamSize     Int? // 团队规模
+  lookingFor   String? @db.Text // 寻找的角色 JSON数组
+  github       String? @db.VarChar(200) // GitHub链接
+  website      String? @db.VarChar(200) // 项目网站
+  demo         String? @db.VarChar(200) // Demo链接
+
+  // 媒体文件
+  images    String? @db.Text // 图片数组 JSON
+  videos    String? @db.Text // 视频数组 JSON
+  documents String? @db.Text // 文档数组 JSON
+
+  // 统计数据
+  viewsCount     Int @default(0)
+  likesCount     Int @default(0)
+  commentsCount  Int @default(0)
+  bookmarksCount Int @default(0)
+  sharesCount    Int @default(0)
+
+  // 热度算法
+  hotScore      Float @default(0)
+  trendingScore Float @default(0)
+
+  // 可见性和状态
+  visibility String @default("public") @db.VarChar(20) // public, private, followers
+  status     String @default("published") @db.VarChar(20) // draft, published, deleted
+
+  // 时间戳
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // 关联关系
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([type, createdAt(sort: Desc)])
+  @@index([type, hotScore(sort: Desc)])
+  @@index([authorId, createdAt(sort: Desc)])
+  @@index([category, createdAt(sort: Desc)])
+  @@index([status, publishedAt(sort: Desc)])
+  @@index([hotScore(sort: Desc), createdAt(sort: Desc)])
+  @@map("posts")
+}
+
 // ==================== 新增：用户绑定表（阶段一） ====================
 model UserBinding {
-  id          String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // 绑定类型
-  type        String   @db.VarChar(20) // wechat, phone, email
-  
+  type String @db.VarChar(20) // wechat, phone, email
+
   // 绑定值
-  bindValue   String   @db.VarChar(100)
-  
+  bindValue String @db.VarChar(100)
+
   // 额外信息（如微信昵称、头像等）
-  metadata    String?  @db.Text // JSON字符串
-  
+  metadata String? @db.Text // JSON字符串
+
   // 时间戳
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // 关联关系
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([type, bindValue])
   @@index([userId])
   @@map("user_bindings")
@@ -557,27 +661,27 @@ model UserBinding {
 
 // ==================== 新增：验证码表（阶段一） ====================
 model VerificationCode {
-  id          String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // 邮箱/手机号
-  email       String   @db.VarChar(100)
-  
+  email String @db.VarChar(100)
+
   // 验证码
-  code        String   @db.VarChar(6)
-  
+  code String @db.VarChar(6)
+
   // 类型
-  type        String   @db.VarChar(20) // register, login, reset_password, bind_email, bind_phone
-  
+  type String @db.VarChar(20) // register, login, reset_password, bind_email, bind_phone
+
   // 状态
-  used        Boolean  @default(false)
-  usedAt      DateTime?
-  
+  used   Boolean   @default(false)
+  usedAt DateTime?
+
   // 过期时间
-  expiresAt   DateTime
-  
+  expiresAt DateTime
+
   // 创建时间
-  createdAt   DateTime @default(now())
-  
+  createdAt DateTime @default(now())
+
   @@index([email])
   @@index([code])
   @@index([expiresAt])
@@ -586,30 +690,30 @@ model VerificationCode {
 
 // ==================== 新增：登录日志表（阶段一） ====================
 model LoginLog {
-  id          String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // IP地址
-  ipAddress   String?  @db.VarChar(45)
-  
+  ipAddress String? @db.VarChar(45)
+
   // User Agent
-  userAgent   String?  @db.Text
-  
+  userAgent String? @db.Text
+
   // 登录方式
-  loginMethod String   @db.VarChar(20) // password, code, wechat
-  
+  loginMethod String @db.VarChar(20) // password, code, wechat
+
   // 登录状态
-  status      String   @db.VarChar(20) // success, failed
-  
+  status String @db.VarChar(20) // success, failed
+
   // 失败原因
-  failReason  String?  @db.Text
-  
+  failReason String? @db.Text
+
   // 登录时间
-  loginTime   DateTime @default(now())
-  
+  loginTime DateTime @default(now())
+
   // 关联关系
-  userId      String?  // 登录失败时可能没有userId
-  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  userId String? // 登录失败时可能没有userId
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([ipAddress])
   @@index([loginTime])
@@ -618,43 +722,43 @@ model LoginLog {
 
 // ==================== 新增：用户反馈表 ====================
 model Feedback {
-  id          String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // 反馈类型
-  type        String   @db.VarChar(20) // bug, feature, improvement, other
-  
+  type String @db.VarChar(20) // bug, feature, improvement, other
+
   // 反馈内容
-  title       String   @db.VarChar(100)
-  content     String   @db.Text
-  
+  title   String @db.VarChar(100)
+  content String @db.Text
+
   // 联系方式（可选）
-  contact     String?  @db.VarChar(100)
-  
+  contact String? @db.VarChar(100)
+
   // 截图和附件
-  images      String?  @db.Text // JSON数组
-  
+  images String? @db.Text // JSON数组
+
   // 平台信息
-  platform    String   @default("web") @db.VarChar(20) // web, miniprogram
-  version     String?  @db.VarChar(20)
-  deviceInfo  String?  @db.Text // JSON对象
-  
+  platform   String  @default("web") @db.VarChar(20) // web, miniprogram
+  version    String? @db.VarChar(20)
+  deviceInfo String? @db.Text // JSON对象
+
   // 请求信息
-  ipAddress   String?  @db.VarChar(45)
-  userAgent   String?  @db.Text
-  
+  ipAddress String? @db.VarChar(45)
+  userAgent String? @db.Text
+
   // 状态
-  status      String   @default("pending") @db.VarChar(20) // pending, processing, resolved, closed
+  status      String    @default("pending") @db.VarChar(20) // pending, processing, resolved, closed
   processedAt DateTime?
-  
+
   // 时间戳
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // 关联关系
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reply       FeedbackReply[]
-  
+  userId String
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reply  FeedbackReply[]
+
   @@index([userId])
   @@index([type])
   @@index([status])
@@ -664,20 +768,20 @@ model Feedback {
 
 // ==================== 新增：反馈回复表 ====================
 model FeedbackReply {
-  id          String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // 回复内容
-  content     String   @db.Text
-  
+  content String @db.Text
+
   // 时间戳
-  createdAt   DateTime @default(now())
-  
+  createdAt DateTime @default(now())
+
   // 关联关系
-  feedbackId  String
-  feedback    Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
-  adminId     String
-  admin       User     @relation("AdminReplies", fields: [adminId], references: [id])
-  
+  feedbackId String
+  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  adminId    String
+  admin      User     @relation("AdminReplies", fields: [adminId], references: [id])
+
   @@index([feedbackId])
   @@index([adminId])
   @@index([createdAt])
@@ -688,27 +792,27 @@ model FeedbackReply {
 
 // 积分历史记录表
 model CreditLog {
-  id          String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // 积分变动
-  action      String   @db.VarChar(50) // topic_create, comment_create, like_received, check_in, etc.
-  amount      Int      // 变动金额（正数为增加，负数为减少）
-  reason      String?  @db.VarChar(200)
-  
+  action String  @db.VarChar(50) // topic_create, comment_create, like_received, check_in, etc.
+  amount Int // 变动金额（正数为增加，负数为减少）
+  reason String? @db.VarChar(200)
+
   // 关联对象
-  relatedType String?  @db.VarChar(20) // topic, comment, like
+  relatedType String? @db.VarChar(20) // topic, comment, like
   relatedId   String?
-  
+
   // 元数据
-  metadata    String?  @db.Text // JSON字符串
-  
+  metadata String? @db.Text // JSON字符串
+
   // 时间戳
-  createdAt   DateTime @default(now())
-  
+  createdAt DateTime @default(now())
+
   // 关联关系
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([action])
   @@index([createdAt])
@@ -717,55 +821,55 @@ model CreditLog {
 
 // 用户等级表
 model UserLevel {
-  id          String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // 等级信息
-  level       Int      @unique
-  name        String   @db.VarChar(50)
-  minExp      Int
-  maxExp      Int
-  
+  level  Int    @unique
+  name   String @db.VarChar(50)
+  minExp Int
+  maxExp Int
+
   // 显示
-  icon        String?  @db.VarChar(200)
-  color       String?  @db.VarChar(20)
-  
+  icon  String? @db.VarChar(200)
+  color String? @db.VarChar(20)
+
   // 权限
-  privileges  String?  @db.Text // JSON字符串
-  
+  privileges String? @db.Text // JSON字符串
+
   // 时间戳
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@map("user_levels")
 }
 
 // 勋章定义表
 model UserBadge {
-  id          String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // 勋章信息
-  code        String   @unique @db.VarChar(50)
-  name        String   @db.VarChar(50)
-  description String?  @db.Text
-  icon        String?  @db.VarChar(200)
-  
+  code        String  @unique @db.VarChar(50)
+  name        String  @db.VarChar(50)
+  description String? @db.Text
+  icon        String? @db.VarChar(200)
+
   // 分类
-  category    String   @db.VarChar(20) // basic, content, social, activity, special
-  rarity      String   @default("common") @db.VarChar(20) // common, uncommon, rare, epic, legendary
-  
+  category String @db.VarChar(20) // basic, content, social, activity, special
+  rarity   String @default("common") @db.VarChar(20) // common, uncommon, rare, epic, legendary
+
   // 获取条件
-  condition   String?  @db.Text // JSON字符串
-  
+  condition String? @db.Text // JSON字符串
+
   // 状态
-  isActive    Boolean  @default(true)
-  
+  isActive Boolean @default(true)
+
   // 时间戳
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // 关联关系
   userRecords UserBadgeRecord[]
-  
+
   @@index([category])
   @@index([rarity])
   @@map("user_badges")
@@ -773,23 +877,23 @@ model UserBadge {
 
 // 用户获得的勋章记录
 model UserBadgeRecord {
-  id          String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // 进度（某些勋章可能有进度条）
-  progress    Int      @default(100)
-  
+  progress Int @default(100)
+
   // 获得时间
-  awardedAt   DateTime @default(now())
-  
+  awardedAt DateTime @default(now())
+
   // 元数据
-  metadata    String?  @db.Text // JSON字符串
-  
+  metadata String? @db.Text // JSON字符串
+
   // 关联关系
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  badgeId     String
-  badge       UserBadge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
-  
+  userId  String
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId String
+  badge   UserBadge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
   @@unique([userId, badgeId])
   @@index([userId])
   @@index([badgeId])
@@ -798,20 +902,20 @@ model UserBadgeRecord {
 
 // 每日签到记录表
 model DailyCheckIn {
-  id              String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // 签到信息
   checkInDate     DateTime @db.Date
   credits         Int      @default(5)
   consecutiveDays Int      @default(1)
-  
+
   // 时间戳
-  createdAt       DateTime @default(now())
-  
+  createdAt DateTime @default(now())
+
   // 关联关系
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([userId, checkInDate])
   @@index([userId])
   @@index([checkInDate])
@@ -822,30 +926,30 @@ model DailyCheckIn {
 
 // 角色表
 model Role {
-  id          String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // 角色信息
-  name        String   @unique @db.VarChar(50) // 角色名称，如 admin, moderator, vip_user
-  displayName String   @db.VarChar(100) // 显示名称，如 "系统管理员"
-  description String?  @db.Text
-  
+  name        String  @unique @db.VarChar(50) // 角色名称，如 admin, moderator, vip_user
+  displayName String  @db.VarChar(100) // 显示名称，如 "系统管理员"
+  description String? @db.Text
+
   // 角色级别（数字越大权限越高）
-  level       Int      @default(0)
-  
+  level Int @default(0)
+
   // 角色类型
-  type        String   @default("custom") @db.VarChar(20) // system(系统内置), custom(自定义)
-  
+  type String @default("custom") @db.VarChar(20) // system(系统内置), custom(自定义)
+
   // 状态
-  isActive    Boolean  @default(true)
-  
+  isActive Boolean @default(true)
+
   // 时间戳
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // 关联关系
   userRoles   UserRole[]
   permissions RolePermission[]
-  
+
   @@index([name])
   @@index([type])
   @@index([isActive])
@@ -854,30 +958,30 @@ model Role {
 
 // 权限表
 model Permission {
-  id          String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // 权限信息
-  name        String   @unique @db.VarChar(100) // 权限名称，如 user.create, topic.delete
-  displayName String   @db.VarChar(100) // 显示名称
-  description String?  @db.Text
-  
+  name        String  @unique @db.VarChar(100) // 权限名称，如 user.create, topic.delete
+  displayName String  @db.VarChar(100) // 显示名称
+  description String? @db.Text
+
   // 权限分组
-  module      String   @db.VarChar(50) // 模块，如 user, topic, comment, admin
-  action      String   @db.VarChar(50) // 操作，如 create, read, update, delete
-  
+  module String @db.VarChar(50) // 模块，如 user, topic, comment, admin
+  action String @db.VarChar(50) // 操作，如 create, read, update, delete
+
   // 资源类型（可选，用于细粒度控制）
-  resource    String?  @db.VarChar(50)
-  
+  resource String? @db.VarChar(50)
+
   // 状态
-  isActive    Boolean  @default(true)
-  
+  isActive Boolean @default(true)
+
   // 时间戳
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // 关联关系
-  roles       RolePermission[]
-  
+  roles RolePermission[]
+
   @@index([module])
   @@index([action])
   @@index([isActive])
@@ -886,17 +990,17 @@ model Permission {
 
 // 角色-权限关联表
 model RolePermission {
-  id           String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // 关联关系
   roleId       String
-  role         Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permissionId String
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  
+
   // 时间戳
-  createdAt    DateTime @default(now())
-  
+  createdAt DateTime @default(now())
+
   @@unique([roleId, permissionId])
   @@index([roleId])
   @@index([permissionId])
@@ -905,21 +1009,21 @@ model RolePermission {
 
 // 用户-角色关联表
 model UserRole {
-  id        String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // 关联关系
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  roleId    String
-  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId String
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
   // 分配信息
-  assignedBy String?  // 分配者ID
+  assignedBy String? // 分配者ID
   expiresAt  DateTime? // 过期时间（可选，用于临时角色）
-  
+
   // 时间戳
-  createdAt  DateTime @default(now())
-  
+  createdAt DateTime @default(now())
+
   @@unique([userId, roleId])
   @@index([userId])
   @@index([roleId])
@@ -929,37 +1033,358 @@ model UserRole {
 
 // 操作日志表（用于审计）
 model OperationLog {
-  id          String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // 操作信息
   userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  action      String   @db.VarChar(100) // 操作类型
-  module      String   @db.VarChar(50)  // 模块
-  description String?  @db.Text         // 操作描述
-  
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action      String  @db.VarChar(100) // 操作类型
+  module      String  @db.VarChar(50) // 模块
+  description String? @db.Text // 操作描述
+
   // 请求信息
-  method      String   @db.VarChar(10)  // HTTP方法
-  path        String   @db.VarChar(500) // 请求路径
-  ip          String?  @db.VarChar(50)  // IP地址
-  userAgent   String?  @db.Text         // User Agent
-  
+  method    String  @db.VarChar(10) // HTTP方法
+  path      String  @db.VarChar(500) // 请求路径
+  ip        String? @db.VarChar(50) // IP地址
+  userAgent String? @db.Text // User Agent
+
   // 操作结果
-  status      String   @db.VarChar(20)  // success, failed
-  errorMsg    String?  @db.Text         // 错误信息
-  
+  status   String  @db.VarChar(20) // success, failed
+  errorMsg String? @db.Text // 错误信息
+
   // 操作数据（JSON格式）
-  requestData String?  @db.Text
+  requestData  String? @db.Text
   responseData String? @db.Text
-  
+
   // 时间
-  duration    Int?     // 执行时长（毫秒）
-  createdAt   DateTime @default(now())
-  
+  duration  Int? // 执行时长（毫秒）
+  createdAt DateTime @default(now())
+
   @@index([userId])
   @@index([action])
   @@index([module])
   @@index([status])
   @@index([createdAt])
   @@map("operation_logs")
+}
+
+// ==================== 管理员系统 ====================
+
+// 管理员表
+model Admin {
+  id       String @id @default(cuid())
+  username String @unique @db.VarChar(50)
+  email    String @unique @db.VarChar(100)
+  password String @db.VarChar(255) // bcrypt加密
+
+  // 角色和权限
+  role        String @db.VarChar(50) // super_admin, platform_admin, content_moderator, data_analyst
+  permissions String @db.Text // 权限列表JSON数组
+  status      String @default("active") // active, suspended, deleted
+
+  // 登录信息
+  lastLoginAt   DateTime?
+  lastLoginIp   String?   @db.VarChar(45)
+  loginAttempts Int       @default(0) // 登录尝试次数
+  lockedUntil   DateTime? // 账户锁定到期时间
+
+  // 个人信息
+  realName String? @db.VarChar(50)
+  phone    String? @db.VarChar(20)
+  avatar   String? @db.VarChar(500)
+
+  // 安全设置
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret  String? @db.VarChar(255)
+  backupCodes      String? @db.Text // 备用码JSON数组
+
+  // 密码管理
+  passwordChangedAt DateTime?
+  passwordHistory   String?   @db.Text // 历史密码哈希JSON数组（最近5个）
+
+  // 会话管理
+  refreshToken String? @db.Text
+  tokenVersion Int     @default(0) // 用于强制登出
+
+  // 元数据
+  createdAt DateTime @default(now())
+  createdBy String? // 创建此管理员的管理员ID
+  updatedAt DateTime @updatedAt
+
+  // 关联关系
+  auditLogs      AdminAuditLog[]
+  announcements  Announcement[]
+  userWarnings   UserWarning[]
+  userBans       UserBan[]
+  reportHandlers Report[]
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
+  @@index([createdAt])
+  @@map("admins")
+}
+
+// 公告表
+model Announcement {
+  id       String @id @default(cuid())
+  title    String @db.VarChar(200)
+  content  String @db.Text
+  type     String @db.VarChar(50) // system, feature, activity, policy, general
+  priority String @default("medium") // high, medium, low
+  status   String @default("draft") // draft, published, expired, deleted
+
+  // 展示设置
+  displayType    String @default("notice") // popup, banner, notice
+  targetAudience String @db.Text // 目标用户群体配置JSON
+
+  // 富文本内容
+  richContent String? @db.Text // 富文本HTML
+  summary     String? @db.VarChar(500)
+
+  // 媒体
+  coverImage String? @db.VarChar(500)
+  images     String? @db.Text // 图片数组JSON
+
+  // 时间控制
+  publishAt DateTime? // 定时发布
+  expireAt  DateTime? // 过期时间
+
+  // 统计数据
+  viewCount  Int @default(0)
+  clickCount Int @default(0)
+  closeCount Int @default(0)
+
+  // 元数据
+  createdAt DateTime @default(now())
+  createdBy String
+  updatedAt DateTime @updatedAt
+
+  // 关联关系
+  creator Admin              @relation(fields: [createdBy], references: [id])
+  views   AnnouncementView[]
+
+  @@index([type])
+  @@index([status])
+  @@index([publishAt])
+  @@index([expireAt])
+  @@index([createdAt])
+  @@map("announcements")
+}
+
+// 公告查看记录表
+model AnnouncementView {
+  id             String    @id @default(cuid())
+  announcementId String
+  userId         String
+  viewedAt       DateTime  @default(now())
+  clicked        Boolean   @default(false)
+  clickedAt      DateTime?
+  closed         Boolean   @default(false)
+  closedAt       DateTime?
+
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@unique([announcementId, userId])
+  @@index([userId])
+  @@index([announcementId])
+  @@map("announcement_views")
+}
+
+// 管理员审计日志表
+model AdminAuditLog {
+  id           String  @id @default(cuid())
+  adminId      String
+  action       String  @db.VarChar(100) // create, read, update, delete, ban, unban, warn, feature, pin
+  resourceType String  @db.VarChar(50) // user, post, comment, announcement, admin, system, topic
+  resourceId   String? // 被操作对象的ID
+
+  // 详细信息
+  description String? @db.Text
+  details     String? @db.Text // 详细信息JSON，包含before/after数据
+
+  // 请求信息
+  ipAddress String  @db.VarChar(45)
+  userAgent String? @db.VarChar(500)
+  method    String? @db.VarChar(10) // GET, POST, PUT, DELETE
+  path      String? @db.VarChar(500)
+
+  // 结果
+  status       String  @db.VarChar(20) // success, failed
+  errorMessage String? @db.Text
+
+  // 日志级别
+  level String @default("info") @db.VarChar(20) // critical, warning, info, debug
+
+  // 元数据
+  createdAt DateTime @default(now())
+
+  // 关联关系
+  admin Admin @relation(fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([action])
+  @@index([resourceType, resourceId])
+  @@index([createdAt])
+  @@index([level])
+  @@index([status])
+  @@map("admin_audit_logs")
+}
+
+// 用户警告表
+model UserWarning {
+  id             String  @id @default(cuid())
+  userId         String
+  adminId        String
+  reason         String  @db.VarChar(200)
+  content        String  @db.Text
+  level          String  @db.VarChar(20) // minor, serious, final
+  relatedPostId  String? // 相关帖子ID
+  relatedTopicId String? // 相关话题ID
+
+  // 状态
+  isRead Boolean   @default(false)
+  readAt DateTime?
+
+  // 元数据
+  createdAt DateTime @default(now())
+
+  // 关联关系
+  admin Admin @relation(fields: [adminId], references: [id])
+
+  @@index([userId])
+  @@index([adminId])
+  @@index([createdAt])
+  @@map("user_warnings")
+}
+
+// 用户封禁表
+model UserBan {
+  id       String @id @default(cuid())
+  userId   String
+  adminId  String
+  reason   String @db.Text
+  duration Int? // 封禁天数，null表示永久
+
+  // 状态
+  status     String    @default("active") // active, lifted, expired
+  liftedAt   DateTime?
+  liftedBy   String?
+  liftReason String?   @db.Text
+
+  // 时间
+  startAt   DateTime  @default(now())
+  expireAt  DateTime? // 解封时间
+  createdAt DateTime  @default(now())
+
+  // 关联关系
+  admin Admin @relation(fields: [adminId], references: [id])
+
+  @@index([userId])
+  @@index([userId, status])
+  @@index([adminId])
+  @@index([expireAt])
+  @@map("user_bans")
+}
+
+// 举报表
+model Report {
+  id          String  @id @default(cuid())
+  reporterId  String // 举报人ID
+  targetType  String  @db.VarChar(20) // post, topic, comment, user
+  targetId    String // 被举报对象ID
+  reason      String  @db.VarChar(100) // spam, inappropriate, harassment, other
+  description String? @db.Text
+
+  // 证据
+  screenshots String? @db.Text // 截图数组JSON
+
+  // 处理信息
+  status       String    @default("pending") // pending, processing, resolved, rejected
+  handlerId    String? // 处理人ID
+  handleResult String?   @db.Text // 处理结果
+  handleNote   String?   @db.Text // 处理备注
+  handledAt    DateTime?
+
+  // 元数据
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关联关系
+  handler Admin? @relation(fields: [handlerId], references: [id])
+
+  @@index([reporterId])
+  @@index([targetType, targetId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("reports")
+}
+
+// 平台统计表（每日统计）
+model PlatformStats {
+  id   String   @id @default(cuid())
+  date DateTime @db.Date
+
+  // 用户统计
+  totalUsers        Int @default(0)
+  newUsers          Int @default(0)
+  activeUsers       Int @default(0) // 当日活跃
+  weeklyActiveUsers Int @default(0) // 7日活跃
+
+  // 内容统计
+  totalPosts    Int @default(0)
+  newPosts      Int @default(0)
+  totalTopics   Int @default(0)
+  newTopics     Int @default(0)
+  totalComments Int @default(0)
+  newComments   Int @default(0)
+
+  // 互动统计
+  totalLikes Int @default(0)
+  newLikes   Int @default(0)
+  totalViews Int @default(0)
+  newViews   Int @default(0)
+
+  // 举报统计
+  totalReports     Int @default(0)
+  newReports       Int @default(0)
+  processedReports Int @default(0)
+  pendingReports   Int @default(0)
+
+  // 封禁统计
+  totalBans  Int @default(0)
+  newBans    Int @default(0)
+  activeBans Int @default(0)
+
+  // 其他统计
+  avgSessionTime Float @default(0) // 平均会话时长（分钟）
+  bounceRate     Float @default(0) // 跳出率
+
+  // 元数据
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([date])
+  @@index([date])
+  @@map("platform_stats")
+}
+
+// 系统配置表
+model SystemConfig {
+  id          String  @id @default(cuid())
+  key         String  @unique @db.VarChar(100)
+  value       String  @db.Text
+  type        String  @db.VarChar(20) // string, number, boolean, json
+  category    String  @db.VarChar(50) // platform, feature, moderation, notification
+  description String? @db.Text
+
+  // 元数据
+  isPublic  Boolean  @default(false) // 是否公开（前端可访问）
+  updatedBy String? // 更新者管理员ID
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([isPublic])
+  @@map("system_configs")
 }

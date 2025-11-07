@@ -173,7 +173,7 @@ export default function Register() {
           <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
             加入 IEClub
           </h1>
-          <p className="text-sm sm:text-base text-gray-600">创造线上线下交互的无限可能</p>
+          <p className="text-sm sm:text-base text-gray-600">连接思想，创造可能</p>
         </div>
 
         {/* 进度指示器 */}
@@ -220,7 +220,7 @@ export default function Register() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="例如：12345678@mail.sustech.edu.cn"
+                    placeholder="@mail.sustech.edu.cn 或 @sustech.edu.cn"
                     className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   />
                 </div>

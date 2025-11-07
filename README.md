@@ -1,4 +1,4 @@
-# IEClub - 创造线上线下交互的无限可能
+# IEClub - 连接思想，创造可能
 
 <div align="center">
 
@@ -15,9 +15,23 @@
 
 ---
 
+## 🎉 最新更新 (2025-11-06)
+
+### ✅ 系统优化与文档精简
+
+- ✅ 修复测试环境部署配置
+- ✅ 完成认证系统全面审查
+- ✅ 精简文档结构，删除冗余内容
+- ✅ 优化开发和部署流程
+
+📚 **快速开始**: 查看 [`REMIND.md`](REMIND.md)  
+📖 **完整文档**: 查看 [`docs/INDEX.md`](docs/INDEX.md)
+
+---
+
 ## 📖 项目简介
 
-**IEClub：创造线上线下交互的无限可能！**
+**IEClub：连接思想，创造可能！**
 
 我们现阶段将立足南科大，打造线上线下的学术交流空间与分享、交流、互助的氛围，让南科学子在遇到学业、科研、项目以及创业等方面问题的时候都能想到IEClub。
 
@@ -217,13 +231,34 @@ IEClub 采用**双端原生开发**策略，确保最佳性能和用户体验。
 ### ⚡ 一键启动（推荐）
 
 ```powershell
-# Windows PowerShell
-.\Start-Services.ps1
+# Windows PowerShell - 本地开发
+.\scripts\QUICK_START.ps1
 
 # 自动在两个窗口中启动前端和后端
 # 前端: http://localhost:5173
 # 后端: http://localhost:3000
 ```
+
+### 🚀 部署到服务器
+
+```powershell
+# 测试环境部署（从 develop 分支）
+cd scripts\deployment
+.\Deploy-Staging.ps1 -Target all -Message "测试新功能"
+
+# 生产环境部署（自动合并 develop → main）
+.\Deploy-Production.ps1 -Target all -Message "正式发布 v1.0.0"
+```
+
+**🔄 Git 工作流**: 生产部署会自动执行 `develop → main` 合并，确保代码同步！
+
+📚 **部署文档**:
+- [Git 工作流程](docs/deployment/GIT_WORKFLOW.md) ⭐⭐⭐ - **必读！** 分支管理和部署流程
+- [生产部署快速指南](docs/deployment/PRODUCTION_DEPLOY_QUICKSTART.md) ⭐⭐⭐ - 5分钟快速上手
+- [部署完整指南](docs/deployment/Deployment_guide.md) - 详细的三环境部署说明
+- [快速参考卡](docs/deployment/QUICK_REFERENCE.md) - 常用命令速查表
+- [部署检查清单](docs/deployment/DEPLOYMENT_CHECKLIST.md) - 确保每次部署安全
+- [微信小程序发布](docs/deployment/WECHAT_MINIPROGRAM_GUIDE.md) - 小程序审核发布指南
 
 ### 🗄️ 数据库设置
 
@@ -346,18 +381,40 @@ IEclub_dev/
 │   └── prisma/               # 数据库配置
 │
 ├── docs/                     # 📚 文档中心
-│   ├── deployment/           # 部署文档
-│   │   └── Deployment_guide.md
-│   ├── development/          # 开发文档
-│   │   ├── DEVELOPMENT_PLAN.md
-│   │   ├── PROJECT_ARCHITECTURE.md
-│   │   └── SECURITY_AND_FUNCTIONALITY_CHECKLIST.md
-│   ├── features/             # 功能文档
-│   │   ├── NEW_FEATURES.md
-│   │   └── CREDIT_SYSTEM_SUMMARY.md
-│   └── API_REFERENCE.md      # API 参考文档
+│   ├── INDEX.md              # 📖 文档索引（推荐）
+│   ├── DOCUMENTATION_GUIDE.md # 文档维护指南
+│   ├── GIT_PROXY_SETUP.md    # Git配置指南
+│   │
+│   ├── configuration/        # ⚙️ 配置文档
+│   │   ├── CONFIGURE_REAL_EMAIL.md
+│   │   └── SENDGRID_SETUP_COMPLETE.md
+│   │
+│   ├── testing/              # 🧪 测试文档
+│   │   ├── WEB_FRONTEND_TEST_GUIDE.md
+│   │   ├── test-complete-flow.sh
+│   │   └── test-registration-flow.py
+│   │
+│   ├── deployment/           # 🚀 部署文档
+│   │   ├── Deployment_guide.md
+│   │   └── ...
+│   │
+│   └── archive/              # 📦 归档文档
+│       └── ...
 │
-├── ieclub_v2_demo.tsx        # 设计原型（保留参考）
+├── scripts/                  # 🔧 执行脚本
+│   ├── QUICK_START.ps1       # 快速启动
+│   ├── deployment/           # 部署脚本
+│   │   ├── Deploy-Staging.ps1
+│   │   ├── Deploy-Production.ps1
+│   │   └── ...
+│   ├── health-check/         # 健康检查
+│   │   ├── Check-Deploy-Ready.ps1
+│   │   ├── Check-Backend-Health.ps1
+│   │   └── ...
+│   └── testing/              # 测试脚本
+│       └── ...
+│
+├── REMIND.md                 # ⚠️ 重要提醒（必读）
 └── README.md                 # 项目总览（本文件）
 ```
 
@@ -473,20 +530,27 @@ IEclub_dev/
 
 ### 📚 详细文档
 
-#### 核心文档
-- [API 参考文档](docs/API_REFERENCE.md) - 完整的 API 接口文档
-- [新功能总览](docs/features/NEW_FEATURES.md) - 最新功能介绍
-
-#### 开发文档
-- [开发规划](docs/development/DEVELOPMENT_PLAN.md) - 详细开发计划
-- [系统架构](docs/development/PROJECT_ARCHITECTURE.md) - 技术架构说明
-- [安全检查清单](docs/development/SECURITY_AND_FUNCTIONALITY_CHECKLIST.md) - 安全与功能检查
-
-#### 功能文档
-- [积分系统](docs/features/CREDIT_SYSTEM_SUMMARY.md) - 积分系统详解
-
-#### 部署文档
+#### 🔥 必读文档
+- [REMIND.md](REMIND.md) - **重要提醒和快速参考**（必读⭐）
+- [文档索引](docs/INDEX.md) - **所有文档导航**（推荐⭐）
 - [部署指南](docs/deployment/Deployment_guide.md) - 完整部署流程
+
+#### 💻 开发相关
+- [后端快速开始](ieclub-backend/QUICK_START.md) - 后端开发快速上手
+- [后端README](ieclub-backend/README.md) - 后端项目说明
+- [脚本工具说明](ieclub-backend/scripts/README.md) - 后端工具脚本
+
+#### 🔧 配置指南
+- [邮件服务配置](docs/configuration/CONFIGURE_REAL_EMAIL.md) - SendGrid邮件配置
+- [Git代理配置](docs/GIT_PROXY_SETUP.md) - Git网络问题解决方案
+- [文档维护指南](docs/DOCUMENTATION_GUIDE.md) - 文档编写规范
+
+#### 🧪 测试指南
+- [Web前端测试](docs/testing/WEB_FRONTEND_TEST_GUIDE.md) - Web前端测试步骤
+- [自动化测试脚本](docs/testing/test-registration-flow.py) - Python测试脚本
+
+#### 📝 更新记录
+- [后端CHANGELOG](ieclub-backend/CHANGELOG.md) - 后端更新日志
 
 ---
 

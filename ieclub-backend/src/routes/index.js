@@ -29,57 +29,60 @@ router.use(requestLogger());
 // 性能监控（记录响应时间）
 router.use(performanceMiddleware());
 
+// ==================== CSRF Token获取 ====================
+// 获取CSRF Token（公开接口）- 前端必须先调用此接口才能调用需要CSRF保护的接口
+const { getCsrfToken } = require('../middleware/csrf');
+router.get('/auth/csrf-token', getCsrfToken);
+
 // ==================== CSRF 保护配置 ====================
+// 不需要CSRF保护的认证接口（公开接口、只读操作）
 const csrfIgnorePaths = [
-  '^/auth/login$',
-  '^/auth/wechat-login$',
-  '^/auth/send-verify-code$'
+  '^/auth/login$',              // 密码登录（使用其他安全措施）
+  '^/auth/wechat-login$',       // 微信登录
+  '^/auth/send-verify-code$'    // 发送验证码（有频率限制）
 ];
 
 const csrf = csrfProtection({ ignorePaths: csrfIgnorePaths });
 
 // ==================== Authentication Routes ====================
-// 发送验证码（严格限制）
+// 发送验证码（严格限制，无需CSRF）
 router.post('/auth/send-verify-code', 
   rateLimiters.auth, 
   AuthController.sendVerifyCode
 );
 
-// 验证验证码（严格限制）
+// 验证验证码（严格限制，无需CSRF - 改为公开接口供测试使用）
 router.post('/auth/verify-code', 
   rateLimiters.auth, 
-  csrf, 
   AuthController.verifyCode
 );
 
-// 注册（严格限制）
+// 注册（严格限制，无需CSRF - 新用户没有session）
 router.post('/auth/register', 
   rateLimiters.auth, 
-  csrf, 
   AuthController.register
 );
 
-// 登录（严格限制）
+// 密码登录（严格限制，无需CSRF）
 router.post('/auth/login', 
   rateLimiters.auth, 
   AuthController.login
 );
 
-// 验证码登录（严格限制）
+// 验证码登录（严格限制，无需CSRF - 验证码本身就是验证）
 router.post('/auth/login-with-code', 
   rateLimiters.auth, 
-  csrf, 
   AuthController.loginWithCode
 );
 
-// 忘记密码（严格限制）
+// 忘记密码（严格限制，需要CSRF）
 router.post('/auth/forgot-password', 
   rateLimiters.auth, 
   csrf, 
   AuthController.forgotPassword
 );
 
-// 重置密码（严格限制）
+// 重置密码（严格限制，需要CSRF）
 router.post('/auth/reset-password', 
   rateLimiters.auth, 
   csrf, 
@@ -117,12 +120,32 @@ router.post('/auth/bind-wechat',
   AuthController.bindWechat
 );
 
+// 发送手机验证码（严格限制）
+router.post('/auth/send-phone-code', 
+  rateLimiters.auth, 
+  AuthController.sendPhoneCode
+);
+
 // 绑定手机（API限制）
 router.post('/auth/bind-phone', 
   authenticate, 
   rateLimiters.api, 
   csrf, 
   AuthController.bindPhone
+);
+
+// 手机号登录（严格限制，无需CSRF）
+router.post('/auth/login-with-phone', 
+  rateLimiters.auth, 
+  AuthController.loginWithPhone
+);
+
+// 解绑手机（API限制）
+router.post('/auth/unbind-phone', 
+  authenticate, 
+  rateLimiters.api, 
+  csrf, 
+  AuthController.unbindPhone
 );
 
 // 解绑微信（API限制）
@@ -273,6 +296,9 @@ router.delete('/comments/:id',
 
 // ==================== Post Routes ====================
 router.use('/posts', require('./posts'));
+
+// ==================== Profile Routes ====================
+router.use('/profile', require('./profile'));
 
 // ==================== User Routes ====================
 // 获取用户列表（API限制）

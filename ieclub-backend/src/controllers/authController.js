@@ -4,29 +4,12 @@
 const prisma = require('../config/database');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
 const config = require('../config');
 const logger = require('../utils/logger');
-
-// 邮件发送器配置
-const transporter = nodemailer.createTransport({
-  host: 'smtp.qq.com', // 使用QQ邮箱SMTP，可改为其他
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER, // 发件邮箱
-    pass: process.env.EMAIL_PASS  // 授权码
-  }
-});
-
-// 验证码存储（现在使用数据库）
-// const verifyCodeStore = new Map(); // 已弃用
-
-// 辅助函数
-function validateEmail(email) {
-  const regex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/;
-  return regex.test(email);
-}
+const emailService = require('../services/emailService');
+const smsService = require('../services/smsService');
+const wechatService = require('../services/wechatService');
+const { validateEmail } = require('../utils/common');
 
 // 密码强度验证函数
 function validatePasswordStrength(password) {
@@ -44,21 +27,6 @@ function validatePasswordStrength(password) {
 
 function generateVerificationCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-async function sendEmail(to, subject, html) {
-  try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to,
-      subject,
-      html
-    });
-    logger.info('邮件发送成功:', { to, subject });
-  } catch (error) {
-    logger.error('邮件发送失败:', { to, subject, error: error.message });
-    throw error;
-  }
 }
 
 class AuthController {
@@ -94,14 +62,17 @@ class AuthController {
       }
 
       // 检查邮箱域名是否允许
-      const allowedDomains = process.env.ALLOWED_EMAIL_DOMAINS?.split(',') || [];
-      const emailDomain = email.split('@')[1];
-
-      if (allowedDomains.length > 0 && !allowedDomains.includes(emailDomain)) {
-        return res.status(400).json({
-          code: 400,
-          message: `仅允许以下邮箱注册: ${allowedDomains.join(', ')}`
-        });
+      const allowedDomainsStr = process.env.ALLOWED_EMAIL_DOMAINS?.trim();
+      if (allowedDomainsStr) {
+        const allowedDomains = allowedDomainsStr.split(',').map(d => d.trim()).filter(d => d);
+        const emailDomain = email.split('@')[1];
+        
+        if (allowedDomains.length > 0 && !allowedDomains.includes(emailDomain)) {
+          return res.status(400).json({
+            code: 400,
+            message: `仅允许以下邮箱注册: ${allowedDomains.join(', ')}`
+          });
+        }
       }
 
       // 注册时检查邮箱是否已存在
@@ -146,33 +117,31 @@ class AuthController {
         }
       });
 
-      // 发送邮件
-      const typeMap = {
-        register: '注册',
-        reset: '密码重置',
-        login: '登录'
-      };
-      const subject = `IEClub ${typeMap[type] || ''}验证码`;
-      const html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #3b82f6;">IEClub ${typeMap[type] || ''}验证</h2>
-          <p>您好！</p>
-          <p>您的验证码是：</p>
-          <h1 style="color: #3b82f6; font-size: 32px; letter-spacing: 5px;">${code}</h1>
-          <p style="color: #ef4444;">验证码将在10分钟后过期，请尽快使用。</p>
-          <p>如果这不是您本人的操作，请忽略此邮件。</p>
-          <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-          <p style="color: #9ca3af; font-size: 12px;">此邮件由系统自动发送，请勿回复。</p>
-        </div>
-      `;
-
-      await sendEmail(email, subject, html);
+      // 发送邮件（使用 emailService）
+      const sendResult = await emailService.sendVerificationCode(email, code, type);
+      
+      // 检查邮件发送结果
+      if (!sendResult || !sendResult.success) {
+        logger.error('邮件发送失败:', { email, error: sendResult?.error });
+        
+        // 即使邮件发送失败，验证码仍然有效（已保存到数据库）
+        return res.json({
+          code: 200,
+          message: '验证码已生成，但邮件发送失败。验证码为: ' + code,
+          data: {
+            expiresIn: 600, // 10分钟
+            emailSent: false,
+            code: process.env.NODE_ENV === 'development' ? code : undefined // 开发环境返回验证码
+          }
+        });
+      }
 
       res.json({
         code: 200,
         message: '验证码已发送，请查收邮件',
         data: {
-          expiresIn: 600 // 10分钟
+          expiresIn: 600, // 10分钟
+          emailSent: true
         }
       });
     } catch (error) {
@@ -243,12 +212,25 @@ class AuthController {
       const { email, password, verifyCode, nickname, gender } = req.body;
 
       // 验证邮箱格式
-      const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/;
-      if (!emailRegex.test(email)) {
+      if (!validateEmail(email)) {
         return res.status(400).json({
           success: false,
-          message: '请使用南科大邮箱'
+          message: '邮箱格式不正确'
         });
+      }
+
+      // 检查邮箱域名是否允许（如果配置了 ALLOWED_EMAIL_DOMAINS）
+      const allowedDomainsStr = process.env.ALLOWED_EMAIL_DOMAINS?.trim();
+      if (allowedDomainsStr) {
+        const allowedDomains = allowedDomainsStr.split(',').map(d => d.trim()).filter(d => d);
+        const emailDomain = email.split('@')[1];
+        
+        if (allowedDomains.length > 0 && !allowedDomains.includes(emailDomain)) {
+          return res.status(400).json({
+            success: false,
+            message: `仅允许以下邮箱注册: ${allowedDomains.join(', ')}`
+          });
+        }
       }
 
       // 验证验证码
@@ -529,22 +511,16 @@ class AuthController {
       );
 
       // 发送重置邮件
-      const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:10086'}/reset-password?token=${resetToken}`;
-      const subject = 'IEClub 密码重置';
-      const html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #3b82f6;">IEClub 密码重置</h2>
-          <p>您好！</p>
-          <p>您请求重置密码，请点击下面的链接完成重置：</p>
-          <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background: #3b82f6; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0;">重置密码</a>
-          <p style="color: #ef4444;">链接将在1小时后过期，请尽快使用。</p>
-          <p>如果这不是您本人的操作，请忽略此邮件。</p>
-          <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-          <p style="color: #9ca3af; font-size: 12px;">此邮件由系统自动发送，请勿回复。</p>
-        </div>
-      `;
-
-      await sendEmail(email, subject, html);
+      const sendResult = await emailService.sendPasswordResetEmail(email, resetToken);
+      
+      // 检查邮件发送结果
+      if (!sendResult || !sendResult.success) {
+        logger.error('密码重置邮件发送失败:', { email, error: sendResult?.error });
+        return res.status(500).json({
+          success: false,
+          message: '邮件发送失败，请稍后重试'
+        });
+      }
 
       res.json({
         success: true,
@@ -705,12 +681,8 @@ class AuthController {
           nickname: true,
           avatar: true,
           bio: true,
-          school: true,
-          major: true,
-          grade: true,
           interests: true,
           skills: true,
-          verified: true,
           level: true,
           credits: true,
           exp: true,
@@ -742,15 +714,12 @@ class AuthController {
   static async updateProfile(req, res, next) {
     try {
       const userId = req.user.id;
-      const { nickname, bio, school, major, grade, skills, interests } = req.body;
+      const { nickname, bio, skills, interests } = req.body;
 
       // 构建更新数据
       const updateData = {};
       if (nickname !== undefined) updateData.nickname = nickname;
       if (bio !== undefined) updateData.bio = bio;
-      if (school !== undefined) updateData.school = school;
-      if (major !== undefined) updateData.major = major;
-      if (grade !== undefined) updateData.grade = grade;
       if (skills !== undefined) updateData.skills = JSON.stringify(skills);
       if (interests !== undefined) updateData.interests = JSON.stringify(interests);
 
@@ -763,9 +732,6 @@ class AuthController {
           nickname: true,
           avatar: true,
           bio: true,
-          school: true,
-          major: true,
-          grade: true,
           skills: true,
           interests: true
         }
@@ -1024,6 +990,110 @@ class AuthController {
     }
   }
 
+  // 发送手机验证码
+  static async sendPhoneCode(req, res, next) {
+    try {
+      const { phone, type = 'bind' } = req.body; // type: bind, login
+
+      // 验证手机号格式
+      if (!/^1[3-9]\d{9}$/.test(phone)) {
+        return res.status(400).json({
+          code: 400,
+          message: '手机号格式不正确'
+        });
+      }
+
+      // 频率限制：同一手机号1分钟内只能发送1次
+      const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+      const recentCode = await prisma.verificationCode.findFirst({
+        where: {
+          email: phone, // 复用email字段存储手机号
+          createdAt: { gte: oneMinuteAgo }
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      if (recentCode) {
+        const waitSeconds = Math.ceil((recentCode.createdAt.getTime() + 60000 - Date.now()) / 1000);
+        return res.status(429).json({
+          code: 429,
+          message: `验证码发送过于频繁，请${waitSeconds}秒后重试`
+        });
+      }
+
+      // 绑定手机时检查是否已被绑定
+      if (type === 'bind') {
+        const existingUser = await prisma.user.findUnique({
+          where: { phone }
+        });
+
+        if (existingUser && existingUser.id !== req.user?.id) {
+          return res.status(400).json({
+            code: 400,
+            message: '该手机号已被其他账号绑定'
+          });
+        }
+      }
+
+      // 手机登录时检查手机号是否存在
+      if (type === 'login') {
+        const user = await prisma.user.findUnique({
+          where: { phone }
+        });
+
+        if (!user) {
+          return res.status(404).json({
+            code: 404,
+            message: '该手机号未绑定账号'
+          });
+        }
+      }
+
+      // 生成验证码
+      const code = generateVerificationCode();
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10分钟后过期
+
+      // 保存验证码到数据库
+      await prisma.verificationCode.create({
+        data: {
+          email: phone, // 复用email字段
+          code,
+          type: type === 'bind' ? 'bind_phone' : 'login',
+          expiresAt
+        }
+      });
+
+      // 发送短信
+      const sendResult = await smsService.sendVerificationCode(phone, code, type);
+      
+      if (!sendResult || !sendResult.success) {
+        logger.error('短信发送失败:', { phone, error: sendResult?.error });
+        
+        return res.json({
+          code: 200,
+          message: '验证码已生成，但短信发送失败',
+          data: {
+            expiresIn: 600,
+            smsSent: false,
+            code: process.env.NODE_ENV === 'development' ? code : undefined
+          }
+        });
+      }
+
+      res.json({
+        code: 200,
+        message: '验证码已发送',
+        data: {
+          expiresIn: 600,
+          smsSent: true
+        }
+      });
+    } catch (error) {
+      logger.error('发送手机验证码失败:', { phone: req.body.phone, error: error.message });
+      next(error);
+    }
+  }
+
   // 绑定手机号
   static async bindPhone(req, res, next) {
     try {
@@ -1117,6 +1187,168 @@ class AuthController {
       });
     } catch (error) {
       logger.error('绑定手机号失败:', { userId: req.user?.id, error: error.message });
+      next(error);
+    }
+  }
+
+  // 手机号登录
+  static async loginWithPhone(req, res, next) {
+    try {
+      const { phone, code } = req.body;
+
+      // 验证手机号格式
+      if (!/^1[3-9]\d{9}$/.test(phone)) {
+        return res.status(400).json({
+          success: false,
+          message: '手机号格式不正确'
+        });
+      }
+
+      // 验证验证码
+      const stored = await prisma.verificationCode.findFirst({
+        where: {
+          email: phone,
+          code,
+          type: 'login',
+          used: false
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+
+      if (!stored || stored.expiresAt < new Date()) {
+        return res.status(400).json({
+          success: false,
+          message: '验证码错误或已过期'
+        });
+      }
+
+      // 查找用户
+      const user = await prisma.user.findUnique({
+        where: { phone }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: '该手机号未绑定账号'
+        });
+      }
+
+      // 检查用户状态
+      if (user.status !== 'active') {
+        return res.status(401).json({
+          success: false,
+          message: '账户已被禁用，请联系管理员'
+        });
+      }
+
+      // 标记验证码为已使用
+      await prisma.verificationCode.update({
+        where: { id: stored.id },
+        data: { 
+          used: true,
+          usedAt: new Date()
+        }
+      });
+
+      // 更新最后登录时间
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { 
+          lastLoginAt: new Date(),
+          lastActiveAt: new Date()
+        }
+      });
+
+      // 记录登录日志
+      await prisma.loginLog.create({
+        data: {
+          userId: user.id,
+          ipAddress: req.ip || req.connection.remoteAddress,
+          userAgent: req.get('user-agent'),
+          loginMethod: 'phone',
+          status: 'success'
+        }
+      });
+
+      // 生成token
+      const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        config.jwt.secret,
+        { expiresIn: config.jwt.expiresIn }
+      );
+
+      res.json({
+        success: true,
+        message: '登录成功',
+        data: {
+          token,
+          user: {
+            id: user.id,
+            email: user.email,
+            phone: user.phone,
+            nickname: user.nickname,
+            avatar: user.avatar,
+            level: user.level,
+            isCertified: user.isCertified
+          }
+        }
+      });
+    } catch (error) {
+      logger.error('手机号登录失败:', { phone: req.body.phone, error: error.message });
+      next(error);
+    }
+  }
+
+  // 解绑手机号
+  static async unbindPhone(req, res, next) {
+    try {
+      const userId = req.user.id;
+
+      // 检查用户是否绑定了手机号
+      const user = await prisma.user.findUnique({
+        where: { id: userId }
+      });
+
+      if (!user || !user.phone) {
+        return res.status(400).json({
+          success: false,
+          message: '当前未绑定手机号'
+        });
+      }
+
+      // 检查是否至少有一种登录方式（密码或微信）
+      if (!user.password && !user.openid) {
+        return res.status(400).json({
+          success: false,
+          message: '请先设置密码或绑定微信后再解绑手机号，否则将无法登录'
+        });
+      }
+
+      // 删除绑定记录
+      await prisma.userBinding.deleteMany({
+        where: {
+          userId,
+          type: 'phone'
+        }
+      });
+
+      // 清除用户手机号
+      await prisma.user.update({
+        where: { id: userId },
+        data: { phone: null }
+      });
+
+      logger.info('用户解绑手机号:', { userId, phone: user.phone });
+
+      res.json({
+        success: true,
+        message: '手机号解绑成功'
+      });
+    } catch (error) {
+      logger.error('解绑手机号失败:', { userId: req.user?.id, error: error.message });
       next(error);
     }
   }
@@ -1275,18 +1507,34 @@ class AuthController {
         });
       }
 
-      // TODO: 调用微信服务器换取openid和session_key
-      // 这里需要配置微信小程序的appid和secret
-      // const wechatService = require('../services/wechatService');
-      // const wechatData = await wechatService.code2Session(code);
-      // const { openid, sessionKey, unionid } = wechatData;
+      let openid, sessionKey, unionid;
 
-      // 临时方案：使用code作为openid（仅用于开发测试）
-      const openid = `wx_${code}_${Date.now()}`;
-      const sessionKey = null;
-      const unionid = null;
+      try {
+        // 调用微信服务器换取openid和session_key
+        const wechatData = await wechatService.code2Session(code);
+        openid = wechatData.openid;
+        sessionKey = wechatData.sessionKey;
+        unionid = wechatData.unionid;
+        
+        logger.info('微信登录成功获取openid:', { openid, hasUnionid: !!unionid });
+      } catch (wechatError) {
+        logger.error('微信code2Session失败:', wechatError);
+        
+        // 开发环境：使用临时方案
+        if (process.env.NODE_ENV === 'development') {
+          logger.warn('开发环境：使用临时openid');
+          openid = `wx_dev_${code}_${Date.now()}`;
+          sessionKey = null;
+          unionid = null;
+        } else {
+          return res.status(500).json({
+            success: false,
+            message: '微信登录失败，请重试'
+          });
+        }
+      }
 
-      logger.info('微信登录:', { openid, hasNickName: !!nickName });
+      logger.info('微信登录处理:', { openid, hasNickName: !!nickName });
 
       // 1. 先查找是否已绑定微信
       const binding = await prisma.userBinding.findUnique({

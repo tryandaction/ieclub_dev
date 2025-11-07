@@ -20,7 +20,15 @@ const getApiBaseUrl = () => {
   const currentHost = window.location.hostname
   const protocol = window.location.protocol
   
-  if (currentHost === 'ieclub.online' || currentHost.endsWith('.ieclub.online')) {
+  // 测试环境：test.ieclub.online
+  if (currentHost === 'test.ieclub.online') {
+    const url = 'https://test.ieclub.online/api'
+    console.log('📡 测试环境，使用测试 API:', url)
+    return url
+  }
+  
+  // 生产环境：ieclub.online（不包含子域名）
+  if (currentHost === 'ieclub.online') {
     const url = 'https://ieclub.online/api'
     console.log('📡 生产环境，自动配置 API 地址:', url)
     return url

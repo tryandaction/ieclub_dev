@@ -1,211 +1,378 @@
-import { useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import { getProfile, getUserPosts, getUserStats } from '../api/profile'
 import { showToast } from '../components/Toast'
-import Avatar from '../components/Avatar'
-import { uploadAvatar } from '../api/upload'
-
-const menuItems = [
-  { icon: '📝', label: '我的话题', path: '/my-topics' },
-  { icon: '⭐', label: '收藏', path: '/favorites' },
-  { icon: '📊', label: '数据统计', path: '/stats' },
-  { icon: '⚙️', label: '设置', path: '/settings' },
-]
+import PostCard from '../components/PostCard'
 
 export default function Profile() {
+  const { userId } = useParams()
   const navigate = useNavigate()
-  const { user, isAuthenticated, logout, loading, updateUser } = useAuth()
-  const [uploading, setUploading] = useState(false)
-  const fileInputRef = useRef(null)
+  const [loading, setLoading] = useState(true)
+  const [profile, setProfile] = useState(null)
+  const [posts, setPosts] = useState([])
+  const [stats, setStats] = useState(null)
+  const [activeTab, setActiveTab] = useState('posts') // posts, about, achievements
 
-  const handleLogout = () => {
-    logout()
-    showToast('已退出登录', 'success')
-    navigate('/plaza')
-  }
+  useEffect(() => {
+    loadProfile()
+    loadPosts()
+    loadStats()
+  }, [userId])
 
-  // 处理头像上传
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    // 验证文件类型
-    if (!file.type.startsWith('image/')) {
-      showToast('请选择图片文件', 'error')
-      return
-    }
-
-    // 验证文件大小（最大 5MB）
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('图片大小不能超过 5MB', 'error')
-      return
-    }
-
-    setUploading(true)
-
+  const loadProfile = async () => {
     try {
-      const result = await uploadAvatar(file)
-      
-      // 更新用户头像
-      updateUser({ ...user, avatar: result.avatarUrl })
-      
-      showToast('头像上传成功！', 'success')
+      const data = await getProfile(userId)
+      setProfile(data)
     } catch (error) {
-      console.error('头像上传失败:', error)
-      showToast(error.message || '头像上传失败', 'error')
+      showToast(error.message || '加载个人主页失败', 'error')
     } finally {
-      setUploading(false)
+      setLoading(false)
     }
   }
 
-  // 触发文件选择
-  const triggerFileInput = () => {
-    fileInputRef.current?.click()
+  const loadPosts = async () => {
+    try {
+      const data = await getUserPosts(userId)
+      setPosts(data.posts)
+    } catch (error) {
+      console.error('加载发布内容失败:', error)
+    }
+  }
+
+  const loadStats = async () => {
+    try {
+      const data = await getUserStats(userId)
+      setStats(data)
+    } catch (error) {
+      console.error('加载统计数据失败:', error)
+    }
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-gray-600">加载中...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    )
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-500 mb-4">用户不存在</p>
+          <button
+            onClick={() => navigate('/plaza')}
+            className="px-6 py-2 bg-purple-600 text-white rounded-lg"
+          >
+            返回广场
+          </button>
         </div>
       </div>
     )
   }
 
-  // 未登录状态
-  if (!user) {
-    return (
-      <div className="max-w-md mx-auto">
-        <div className="card text-center p-12 space-y-6">
-          <div className="text-6xl mb-4">👤</div>
-          <h2 className="text-2xl font-bold text-gray-900">欢迎来到IEClub</h2>
-          <p className="text-gray-600">登录后可以发布话题、参与讨论、结识伙伴</p>
-          
-          <div className="space-y-3 pt-4">
-            <button
-              onClick={() => navigate('/login')}
-              className="btn-primary w-full py-3 text-lg"
-            >
-              登录
-            </button>
-            <button
-              onClick={() => navigate('/register')}
-              className="btn-secondary w-full py-3 text-lg"
-            >
-              注册新账号
-            </button>
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* 封面图 */}
+      <div 
+        className="h-64 bg-gradient-to-r from-purple-500 to-pink-500 relative"
+        style={{
+          backgroundImage: profile.coverImage ? `url(${profile.coverImage})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      >
+        {profile.isOwner && (
+          <Link
+            to={`/profile/${userId}/edit`}
+            className="absolute top-4 right-4 px-4 py-2 bg-white/90 backdrop-blur rounded-lg text-sm font-medium hover:bg-white transition"
+          >
+            ✏️ 编辑主页
+          </Link>
+        )}
+      </div>
+
+      {/* 主要内容 */}
+      <div className="max-w-5xl mx-auto px-4 -mt-20">
+        {/* 用户信息卡片 */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+            {/* 头像 */}
+            <img
+              src={profile.avatar || '/default-avatar.png'}
+              alt={profile.nickname}
+              className="w-32 h-32 rounded-full border-4 border-white shadow-lg"
+            />
+
+            {/* 信息区 */}
+            <div className="flex-1 text-center sm:text-left">
+              <div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
+                <h1 className="text-2xl font-bold">{profile.nickname}</h1>
+                {profile.isCertified && (
+                  <span className="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded-full">
+                    ✓ 已认证
+                  </span>
+                )}
+                <span className="px-2 py-1 bg-purple-100 text-purple-600 text-xs rounded-full">
+                  Lv.{profile.level}
+                </span>
+              </div>
+
+              {profile.motto && (
+                <p className="text-gray-600 italic mb-3">"{profile.motto}"</p>
+              )}
+
+              {profile.bio && (
+                <p className="text-gray-700 mb-4">{profile.bio}</p>
+              )}
+
+              {/* 学校信息 */}
+              <div className="flex flex-wrap gap-3 text-sm text-gray-600 mb-4">
+                {profile.school && (
+                  <span className="flex items-center gap-1">
+                    🏫 {profile.school}
+                  </span>
+                )}
+                {profile.major && (
+                  <span className="flex items-center gap-1">
+                    📚 {profile.major}
+                  </span>
+                )}
+                {profile.grade && (
+                  <span className="flex items-center gap-1">
+                    🎓 {profile.grade}
+                  </span>
+                )}
+              </div>
+
+              {/* 社交链接 */}
+              {(profile.website || profile.github || profile.bilibili) && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {profile.website && (
+                    <a
+                      href={profile.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 transition"
+                    >
+                      🌐 个人网站
+                    </a>
+                  )}
+                  {profile.github && (
+                    <a
+                      href={`https://github.com/${profile.github}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 transition"
+                    >
+                      💻 GitHub
+                    </a>
+                  )}
+                  {profile.bilibili && (
+                    <a
+                      href={profile.bilibili}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 bg-gray-100 rounded-lg text-sm hover:bg-gray-200 transition"
+                    >
+                      📺 Bilibili
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {/* 统计数据 */}
+              <div className="flex gap-6 text-sm">
+                <div className="text-center">
+                  <div className="text-xl font-bold text-purple-600">{profile.topicsCount}</div>
+                  <div className="text-gray-500">发布</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-purple-600">{profile.followsCount}</div>
+                  <div className="text-gray-500">关注</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-purple-600">{profile.fansCount}</div>
+                  <div className="text-gray-500">粉丝</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-purple-600">{profile.likesCount}</div>
+                  <div className="text-gray-500">获赞</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 操作按钮 */}
+            {!profile.isOwner && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => showToast('关注功能开发中', 'info')}
+                  className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:shadow-lg transition"
+                >
+                  {profile.isFollowing ? '已关注' : '+ 关注'}
+                </button>
+                <button
+                  onClick={() => showToast('私信功能开发中', 'info')}
+                  className="px-6 py-2 bg-gray-100 rounded-lg font-medium hover:bg-gray-200 transition"
+                >
+                  💬 私信
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* 技能和兴趣标签 */}
+          <div className="mt-6 pt-6 border-t">
+            {profile.skills && profile.skills.length > 0 && (
+              <div className="mb-4">
+                <h3 className="text-sm font-medium text-gray-600 mb-2">✨ 技能</h3>
+                <div className="flex flex-wrap gap-2">
+                  {profile.skills.map((skill, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {profile.interests && profile.interests.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-600 mb-2">❤️ 兴趣</h3>
+                <div className="flex flex-wrap gap-2">
+                  {profile.interests.map((interest, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 bg-pink-50 text-pink-700 rounded-full text-sm"
+                    >
+                      {interest}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </div>
-    )
-  }
 
-  // 已登录状态
-  return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* 用户信息卡片 */}
-      <div className="bg-gradient-primary text-white rounded-2xl p-8 shadow-lg">
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="relative group">
-              <Avatar 
-                src={user.avatar} 
-                name={user.nickname || user.username || '用户'} 
-                size={120}
-                className="ring-4 ring-white/30"
-              />
-              {/* 上传头像按钮 */}
-              <button
-                onClick={triggerFileInput}
-                disabled={uploading}
-                className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-              >
-                {uploading ? (
-                  <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+        {/* Tab导航 */}
+        <div className="bg-white rounded-2xl shadow-lg mb-6">
+          <div className="flex border-b">
+            <button
+              onClick={() => setActiveTab('posts')}
+              className={`flex-1 py-4 font-medium transition ${
+                activeTab === 'posts'
+                  ? 'text-purple-600 border-b-2 border-purple-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              发布内容 ({posts.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('about')}
+              className={`flex-1 py-4 font-medium transition ${
+                activeTab === 'about'
+                  ? 'text-purple-600 border-b-2 border-purple-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              关于我
+            </button>
+            <button
+              onClick={() => setActiveTab('achievements')}
+              className={`flex-1 py-4 font-medium transition ${
+                activeTab === 'achievements'
+                  ? 'text-purple-600 border-b-2 border-purple-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              成就勋章
+            </button>
+          </div>
+
+          <div className="p-6">
+            {/* 发布内容 */}
+            {activeTab === 'posts' && (
+              <div className="space-y-4">
+                {posts.length > 0 ? (
+                  posts.map(post => (
+                    <PostCard key={post.id} post={post} />
+                  ))
                 ) : (
-                  <div className="text-white text-center">
-                    <div className="text-2xl mb-1">📷</div>
-                    <div className="text-xs font-medium">更换头像</div>
+                  <div className="text-center py-12 text-gray-500">
+                    还没有发布任何内容
                   </div>
                 )}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarUpload}
-                className="hidden"
-              />
-            </div>
-          </div>
-          <h1 className="text-3xl font-bold mb-2">{user.nickname || user.username || '未设置昵称'}</h1>
-          <p className="text-white/90 mb-2">{user.email}</p>
-          <p className="text-white/80 mb-4">
-            {user.major || '未设置专业'} {user.grade ? `· ${user.grade}` : ''}
-          </p>
-          <div className="flex items-center justify-center space-x-4">
-            <span className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl font-bold">
-              LV{user.level || 1}
-            </span>
-            <span className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl font-bold">
-              ⭐ {user.score || 0}
-            </span>
-          </div>
-        </div>
-      </div>
+              </div>
+            )}
 
-      {/* 数据统计 */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="card text-center p-6">
-          <div className="text-3xl font-bold text-purple-600 mb-1">
-            {user.topicsCount || 0}
-          </div>
-          <div className="text-sm text-gray-500">话题</div>
-        </div>
-        <div className="card text-center p-6">
-          <div className="text-3xl font-bold text-purple-600 mb-1">
-            {user.followersCount || 0}
-          </div>
-          <div className="text-sm text-gray-500">粉丝</div>
-        </div>
-        <div className="card text-center p-6">
-          <div className="text-3xl font-bold text-purple-600 mb-1">
-            {user.followingCount || 0}
-          </div>
-          <div className="text-sm text-gray-500">关注</div>
-        </div>
-      </div>
+            {/* 关于我 */}
+            {activeTab === 'about' && (
+              <div className="prose max-w-none">
+                {profile.introduction ? (
+                  <div className="whitespace-pre-wrap">{profile.introduction}</div>
+                ) : (
+                  <div className="text-center py-12 text-gray-500">
+                    这个人很懒，什么都没写
+                  </div>
+                )}
+              </div>
+            )}
 
-      {/* 功能菜单 */}
-      <div className="card divide-y divide-gray-100">
-        {menuItems.map((item) => (
-          <button
-            key={item.path}
-            className="w-full flex items-center justify-between py-4 px-2 hover:bg-gray-50 transition-colors"
-          >
-            <div className="flex items-center space-x-3">
-              <span className="text-2xl">{item.icon}</span>
-              <span className="font-medium text-gray-900">{item.label}</span>
-            </div>
-            <span className="text-gray-400 text-xl">›</span>
-          </button>
-        ))}
-        
-        {/* 退出登录 */}
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center justify-between py-4 px-2 hover:bg-gray-50 transition-colors text-red-600"
-        >
-          <div className="flex items-center space-x-3">
-            <span className="text-2xl">🚪</span>
-            <span className="font-medium">退出登录</span>
+            {/* 成就勋章 */}
+            {activeTab === 'achievements' && (
+              <div>
+                {/* 勋章展示 */}
+                {profile.badges && profile.badges.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-8">
+                    {profile.badges.map((badge, index) => (
+                      <div
+                        key={index}
+                        className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-4 text-center"
+                      >
+                        <div className="text-4xl mb-2">{badge.icon || '🏆'}</div>
+                        <div className="font-medium text-sm">{badge.name}</div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {new Date(badge.awardedAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-500 mb-8">
+                    还没有获得任何勋章
+                  </div>
+                )}
+
+                {/* 个人成就列表 */}
+                {profile.achievements && profile.achievements.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-bold mb-4">🎯 个人成就</h3>
+                    <div className="space-y-3">
+                      {profile.achievements.map((achievement, index) => (
+                        <div
+                          key={index}
+                          className="bg-gray-50 rounded-lg p-4"
+                        >
+                          <div className="font-medium">{achievement.title}</div>
+                          {achievement.description && (
+                            <div className="text-sm text-gray-600 mt-1">
+                              {achievement.description}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-          <span className="text-gray-400 text-xl">›</span>
-        </button>
+        </div>
       </div>
     </div>
   )
 }
-

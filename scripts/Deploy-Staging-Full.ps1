@@ -10,7 +10,7 @@ $ErrorActionPreference = "Stop"
 # 配置变量
 $ServerIP = "39.108.160.112"
 $ServerUser = "root"
-$ProjectRoot = "/var/www/ieclub-backend-staging"
+$ProjectRoot = "/root/IEclub_dev_staging/ieclub-backend"
 $LocalRoot = Split-Path -Parent $PSScriptRoot
 
 # 颜色输出函数
@@ -111,7 +111,7 @@ Write-Info "等待服务启动..."
 Start-Sleep -Seconds 3
 
 Write-Info "检查服务状态..."
-ssh "${ServerUser}@${ServerIP}" "pm2 list | grep ieclub-backend-staging"
+ssh "${ServerUser}@${ServerIP}" "pm2 list | grep staging-backend"
 
 Write-Host ""
 Write-Info "测试 API 连接..."
@@ -122,7 +122,7 @@ if ($healthCheck -match "ok") {
     Write-Host $healthCheck -ForegroundColor Gray
 } else {
     Write-Warning "健康检查失败，请查看日志"
-    Write-Info "ssh ${ServerUser}@${ServerIP} 'pm2 logs ieclub-backend-staging --lines 50'"
+    Write-Info "ssh ${ServerUser}@${ServerIP} 'pm2 logs staging-backend --lines 50'"
 }
 
 # 完成
@@ -131,7 +131,7 @@ Write-Section "部署完成！"
 Write-Host "📊 服务信息:" -ForegroundColor Cyan
 Write-Info "服务器: ${ServerIP}:3001"
 Write-Info "环境: staging"
-Write-Info "进程名: ieclub-backend-staging"
+Write-Info "进程名: staging-backend"
 Write-Host ""
 
 Write-Host "✨ 已启用功能:" -ForegroundColor Cyan
@@ -143,8 +143,8 @@ Write-Success "优雅关闭机制"
 Write-Host ""
 
 Write-Host "🔧 常用命令:" -ForegroundColor Cyan
-Write-Info "查看日志: ssh ${ServerUser}@${ServerIP} 'pm2 logs ieclub-backend-staging'"
-Write-Info "重启服务: ssh ${ServerUser}@${ServerIP} 'pm2 restart ieclub-backend-staging'"
+Write-Info "查看日志: ssh ${ServerUser}@${ServerIP} 'pm2 logs staging-backend'"
+Write-Info "重启服务: ssh ${ServerUser}@${ServerIP} 'pm2 restart staging-backend'"
 Write-Info "查看状态: ssh ${ServerUser}@${ServerIP} 'pm2 list'"
 Write-Info "测试API: ssh ${ServerUser}@${ServerIP} 'curl http://localhost:3001/health'"
 Write-Host ""

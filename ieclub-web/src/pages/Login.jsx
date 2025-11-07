@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
-import { sendCode, login } from '../api/auth'
+import { sendCode, sendPhoneCode, login, loginWithPhone } from '../api/auth'
 import { useAuth } from '../contexts/AuthContext'
 import { showToast } from '../components/Toast'
 
 export default function Login() {
-  const [loginMode, setLoginMode] = useState('password') // 'password' 或 'code'
+  const [loginMode, setLoginMode] = useState('password') // 'password', 'email_code', 'phone'
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [code, setCode] = useState('')
   const [countdown, setCountdown] = useState(0)
@@ -26,23 +27,39 @@ export default function Login() {
     return emailReg.test(email)
   }
 
+  // 手机号验证
+  const validatePhone = (phone) => {
+    const phoneReg = /^1[3-9]\d{9}$/
+    return phoneReg.test(phone)
+  }
+
   // 发送验证码
   const handleSendCode = async () => {
     setError('')
     
-    // 验证邮箱
-    if (!validateEmail(email)) {
-      setError('请输入正确的南科大邮箱')
-      return
-    }
-
     // 倒计时中不允许重复发送
     if (countdown > 0) {
       return
     }
 
     try {
-      await sendCode(email, 'login')
+      if (loginMode === 'email_code') {
+        // 邮箱验证码登录
+        if (!validateEmail(email)) {
+          setError('请输入正确的南科大邮箱')
+          return
+        }
+        await sendCode(email, 'login')
+        showToast('验证码已发送到邮箱', 'success')
+      } else if (loginMode === 'phone') {
+        // 手机号验证码登录
+        if (!validatePhone(phone)) {
+          setError('请输入正确的手机号')
+          return
+        }
+        await sendPhoneCode(phone, 'login')
+        showToast('验证码已发送到手机', 'success')
+      }
       
       // 开始倒计时
       setCountdown(60)
@@ -55,9 +72,6 @@ export default function Login() {
           return prev - 1
         })
       }, 1000)
-
-      // 提示成功
-      console.log('验证码已发送到邮箱')
     } catch (err) {
       setError(err.message || '发送验证码失败')
     }
@@ -68,10 +82,17 @@ export default function Login() {
     e.preventDefault()
     setError('')
 
-    // 验证邮箱
-    if (!validateEmail(email)) {
-      setError('请输入正确的南科大邮箱')
-      return
+    // 根据登录模式验证输入
+    if (loginMode === 'password' || loginMode === 'email_code') {
+      if (!validateEmail(email)) {
+        setError('请输入正确的南科大邮箱')
+        return
+      }
+    } else if (loginMode === 'phone') {
+      if (!validatePhone(phone)) {
+        setError('请输入正确的手机号')
+        return
+      }
     }
 
     if (loginMode === 'password') {
@@ -81,7 +102,7 @@ export default function Login() {
         return
       }
     } else {
-      // 验证码登录
+      // 验证码登录（邮箱或手机）
       if (!code || code.length !== 6) {
         setError('请输入6位验证码')
         return
@@ -94,8 +115,10 @@ export default function Login() {
       let result
       if (loginMode === 'password') {
         result = await login(email, password)
-      } else {
+      } else if (loginMode === 'email_code') {
         result = await login(email, code, 'code')
+      } else if (loginMode === 'phone') {
+        result = await loginWithPhone(phone, code)
       }
       
       // 使用 AuthContext 的 login 方法
@@ -139,45 +162,75 @@ export default function Login() {
           </p>
 
           {/* 登录方式切换 */}
-          <div className="flex gap-2 mb-5 sm:mb-6 bg-gray-100 p-1 rounded-xl">
+          <div className="flex gap-1 mb-5 sm:mb-6 bg-gray-100 p-1 rounded-xl">
             <button
               type="button"
-              onClick={() => setLoginMode('password')}
-              className={`flex-1 py-2 rounded-lg text-sm sm:text-base font-medium transition-all ${
+              onClick={() => { setLoginMode('password'); setError('') }}
+              className={`flex-1 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                 loginMode === 'password'
                   ? 'bg-white text-purple-600 shadow-sm'
                   : 'text-gray-600'
               }`}
             >
-              密码登录
+              密码
             </button>
             <button
               type="button"
-              onClick={() => setLoginMode('code')}
-              className={`flex-1 py-2 rounded-lg text-sm sm:text-base font-medium transition-all ${
-                loginMode === 'code'
+              onClick={() => { setLoginMode('email_code'); setError('') }}
+              className={`flex-1 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                loginMode === 'email_code'
                   ? 'bg-white text-purple-600 shadow-sm'
                   : 'text-gray-600'
               }`}
             >
-              验证码登录
+              邮箱验证码
+            </button>
+            <button
+              type="button"
+              onClick={() => { setLoginMode('phone'); setError('') }}
+              className={`flex-1 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                loginMode === 'phone'
+                  ? 'bg-white text-purple-600 shadow-sm'
+                  : 'text-gray-600'
+              }`}
+            >
+              手机号
             </button>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4 sm:space-y-5">
-            {/* 邮箱输入 */}
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                📧 南科大邮箱
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="例如：12345678@mail.sustech.edu.cn"
-                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-              />
-            </div>
+            {/* 邮箱输入（密码登录和邮箱验证码登录） */}
+            {(loginMode === 'password' || loginMode === 'email_code') && (
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                  📧 南科大邮箱
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="@mail.sustech.edu.cn 或 @sustech.edu.cn"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
+              </div>
+            )}
+
+            {/* 手机号输入（手机号登录） */}
+            {loginMode === 'phone' && (
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                  📱 手机号
+                </label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="请输入手机号"
+                  maxLength={11}
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
+              </div>
+            )}
 
             {/* 密码输入（密码模式） */}
             {loginMode === 'password' && (
@@ -213,7 +266,7 @@ export default function Login() {
             )}
 
             {/* 验证码输入（验证码模式） */}
-            {loginMode === 'code' && (
+            {(loginMode === 'email_code' || loginMode === 'phone') && (
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   🔢 验证码
@@ -230,9 +283,9 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={handleSendCode}
-                    disabled={countdown > 0 || !validateEmail(email)}
+                    disabled={countdown > 0 || (loginMode === 'email_code' && !validateEmail(email)) || (loginMode === 'phone' && !validatePhone(phone))}
                     className={`px-3 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl font-medium transition-all whitespace-nowrap ${
-                      countdown > 0 || !validateEmail(email)
+                      countdown > 0 || (loginMode === 'email_code' && !validateEmail(email)) || (loginMode === 'phone' && !validatePhone(phone))
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         : 'bg-gradient-primary text-white hover:shadow-lg active:scale-95 sm:hover:scale-105'
                     }`}
