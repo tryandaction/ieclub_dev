@@ -580,5 +580,3 @@ function formatPost(post) {
     lookingFor: post.lookingFor ? JSON.parse(post.lookingFor) : []
   }
 }
-
-module.exports = exports

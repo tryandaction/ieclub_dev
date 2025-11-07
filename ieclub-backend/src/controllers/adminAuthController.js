@@ -671,5 +671,3 @@ exports.disable2FA = async (req, res) => {
   }
 };
 
-module.exports = exports;
-

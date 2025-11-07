@@ -614,5 +614,3 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-module.exports = exports;
-
