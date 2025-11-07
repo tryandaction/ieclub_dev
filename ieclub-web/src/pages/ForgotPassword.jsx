@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { sendCode, resetPassword } from '../api/auth'
+import { validateEmail, getEmailErrorMessage, getEmailPlaceholder } from '../utils/emailValidator'
 
 export default function ForgotPassword() {
   const [step, setStep] = useState(1) // 1: 验证邮箱, 2: 重置密码
@@ -14,18 +15,12 @@ export default function ForgotPassword() {
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
 
-  // 南科大邮箱验证
-  const validateEmail = (email) => {
-    const emailReg = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/
-    return emailReg.test(email)
-  }
-
   // 发送验证码
   const handleSendCode = async () => {
     setError('')
     
     if (!validateEmail(email)) {
-      setError('请输入正确的南科大邮箱')
+      setError(getEmailErrorMessage())
       return
     }
 
@@ -57,7 +52,7 @@ export default function ForgotPassword() {
     setError('')
 
     if (!validateEmail(email)) {
-      setError('请输入正确的南科大邮箱')
+      setError(getEmailErrorMessage())
       return
     }
 

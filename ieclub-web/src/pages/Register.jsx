@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { sendCode, verifyCode, register } from '../api/auth'
 import { useAuth } from '../contexts/AuthContext'
 import { showToast } from '../components/Toast'
+import { validateEmail, getEmailErrorMessage, getEmailPlaceholder } from '../utils/emailValidator'
 
 export default function Register() {
   const [step, setStep] = useState(1) // 1: 邮箱验证, 2: 设置密码, 3: 完善信息
@@ -21,18 +22,12 @@ export default function Register() {
   const navigate = useNavigate()
   const { login: authLogin } = useAuth()
 
-  // 南科大邮箱验证
-  const validateEmail = (email) => {
-    const emailReg = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/
-    return emailReg.test(email)
-  }
-
   // 发送验证码
   const handleSendCode = async () => {
     setError('')
     
     if (!validateEmail(email)) {
-      setError('请输入正确的南科大邮箱')
+      setError(getEmailErrorMessage())
       return
     }
 
@@ -64,7 +59,7 @@ export default function Register() {
     setError('')
 
     if (!validateEmail(email)) {
-      setError('请输入正确的南科大邮箱')
+      setError(getEmailErrorMessage())
       return
     }
 
@@ -220,7 +215,7 @@ export default function Register() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="@mail.sustech.edu.cn 或 @sustech.edu.cn"
+                    placeholder={getEmailPlaceholder()}
                     className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   />
                 </div>

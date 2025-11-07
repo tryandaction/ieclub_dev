@@ -1,8 +1,8 @@
 # ⚠️ IEClub 项目重要提醒
 
-> 📌 **最后更新**: 2025-11-06  
-> 📌 **项目状态**: ✅ 测试环境和生产环境均正常运行  
-> 🎉 **最新**: 测试环境部署系统已完整修复（7个关键问题已解决）
+> 📌 **最后更新**: 2025-11-07  
+> 📌 **项目状态**: ✅ 生产环境和测试环境运行正常  
+> 🎉 **最新**: 完成项目清理和文档精简，脚本系统优化完成
 
 ---
 
@@ -12,6 +12,7 @@
 - [常用命令](#常用命令)
 - [部署流程](#部署流程)
 - [故障排查](#故障排查)
+- [管理员系统](#管理员系统)
 
 ---
 
@@ -25,13 +26,17 @@
 - **PM2进程**: ieclub-backend (端口3000)
 - **部署路径**: `/root/IEclub_dev/ieclub-backend`
 
-### 测试环境 ⭐ 已修复
-- **访问地址**: https://ieclub.online/api/staging (通过主域名访问)
+### 测试环境
+- **访问地址**: https://test.ieclub.online
 - **API**: https://ieclub.online/api/staging
 - **健康检查**: https://ieclub.online/health/staging
 - **PM2进程**: staging-backend (端口3001)
 - **部署路径**: `/root/IEclub_dev_staging/ieclub-backend`
-- **快速部署**: 查看 [`docs/deployment/QUICK_DEPLOY_STAGING.md`](docs/deployment/QUICK_DEPLOY_STAGING.md)
+
+### 管理员后台
+- **访问地址**: https://ieclub.online/admin
+- **本地开发**: http://localhost:5174
+- **快速启动**: `.\scripts\admin\START_ADMIN_NOW.ps1`
 
 ### 小程序
 - **AppID**: wx5c959d4b00c7f61b
@@ -45,9 +50,16 @@
 ### 本地开发
 
 ```powershell
-# 一键启动所有服务
+# 一键启动后端+Web前端
 .\scripts\QUICK_START.ps1
+
+# 启动管理员后台
+.\scripts\admin\START_ADMIN_NOW.ps1
 ```
+
+---
+
+## 👨‍💼 管理员系统
 
 ### 管理员账号管理
 
@@ -115,39 +127,23 @@ mysql -u ieclub_user -p ieclub_staging       # 测试数据库
 ### 健康检查
 
 ```powershell
-# 网络连接诊断（部署前必查）
-.\scripts\health-check\Check-Network.ps1
-
-# 从本地检查服务器健康状态
-.\scripts\health-check\Check-Backend-Health.ps1 -Environment production
-.\scripts\health-check\Check-Backend-Health.ps1 -Environment staging
-
-# 部署前检查
+# 部署前检查（推荐）
 .\scripts\health-check\Check-Deploy-Ready.ps1
 ```
 
-### 🔧 测试环境故障修复（一键解决）
+### 测试环境故障修复
 
 ```powershell
-# 🚨 测试环境有问题？运行这个就够了！
+# 诊断测试环境（不修复，仅查看）
+.\scripts\deployment\Diagnose-Staging.ps1
+
+# 一键修复测试环境所有问题
 .\scripts\deployment\Fix-Staging-All.ps1
 
-# 自动修复所有问题（不询问）
+# 自动修复（跳过确认）
 .\scripts\deployment\Fix-Staging-All.ps1 -AutoFix
-```
 
-**自动检查并修复**：
-- ✅ SSH连接
-- ✅ 目录结构
-- ✅ 配置文件（自动从生产环境复制）
-- ✅ 数据库创建
-- ✅ PM2进程状态
-- ✅ 端口占用
-- ✅ 依赖安装
-- ✅ Prisma客户端
-
-**修复后通常需要重新部署**：
-```powershell
+# 修复后重新部署
 .\scripts\deployment\Deploy-Staging.ps1 -Target backend
 ```
 
@@ -179,89 +175,30 @@ mysql -u ieclub_user -p ieclub_staging       # 测试数据库
 
 ## 🔍 故障排查
 
-### 🚨 测试环境有问题？
+### 测试环境问题
 
 ```powershell
-# 一键诊断并修复所有问题
+# 一键修复测试环境
 .\scripts\deployment\Fix-Staging-All.ps1
 
 # 然后重新部署
 .\scripts\deployment\Deploy-Staging.ps1 -Target backend
 ```
 
-### 快速诊断
-
-```powershell
-# 网络连接诊断
-.\scripts\health-check\Check-Network.ps1
-
-# 健康检查
-.\scripts\health-check\Check-Backend-Health.ps1 -Environment production
-.\scripts\health-check\Check-Backend-Health.ps1 -Environment staging
-```
-
 ### 常见问题
 
-#### 0. 🚨 Clash代理干扰SSH连接（最常见）
+#### 1. SSH连接超时（Clash代理干扰）
 
-**症状**：
-- SSH连接超时：`Connection timed out during banner exchange`
-- 部署脚本卡住在SSH连接环节
-- 网络诊断显示：`Interface: Clash`
+如遇到SSH连接问题，通常是代理软件干扰。
 
-**解决方案**：
+**快速解决**：
+1. 完全退出Clash（不是关闭系统代理）
+2. 重启PowerShell
+3. 重新运行部署脚本
 
-**方法1：配置Clash规则（推荐）**
+📚 **详细指南**: 查看 [Clash代理配置文档](./docs/configuration/CLASH_PROXY_SETUP.md)
 
-1. 打开Clash控制面板
-2. 进入 **规则（Rules）** 或 **配置（Config）** 页面
-3. 添加以下规则：
-   ```yaml
-   # 在配置文件中添加（通常在rules部分）
-   - DOMAIN,ieclub.online,DIRECT
-   - IP-CIDR,39.108.160.112/32,DIRECT
-   ```
-4. 或通过界面添加：
-   - 规则类型：`DOMAIN`
-   - 匹配内容：`ieclub.online`
-   - 策略选择：`DIRECT`（直连）
-5. 保存并重启Clash
-
-**方法2：临时关闭Clash（推荐先用这个）** ⭐⭐⭐
-
-**关键：必须完全退出Clash，仅"关闭系统代理"还不够！**
-
-步骤：
-1. **完全退出Clash程序**：
-   - Windows：右键托盘图标 → **"退出Clash"** 或 **"Quit"**（不是"退出系统代理"）
-   - macOS：点击菜单栏图标 → **"Quit Clash"**
-   
-2. **运行修复脚本**（清除系统代理残留）：
-   ```powershell
-   .\scripts\health-check\Fix-Proxy.ps1
-   ```
-
-3. **重启PowerShell**（必须！）：
-   - 关闭当前PowerShell窗口
-   - 打开新的PowerShell窗口
-   - 导航到项目目录
-
-4. **验证修复**：
-   ```powershell
-   .\scripts\health-check\Deep-Diagnose.ps1
-   ```
-   
-应该看到：
-```
-OK: No proxy detected
-OK: SSH connection successful
-```
-
-**详细配置指南**：请参考 [Clash代理配置文档](./docs/configuration/CLASH_PROXY_SETUP.md)
-
----
-
-#### 1. 服务无法访问
+#### 2. 服务无法访问
 ```bash
 # 检查PM2进程
 pm2 status
@@ -275,7 +212,7 @@ lsof -i :3001    # 测试环境
 pm2 restart <进程名>
 ```
 
-#### 2. 数据库连接失败
+#### 3. 数据库连接失败
 ```bash
 # 检查数据库服务
 systemctl status mysql
@@ -287,7 +224,7 @@ mysql -u ieclub_user -p
 cat .env.production | grep DATABASE_URL
 ```
 
-#### 3. Nginx问题
+#### 4. Nginx问题
 ```bash
 # 测试配置
 nginx -t
@@ -299,7 +236,7 @@ systemctl restart nginx
 tail -f /var/log/nginx/error.log
 ```
 
-#### 4. PM2进程崩溃
+#### 5. PM2进程崩溃
 ```bash
 # 查看错误日志
 pm2 logs <进程名> --err --lines 50
