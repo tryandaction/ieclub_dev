@@ -375,6 +375,13 @@ function Deploy-Web-Staging {
     Write-Success "用户前端部署完成并通过健康检查 (测试环境)"
     Write-Info "访问地址: https://test.ieclub.online"
     Write-Warning "注意: 这是测试环境，仅供内部使用"
+    
+    # 清理本地临时文件
+    Write-Info "清理本地临时文件..."
+    if (Test-Path "web-staging.zip") {
+        Remove-Item "web-staging.zip" -Force
+        Write-Host "  已删除 web-staging.zip" -ForegroundColor Gray
+    }
 }
 
 # --- Build Admin Web (Staging) ---
@@ -489,6 +496,13 @@ function Deploy-Admin-Web-Staging {
     Write-Info "访问地址: https://test.ieclub.online/admin"
     Write-Info "默认账号: admin@ieclub.com (需先在服务器初始化)"
     Write-Warning "注意: 这是测试环境，仅供内部使用"
+    
+    # 清理本地临时文件
+    Write-Info "清理本地临时文件..."
+    if (Test-Path "admin-web-staging.zip") {
+        Remove-Item "admin-web-staging.zip" -Force
+        Write-Host "  已删除 admin-web-staging.zip" -ForegroundColor Gray
+    }
 }
 
 # --- Deploy Backend to Staging ---
@@ -810,6 +824,18 @@ echo "💡 查看实时日志: pm2 logs staging-backend --lines 50"
     Write-Info "健康检查: https://test.ieclub.online/api/health"
     Write-Info "内部端口: $StagingPort (通过Nginx代理访问)"
     Write-Warning "注意: 使用独立的测试数据库 (ieclub_staging)"
+    
+    # 清理本地临时文件
+    Write-Info "清理本地临时文件..."
+    Set-Location -Path $BackendDir
+    if (Test-Path "backend-staging.zip") {
+        Remove-Item "backend-staging.zip" -Force
+        Write-Host "  已删除 backend-staging.zip" -ForegroundColor Gray
+    }
+    if (Test-Path "deploy-backend-staging.sh") {
+        Remove-Item "deploy-backend-staging.sh" -Force
+        Write-Host "  已删除 deploy-backend-staging.sh" -ForegroundColor Gray
+    }
 }
 
 # --- 服务器资源检查 ---

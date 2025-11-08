@@ -23,7 +23,7 @@ model User {
 
   // 基本信息
   nickname String  @db.VarChar(50)
-  avatar   String? @default("") @db.Text // 头像可选
+  avatar   String? @db.Text // 头像可选
   gender   Int     @default(0) @db.TinyInt
   phone    String? @unique @db.VarChar(20)
   bio      String? @db.Text

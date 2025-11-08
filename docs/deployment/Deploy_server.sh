@@ -88,6 +88,11 @@ deploy_web() {
         rm -rf "${WEB_TEMP_EXTRACT}"
         rm -f "${WEB_TEMP_ZIP}"
         
+        # 清理旧备份（保留最近3个）
+        log_info "清理旧备份文件..."
+        cd /var/www
+        ls -dt ieclub-web.backup_* 2>/dev/null | tail -n +4 | xargs -r rm -rf
+        
         log_success "网页部署完成（使用上传的文件）"
     else
         log_info "未发现上传的压缩包，从源码构建..."
@@ -225,7 +230,39 @@ deploy_backend() {
     
     # 数据库迁移
     log_info "执行数据库迁移..."
-    npx prisma migrate deploy || log_warning "数据库迁移失败，请手动检查"
+    log_warning "⚠️  即将执行数据库迁移，这可能会修改数据库结构"
+    log_info "迁移包括："
+    log_info "  - 添加个人主页字段（coverImage, motto, introduction 等）"
+    log_info "  - 创建 posts 表"
+    
+    # 检查是否需要执行新迁移
+    if npx prisma migrate status | grep -q "Database schema is up to date"; then
+        log_success "✅ 数据库已是最新状态"
+    else
+        log_warning "⚠️  发现待执行的迁移"
+        npx prisma migrate deploy || {
+            log_error "❌ 数据库迁移失败！"
+            log_info "请检查："
+            log_info "  1. 数据库连接是否正常"
+            log_info "  2. 数据库用户是否有足够权限"
+            log_info "  3. 迁移脚本是否有语法错误"
+            exit 1
+        }
+        log_success "✅ 数据库迁移完成"
+    fi
+    
+    # 清理旧备份（保留最近3个）
+    log_info "清理旧备份文件..."
+    cd /root
+    ls -dt IEclub_dev_staging/ieclub-backend.backup_* 2>/dev/null | tail -n +4 | xargs -r rm -rf
+    ls -dt IEclub_dev/ieclub-backend.backup_* 2>/dev/null | tail -n +4 | xargs -r rm -rf
+    
+    # 清理临时文件
+    log_info "清理临时文件..."
+    rm -f /tmp/backend-code.zip
+    rm -f /tmp/backend-staging.zip
+    rm -f /tmp/backend-production.zip
+    rm -f /tmp/deploy-*.sh
     
     # 检查Redis连接（非阻塞）
     log_info "检查Redis连接..."

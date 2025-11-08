@@ -52,6 +52,26 @@ const Avatar = ({
     return name.charAt(0).toUpperCase()
   }, [name])
   
+  // 检查是否是 emoji（单个字符且不是 URL）
+  const isEmoji = src && src.trim() !== '' && src.length <= 4 && !src.startsWith('http') && !src.startsWith('/')
+  
+  // 如果是 emoji，直接显示
+  if (isEmoji) {
+    return (
+      <div
+        className={`inline-flex items-center justify-center rounded-full flex-shrink-0 bg-gray-100 ${className}`}
+        style={{
+          width: size,
+          height: size,
+          fontSize: size * 0.5
+        }}
+        onClick={onClick}
+      >
+        {src}
+      </div>
+    )
+  }
+  
   // 如果有图片地址，显示图片头像
   if (src && src.trim() !== '') {
     return (

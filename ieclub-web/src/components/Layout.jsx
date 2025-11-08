@@ -10,13 +10,24 @@ const navItems = [
   { path: '/community', label: '社区', icon: '👥' },
   { path: '/publish', label: '发布', icon: '+', isPublish: true },
   { path: '/activities', label: '活动', icon: '🎉' },
-  { path: '/profile', label: '我的', icon: '👤' },
+  { path: '/profile', label: '我的', icon: '👤', requiresAuth: true },
 ]
 
 export default function Layout() {
   const navigate = useNavigate()
   const { user, isAuthenticated } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
+  
+  // 获取导航路径，对于需要用户ID的路径进行处理
+  const getNavPath = (item) => {
+    if (item.path === '/profile') {
+      if (!isAuthenticated || !user?.id) {
+        return '/login'
+      }
+      return `/profile/${user.id}`
+    }
+    return item.path
+  }
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -113,7 +124,7 @@ export default function Layout() {
           {navItems.map((item) => (
             <NavLink
               key={item.path}
-              to={item.path}
+              to={getNavPath(item)}
               className={({ isActive }) =>
                 `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
                   item.isPublish
@@ -178,7 +189,7 @@ export default function Layout() {
           {navItems.map((item) => (
             <NavLink
               key={item.path}
-              to={item.path}
+              to={getNavPath(item)}
               className={({ isActive }) =>
                 item.isPublish
                   ? 'flex flex-col items-center py-2 px-3'

@@ -303,6 +303,13 @@ function Deploy-Web-Production {
     
     Write-Success "用户前端部署完成并通过健康检查"
     Write-Info "访问地址: https://ieclub.online"
+    
+    # 清理本地临时文件
+    Write-Info "清理本地临时文件..."
+    if (Test-Path "web-production.zip") {
+        Remove-Item "web-production.zip" -Force
+        Write-Host "  已删除 web-production.zip" -ForegroundColor Gray
+    }
 }
 
 # --- Build Admin Web (Production) ---
@@ -375,6 +382,13 @@ function Deploy-Admin-Web-Production {
     
     Write-Success "管理员前端部署完成并通过健康检查"
     Write-Info "访问地址: https://ieclub.online/admin"
+    
+    # 清理本地临时文件
+    Write-Info "清理本地临时文件..."
+    if (Test-Path "admin-web-production.zip") {
+        Remove-Item "admin-web-production.zip" -Force
+        Write-Host "  已删除 admin-web-production.zip" -ForegroundColor Gray
+    }
 }
 
 # --- Deploy Backend to Production ---
@@ -520,6 +534,18 @@ pm2 status
     }
     
     Write-Success "后端部署完成并通过健康检查"
+    
+    # 清理本地临时文件
+    Write-Info "清理本地临时文件..."
+    Set-Location -Path $BackendDir
+    if (Test-Path "backend-production.zip") {
+        Remove-Item "backend-production.zip" -Force
+        Write-Host "  已删除 backend-production.zip" -ForegroundColor Gray
+    }
+    if (Test-Path "deploy-backend-production.sh") {
+        Remove-Item "deploy-backend-production.sh" -Force
+        Write-Host "  已删除 deploy-backend-production.sh" -ForegroundColor Gray
+    }
 }
 
 # --- 服务器资源检查 ---
