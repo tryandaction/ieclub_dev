@@ -318,4 +318,3 @@ Write-Host "   - 查看完整报告: cat $OutputFile" -ForegroundColor Gray
 Write-Host "   - 定期生成报告以跟踪服务器健康状况" -ForegroundColor Gray
 Write-Host "   - 健康评分低于70时应立即检查" -ForegroundColor Gray
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-
