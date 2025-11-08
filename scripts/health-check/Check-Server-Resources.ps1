@@ -1,0 +1,281 @@
+# ============================================
+# 服务器资源检查脚本
+# ============================================
+# 在部署前检查服务器资源，防止部署导致服务器崩溃
+# ============================================
+
+param(
+    [string]$ServerUser = "root",
+    [string]$ServerHost = "ieclub.online"
+)
+
+$ErrorActionPreference = "Continue"
+
+# 定义百分号字符，避免PowerShell解析错误
+$PercentChar = [char]0x25
+
+Write-Host ""
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "  服务器资源安全检查" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host ""
+
+$Server = "${ServerUser}@${ServerHost}"
+$hasIssues = $false
+$warnings = @()
+
+# 1. 检查SSH连接
+Write-Host "[1/8] 检查SSH连接..." -ForegroundColor Yellow
+try {
+    $sshTest = ssh -o ConnectTimeout=10 -o BatchMode=yes $Server "echo 'SSH OK'" 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "  SSH连接: OK" -ForegroundColor Green
+    } else {
+        Write-Host "  SSH连接: FAILED" -ForegroundColor Red
+        Write-Host "  错误: $sshTest" -ForegroundColor Gray
+        exit 1
+    }
+} catch {
+    Write-Host "  SSH连接: FAILED - $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+Write-Host ""
+
+# 2. 检查内存使用
+Write-Host "[2/8] 检查内存使用..." -ForegroundColor Yellow
+try {
+    $memoryInfo = ssh $Server "free -m | grep Mem" 2>&1
+    if ($memoryInfo -match 'Mem:\s+(\d+)\s+(\d+)\s+(\d+)') {
+        $totalMem = [int]$matches[1]
+        $usedMem = [int]$matches[2]
+        $freeMem = [int]$matches[3]
+        $memPercent = [math]::Round(($usedMem / $totalMem) * 100, 2)
+        
+        Write-Host "  总内存: ${totalMem}MB" -ForegroundColor Gray
+        $memPercentStr = [math]::Round($memPercent, 2).ToString()
+        $memUsageText = "${usedMem}MB (" + $memPercentStr + $PercentChar + ")"
+        Write-Host "  已使用: $memUsageText" -ForegroundColor Gray
+        Write-Host "  可用: ${freeMem}MB" -ForegroundColor Gray
+        
+        if ($memPercent -gt 90) {
+            Write-Host "  内存使用: CRITICAL (>90%)" -ForegroundColor Red
+            $hasIssues = $true
+        } elseif ($memPercent -gt 80) {
+            Write-Host "  内存使用: WARNING (>80%)" -ForegroundColor Yellow
+            $memPercentStr = [math]::Round($memPercent, 2).ToString()
+            $warnings += "内存使用率较高 (" + $memPercentStr + $PercentChar + ")"
+        } else {
+            Write-Host "  内存使用: OK" -ForegroundColor Green
+        }
+    }
+} catch {
+    Write-Host "  内存检查失败: $_" -ForegroundColor Red
+    $hasIssues = $true
+}
+Write-Host ""
+
+# 3. 检查磁盘空间
+Write-Host "[3/8] 检查磁盘空间..." -ForegroundColor Yellow
+try {
+    $diskInfo = ssh $Server "df -h / | tail -1" 2>&1
+    if ($diskInfo -match '(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\d+)%') {
+        $usedPercent = [int]$matches[5]
+        $used = $matches[3]
+        $avail = $matches[4]
+        
+        Write-Host "  已使用: $used" -ForegroundColor Gray
+        Write-Host "  可用: $avail" -ForegroundColor Gray
+        $diskUsageText = "使用率: " + $usedPercent.ToString() + $PercentChar
+        Write-Host "  $diskUsageText" -ForegroundColor Gray
+        
+        if ($usedPercent -gt 90) {
+            Write-Host "  磁盘空间: CRITICAL (>90%)" -ForegroundColor Red
+            $hasIssues = $true
+        } elseif ($usedPercent -gt 80) {
+            Write-Host "  磁盘空间: WARNING (>80%)" -ForegroundColor Yellow
+            $warnings += "磁盘使用率较高 (" + $usedPercent.ToString() + $PercentChar + ")"
+        } else {
+            Write-Host "  磁盘空间: OK" -ForegroundColor Green
+        }
+    }
+} catch {
+    Write-Host "  磁盘检查失败: $_" -ForegroundColor Red
+    $hasIssues = $true
+}
+Write-Host ""
+
+# 4. 检查CPU负载
+Write-Host "[4/8] 检查CPU负载..." -ForegroundColor Yellow
+try {
+    $loadAvgOutput = ssh $Server "uptime | awk -F'load average:' '{print \$2}' | awk '{print \$1}' | tr -d ','" 2>&1
+    
+    # 处理输出，确保是字符串
+    if ($loadAvgOutput -is [System.Management.Automation.ErrorRecord]) {
+        throw $loadAvgOutput
+    }
+    
+    $loadAvg = if ($loadAvgOutput -is [string]) { 
+        $loadAvgOutput.Trim() 
+    } else { 
+        $loadAvgOutput.ToString().Trim() 
+    }
+    
+    # 清理输出，只保留数字
+    if ($loadAvg -match '^([\d.]+)$') {
+        $load1Str = $matches[1]
+        $load1 = 0.0
+        if ([double]::TryParse($load1Str, [ref]$load1)) {
+            $cpuCountOutput = ssh $Server "nproc" 2>&1
+            
+            # 处理输出，确保是字符串
+            if ($cpuCountOutput -is [System.Management.Automation.ErrorRecord]) {
+                throw $cpuCountOutput
+            }
+            
+            $cpuCountStr = if ($cpuCountOutput -is [string]) { 
+                $cpuCountOutput.Trim() 
+            } else { 
+                $cpuCountOutput.ToString().Trim() 
+            }
+            $cpuCount = 0
+            
+            if ([int]::TryParse($cpuCountStr, [ref]$cpuCount)) {
+                Write-Host "  1分钟负载: $load1" -ForegroundColor Gray
+                Write-Host "  CPU核心数: $cpuCount" -ForegroundColor Gray
+                
+                if ($load1 -gt ($cpuCount * 2)) {
+                    Write-Host "  CPU负载: CRITICAL (负载 > 2x CPU核心数)" -ForegroundColor Red
+                    $hasIssues = $true
+                } elseif ($load1 -gt $cpuCount) {
+                    Write-Host "  CPU负载: WARNING (负载 > CPU核心数)" -ForegroundColor Yellow
+                    $warnings += "CPU负载较高 ($load1)"
+                } else {
+                    Write-Host "  CPU负载: OK" -ForegroundColor Green
+                }
+            } else {
+                Write-Host "  CPU负载: 无法解析CPU核心数 (输出: $cpuCountStr)" -ForegroundColor Yellow
+                $warnings += "无法解析CPU核心数"
+            }
+        } else {
+            Write-Host "  CPU负载: 无法解析负载值 (输出: $loadAvg)" -ForegroundColor Yellow
+            $warnings += "无法解析CPU负载信息"
+        }
+    } else {
+        Write-Host "  CPU负载: 无法解析 (原始输出: $loadAvg)" -ForegroundColor Yellow
+        $warnings += "无法解析CPU负载信息"
+    }
+} catch {
+    Write-Host "  CPU检查失败: $_" -ForegroundColor Red
+    $hasIssues = $true
+}
+Write-Host ""
+
+# 5. 检查端口占用
+Write-Host "[5/8] 检查端口占用..." -ForegroundColor Yellow
+try {
+    $ports = @(3000, 3001)
+    foreach ($port in $ports) {
+        $portCheck = ssh $Server "lsof -i :$port 2>/dev/null | wc -l" 2>&1
+        $portCount = [int]$portCheck
+        
+        if ($portCount -gt 0) {
+            Write-Host "  端口 ${port}: 已占用 ($portCount 个进程)" -ForegroundColor Yellow
+            $portInfo = ssh $Server "lsof -i :${port} 2>/dev/null | head -3" 2>&1
+            Write-Host "    $portInfo" -ForegroundColor Gray
+        } else {
+            Write-Host "  端口 ${port}: 可用" -ForegroundColor Green
+        }
+    }
+} catch {
+    Write-Host "  端口检查失败: $_" -ForegroundColor Red
+    $warnings += "无法检查端口占用情况"
+}
+Write-Host ""
+
+# 6. 检查PM2进程
+Write-Host "[6/8] 检查PM2进程..." -ForegroundColor Yellow
+try {
+    $pm2Status = ssh $Server "pm2 list 2>&1" 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "  PM2状态:" -ForegroundColor Green
+        $pm2Status | ForEach-Object { Write-Host "    $_" -ForegroundColor Gray }
+        
+        # 检查是否有错误状态
+        if ($pm2Status -match 'errored|stopped') {
+            Write-Host "  PM2进程: 有错误或停止的进程" -ForegroundColor Yellow
+            $warnings += "PM2中有错误或停止的进程"
+        }
+    } else {
+        Write-Host "  PM2未安装或无法访问" -ForegroundColor Yellow
+        $warnings += "PM2未安装或无法访问"
+    }
+} catch {
+    Write-Host "  PM2检查失败: $_" -ForegroundColor Red
+    $warnings += "无法检查PM2状态"
+}
+Write-Host ""
+
+# 7. 检查数据库连接
+Write-Host "[7/8] 检查数据库连接..." -ForegroundColor Yellow
+try {
+    ssh $Server "mysql -u root -e 'SELECT 1' 2>&1" | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "  数据库连接: OK" -ForegroundColor Green
+    } else {
+        Write-Host "  数据库连接: 需要密码或无法连接" -ForegroundColor Yellow
+        $warnings += "无法验证数据库连接"
+    }
+} catch {
+    Write-Host "  数据库检查失败: $_" -ForegroundColor Yellow
+    $warnings += "无法检查数据库连接"
+}
+Write-Host ""
+
+# 8. 检查Redis连接
+Write-Host "[8/8] 检查Redis连接..." -ForegroundColor Yellow
+try {
+    $redisCheck = ssh $Server "redis-cli ping 2>&1" 2>&1
+    if ($redisCheck -match 'PONG') {
+        Write-Host "  Redis连接: OK" -ForegroundColor Green
+    } else {
+        Write-Host "  Redis连接: 无法连接或未运行" -ForegroundColor Yellow
+        $warnings += "Redis可能未运行或无法连接"
+    }
+} catch {
+    Write-Host "  Redis检查失败: $_" -ForegroundColor Yellow
+    $warnings += "无法检查Redis连接"
+}
+Write-Host ""
+
+# 总结
+Write-Host "============================================" -ForegroundColor Cyan
+if ($hasIssues) {
+    Write-Host "  ❌ 发现严重问题 - 不建议部署！" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "请先解决以下问题：" -ForegroundColor Yellow
+    Write-Host "  - 内存或磁盘空间不足" -ForegroundColor White
+    Write-Host "  - CPU负载过高" -ForegroundColor White
+    Write-Host ""
+    Write-Host "建议操作：" -ForegroundColor Yellow
+    Write-Host "  1. 清理磁盘空间" -ForegroundColor White
+    Write-Host "  2. 检查并停止不必要的进程" -ForegroundColor White
+    Write-Host "  3. 等待CPU负载降低" -ForegroundColor White
+    Write-Host "  4. 重新运行此检查" -ForegroundColor White
+    exit 1
+} elseif ($warnings.Count -gt 0) {
+    Write-Host "  ⚠️  发现警告 - 建议检查后部署" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "警告信息：" -ForegroundColor Yellow
+    foreach ($warning in $warnings) {
+        Write-Host "  - $warning" -ForegroundColor White
+    }
+    Write-Host ""
+    Write-Host "建议操作：" -ForegroundColor Yellow
+    Write-Host "  1. 检查警告项" -ForegroundColor White
+    Write-Host "  2. 确认可以继续部署" -ForegroundColor White
+    exit 0
+} else {
+    Write-Host "  ✅ 所有检查通过 - 可以安全部署！" -ForegroundColor Green
+    exit 0
+}
+

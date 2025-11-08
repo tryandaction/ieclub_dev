@@ -156,8 +156,8 @@ function Sync-ProductionBranch {
         git push origin develop
         if ($LASTEXITCODE -ne 0) {
             Write-Error "推送 develop 分支失败！"
-            exit 1
-        }
+        exit 1
+    }
         Write-Success "已推送 develop 分支"
     }
     
@@ -449,8 +449,48 @@ echo "[6/8] 生成 Prisma 客户端..."
 npx prisma generate
 
 echo "[7/8] 重启后端服务..."
+
+# 创建生产环境 PM2 配置文件
+cat > ecosystem.production.config.js << 'ECOSYSTEM_EOF'
+const path = require('path');
+const dotenv = require('dotenv');
+
+// Load .env.production
+const envConfig = dotenv.config({ path: path.resolve(__dirname, '.env.production') });
+
+if (envConfig.error) {
+  console.error('Error loading .env.production:', envConfig.error);
+  process.exit(1);
+}
+
+module.exports = {
+  apps: [{
+    name: 'ieclub-backend',
+    script: 'src/server.js',
+    cwd: '/root/IEclub_dev/ieclub-backend',
+    instances: 1,
+    exec_mode: 'fork',
+    env: envConfig.parsed,
+    error_file: '/root/.pm2/logs/ieclub-backend-error.log',
+    out_file: '/root/.pm2/logs/ieclub-backend-out.log',
+    log_date_format: 'YYYY-MM-DD HH:mm:ss',
+    merge_logs: true,
+    autorestart: true,
+    max_restarts: 10,
+    min_uptime: '10s',
+    max_memory_restart: '1G',
+    watch: false,
+    node_args: '--max-old-space-size=1024',
+    kill_timeout: 5000,
+    listen_timeout: 10000
+  }]
+};
+ECOSYSTEM_EOF
+
+# 删除旧进程并启动新进程
 pm2 delete ieclub-backend 2>/dev/null || true
-pm2 start src/server.js --name "ieclub-backend" --time
+pm2 start ecosystem.production.config.js
+pm2 save
 
 echo "[8/8] 等待服务启动..."
 sleep 5
@@ -463,10 +503,10 @@ pm2 status
     
     $backendScript -replace "`r`n", "`n" | Out-File -FilePath "deploy-backend-production.sh" -Encoding UTF8 -NoNewline
     
-    scp -P $ServerPort "deploy-backend-production.sh" "${ServerUser}@${ServerHost}:/tmp/"
-    Remove-Item "deploy-backend-production.sh" -Force
-    
-    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash /tmp/deploy-backend-production.sh && rm -f /tmp/deploy-backend-production.sh"
+        scp -P $ServerPort "deploy-backend-production.sh" "${ServerUser}@${ServerHost}:/tmp/"
+        Remove-Item "deploy-backend-production.sh" -Force
+        
+        ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash /tmp/deploy-backend-production.sh && rm -f /tmp/deploy-backend-production.sh"
     
     # 健康检查
     Start-Sleep -Seconds 8
@@ -482,6 +522,29 @@ pm2 status
     Write-Success "后端部署完成并通过健康检查"
 }
 
+# --- 服务器资源检查 ---
+function Check-ServerResources {
+    Write-Section "服务器资源检查"
+    Write-Info "检查服务器资源状态..."
+    
+    $checkScript = Join-Path $PSScriptRoot "..\health-check\Check-Server-Resources.ps1"
+    if (Test-Path $checkScript) {
+        & $checkScript -ServerUser $ServerUser -ServerHost $ServerHost
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "服务器资源检查发现问题"
+            Write-Warning "是否继续部署？(Y/N)"
+            $continue = Read-Host
+            if ($continue -ne 'Y' -and $continue -ne 'y') {
+                Write-Info "部署已取消"
+                exit 0
+            }
+        }
+    } else {
+        Write-Warning "资源检查脚本不存在，跳过检查"
+    }
+    Write-Host ""
+}
+
 # --- Main Execution ---
 Write-Section "IEClub 生产环境部署"
 Write-Host "🚀 生产环境部署" -ForegroundColor Red
@@ -492,6 +555,9 @@ Write-Info "部署目标: $Target"
 Write-Info "提交信息: $Message"
 Write-Info "服务器: $ServerHost"
 Write-Host ""
+
+# 检查服务器资源
+Check-ServerResources
 
 # 生产环境需要二次确认
 if (-not $SkipConfirmation) {

@@ -160,7 +160,7 @@ mysql -u ieclub_user -p ieclub_staging       # 测试数据库
 
 ### 部署前检查
 
-```powershell
+   ```powershell
 # 运行自动检查
 .\scripts\health-check\Check-Deploy-Ready.ps1
 ```

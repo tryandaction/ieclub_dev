@@ -9,7 +9,8 @@ param(
     [switch]$Detailed
 )
 
-$ProjectRoot = $PSScriptRoot
+# Get project root (two levels up from script location)
+$ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $WebDir = Join-Path $ProjectRoot "ieclub-web"
 $BackendDir = Join-Path $ProjectRoot "ieclub-backend"
 

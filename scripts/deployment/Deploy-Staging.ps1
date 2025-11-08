@@ -236,14 +236,14 @@ function Commit-Changes {
         git push -u origin $currentBranch
     }
     
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "推送失败！请检查网络连接和 GitHub 权限"
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "推送失败！请检查网络连接和 GitHub 权限"
         Write-Warning "可能的原因："
         Write-Warning "  1. 网络连接问题"
         Write-Warning "  2. GitHub 凭证过期"
         Write-Warning "  3. 代码中包含敏感信息（API Key、密码等）"
         Write-Warning "  4. 仓库规则限制"
-        exit 1
+            exit 1
     }
     Write-Success "已推送到 GitHub (origin/$currentBranch)"
 }
@@ -631,10 +631,10 @@ if [ ! -f .env.staging ]; then
         echo "  1. 在本地运行: .\scripts\deployment\Fix-Staging-Env.ps1"
         echo "  2. 手动创建: cp env.staging.template .env.staging"
         echo ""
-        exit 1
-    fi
+    exit 1
+fi
 else
-    echo "✅ 配置文件已存在"
+echo "✅ 配置文件已存在"
 fi
 
 # 步骤 4: 安装依赖
@@ -685,7 +685,7 @@ if (envConfig.error) {
 module.exports = {
   apps: [{
     name: 'staging-backend',
-    script: 'src/server-staging-simple.js',
+    script: 'src/server-staging.js',
     cwd: '/root/IEclub_dev_staging/ieclub-backend',
     instances: 1,
     exec_mode: 'fork',
@@ -812,6 +812,40 @@ echo "💡 查看实时日志: pm2 logs staging-backend --lines 50"
     Write-Warning "注意: 使用独立的测试数据库 (ieclub_staging)"
 }
 
+# --- 服务器资源检查 ---
+function Check-ServerResources {
+    Write-Section "服务器资源检查"
+    Write-Info "检查服务器资源状态..."
+    
+    $checkScript = Join-Path $PSScriptRoot "..\health-check\Check-Server-Resources.ps1"
+    if (Test-Path $checkScript) {
+        try {
+            # 设置UTF-8编码以避免中文字符解析错误
+            $originalEncoding = [Console]::OutputEncoding
+            [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+            try {
+                & $checkScript -ServerUser $ServerUser -ServerHost $ServerHost 2>&1 | Out-Null
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Warning "服务器资源检查发现问题"
+                    Write-Warning "是否继续部署？(Y/N)"
+                    $continue = Read-Host
+                    if ($continue -ne 'Y' -and $continue -ne 'y') {
+                        Write-Info "部署已取消"
+                        exit 0
+                    }
+                }
+            } finally {
+                [Console]::OutputEncoding = $originalEncoding
+            }
+        } catch {
+            Write-Warning "服务器资源检查脚本执行出错，跳过检查继续部署: $_"
+        }
+    } else {
+        Write-Warning "资源检查脚本不存在，跳过检查"
+    }
+    Write-Host ""
+}
+
 # --- Main Execution ---
 Write-Section "IEClub 测试环境部署"
 Write-Host "🧪 测试环境部署" -ForegroundColor Yellow
@@ -823,6 +857,9 @@ Write-Info "部署目标: $Target"
 Write-Info "提交信息: $Message"
 Write-Info "测试环境自动部署，无需确认"
 Write-Host ""
+
+# 检查服务器资源
+Check-ServerResources
 
 # 提交代码
 Commit-Changes
