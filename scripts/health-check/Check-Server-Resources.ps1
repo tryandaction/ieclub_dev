@@ -107,36 +107,27 @@ Write-Host ""
 # 4. 检查CPU负载
 Write-Host "[4/8] 检查CPU负载..." -ForegroundColor Yellow
 try {
-    $loadAvgOutput = ssh $Server "uptime | awk -F'load average:' '{print \$2}' | awk '{print \$1}' | tr -d ','" 2>&1
+    # 使用更简单的方法获取负载平均值
+    $uptimeOutput = ssh $Server "uptime" 2>&1
     
-    # 处理输出，确保是字符串
-    if ($loadAvgOutput -is [System.Management.Automation.ErrorRecord]) {
-        throw $loadAvgOutput
+    # 处理数组输出，合并为字符串
+    if ($uptimeOutput -is [Array]) {
+        $uptimeOutput = ($uptimeOutput | Out-String).Trim()
     }
     
-    $loadAvg = if ($loadAvgOutput -is [string]) { 
-        $loadAvgOutput.Trim() 
-    } else { 
-        $loadAvgOutput.ToString().Trim() 
-    }
-    
-    # 清理输出，只保留数字
-    if ($loadAvg -match '^([\d.]+)$') {
+    # 从 uptime 输出中提取负载平均值
+    if ($uptimeOutput -match 'load average:\s*([\d.]+)') {
         $load1Str = $matches[1]
         $load1 = 0.0
         if ([double]::TryParse($load1Str, [ref]$load1)) {
             $cpuCountOutput = ssh $Server "nproc" 2>&1
             
-            # 处理输出，确保是字符串
-            if ($cpuCountOutput -is [System.Management.Automation.ErrorRecord]) {
-                throw $cpuCountOutput
+            # 处理数组输出
+            if ($cpuCountOutput -is [Array]) {
+                $cpuCountOutput = ($cpuCountOutput | Out-String).Trim()
             }
             
-            $cpuCountStr = if ($cpuCountOutput -is [string]) { 
-                $cpuCountOutput.Trim() 
-            } else { 
-                $cpuCountOutput.ToString().Trim() 
-            }
+            $cpuCountStr = $cpuCountOutput.ToString().Trim()
             $cpuCount = 0
             
             if ([int]::TryParse($cpuCountStr, [ref]$cpuCount)) {
@@ -157,11 +148,12 @@ try {
                 $warnings += "无法解析CPU核心数"
             }
         } else {
-            Write-Host "  CPU负载: 无法解析负载值 (输出: $loadAvg)" -ForegroundColor Yellow
+            Write-Host "  CPU负载: 无法解析负载值 (输出: $load1Str)" -ForegroundColor Yellow
             $warnings += "无法解析CPU负载信息"
         }
     } else {
-        Write-Host "  CPU负载: 无法解析 (原始输出: $loadAvg)" -ForegroundColor Yellow
+        Write-Host "  CPU负载: 无法从uptime输出中提取负载信息" -ForegroundColor Yellow
+        Write-Host "  原始输出: $uptimeOutput" -ForegroundColor Gray
         $warnings += "无法解析CPU负载信息"
     }
 } catch {
@@ -218,12 +210,27 @@ Write-Host ""
 # 7. 检查数据库连接
 Write-Host "[7/8] 检查数据库连接..." -ForegroundColor Yellow
 try {
-    ssh $Server "mysql -u root -e 'SELECT 1' 2>&1" | Out-Null
-    if ($LASTEXITCODE -eq 0) {
+    $dbCheckOutput = ssh $Server "mysql -u root -e 'SELECT 1' 2>&1" 2>&1
+    
+    # 处理数组输出
+    if ($dbCheckOutput -is [Array]) {
+        $dbCheckOutput = ($dbCheckOutput | Out-String).Trim()
+    }
+    
+    $dbCheckStr = $dbCheckOutput.ToString()
+    
+    # 检查输出内容
+    if ($dbCheckStr -match 'ERROR.*Access denied') {
+        # 需要密码，这是正常的（数据库有密码保护）
+        Write-Host "  数据库连接: 需要密码（正常，数据库有密码保护）" -ForegroundColor Green
+    } elseif ($dbCheckStr -match 'ERROR.*Can.*t connect') {
+        Write-Host "  数据库连接: 无法连接" -ForegroundColor Yellow
+        $warnings += "数据库可能未运行或无法连接"
+    } elseif ($LASTEXITCODE -eq 0) {
         Write-Host "  数据库连接: OK" -ForegroundColor Green
     } else {
         Write-Host "  数据库连接: 需要密码或无法连接" -ForegroundColor Yellow
-        $warnings += "无法验证数据库连接"
+        $warnings += "无法验证数据库连接（可能需要密码）"
     }
 } catch {
     Write-Host "  数据库检查失败: $_" -ForegroundColor Yellow
@@ -235,10 +242,19 @@ Write-Host ""
 Write-Host "[8/8] 检查Redis连接..." -ForegroundColor Yellow
 try {
     $redisCheck = ssh $Server "redis-cli ping 2>&1" 2>&1
-    if ($redisCheck -match 'PONG') {
+    
+    # 处理数组输出
+    if ($redisCheck -is [Array]) {
+        $redisCheck = ($redisCheck | Out-String).Trim()
+    }
+    
+    $redisCheckStr = $redisCheck.ToString()
+    
+    if ($redisCheckStr -match 'PONG') {
         Write-Host "  Redis连接: OK" -ForegroundColor Green
     } else {
         Write-Host "  Redis连接: 无法连接或未运行" -ForegroundColor Yellow
+        Write-Host "  输出: $redisCheckStr" -ForegroundColor Gray
         $warnings += "Redis可能未运行或无法连接"
     }
 } catch {
