@@ -324,9 +324,13 @@ class AuthController {
     try {
       const { email, password } = req.body;
 
+      // 记录登录尝试
+      logger.info('登录尝试:', { email, ip: req.ip });
+
       // 验证邮箱格式与域名限制
       const emailCheck = checkEmailAllowed(email, 'login');
       if (!emailCheck.valid) {
+        logger.warn('邮箱验证失败:', { email, reason: emailCheck.message });
         return res.status(400).json({
           success: false,
           message: emailCheck.message
@@ -339,16 +343,22 @@ class AuthController {
       });
 
       if (!user) {
+        logger.warn('登录失败 - 用户不存在:', { email });
+        
         // 记录失败日志（无用户ID）
-        await prisma.loginLog.create({
-          data: {
-            ipAddress: req.ip || req.connection.remoteAddress,
-            userAgent: req.get('user-agent'),
-            loginMethod: 'password',
-            status: 'failed',
-            failReason: '用户不存在'
-          }
-        });
+        try {
+          await prisma.loginLog.create({
+            data: {
+              ipAddress: req.ip || req.connection.remoteAddress,
+              userAgent: req.get('user-agent'),
+              loginMethod: 'password',
+              status: 'failed',
+              failReason: '用户不存在'
+            }
+          });
+        } catch (logError) {
+          logger.error('记录登录日志失败:', logError);
+        }
 
         return res.status(401).json({
           success: false,
