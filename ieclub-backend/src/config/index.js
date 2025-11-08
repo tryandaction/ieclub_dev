@@ -52,7 +52,7 @@ module.exports = {
     port: parseInt(process.env.EMAIL_PORT) || 587,
     secure: process.env.EMAIL_SECURE === 'true',
     user: process.env.EMAIL_USER,
-    password: process.env.EMAIL_PASSWORD,
+    password: process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS, // 兼容 EMAIL_PASS 和 EMAIL_PASSWORD
     from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
     allowedDomains: process.env.ALLOWED_EMAIL_DOMAINS, // 允许的邮箱域名（逗号分隔），留空表示不限制
   },
