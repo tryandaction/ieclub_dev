@@ -53,7 +53,12 @@ if (import.meta.env.PROD) {
 // 🚀 渲染应用
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true
+      }}
+    >
       <App />
     </BrowserRouter>
   </React.StrictMode>,

@@ -206,15 +206,41 @@ request.interceptors.response.use(
     // 🔄 请求重试逻辑（智能重试）
     const config = error.config
     const status = error.response?.status
+    const data = error.response?.data // 提前获取响应数据
     
-    // 429错误不应该重试，应该直接返回错误（避免连续触发限流）
+    // 明确排除不应该重试的状态码
+    const noRetryStatuses = [400, 401, 403, 404, 429]; // 这些状态码不应该重试
+    
+    // 429错误绝对不应该重试，应该直接返回错误（避免连续触发限流）
+    if (status === 429) {
+      // 429错误直接返回，不重试
+      const errorMessage = data?.message || '请求过于频繁，请稍后重试'
+      console.warn(`⚠️ [429] ${config?.url || 'unknown'}: 请求限流 - 不重试`)
+      const err = new Error(errorMessage)
+      err.code = 429
+      err.response = error.response
+      err.originalError = error
+      throw err
+    }
+    
     // 只有网络错误和服务器错误才重试
-    const shouldRetry = !error.response || // 网络错误
+    const shouldRetry = config && config.retry && 
+                       (!error.response || // 网络错误
                        (status >= 500 && status < 600) || // 服务器错误（5xx）
                        error.code === 'ECONNABORTED' || // 超时
-                       error.code === 'ETIMEDOUT' // 超时
+                       error.code === 'ETIMEDOUT') // 超时
     
-    if (config && config.retry && shouldRetry) {
+    // 确保不应该重试的状态码不会重试
+    if (shouldRetry && status && noRetryStatuses.includes(status)) {
+      // 不应该重试的状态码，直接返回错误
+      const err = new Error(data?.message || `请求失败 (${status})`)
+      err.code = status
+      err.response = error.response
+      err.originalError = error
+      throw err
+    }
+    
+    if (shouldRetry) {
       config.__retryCount = config.__retryCount || 0
       
       if (config.__retryCount < config.retry) {

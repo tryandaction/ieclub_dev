@@ -258,8 +258,14 @@ class AuthController {
           });
         }
         
-        // 生产环境返回错误
-        return res.status(500).json({
+        // 生产环境：验证码已保存，但邮件发送失败，返回503（服务暂时不可用）而不是500
+        // 这样前端可以重试，但不会因为邮件服务问题导致验证码无法使用
+        logger.error('❌ 生产环境邮件发送失败，但验证码已保存', { 
+          email, 
+          code,
+          error: emailError.message 
+        });
+        return res.status(503).json({
           success: false,
           message: '验证码已生成，但邮件发送失败，请稍后重试或联系管理员',
           data: {
@@ -296,9 +302,15 @@ class AuthController {
           });
         }
         
-        // 生产环境返回错误
+        // 生产环境：验证码已保存，但邮件发送失败，返回503（服务暂时不可用）而不是500
+        // 这样前端可以重试，但不会因为邮件服务问题导致验证码无法使用
         const errorMessage = sendResult?.error || '验证码已生成，但邮件发送失败，请稍后重试或联系管理员';
-        return res.status(500).json({
+        logger.error('❌ 生产环境邮件发送失败，但验证码已保存', { 
+          email, 
+          code,
+          error: errorMessage 
+        });
+        return res.status(503).json({
           success: false,
           message: errorMessage,
           data: {
@@ -1046,7 +1058,8 @@ class AuthController {
       // 检查邮件发送结果
       if (!sendResult || !sendResult.success) {
         logger.error('密码重置邮件发送失败:', { email, error: sendResult?.error });
-        return res.status(500).json({
+        // 返回503（服务暂时不可用）而不是500，允许前端重试
+        return res.status(503).json({
           success: false,
           message: '邮件发送失败，请稍后重试'
         });
@@ -2158,9 +2171,10 @@ class AuthController {
           sessionKey = null;
           unionid = null;
         } else {
-          return res.status(500).json({
+          // 微信服务不可用，返回503（服务暂时不可用）而不是500
+          return res.status(503).json({
             success: false,
-            message: '微信登录失败，请重试'
+            message: '微信登录服务暂时不可用，请稍后重试'
           });
         }
       }
