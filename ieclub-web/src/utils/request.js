@@ -205,9 +205,12 @@ request.interceptors.response.use(
 
     // 🔄 请求重试逻辑（智能重试）
     const config = error.config
+    const status = error.response?.status
+    
+    // 429错误不应该重试，应该直接返回错误（避免连续触发限流）
+    // 只有网络错误和服务器错误才重试
     const shouldRetry = !error.response || // 网络错误
-                       error.response?.status >= 500 || // 服务器错误
-                       error.response?.status === 429 || // 请求过多
+                       (status >= 500 && status < 600) || // 服务器错误（5xx）
                        error.code === 'ECONNABORTED' || // 超时
                        error.code === 'ETIMEDOUT' // 超时
     
@@ -220,8 +223,8 @@ request.interceptors.response.use(
         
         // 指数退避重试策略
         const delay = config.retryDelay * Math.pow(2, config.__retryCount - 1)
-        const status = error.response?.status || '网络错误'
-        console.warn(`🔄 [重试 ${config.__retryCount}/${config.retry}] ${config.url} (${status}) - ${delay}ms 后重试`)
+        const statusText = status || '网络错误'
+        console.warn(`🔄 [重试 ${config.__retryCount}/${config.retry}] ${config.url} (${statusText}) - ${delay}ms 后重试`)
         
         await new Promise(resolve => setTimeout(resolve, delay))
         return request(config)

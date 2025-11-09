@@ -42,6 +42,11 @@ class AppError extends Error {
       response.details = this.details;
     }
 
+    // 添加retryAfter字段（用于429错误）
+    if (this.retryAfter !== undefined) {
+      response.retryAfter = this.retryAfter;
+    }
+
     // 开发环境添加堆栈信息
     if (process.env.NODE_ENV === 'development') {
       response.stack = this.stack;

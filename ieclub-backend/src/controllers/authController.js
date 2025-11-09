@@ -53,17 +53,17 @@ class AuthController {
         });
       }
 
-      // 频率限制：同一邮箱1分钟内只能发送1次
+      // 频率限制：同一邮箱1分钟内只能发送1次（与Redis限流配合）
       let recentCode;
       try {
-      const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+        const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
         recentCode = await prisma.verificationCode.findFirst({
-        where: {
-          email,
-          createdAt: { gte: oneMinuteAgo }
-        },
-        orderBy: { createdAt: 'desc' }
-      });
+          where: {
+            email,
+            createdAt: { gte: oneMinuteAgo }
+          },
+          orderBy: { createdAt: 'desc' }
+        });
       } catch (dbError) {
         // 数据库连接错误
         if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
@@ -393,11 +393,11 @@ class AuthController {
           }))
         });
         
-        // 查询匹配的验证码
+        // 查询匹配的验证码（确保类型一致）
         stored = await prisma.verificationCode.findFirst({
           where: {
             email,
-            code: codeStr, // 确保code是字符串类型
+            code: codeStr.toString().trim(), // 确保code是字符串类型并去除空格
             used: false
           },
           orderBy: {
@@ -438,11 +438,11 @@ class AuthController {
       // 检查验证码是否存在
       if (!stored) {
         logger.warn(`⚠️ 验证码未找到:`, { email, code: codeStr });
-        // 检查是否有已使用的验证码
+        // 检查是否有已使用的验证码（确保类型一致）
         const usedCode = await prisma.verificationCode.findFirst({
           where: {
             email,
-            code: codeStr, // 确保code是字符串类型
+            code: codeStr.toString().trim(), // 确保code是字符串类型并去除空格
             used: true
           },
           orderBy: {
@@ -551,20 +551,21 @@ class AuthController {
           });
       }
 
-      // 验证验证码
+      // 验证验证码（确保类型一致）
       let stored;
       try {
+        const verifyCodeStr = String(verifyCode).trim();
         stored = await prisma.verificationCode.findFirst({
-        where: {
-          email,
-          code: verifyCode,
-          type: 'register',
-          used: false
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      });
+          where: {
+            email,
+            code: verifyCodeStr, // 确保是字符串类型
+            type: 'register',
+            used: false
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        });
       } catch (dbError) {
         if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
           logger.error('数据库连接失败:', { 
