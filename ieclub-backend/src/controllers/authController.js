@@ -111,12 +111,24 @@ class AuthController {
           }
         } catch (dbError) {
           if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
-            logger.error('数据库连接失败:', dbError);
+            logger.error('数据库连接失败:', { 
+              error: dbError.message, 
+              code: dbError.code, 
+              name: dbError.name,
+              stack: dbError.stack 
+            });
             return res.status(503).json({
               code: 503,
               message: '服务暂时不可用，请稍后重试'
             });
           }
+          // 其他数据库错误也记录日志
+          logger.error('数据库操作失败:', { 
+            error: dbError.message, 
+            code: dbError.code, 
+            name: dbError.name,
+            stack: dbError.stack 
+          });
           throw dbError;
         }
       }
@@ -136,12 +148,24 @@ class AuthController {
           }
         } catch (dbError) {
           if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
-            logger.error('数据库连接失败:', dbError);
+            logger.error('数据库连接失败:', { 
+              error: dbError.message, 
+              code: dbError.code, 
+              name: dbError.name,
+              stack: dbError.stack 
+            });
             return res.status(503).json({
               code: 503,
               message: '服务暂时不可用，请稍后重试'
             });
           }
+          // 其他数据库错误也记录日志
+          logger.error('数据库操作失败:', { 
+            error: dbError.message, 
+            code: dbError.code, 
+            name: dbError.name,
+            stack: dbError.stack 
+          });
           throw dbError;
         }
       }
@@ -162,12 +186,24 @@ class AuthController {
         });
       } catch (dbError) {
         if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
-          logger.error('数据库连接失败:', dbError);
+          logger.error('数据库连接失败:', { 
+            error: dbError.message, 
+            code: dbError.code, 
+            name: dbError.name,
+            stack: dbError.stack 
+          });
           return res.status(503).json({
             code: 503,
             message: '服务暂时不可用，请稍后重试'
           });
         }
+        // 其他数据库错误也记录日志
+        logger.error('数据库操作失败:', { 
+          error: dbError.message, 
+          code: dbError.code, 
+          name: dbError.name,
+          stack: dbError.stack 
+        });
         throw dbError;
       }
 
