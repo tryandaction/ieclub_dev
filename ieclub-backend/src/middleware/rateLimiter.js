@@ -240,12 +240,33 @@ const rateLimiters = {
     keyGenerator: (req) => `interaction:${req.user?.id || req.ip}`
   }),
 
+  // 发送验证码（基于邮箱，更宽松的限制）
+  sendVerifyCode: createRateLimiter({
+    keyPrefix: 'send_verify_code',
+    points: 10,        // 10次发送
+    duration: 300,     // 5分钟内
+    blockDuration: 300, // 封禁5分钟
+    keyGenerator: (req) => {
+      // 基于邮箱限流，而不是IP
+      const email = req.body?.email || req.query?.email || 'unknown';
+      return `send_verify_code:${email}`;
+    },
+    onLimitReached: async (req, res, info) => {
+      logger.warn('发送验证码速率限制触发', {
+        email: req.body?.email,
+        ip: req.ip,
+        path: req.path,
+        ...info
+      });
+    }
+  }),
+
   // 验证码验证（基于邮箱，允许更多尝试次数）
   verifyCode: createRateLimiter({
     keyPrefix: 'verify_code',
-    points: 15,        // 15次尝试
-    duration: 60,       // 60秒内
-    blockDuration: 60,  // 封禁1分钟
+    points: 20,        // 20次尝试（增加尝试次数）
+    duration: 300,    // 5分钟内
+    blockDuration: 300,  // 封禁5分钟
     keyGenerator: (req) => {
       // 基于邮箱限流，而不是IP
       const email = req.body?.email || req.query?.email || 'unknown';

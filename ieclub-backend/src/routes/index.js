@@ -47,17 +47,39 @@ const csrfIgnorePaths = [
 const csrf = csrfProtection({ ignorePaths: csrfIgnorePaths });
 
 // ==================== Authentication Routes ====================
-// 发送验证码（严格限制，无需CSRF）
+// 发送验证码（基于邮箱限流，无需CSRF）
 router.post('/auth/send-verify-code', 
-  rateLimiters.auth,
+  rateLimiters.sendVerifyCode || rateLimiters.auth, // 使用专门的限流器，如果没有则回退到auth
   sendVerifyCodeValidation,
   handleValidationErrors,
+  (req, res, next) => {
+    // 添加路由调试日志
+    const logger = require('../utils/logger');
+    logger.info('📨 收到发送验证码请求:', { 
+      email: req.body?.email, 
+      type: req.body?.type,
+      ip: req.ip,
+      path: req.path
+    });
+    next();
+  },
   AuthController.sendVerifyCode
 );
 
 // 验证验证码（基于邮箱限流，允许更多尝试次数）
 router.post('/auth/verify-code', 
-  rateLimiters.verifyCode, 
+  rateLimiters.verifyCode,
+  (req, res, next) => {
+    // 添加路由调试日志
+    const logger = require('../utils/logger');
+    logger.info('🔐 收到验证验证码请求:', { 
+      email: req.body?.email, 
+      code: req.body?.code ? '***' : undefined,
+      ip: req.ip,
+      path: req.path
+    });
+    next();
+  },
   AuthController.verifyCode
 );
 

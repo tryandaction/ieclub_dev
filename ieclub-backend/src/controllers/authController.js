@@ -170,22 +170,33 @@ class AuthController {
         }
       }
 
-      // 生成验证码
-      const code = generateVerificationCode();
+      // 生成验证码（确保是字符串类型）
+      const code = generateVerificationCode().toString();
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10分钟后过期
 
       // 保存验证码到数据库
       try {
-        logger.info(`💾 保存验证码到数据库:`, { email, code, type, expiresAt });
+        logger.info(`💾 保存验证码到数据库:`, { 
+          email, 
+          code, 
+          codeType: typeof code,
+          type, 
+          expiresAt 
+        });
         await prisma.verificationCode.create({
           data: {
             email,
-            code,
+            code: code.toString(), // 确保是字符串类型
             type,
             expiresAt
           }
         });
-        logger.info(`✅ 验证码已保存到数据库:`, { email, code, type });
+        logger.info(`✅ 验证码已保存到数据库:`, { 
+          email, 
+          code, 
+          codeType: typeof code,
+          type 
+        });
       } catch (dbError) {
         if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
           logger.error('数据库连接失败:', { 
@@ -211,8 +222,11 @@ class AuthController {
 
       // 发送邮件（使用 emailService）
       let sendResult;
+      const env = process.env.NODE_ENV || 'development';
+      const isTestEnv = env === 'test' || env === 'development' || process.env.ALLOW_TEST_CODE === 'true';
+      
       try {
-        logger.info(`📧 准备发送验证码邮件到: ${email}`, { type, codeLength: code.length });
+        logger.info(`📧 准备发送验证码邮件到: ${email}`, { type, codeLength: code.length, env });
         sendResult = await emailService.sendVerificationCode(email, code, type);
         logger.info(`📧 邮件发送结果:`, { 
           email, 
@@ -228,15 +242,30 @@ class AuthController {
           code: emailError.code,
           stack: emailError.stack 
         });
-        // 即使邮件发送失败，验证码仍然有效（已保存到数据库）
+        
+        // 在测试/开发环境，即使邮件失败也返回成功（验证码已保存）
+        if (isTestEnv) {
+          logger.warn('⚠️ 测试环境：邮件发送失败，但验证码已保存，返回成功', { email, code });
+          return res.json({
+            success: true,
+            message: '验证码已生成（测试环境：邮件发送失败，但验证码已保存）',
+            data: {
+              expiresIn: 600, // 10分钟
+              emailSent: false,
+              verificationCode: code, // 测试环境返回验证码
+              note: '这是测试环境，验证码已保存到数据库'
+            }
+          });
+        }
+        
+        // 生产环境返回错误
         return res.status(500).json({
           success: false,
           message: '验证码已生成，但邮件发送失败，请稍后重试或联系管理员',
           data: {
             expiresIn: 600, // 10分钟
             emailSent: false,
-            error: emailError.message,
-            code: process.env.NODE_ENV === 'development' ? code : undefined // 开发环境返回验证码
+            error: emailError.message
           }
         });
       }
@@ -249,27 +278,38 @@ class AuthController {
           error: sendResult?.error,
           errorCode: sendResult?.errorCode,
           errorResponseCode: sendResult?.errorResponseCode,
-          env: process.env.NODE_ENV
+          env
         });
         
-        // 即使邮件发送失败，验证码仍然有效（已保存到数据库）
-        // 但在生产环境和测试环境，需要返回明确的错误信息
-        const env = process.env.NODE_ENV || 'development';
-        const errorMessage = sendResult?.error || '验证码已生成，但邮件发送失败，请稍后重试或联系管理员';
+        // 在测试/开发环境，即使邮件失败也返回成功（验证码已保存）
+        if (isTestEnv) {
+          logger.warn('⚠️ 测试环境：邮件发送失败，但验证码已保存，返回成功', { email, code });
+          return res.json({
+            success: true,
+            message: '验证码已生成（测试环境：邮件发送失败，但验证码已保存）',
+            data: {
+              expiresIn: 600, // 10分钟
+              emailSent: false,
+              verificationCode: code, // 测试环境返回验证码
+              note: '这是测试环境，验证码已保存到数据库'
+            }
+          });
+        }
         
+        // 生产环境返回错误
+        const errorMessage = sendResult?.error || '验证码已生成，但邮件发送失败，请稍后重试或联系管理员';
         return res.status(500).json({
           success: false,
           message: errorMessage,
           data: {
             expiresIn: 600, // 10分钟
             emailSent: false,
-            error: errorMessage,
-            // 仅在开发环境返回验证码，方便调试
-            verificationCode: env === 'development' ? code : undefined
+            error: errorMessage
           }
         });
       }
 
+      // 邮件发送成功
       res.json({
         success: true,
         message: '验证码已发送，请查收邮件',
@@ -312,7 +352,8 @@ class AuthController {
       }
       
       // 验证验证码格式
-      if (!/^\d{6}$/.test(code)) {
+      const codeStr = String(code).trim();
+      if (!/^\d{6}$/.test(codeStr)) {
         return res.status(400).json({
           success: false,
           message: '验证码必须是6位数字'
@@ -322,18 +363,55 @@ class AuthController {
       // 从数据库查询验证码（先查询所有未使用的验证码，包括已过期的）
       let stored;
       try {
-        logger.info(`🔍 查询验证码:`, { email, code: code.toString(), codeType: typeof code });
+        logger.info(`🔍 查询验证码:`, { 
+          email, 
+          code: codeStr, 
+          codeType: typeof codeStr,
+          codeLength: codeStr.length
+        });
+        
+        // 先查询该邮箱的所有未使用验证码（用于调试）
+        const allCodes = await prisma.verificationCode.findMany({
+          where: {
+            email,
+            used: false
+          },
+          orderBy: {
+            createdAt: 'desc'
+          },
+          take: 5
+        });
+        logger.info(`🔍 该邮箱的所有未使用验证码:`, { 
+          email, 
+          count: allCodes.length,
+          codes: allCodes.map(c => ({ 
+            code: c.code, 
+            codeType: typeof c.code,
+            createdAt: c.createdAt, 
+            expiresAt: c.expiresAt,
+            expired: c.expiresAt < new Date()
+          }))
+        });
+        
+        // 查询匹配的验证码
         stored = await prisma.verificationCode.findFirst({
-        where: {
-          email,
-          code: code.toString(), // 确保code是字符串类型
-          used: false
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      });
-        logger.info(`🔍 查询结果:`, { found: !!stored, email, code: code.toString() });
+          where: {
+            email,
+            code: codeStr, // 确保code是字符串类型
+            used: false
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        });
+        
+        logger.info(`🔍 查询结果:`, { 
+          found: !!stored, 
+          email, 
+          code: codeStr,
+          storedCode: stored?.code,
+          storedCodeType: stored ? typeof stored.code : null
+        });
       } catch (dbError) {
         if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
           logger.error('数据库连接失败:', { 
@@ -359,12 +437,12 @@ class AuthController {
       
       // 检查验证码是否存在
       if (!stored) {
-        logger.warn(`⚠️ 验证码未找到:`, { email, code: code.toString() });
+        logger.warn(`⚠️ 验证码未找到:`, { email, code: codeStr });
         // 检查是否有已使用的验证码
         const usedCode = await prisma.verificationCode.findFirst({
           where: {
             email,
-            code: code.toString(), // 确保code是字符串类型
+            code: codeStr, // 确保code是字符串类型
             used: true
           },
           orderBy: {
@@ -373,29 +451,12 @@ class AuthController {
         });
         
         if (usedCode) {
-          logger.warn(`⚠️ 验证码已使用:`, { email, code: code.toString(), usedAt: usedCode.usedAt });
+          logger.warn(`⚠️ 验证码已使用:`, { email, code: codeStr, usedAt: usedCode.usedAt });
           return res.status(400).json({
             success: false,
             message: '验证码已使用，请重新获取'
           });
         }
-
-        // 检查是否有该邮箱的其他验证码（用于调试）
-        const recentCodes = await prisma.verificationCode.findMany({
-          where: {
-            email,
-            used: false
-          },
-          orderBy: {
-            createdAt: 'desc'
-          },
-          take: 3
-        });
-        logger.warn(`⚠️ 该邮箱有其他未使用的验证码:`, { 
-          email, 
-          count: recentCodes.length,
-          codes: recentCodes.map(c => ({ code: c.code, createdAt: c.createdAt, expiresAt: c.expiresAt }))
-        });
 
         return res.status(400).json({
           success: false,
@@ -407,7 +468,7 @@ class AuthController {
       if (stored.expiresAt < new Date()) {
         logger.warn(`⚠️ 验证码已过期:`, { 
           email, 
-          code: code.toString(), 
+          code: codeStr, 
           expiresAt: stored.expiresAt,
           now: new Date()
         });
@@ -417,7 +478,7 @@ class AuthController {
         });
       }
 
-      logger.info(`✅ 验证码验证通过:`, { email, code: code.toString(), type: stored.type });
+      logger.info(`✅ 验证码验证通过:`, { email, code: codeStr, type: stored.type });
 
       // 标记验证码为已使用
       try {
@@ -428,7 +489,7 @@ class AuthController {
             usedAt: new Date()
           }
         });
-        logger.info(`✅ 验证码已标记为已使用:`, { email, code: code.toString() });
+        logger.info(`✅ 验证码已标记为已使用:`, { email, code: codeStr });
       } catch (dbError) {
         if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
           logger.error('数据库连接失败:', { 
