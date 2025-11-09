@@ -245,6 +245,7 @@ request.interceptors.response.use(
     
     // 📛 HTTP 错误
     const { status, data } = error.response
+    const requestUrl = error.config?.url || ''
     let errorMessage = '请求失败'
     
     // 尝试从响应数据中获取错误信息
@@ -258,6 +259,9 @@ request.interceptors.response.use(
       }
     }
     
+    // 判断是否为认证相关接口（登录、注册、发送验证码等）
+    const isAuthEndpoint = /\/auth\/(login|register|send-verify-code|verify-code|login-with-code|login-with-phone|forgot-password|reset-password)/.test(requestUrl)
+    
     // 特殊状态码处理
     switch (status) {
       case 400:
@@ -265,15 +269,22 @@ request.interceptors.response.use(
         console.error(`❌ [400] ${error.config.url}:`, errorMessage)
         break
       case 401:
-        errorMessage = '登录已过期，请重新登录'
-        console.warn(`🔒 [401] ${error.config.url}: Token 已过期`)
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        setTimeout(() => {
-          if (window.location.pathname !== '/login') {
-            window.location.href = '/login'
-          }
-        }, 1000)
+        // 如果是认证接口（登录/注册），使用后端返回的错误消息，不跳转
+        if (isAuthEndpoint) {
+          errorMessage = data?.message || '邮箱或密码错误'
+          console.warn(`🔒 [401] ${error.config.url}:`, errorMessage)
+        } else {
+          // 其他接口的 401 错误，表示 token 过期
+          errorMessage = data?.message || '登录已过期，请重新登录'
+          console.warn(`🔒 [401] ${error.config.url}: Token 已过期`)
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          setTimeout(() => {
+            if (window.location.pathname !== '/login') {
+              window.location.href = '/login'
+            }
+          }, 1000)
+        }
         break
       case 403:
         errorMessage = data?.message || '没有权限访问该资源'

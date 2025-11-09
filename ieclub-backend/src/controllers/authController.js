@@ -290,7 +290,7 @@ class AuthController {
         });
       }
 
-      // 从数据库查询验证码
+      // 从数据库查询验证码（先查询所有未使用的验证码，包括已过期的）
       let stored;
       try {
         stored = await prisma.verificationCode.findFirst({
@@ -326,24 +326,38 @@ class AuthController {
         throw dbError;
       }
       
+      // 检查验证码是否存在
       if (!stored) {
+        // 检查是否有已使用的验证码
+        const usedCode = await prisma.verificationCode.findFirst({
+          where: {
+            email,
+            code,
+            used: true
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        });
+        
+        if (usedCode) {
+          return res.status(400).json({
+            success: false,
+            message: '验证码已使用，请重新获取'
+          });
+        }
+        
         return res.status(400).json({
           success: false,
-          message: '验证码不存在或已使用'
+          message: '验证码错误或不存在，请检查后重试'
         });
       }
 
+      // 检查验证码是否过期
       if (stored.expiresAt < new Date()) {
         return res.status(400).json({
           success: false,
-          message: '验证码已过期'
-        });
-      }
-
-      if (stored.code !== code) {
-        return res.status(400).json({
-          success: false,
-          message: '验证码错误'
+          message: '验证码已过期，请重新获取'
         });
       }
 
