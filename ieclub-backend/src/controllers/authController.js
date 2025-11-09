@@ -176,14 +176,16 @@ class AuthController {
 
       // 保存验证码到数据库
       try {
-      await prisma.verificationCode.create({
-        data: {
-          email,
-          code,
-          type,
-          expiresAt
-        }
-      });
+        logger.info(`💾 保存验证码到数据库:`, { email, code, type, expiresAt });
+        await prisma.verificationCode.create({
+          data: {
+            email,
+            code,
+            type,
+            expiresAt
+          }
+        });
+        logger.info(`✅ 验证码已保存到数据库:`, { email, code, type });
       } catch (dbError) {
         if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
           logger.error('数据库连接失败:', { 
@@ -320,16 +322,18 @@ class AuthController {
       // 从数据库查询验证码（先查询所有未使用的验证码，包括已过期的）
       let stored;
       try {
+        logger.info(`🔍 查询验证码:`, { email, code: code.toString(), codeType: typeof code });
         stored = await prisma.verificationCode.findFirst({
         where: {
           email,
-          code,
+          code: code.toString(), // 确保code是字符串类型
           used: false
         },
         orderBy: {
           createdAt: 'desc'
         }
       });
+        logger.info(`🔍 查询结果:`, { found: !!stored, email, code: code.toString() });
       } catch (dbError) {
         if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
           logger.error('数据库连接失败:', { 
@@ -355,11 +359,12 @@ class AuthController {
       
       // 检查验证码是否存在
       if (!stored) {
+        logger.warn(`⚠️ 验证码未找到:`, { email, code: code.toString() });
         // 检查是否有已使用的验证码
         const usedCode = await prisma.verificationCode.findFirst({
           where: {
             email,
-            code,
+            code: code.toString(), // 确保code是字符串类型
             used: true
           },
           orderBy: {
@@ -368,11 +373,29 @@ class AuthController {
         });
         
         if (usedCode) {
-        return res.status(400).json({
-          success: false,
+          logger.warn(`⚠️ 验证码已使用:`, { email, code: code.toString(), usedAt: usedCode.usedAt });
+          return res.status(400).json({
+            success: false,
             message: '验证码已使用，请重新获取'
+          });
+        }
+
+        // 检查是否有该邮箱的其他验证码（用于调试）
+        const recentCodes = await prisma.verificationCode.findMany({
+          where: {
+            email,
+            used: false
+          },
+          orderBy: {
+            createdAt: 'desc'
+          },
+          take: 3
         });
-      }
+        logger.warn(`⚠️ 该邮箱有其他未使用的验证码:`, { 
+          email, 
+          count: recentCodes.length,
+          codes: recentCodes.map(c => ({ code: c.code, createdAt: c.createdAt, expiresAt: c.expiresAt }))
+        });
 
         return res.status(400).json({
           success: false,
@@ -382,21 +405,30 @@ class AuthController {
 
       // 检查验证码是否过期
       if (stored.expiresAt < new Date()) {
+        logger.warn(`⚠️ 验证码已过期:`, { 
+          email, 
+          code: code.toString(), 
+          expiresAt: stored.expiresAt,
+          now: new Date()
+        });
         return res.status(400).json({
           success: false,
           message: '验证码已过期，请重新获取'
         });
       }
 
+      logger.info(`✅ 验证码验证通过:`, { email, code: code.toString(), type: stored.type });
+
       // 标记验证码为已使用
       try {
-      await prisma.verificationCode.update({
-        where: { id: stored.id },
-        data: { 
-          used: true,
-          usedAt: new Date()
-        }
-      });
+        await prisma.verificationCode.update({
+          where: { id: stored.id },
+          data: { 
+            used: true,
+            usedAt: new Date()
+          }
+        });
+        logger.info(`✅ 验证码已标记为已使用:`, { email, code: code.toString() });
       } catch (dbError) {
         if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
           logger.error('数据库连接失败:', { 
