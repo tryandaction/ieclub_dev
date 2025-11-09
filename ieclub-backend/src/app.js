@@ -12,6 +12,7 @@ const { errorMiddleware } = require('./utils/errorHandler');
 const { notFoundHandler } = require('./middleware/errorHandler');
 const { getCsrfToken, refreshCsrfToken } = require('./middleware/csrf');
 const { monitor } = require('./utils/performanceMonitor');
+const requestContext = require('./middleware/requestContext');
 
 const app = express();
 
@@ -74,6 +75,9 @@ if (process.env.NODE_ENV === 'development') {
 
 // 启动性能监控
 monitor.start();
+
+// 请求上下文中间件（必须在最前面，为每个请求添加唯一ID）
+app.use(requestContext);
 
 // Cookie 解析
 app.use(cookieParser());

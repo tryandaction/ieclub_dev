@@ -19,9 +19,10 @@ class EmailService {
     try {
       const emailConfig = config.email || {};
 
-      // 如果没有配置，使用测试账户
-      if (!emailConfig.host || !emailConfig.user) {
+      // 如果没有配置，使用测试模式
+      if (!emailConfig.host || !emailConfig.user || !emailConfig.password) {
         logger.warn('邮件服务未配置，将使用测试模式');
+        logger.warn('提示: 要启用真实邮件发送，请配置 EMAIL_HOST, EMAIL_USER, EMAIL_PASSWORD');
         this.initialized = false;
         return;
       }
@@ -33,19 +34,30 @@ class EmailService {
         auth: {
           user: emailConfig.user,
           pass: emailConfig.password
-        }
+        },
+        // 增加连接超时和重试配置
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 10000
       });
 
-      // 验证连接
+      // 验证连接（异步，但不阻塞初始化）
       this.transporter.verify((error) => {
         if (error) {
-          logger.error('邮件服务连接失败:', error);
-          this.initialized = false;
+          logger.error('邮件服务连接验证失败:', error.message);
+          logger.error('详细错误:', error);
+          // 即使验证失败，也标记为已初始化，让实际发送时再处理错误
+          this.initialized = true;
+          logger.warn('邮件服务将尝试发送，但可能失败');
         } else {
-          logger.info('邮件服务已就绪');
+          logger.info('✅ 邮件服务连接验证成功');
           this.initialized = true;
         }
       });
+      
+      // 先标记为已初始化，允许发送（验证是异步的）
+      this.initialized = true;
+      logger.info('邮件传输器已创建，正在验证连接...');
     } catch (error) {
       logger.error('初始化邮件服务失败:', error);
       this.initialized = false;
@@ -63,28 +75,60 @@ class EmailService {
   async sendEmail({ to, subject, html, text }) {
     const env = process.env.NODE_ENV || 'development';
     
-    // 开发/测试环境：模拟发送成功（即使邮件未配置）
-    // 生产环境：如果未配置则返回失败
-    if (!this.initialized) {
-      if (env === 'production') {
-        logger.error('[PRODUCTION] 邮件服务未配置，无法发送邮件');
+    // 如果未初始化，检查是否是因为配置缺失
+    if (!this.initialized || !this.transporter) {
+      const emailConfig = config.email || {};
+      const hasConfig = emailConfig.host && emailConfig.user && emailConfig.password;
+      
+      // 生产环境和测试环境：必须真实发送，不能模拟
+      if (env === 'production' || env === 'staging') {
+        if (hasConfig) {
+          logger.error(`[${env.toUpperCase()}] 邮件服务配置存在但初始化失败，无法发送邮件`);
+          logger.error('配置信息:', {
+            host: emailConfig.host,
+            port: emailConfig.port,
+            user: emailConfig.user,
+            hasPassword: !!emailConfig.password
+          });
+          logger.error('请检查: 1) SMTP服务器地址和端口是否正确 2) 用户名和密码是否正确 3) 网络连接是否正常 4) 防火墙是否阻止连接');
+        } else {
+          logger.error(`[${env.toUpperCase()}] 邮件服务未配置，无法发送邮件`);
+          logger.error('请配置 EMAIL_HOST, EMAIL_USER, EMAIL_PASSWORD 环境变量');
+        }
+        
         return { 
           success: false, 
-          error: '邮件服务未配置',
-          message: '请联系管理员配置邮件服务'
+          error: '邮件服务未配置或初始化失败',
+          message: hasConfig 
+            ? '邮件服务配置存在但初始化失败，请检查配置和网络连接'
+            : '邮件服务未配置，请联系管理员配置邮件服务'
         };
       }
       
-      // 开发/测试环境：模拟成功
-      logger.warn(`[${env.toUpperCase()}] 邮件服务未配置，模拟发送邮件到: ${to}`);
+      // 仅开发环境：允许模拟发送（用于本地开发测试）
+      if (hasConfig) {
+        logger.warn(`[${env.toUpperCase()}] 邮件服务配置存在但初始化失败，模拟发送邮件到: ${to}`);
+        logger.warn('配置信息:', {
+          host: emailConfig.host,
+          port: emailConfig.port,
+          user: emailConfig.user,
+          hasPassword: !!emailConfig.password
+        });
+      } else {
+        logger.warn(`[${env.toUpperCase()}] 邮件服务未配置，模拟发送邮件到: ${to}`);
+      }
+      
       logger.info(`[${env.toUpperCase()}] 邮件主题: ${subject}`);
+      logger.info(`[${env.toUpperCase()}] 邮件内容预览: ${text ? text.substring(0, 100) : 'HTML邮件'}`);
       
       return { 
         success: true, 
         messageId: `mock-${Date.now()}`,
         mock: true,
         env,
-        message: `[${env}环境] 邮件服务未配置，已模拟发送`
+        message: hasConfig 
+          ? `[${env}环境] 邮件服务配置存在但初始化失败，已模拟发送`
+          : `[${env}环境] 邮件服务未配置，已模拟发送`
       };
     }
 
