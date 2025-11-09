@@ -29,8 +29,10 @@ app.use(helmet({
 app.use(hpp());
 
 // CORS配置
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
+// 支持 ALLOWED_ORIGINS 和 CORS_ORIGIN 两种环境变量名称
+const corsOriginEnv = process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGIN;
+const allowedOrigins = corsOriginEnv
+  ? corsOriginEnv.split(',').map(origin => origin.trim())
   : [
       'http://localhost:10086', 
       'http://localhost:3000', 
@@ -39,7 +41,8 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
       'http://127.0.0.1:3000',
       'http://127.0.0.1:8080',
       'https://ieclub.online',
-      'https://www.ieclub.online'
+      'https://www.ieclub.online',
+      'https://test.ieclub.online'  // 测试环境域名
     ];
 
 app.use(cors({
