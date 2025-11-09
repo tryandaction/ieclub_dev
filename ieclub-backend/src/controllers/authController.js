@@ -45,7 +45,7 @@ class AuthController {
       }
 
       // 验证邮箱格式与域名限制
-      const emailCheck = checkEmailAllowed(email, type);
+      const emailCheck = await checkEmailAllowed(email, type);
       if (!emailCheck.valid) {
         return res.status(400).json({
           code: 400,
@@ -409,7 +409,7 @@ class AuthController {
       }
 
       // 验证邮箱格式与域名限制
-      const emailCheck = checkEmailAllowed(email, 'register');
+      const emailCheck = await checkEmailAllowed(email, 'register');
       if (!emailCheck.valid) {
         return res.status(400).json({
           success: false,
@@ -650,7 +650,7 @@ class AuthController {
       logger.info('登录尝试:', { email, ip: req.ip });
 
       // 验证邮箱格式与域名限制
-      const emailCheck = checkEmailAllowed(email, 'login');
+      const emailCheck = await checkEmailAllowed(email, 'login');
       if (!emailCheck.valid) {
         logger.warn('邮箱验证失败:', { email, reason: emailCheck.message });
         return res.status(400).json({
@@ -878,7 +878,7 @@ class AuthController {
       }
 
       // 验证邮箱格式与域名限制
-      const emailCheck = checkEmailAllowed(email, 'reset');
+      const emailCheck = await checkEmailAllowed(email, 'reset');
       if (!emailCheck.valid) {
         return res.status(400).json({
           success: false,
@@ -1194,7 +1194,7 @@ class AuthController {
       }
 
       // 验证邮箱格式与域名限制
-      const emailCheck = checkEmailAllowed(email, 'login');
+      const emailCheck = await checkEmailAllowed(email, 'login');
       if (!emailCheck.valid) {
         return res.status(400).json({
           success: false,

@@ -1,21 +1,49 @@
 /**
  * 邮箱域名检查器
  * 统一管理允许的邮箱域名白名单
+ * 
+ * 环境行为：
+ * - production: 只允许学校邮箱（sustech.edu.cn, mail.sustech.edu.cn）
+ * - staging: 检查白名单，如果不在白名单中，返回需要管理员同意的提示
+ * - development: 不限制（允许所有邮箱）
  */
 
 const config = require('../config');
+const prisma = require('../config/database');
+const logger = require('./logger');
+
+// 学校邮箱域名列表（生产环境强制要求）
+const SCHOOL_EMAIL_DOMAINS = ['sustech.edu.cn', 'mail.sustech.edu.cn'];
 
 /**
  * 获取允许的邮箱域名列表
  * @returns {string[] | null} 允许的域名数组，null表示不限制
  */
 function getAllowedDomains() {
-  // 从环境变量读取允许的域名列表
-  const domainsEnv = process.env.ALLOWED_EMAIL_DOMAINS || config.email?.allowedDomains;
+  const env = process.env.NODE_ENV || 'development';
   
-  // 如果未设置或为空字符串，返回 null 表示不限制
+  // 生产环境：只允许学校邮箱
+  if (env === 'production') {
+    return SCHOOL_EMAIL_DOMAINS;
+  }
+  
+  // 测试环境：从环境变量读取，如果没有则返回学校邮箱
+  if (env === 'staging') {
+    const domainsEnv = process.env.ALLOWED_EMAIL_DOMAINS || config.email?.allowedDomains;
+    if (domainsEnv && domainsEnv.trim() !== '') {
+      const domains = domainsEnv
+        .split(',')
+        .map(domain => domain.trim())
+        .filter(domain => domain.length > 0);
+      return domains.length > 0 ? domains : SCHOOL_EMAIL_DOMAINS;
+    }
+    return SCHOOL_EMAIL_DOMAINS;
+  }
+  
+  // 开发环境：从环境变量读取，如果没有则不限制
+  const domainsEnv = process.env.ALLOWED_EMAIL_DOMAINS || config.email?.allowedDomains;
   if (!domainsEnv || domainsEnv.trim() === '') {
-    return null;
+    return null; // 开发环境不限制
   }
   
   // 分割、清理并过滤空字符串
@@ -24,17 +52,39 @@ function getAllowedDomains() {
     .map(domain => domain.trim())
     .filter(domain => domain.length > 0);
   
-  // 如果解析后为空数组，返回 null 表示不限制
   return domains.length > 0 ? domains : null;
+}
+
+/**
+ * 检查邮箱是否在测试环境白名单中
+ * @param {string} email - 要检查的邮箱地址
+ * @returns {Promise<boolean>} 是否在白名单中
+ */
+async function isEmailInWhitelist(email) {
+  try {
+    const env = process.env.NODE_ENV || 'development';
+    if (env !== 'staging') {
+      return false; // 只有测试环境需要检查白名单
+    }
+    
+    const whitelistEntry = await prisma.emailWhitelist.findUnique({
+      where: { email: email.toLowerCase() }
+    });
+    
+    return whitelistEntry !== null && whitelistEntry.status === 'approved';
+  } catch (error) {
+    logger.error('检查邮箱白名单失败:', { email, error: error.message });
+    return false; // 出错时返回false，拒绝访问
+  }
 }
 
 /**
  * 检查邮箱是否在允许的域名列表中
  * @param {string} email - 要检查的邮箱地址
  * @param {string} type - 操作类型 (register, login, reset等)
- * @returns {Object} 检查结果 { valid: boolean, message: string }
+ * @returns {Promise<Object>} 检查结果 { valid: boolean, message: string, needApproval?: boolean }
  */
-function checkEmailAllowed(email, type = 'register') {
+async function checkEmailAllowed(email, type = 'register') {
   try {
     if (!email) {
       return {
@@ -69,10 +119,61 @@ function checkEmailAllowed(email, type = 'register') {
       };
     }
     
-    // 获取允许的域名列表
-    const allowedDomains = getAllowedDomains();
+    const env = process.env.NODE_ENV || 'development';
     
-    // 如果 allowedDomains 为 null，表示不限制邮箱域名
+    // 生产环境：只允许学校邮箱
+    if (env === 'production') {
+      const isSchoolEmail = SCHOOL_EMAIL_DOMAINS.some(domain => 
+        emailDomain.toLowerCase() === domain.toLowerCase()
+      );
+      
+      if (!isSchoolEmail) {
+        return {
+          valid: false,
+          message: `注册仅限使用学校邮箱：${SCHOOL_EMAIL_DOMAINS.join(' 或 ')}`
+        };
+      }
+      
+      return {
+        valid: true,
+        message: '邮箱验证通过'
+      };
+    }
+    
+    // 测试环境：检查白名单
+    if (env === 'staging') {
+      // 先检查是否是学校邮箱
+      const isSchoolEmail = SCHOOL_EMAIL_DOMAINS.some(domain => 
+        emailDomain.toLowerCase() === domain.toLowerCase()
+      );
+      
+      if (isSchoolEmail) {
+        return {
+          valid: true,
+          message: '邮箱验证通过'
+        };
+      }
+      
+      // 不是学校邮箱，检查白名单
+      const inWhitelist = await isEmailInWhitelist(email);
+      
+      if (inWhitelist) {
+        return {
+          valid: true,
+          message: '邮箱验证通过'
+        };
+      }
+      
+      // 不在白名单中，返回需要管理员同意的提示
+      return {
+        valid: false,
+        message: '该邮箱需要管理员同意后才能注册。请联系管理员或使用学校邮箱注册。',
+        needApproval: true
+      };
+    }
+    
+    // 开发环境：不限制
+    const allowedDomains = getAllowedDomains();
     if (allowedDomains === null) {
       return {
         valid: true,
@@ -80,15 +181,14 @@ function checkEmailAllowed(email, type = 'register') {
       };
     }
     
-    // 检查邮箱域名是否在白名单中
+    // 检查邮箱域名是否在允许列表中
     const isAllowed = allowedDomains.some(domain => 
       emailDomain.toLowerCase() === domain.toLowerCase()
     );
     
     if (!isAllowed) {
-      // 根据操作类型生成不同的错误消息
-      let message;
       const domainList = allowedDomains.join(', ');
+      let message;
       
       switch (type) {
         case 'register':
@@ -115,8 +215,6 @@ function checkEmailAllowed(email, type = 'register') {
       message: '邮箱验证通过'
     };
   } catch (error) {
-    // 捕获任何异常，返回友好的错误信息
-    const logger = require('../utils/logger');
     logger.error('邮箱验证失败:', { email, type, error: error.message });
     
     return {
@@ -128,6 +226,8 @@ function checkEmailAllowed(email, type = 'register') {
 
 module.exports = {
   getAllowedDomains,
-  checkEmailAllowed
+  checkEmailAllowed,
+  isEmailInWhitelist,
+  SCHOOL_EMAIL_DOMAINS
 };
 
