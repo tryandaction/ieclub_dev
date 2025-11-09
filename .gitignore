@@ -36,6 +36,7 @@ lerna-debug.log*
 # ============================
 # 环境变量
 # ============================
+# ⚠️  重要：.env 文件包含敏感信息（密码、密钥等），永远不要提交到 Git
 .env
 .env.local
 .env.development.local
@@ -51,6 +52,7 @@ ieclub-frontend/.env.local
 ieclub-frontend/.env.development.local
 ieclub-frontend/.env.test.local
 ieclub-frontend/.env.production.local
+# 注意：.env.example 是模板文件，可以提交到 Git
 
 # ============================
 # 日志文件

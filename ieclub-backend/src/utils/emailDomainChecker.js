@@ -3,8 +3,8 @@
  * 统一管理允许的邮箱域名白名单
  * 
  * 环境行为：
- * - production: 只允许学校邮箱（sustech.edu.cn, mail.sustech.edu.cn）
- * - staging: 检查白名单，如果不在白名单中，返回需要管理员同意的提示
+ * - production: 只允许学校邮箱注册（sustech.edu.cn, mail.sustech.edu.cn）
+ * - staging: 检查白名单，学校邮箱可直接注册，其他邮箱需要管理员同意（白名单）
  * - development: 不限制（允许所有邮箱）
  */
 
@@ -12,7 +12,7 @@ const config = require('../config');
 const prisma = require('../config/database');
 const logger = require('./logger');
 
-// 学校邮箱域名列表（生产环境强制要求）
+// 学校邮箱域名列表（测试环境可直接注册，无需白名单）
 const SCHOOL_EMAIL_DOMAINS = ['sustech.edu.cn', 'mail.sustech.edu.cn'];
 
 /**
@@ -127,16 +127,34 @@ async function checkEmailAllowed(email, type = 'register') {
         emailDomain.toLowerCase() === domain.toLowerCase()
       );
       
-      if (!isSchoolEmail) {
+      if (isSchoolEmail) {
         return {
-          valid: false,
-          message: `注册仅限使用学校邮箱：${SCHOOL_EMAIL_DOMAINS.join(' 或 ')}`
+          valid: true,
+          message: '邮箱验证通过'
         };
       }
       
+      // 不是学校邮箱，返回错误
+      const domainList = SCHOOL_EMAIL_DOMAINS.join(', ');
+      let message;
+      
+      switch (type) {
+        case 'register':
+          message = `注册仅限使用学校邮箱：${domainList}`;
+          break;
+        case 'login':
+          message = `登录仅限使用学校邮箱：${domainList}`;
+          break;
+        case 'reset':
+          message = `密码重置仅限使用学校邮箱：${domainList}`;
+          break;
+        default:
+          message = `该邮箱不在允许的域名列表中，仅限使用学校邮箱：${domainList}`;
+      }
+      
       return {
-        valid: true,
-        message: '邮箱验证通过'
+        valid: false,
+        message
       };
     }
     

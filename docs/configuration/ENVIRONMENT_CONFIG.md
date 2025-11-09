@@ -389,7 +389,8 @@ globalData: {
 
 - [部署指南](../deployment/Deployment_guide.md)
 - [生产环境检查清单](../deployment/PRE_PRODUCTION_CHECKLIST.md)
-- [邮件服务配置](./CONFIGURE_REAL_EMAIL.md)
+- [邮件服务配置指南](./EMAIL_SETUP_GUIDE.md)
+- [环境变量配置说明](./ENVIRONMENT_VARIABLES.md)
 - [安全配置指南](./SECURITY_GUIDE.md)
 
 ---

@@ -18,14 +18,31 @@ class EmailService {
   initTransporter() {
     try {
       const emailConfig = config.email || {};
+      const env = process.env.NODE_ENV || 'development';
 
       // 如果没有配置，使用测试模式
       if (!emailConfig.host || !emailConfig.user || !emailConfig.password) {
-        logger.warn('邮件服务未配置，将使用测试模式');
+        logger.warn('⚠️ 邮件服务未配置，将使用测试模式');
         logger.warn('提示: 要启用真实邮件发送，请配置 EMAIL_HOST, EMAIL_USER, EMAIL_PASSWORD');
+        logger.warn('当前环境:', env);
+        logger.warn('配置状态:', {
+          host: emailConfig.host ? '已设置' : '未设置',
+          user: emailConfig.user ? '已设置' : '未设置',
+          password: emailConfig.password ? '已设置' : '未设置',
+          port: emailConfig.port || 587,
+          secure: emailConfig.secure || false
+        });
         this.initialized = false;
         return;
       }
+
+      logger.info('📧 正在初始化邮件服务...', {
+        host: emailConfig.host,
+        port: emailConfig.port || 587,
+        user: emailConfig.user,
+        secure: emailConfig.secure || false,
+        env
+      });
 
       this.transporter = nodemailer.createTransport({
         host: emailConfig.host,
@@ -36,21 +53,42 @@ class EmailService {
           pass: emailConfig.password
         },
         // 增加连接超时和重试配置
-        connectionTimeout: 10000,
-        greetingTimeout: 10000,
-        socketTimeout: 10000
+        connectionTimeout: 15000,
+        greetingTimeout: 15000,
+        socketTimeout: 15000,
+        // 启用调试（仅在开发环境）
+        debug: env === 'development',
+        logger: env === 'development'
       });
 
       // 验证连接（异步，但不阻塞初始化）
       this.transporter.verify((error) => {
         if (error) {
-          logger.error('邮件服务连接验证失败:', error.message);
-          logger.error('详细错误:', error);
+          logger.error('❌ 邮件服务连接验证失败:', {
+            message: error.message,
+            code: error.code,
+            command: error.command,
+            response: error.response,
+            responseCode: error.responseCode,
+            host: emailConfig.host,
+            port: emailConfig.port,
+            user: emailConfig.user
+          });
+          logger.error('详细错误堆栈:', error.stack);
+          logger.warn('💡 可能的原因:');
+          logger.warn('   1. SMTP服务器地址或端口不正确');
+          logger.warn('   2. 用户名或密码错误');
+          logger.warn('   3. 网络连接问题');
+          logger.warn('   4. 防火墙阻止连接');
+          logger.warn('   5. 需要启用"允许不够安全的应用"（Gmail）');
+          logger.warn('   6. 需要使用应用专用密码（Gmail/QQ邮箱）');
+          logger.warn('   7. QQ邮箱需要开启SMTP服务并获取授权码');
           // 即使验证失败，也标记为已初始化，让实际发送时再处理错误
           this.initialized = true;
-          logger.warn('邮件服务将尝试发送，但可能失败');
+          logger.warn('⚠️ 邮件服务将尝试发送，但可能失败');
         } else {
           logger.info('✅ 邮件服务连接验证成功');
+          logger.info('📧 邮件服务已就绪，可以发送邮件');
           this.initialized = true;
         }
       });
@@ -59,7 +97,10 @@ class EmailService {
       this.initialized = true;
       logger.info('邮件传输器已创建，正在验证连接...');
     } catch (error) {
-      logger.error('初始化邮件服务失败:', error);
+      logger.error('❌ 初始化邮件服务失败:', {
+        message: error.message,
+        stack: error.stack
+      });
       this.initialized = false;
     }
   }
@@ -136,6 +177,12 @@ class EmailService {
       const emailConfig = config.email || {};
       const from = emailConfig.from || emailConfig.user;
 
+      logger.info(`📧 正在发送邮件到: ${to}`, {
+        subject,
+        from,
+        host: emailConfig.host
+      });
+
       const info = await this.transporter.sendMail({
         from: `IEclub <${from}>`,
         to,
@@ -144,11 +191,47 @@ class EmailService {
         html
       });
 
-      logger.info(`邮件发送成功: ${to}`, { messageId: info.messageId });
+      logger.info(`✅ 邮件发送成功: ${to}`, { 
+        messageId: info.messageId,
+        response: info.response 
+      });
       return { success: true, messageId: info.messageId };
     } catch (error) {
-      logger.error('邮件发送失败:', error);
-      return { success: false, error: error.message };
+      logger.error('❌ 邮件发送失败:', {
+        to,
+        subject,
+        error: error.message,
+        code: error.code,
+        command: error.command,
+        response: error.response,
+        responseCode: error.responseCode,
+        stack: error.stack
+      });
+      
+      // 提供更详细的错误信息
+      let errorMessage = error.message;
+      if (error.code === 'EAUTH') {
+        errorMessage = '邮件认证失败，请检查用户名和密码（QQ邮箱需要使用授权码，Gmail需要使用应用专用密码）';
+      } else if (error.code === 'ECONNECTION') {
+        errorMessage = '无法连接到邮件服务器，请检查网络连接和服务器地址';
+      } else if (error.code === 'ETIMEDOUT') {
+        errorMessage = '邮件服务器连接超时，请稍后重试';
+      } else if (error.responseCode === 535) {
+        errorMessage = '邮件认证失败，请检查用户名和密码（QQ邮箱需要使用授权码，Gmail需要使用应用专用密码）';
+      } else if (error.responseCode === 550) {
+        errorMessage = '邮件发送被拒绝，请检查收件人地址';
+      } else if (error.responseCode === 553) {
+        errorMessage = '邮件地址格式错误或被拒绝';
+      } else if (error.code === 'ESOCKET') {
+        errorMessage = '无法建立与邮件服务器的连接，请检查网络和防火墙设置';
+      }
+      
+      return { 
+        success: false, 
+        error: errorMessage,
+        errorCode: error.code,
+        errorResponseCode: error.responseCode
+      };
     }
   }
 
