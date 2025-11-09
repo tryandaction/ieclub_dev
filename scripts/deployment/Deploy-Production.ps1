@@ -503,8 +503,22 @@ ECOSYSTEM_EOF
 
 # 删除旧进程并启动新进程
 pm2 delete ieclub-backend 2>/dev/null || true
+pm2 delete all 2>/dev/null || true
 pm2 start ecosystem.production.config.js
 pm2 save
+
+# 等待进程启动
+sleep 3
+
+# 检查进程状态
+pm2 status
+
+# 如果进程状态为 errored，显示错误日志
+if pm2 jlist | grep -q '"status":"errored"'; then
+    echo "❌ PM2 进程启动失败，查看错误日志："
+    pm2 logs ieclub-backend --lines 50 --nostream --err
+    exit 1
+fi
 
 echo "[8/8] 等待服务启动..."
 sleep 5

@@ -457,7 +457,33 @@ class AuthController {
         }
       });
     } catch (error) {
-      logger.error('登录失败:', { email: req.body.email, error: error.message });
+      logger.error('登录失败:', { 
+        email: req.body.email, 
+        error: error.message,
+        stack: error.stack,
+        name: error.name,
+        code: error.code
+      });
+      
+      // 如果是数据库连接错误，返回更友好的错误信息
+      if (error.code === 'P1001' || error.message.includes('Can\'t reach database')) {
+        logger.error('数据库连接失败:', error);
+        return res.status(503).json({
+          success: false,
+          message: '服务暂时不可用，请稍后重试'
+        });
+      }
+      
+      // 如果是 Prisma 客户端错误，返回更友好的错误信息
+      if (error.name === 'PrismaClientInitializationError') {
+        logger.error('Prisma 客户端初始化失败:', error);
+        return res.status(503).json({
+          success: false,
+          message: '服务暂时不可用，请稍后重试'
+        });
+      }
+      
+      // 其他错误传递给错误处理器
       next(error);
     }
   }

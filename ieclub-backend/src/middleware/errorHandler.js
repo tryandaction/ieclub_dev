@@ -42,7 +42,24 @@ const errorHandler = (err, req, res, _next) => {
     if (err.code === 'P2003') {
       return response.error(res, '关联数据不存在', 400);
     }
+    // 数据库连接错误
+    if (err.code === 'P1001' || err.code === 'P1000') {
+      logger.error('数据库连接失败:', err);
+      return res.status(503).json({
+        success: false,
+        message: '服务暂时不可用，请稍后重试'
+      });
+    }
     return response.error(res, '数据库操作失败', 400);
+  }
+  
+  // Prisma 客户端初始化错误
+  if (err.name === 'PrismaClientInitializationError') {
+    logger.error('Prisma 客户端初始化失败:', err);
+    return res.status(503).json({
+      success: false,
+      message: '服务暂时不可用，请稍后重试'
+    });
   }
 
   if (err instanceof Prisma.PrismaClientValidationError) {

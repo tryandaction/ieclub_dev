@@ -241,7 +241,8 @@ Write-Host ""
 # 8. 检查Redis连接
 Write-Host "[8/8] 检查Redis连接..." -ForegroundColor Yellow
 try {
-    $redisCheck = ssh $Server "redis-cli ping 2>&1" 2>&1
+    # 使用超时和错误处理
+    $redisCheck = ssh -o ConnectTimeout=5 -o BatchMode=yes $Server "timeout 3 redis-cli ping 2>&1 || echo 'REDIS_ERROR'" 2>&1
     
     # 处理数组输出
     if ($redisCheck -is [Array]) {
@@ -250,16 +251,23 @@ try {
     
     $redisCheckStr = $redisCheck.ToString()
     
-    if ($redisCheckStr -match 'PONG') {
+    # 检查是否包含连接超时错误
+    if ($redisCheckStr -match 'Connection timed out|ssh: connect to host') {
+        Write-Host "  Redis连接: SSH连接超时（可能是网络问题）" -ForegroundColor Yellow
+        $warnings += "Redis检查时SSH连接超时（可能是网络问题，不影响部署）"
+    } elseif ($redisCheckStr -match 'PONG') {
         Write-Host "  Redis连接: OK" -ForegroundColor Green
-    } else {
+    } elseif ($redisCheckStr -match 'REDIS_ERROR|Could not connect|Connection refused') {
         Write-Host "  Redis连接: 无法连接或未运行" -ForegroundColor Yellow
         Write-Host "  输出: $redisCheckStr" -ForegroundColor Gray
         $warnings += "Redis可能未运行或无法连接"
+    } else {
+        Write-Host "  Redis连接: 无法验证（输出: $redisCheckStr）" -ForegroundColor Yellow
+        $warnings += "无法验证Redis连接"
     }
 } catch {
     Write-Host "  Redis检查失败: $_" -ForegroundColor Yellow
-    $warnings += "无法检查Redis连接"
+    $warnings += "无法检查Redis连接（可能是网络问题）"
 }
 Write-Host ""
 
