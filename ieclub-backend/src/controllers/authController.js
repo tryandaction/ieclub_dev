@@ -46,14 +46,27 @@ class AuthController {
       }
 
       // 频率限制：同一邮箱1分钟内只能发送1次
-      const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
-      const recentCode = await prisma.verificationCode.findFirst({
-        where: {
-          email,
-          createdAt: { gte: oneMinuteAgo }
-        },
-        orderBy: { createdAt: 'desc' }
-      });
+      let recentCode;
+      try {
+        const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+        recentCode = await prisma.verificationCode.findFirst({
+          where: {
+            email,
+            createdAt: { gte: oneMinuteAgo }
+          },
+          orderBy: { createdAt: 'desc' }
+        });
+      } catch (dbError) {
+        // 数据库连接错误
+        if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
+          logger.error('数据库连接失败:', dbError);
+          return res.status(503).json({
+            code: 503,
+            message: '服务暂时不可用，请稍后重试'
+          });
+        }
+        throw dbError;
+      }
 
       if (recentCode) {
         const waitSeconds = Math.ceil((recentCode.createdAt.getTime() + 60000 - Date.now()) / 1000);
@@ -65,29 +78,51 @@ class AuthController {
 
       // 注册时检查邮箱是否已存在
       if (type === 'register') {
-        const existingUser = await prisma.user.findUnique({
-          where: { email }
-        });
-
-        if (existingUser) {
-          return res.status(400).json({
-            code: 400,
-            message: '该邮箱已被注册'
+        try {
+          const existingUser = await prisma.user.findUnique({
+            where: { email }
           });
+
+          if (existingUser) {
+            return res.status(400).json({
+              code: 400,
+              message: '该邮箱已被注册'
+            });
+          }
+        } catch (dbError) {
+          if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
+            logger.error('数据库连接失败:', dbError);
+            return res.status(503).json({
+              code: 503,
+              message: '服务暂时不可用，请稍后重试'
+            });
+          }
+          throw dbError;
         }
       }
 
       // 重置密码或登录时检查邮箱是否存在
       if (type === 'reset' || type === 'login') {
-        const user = await prisma.user.findUnique({
-          where: { email }
-        });
-
-        if (!user) {
-          return res.status(404).json({
-            code: 404,
-            message: '该邮箱未注册'
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email }
           });
+
+          if (!user) {
+            return res.status(404).json({
+              code: 404,
+              message: '该邮箱未注册'
+            });
+          }
+        } catch (dbError) {
+          if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
+            logger.error('数据库连接失败:', dbError);
+            return res.status(503).json({
+              code: 503,
+              message: '服务暂时不可用，请稍后重试'
+            });
+          }
+          throw dbError;
         }
       }
 
@@ -96,14 +131,25 @@ class AuthController {
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10分钟后过期
 
       // 保存验证码到数据库
-      await prisma.verificationCode.create({
-        data: {
-          email,
-          code,
-          type,
-          expiresAt
+      try {
+        await prisma.verificationCode.create({
+          data: {
+            email,
+            code,
+            type,
+            expiresAt
+          }
+        });
+      } catch (dbError) {
+        if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
+          logger.error('数据库连接失败:', dbError);
+          return res.status(503).json({
+            code: 503,
+            message: '服务暂时不可用，请稍后重试'
+          });
         }
-      });
+        throw dbError;
+      }
 
       // 发送邮件（使用 emailService）
       const sendResult = await emailService.sendVerificationCode(email, code, type);
@@ -144,16 +190,28 @@ class AuthController {
       const { email, code } = req.body;
 
       // 从数据库查询验证码
-      const stored = await prisma.verificationCode.findFirst({
-        where: {
-          email,
-          code,
-          used: false
-        },
-        orderBy: {
-          createdAt: 'desc'
+      let stored;
+      try {
+        stored = await prisma.verificationCode.findFirst({
+          where: {
+            email,
+            code,
+            used: false
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        });
+      } catch (dbError) {
+        if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
+          logger.error('数据库连接失败:', dbError);
+          return res.status(503).json({
+            success: false,
+            message: '服务暂时不可用，请稍后重试'
+          });
         }
-      });
+        throw dbError;
+      }
       
       if (!stored) {
         return res.status(400).json({
@@ -177,13 +235,24 @@ class AuthController {
       }
 
       // 标记验证码为已使用
-      await prisma.verificationCode.update({
-        where: { id: stored.id },
-        data: { 
-          used: true,
-          usedAt: new Date()
+      try {
+        await prisma.verificationCode.update({
+          where: { id: stored.id },
+          data: { 
+            used: true,
+            usedAt: new Date()
+          }
+        });
+      } catch (dbError) {
+        if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
+          logger.error('数据库连接失败:', dbError);
+          return res.status(503).json({
+            success: false,
+            message: '服务暂时不可用，请稍后重试'
+          });
         }
-      });
+        throw dbError;
+      }
 
       res.json({
         success: true,
