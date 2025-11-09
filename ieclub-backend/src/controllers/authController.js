@@ -39,7 +39,7 @@ class AuthController {
       // 验证必填字段
       if (!email) {
         return res.status(400).json({
-          code: 400,
+          success: false,
           message: '邮箱地址不能为空'
         });
       }
@@ -48,7 +48,7 @@ class AuthController {
       const emailCheck = await checkEmailAllowed(email, type);
       if (!emailCheck.valid) {
         return res.status(400).json({
-          code: 400,
+          success: false,
           message: emailCheck.message
         });
       }
@@ -74,7 +74,7 @@ class AuthController {
             stack: dbError.stack 
           });
           return res.status(503).json({
-            code: 503,
+            success: false,
             message: '服务暂时不可用，请稍后重试'
           });
         }
@@ -91,7 +91,7 @@ class AuthController {
       if (recentCode) {
         const waitSeconds = Math.ceil((recentCode.createdAt.getTime() + 60000 - Date.now()) / 1000);
         return res.status(429).json({
-          code: 429,
+          success: false,
           message: `验证码发送过于频繁，请${waitSeconds}秒后重试`
         });
       }
@@ -105,7 +105,7 @@ class AuthController {
 
         if (existingUser) {
           return res.status(400).json({
-            code: 400,
+            success: false,
             message: '该邮箱已被注册'
           });
           }
@@ -142,7 +142,7 @@ class AuthController {
 
         if (!user) {
           return res.status(404).json({
-            code: 404,
+            success: false,
             message: '该邮箱未注册'
           });
           }
@@ -193,7 +193,7 @@ class AuthController {
             stack: dbError.stack 
           });
           return res.status(503).json({
-            code: 503,
+            success: false,
             message: '服务暂时不可用，请稍后重试'
           });
         }
@@ -228,7 +228,7 @@ class AuthController {
         });
         // 即使邮件发送失败，验证码仍然有效（已保存到数据库）
         return res.status(500).json({
-          code: 500,
+          success: false,
           message: '验证码已生成，但邮件发送失败，请稍后重试或联系管理员',
           data: {
             expiresIn: 600, // 10分钟
@@ -256,20 +256,20 @@ class AuthController {
         const errorMessage = sendResult?.error || '验证码已生成，但邮件发送失败，请稍后重试或联系管理员';
         
         return res.status(500).json({
-          code: 500,
+          success: false,
           message: errorMessage,
           data: {
             expiresIn: 600, // 10分钟
             emailSent: false,
             error: errorMessage,
             // 仅在开发环境返回验证码，方便调试
-            code: env === 'development' ? code : undefined
+            verificationCode: env === 'development' ? code : undefined
           }
         });
       }
 
       res.json({
-        code: 200,
+        success: true,
         message: '验证码已发送，请查收邮件',
         data: {
           expiresIn: 600, // 10分钟
@@ -1519,7 +1519,7 @@ class AuthController {
       if (recentCode) {
         const waitSeconds = Math.ceil((recentCode.createdAt.getTime() + 60000 - Date.now()) / 1000);
         return res.status(429).json({
-          code: 429,
+          success: false,
           message: `验证码发送过于频繁，请${waitSeconds}秒后重试`
         });
       }

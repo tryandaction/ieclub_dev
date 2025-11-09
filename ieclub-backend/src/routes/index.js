@@ -55,9 +55,9 @@ router.post('/auth/send-verify-code',
   AuthController.sendVerifyCode
 );
 
-// 验证验证码（严格限制，无需CSRF - 改为公开接口供测试使用）
+// 验证验证码（基于邮箱限流，允许更多尝试次数）
 router.post('/auth/verify-code', 
-  rateLimiters.auth, 
+  rateLimiters.verifyCode, 
   AuthController.verifyCode
 );
 
@@ -77,9 +77,9 @@ router.post('/auth/login',
   AuthController.login
 );
 
-// 验证码登录（严格限制，无需CSRF - 验证码本身就是验证）
+// 验证码登录（基于邮箱限流，允许更多尝试次数）
 router.post('/auth/login-with-code', 
-  rateLimiters.auth, 
+  rateLimiters.verifyCode, 
   AuthController.loginWithCode
 );
 
