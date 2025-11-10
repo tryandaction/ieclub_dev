@@ -273,7 +273,7 @@ request.interceptors.response.use(
     }
     
     // 📛 HTTP 错误
-    const { status, data } = error.response
+    // status 和 data 已在第208-209行声明，无需重复声明
     const requestUrl = error.config?.url || ''
     let errorMessage = '请求失败'
     

@@ -49,9 +49,9 @@ export default function Login() {
         }
         const response = await sendCode(email, 'login')
         
-        // 检查响应中的 emailSent 字段
-        if (response?.data?.emailSent === false) {
-          const errorMsg = response?.data?.error || '邮件发送失败，请稍后重试或联系管理员'
+        // 检查响应中的 emailSent 字段（response 已经是 data 对象）
+        if (response?.emailSent === false) {
+          const errorMsg = response?.error || '邮件发送失败，请稍后重试或联系管理员'
           setError(errorMsg)
           showToast(errorMsg, 'error')
           setLoading(false)
