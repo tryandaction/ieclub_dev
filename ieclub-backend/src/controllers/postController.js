@@ -2,7 +2,7 @@
 // 发布系统控制器 - 支持5种类型：我想听、我来讲、分享、活动、项目
 
 const prisma = require('../config/database')
-const { AppError } = require('../middleware/errorHandler')
+const AppError = require('../utils/AppError')
 const axios = require('axios')
 const cheerio = require('cheerio')
 
