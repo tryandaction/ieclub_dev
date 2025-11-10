@@ -577,6 +577,14 @@ class AuthController {
         verifyCode = String(verifyCode).trim().replace(/\D/g, '');
       }
 
+      logger.info('注册请求参数:', {
+        email,
+        nickname,
+        hasPassword: !!password,
+        verifyCode: verifyCode ? '***' + verifyCode.slice(-2) : undefined,
+        gender
+      });
+
       // 验证必填字段
       if (!email || !password || !verifyCode) {
         return res.status(400).json({
