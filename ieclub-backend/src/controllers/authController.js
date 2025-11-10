@@ -346,7 +346,14 @@ class AuthController {
   // 验证验证码
   static async verifyCode(req, res, next) {
     try {
-      const { email, code } = req.body || {};
+      // 兼容前端可能传入的字段名：code 或 verifyCode
+      const { email } = req.body || {};
+      let code = req.body?.code ?? req.body?.verifyCode;
+      
+      // 统一规范化验证码：转字符串、去空白、仅保留数字
+      if (typeof code !== 'undefined' && code !== null) {
+        code = String(code).trim().replace(/\D/g, '');
+      }
       
       // 验证必填字段
       if (!email || !code) {
@@ -450,7 +457,20 @@ class AuthController {
       
       // 检查验证码是否存在
       if (!stored) {
+        const env = process.env.NODE_ENV || 'development';
         logger.warn(`⚠️ 验证码未找到:`, { email, code: codeStr });
+        
+        // 在测试/开发/staging 环境下，为排查问题提供更详细的提示
+        if (env === 'development' || env === 'test' || env === 'staging') {
+          return res.status(400).json({
+            success: false,
+            message: '验证码错误或不存在，请检查后重试（测试环境提示）',
+            debug: {
+              note: '若是粘贴验证码失败，请手动输入或仅粘贴数字',
+              normalizedCode: codeStr
+            }
+          });
+        }
         // 检查是否有已使用的验证码（确保类型一致）
         const usedCode = await prisma.verificationCode.findFirst({
           where: {
@@ -545,7 +565,12 @@ class AuthController {
   // 注册
   static async register(req, res, next) {
     try {
-      const { email, password, verifyCode, nickname, gender } = req.body || {};
+      const { email, password, nickname, gender } = req.body || {};
+      // 兼容 verifyCode 或 code 字段
+      let verifyCode = req.body?.verifyCode ?? req.body?.code;
+      if (typeof verifyCode !== 'undefined' && verifyCode !== null) {
+        verifyCode = String(verifyCode).trim().replace(/\D/g, '');
+      }
 
       // 验证必填字段
       if (!email || !password || !verifyCode) {
@@ -568,6 +593,12 @@ class AuthController {
       let stored;
       try {
         const verifyCodeStr = String(verifyCode).trim();
+        if (!/^\d{6}$/.test(verifyCodeStr)) {
+          return res.status(400).json({
+            success: false,
+            message: '验证码必须是6位数字'
+          });
+        }
         stored = await prisma.verificationCode.findFirst({
           where: {
             email,
@@ -1094,7 +1125,12 @@ class AuthController {
   // 重置密码（支持验证码方式和token方式）
   static async resetPassword(req, res, next) {
     try {
-      const { token, email, code, newPassword } = req.body || {};
+      const { token, email, newPassword } = req.body || {};
+      // 兼容 code 或 verifyCode 字段
+      let code = req.body?.code ?? req.body?.verifyCode;
+      if (typeof code !== 'undefined' && code !== null) {
+        code = String(code).trim().replace(/\D/g, '');
+      }
 
       if (!newPassword) {
         return res.status(400).json({
@@ -1116,6 +1152,14 @@ class AuthController {
 
       // 方式1: 使用验证码重置（前端使用）
       if (email && code) {
+        // 校验验证码格式
+        const codeStr = String(code).trim();
+        if (!/^\d{6}$/.test(codeStr)) {
+          return res.status(400).json({
+            success: false,
+            message: '验证码必须是6位数字'
+          });
+        }
         // 验证邮箱格式与域名限制
         const emailCheck = checkEmailAllowed(email, 'reset');
         if (!emailCheck.valid) {
@@ -1129,7 +1173,7 @@ class AuthController {
         const stored = await prisma.verificationCode.findFirst({
           where: {
             email,
-            code,
+            code: codeStr,
             type: 'reset',
             used: false
           },
@@ -1332,7 +1376,12 @@ class AuthController {
   // 验证码登录
   static async loginWithCode(req, res, next) {
     try {
-      const { email, code } = req.body || {};
+      const { email } = req.body || {};
+      // 兼容 code 或 verifyCode 字段
+      let code = req.body?.code ?? req.body?.verifyCode;
+      if (typeof code !== 'undefined' && code !== null) {
+        code = String(code).trim().replace(/\D/g, '');
+      }
 
       // 验证必填字段
       if (!email || !code) {
@@ -1351,11 +1400,20 @@ class AuthController {
         });
       }
 
+      // 校验验证码格式
+      const codeStr = String(code).trim();
+      if (!/^\d{6}$/.test(codeStr)) {
+        return res.status(400).json({
+          success: false,
+          message: '验证码必须是6位数字'
+        });
+      }
+
       // 验证验证码
       const stored = await prisma.verificationCode.findFirst({
         where: {
           email,
-          code,
+          code: codeStr,
           type: 'login',
           used: false
         },
