@@ -225,6 +225,11 @@ class AuthController {
       const env = process.env.NODE_ENV || 'development';
       // staging 环境也视为测试环境，允许邮件失败时返回成功（验证码已保存）
       const isTestEnv = env === 'test' || env === 'development' || env === 'staging' || process.env.ALLOW_TEST_CODE === 'true';
+
+      // 在测试环境中，记录验证码到日志以便调试
+      if (isTestEnv) {
+        logger.info(`🔐 [${env.toUpperCase()}] 验证码已生成: ${code} (邮箱: ${email}, 类型: ${type})`);
+      }
       
       try {
         logger.info(`📧 准备发送验证码邮件到: ${email}`, { type, codeLength: code.length, env });
@@ -254,7 +259,7 @@ class AuthController {
               expiresIn: 600, // 10分钟
               emailSent: false,
               verificationCode: code, // 测试环境返回验证码
-              note: `这是${env}环境，验证码已保存到数据库`
+              note: `这是${env}环境，验证码已保存到数据库。验证码: ${code}`
             }
           });
         }
@@ -298,7 +303,7 @@ class AuthController {
               expiresIn: 600, // 10分钟
               emailSent: false,
               verificationCode: code, // 测试环境返回验证码
-              note: `这是${env}环境，验证码已保存到数据库`
+              note: `这是${env}环境，验证码已保存到数据库。验证码: ${code}`
             }
           });
         }
