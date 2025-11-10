@@ -223,7 +223,8 @@ class AuthController {
       // 发送邮件（使用 emailService）
       let sendResult;
       const env = process.env.NODE_ENV || 'development';
-      const isTestEnv = env === 'test' || env === 'development' || process.env.ALLOW_TEST_CODE === 'true';
+      // staging 环境也视为测试环境，允许邮件失败时返回成功（验证码已保存）
+      const isTestEnv = env === 'test' || env === 'development' || env === 'staging' || process.env.ALLOW_TEST_CODE === 'true';
       
       try {
         logger.info(`📧 准备发送验证码邮件到: ${email}`, { type, codeLength: code.length, env });
@@ -243,17 +244,17 @@ class AuthController {
           stack: emailError.stack 
         });
         
-        // 在测试/开发环境，即使邮件失败也返回成功（验证码已保存）
+        // 在测试/开发/staging环境，即使邮件失败也返回成功（验证码已保存）
         if (isTestEnv) {
-          logger.warn('⚠️ 测试环境：邮件发送失败，但验证码已保存，返回成功', { email, code });
+          logger.warn(`⚠️ ${env}环境：邮件发送失败，但验证码已保存，返回成功`, { email, code });
           return res.json({
             success: true,
-            message: '验证码已生成（测试环境：邮件发送失败，但验证码已保存）',
+            message: `验证码已生成（${env}环境：邮件发送失败，但验证码已保存）`,
             data: {
               expiresIn: 600, // 10分钟
               emailSent: false,
               verificationCode: code, // 测试环境返回验证码
-              note: '这是测试环境，验证码已保存到数据库'
+              note: `这是${env}环境，验证码已保存到数据库`
             }
           });
         }
@@ -287,17 +288,17 @@ class AuthController {
           env
         });
         
-        // 在测试/开发环境，即使邮件失败也返回成功（验证码已保存）
+        // 在测试/开发/staging环境，即使邮件失败也返回成功（验证码已保存）
         if (isTestEnv) {
-          logger.warn('⚠️ 测试环境：邮件发送失败，但验证码已保存，返回成功', { email, code });
+          logger.warn(`⚠️ ${env}环境：邮件发送失败，但验证码已保存，返回成功`, { email, code });
           return res.json({
             success: true,
-            message: '验证码已生成（测试环境：邮件发送失败，但验证码已保存）',
+            message: `验证码已生成（${env}环境：邮件发送失败，但验证码已保存）`,
             data: {
               expiresIn: 600, // 10分钟
               emailSent: false,
               verificationCode: code, // 测试环境返回验证码
-              note: '这是测试环境，验证码已保存到数据库'
+              note: `这是${env}环境，验证码已保存到数据库`
             }
           });
         }

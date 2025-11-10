@@ -209,7 +209,8 @@ request.interceptors.response.use(
     const data = error.response?.data // 提前获取响应数据
     
     // 明确排除不应该重试的状态码
-    const noRetryStatuses = [400, 401, 403, 404, 429]; // 这些状态码不应该重试
+    // 503 错误不应该重试（服务不可用通常是配置问题，重试无意义且会导致限流）
+    const noRetryStatuses = [400, 401, 403, 404, 429, 503]; // 这些状态码不应该重试
     
     // 429错误绝对不应该重试，应该直接返回错误（避免连续触发限流）
     if (status === 429) {
@@ -223,10 +224,21 @@ request.interceptors.response.use(
       throw err
     }
     
-    // 只有网络错误和服务器错误才重试
+    // 503错误不应该重试（服务不可用，通常是配置问题）
+    if (status === 503) {
+      const errorMessage = data?.message || '服务暂时不可用，请稍后重试'
+      console.warn(`⚠️ [503] ${config?.url || 'unknown'}: 服务不可用 - 不重试`)
+      const err = new Error(errorMessage)
+      err.code = 503
+      err.response = error.response
+      err.originalError = error
+      throw err
+    }
+    
+    // 只有网络错误和部分服务器错误才重试（排除 503）
     const shouldRetry = config && config.retry && 
                        (!error.response || // 网络错误
-                       (status >= 500 && status < 600) || // 服务器错误（5xx）
+                       (status >= 500 && status < 600 && status !== 503) || // 服务器错误（5xx，但排除503）
                        error.code === 'ECONNABORTED' || // 超时
                        error.code === 'ETIMEDOUT') // 超时
     
