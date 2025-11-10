@@ -205,13 +205,54 @@ request.interceptors.response.use(
 
     // 🔄 请求重试逻辑（智能重试）
     const config = error.config
-    const shouldRetry = !error.response || // 网络错误
-                       error.response?.status >= 500 || // 服务器错误
-                       error.response?.status === 429 || // 请求过多
-                       error.code === 'ECONNABORTED' || // 超时
-                       error.code === 'ETIMEDOUT' // 超时
+    const status = error.response?.status
+    const data = error.response?.data // 提前获取响应数据
     
-    if (config && config.retry && shouldRetry) {
+    // 明确排除不应该重试的状态码
+    // 503 错误不应该重试（服务不可用通常是配置问题，重试无意义且会导致限流）
+    const noRetryStatuses = [400, 401, 403, 404, 429, 503]; // 这些状态码不应该重试
+    
+    // 429错误绝对不应该重试，应该直接返回错误（避免连续触发限流）
+    if (status === 429) {
+      // 429错误直接返回，不重试
+      const errorMessage = data?.message || '请求过于频繁，请稍后重试'
+      console.warn(`⚠️ [429] ${config?.url || 'unknown'}: 请求限流 - 不重试`)
+      const err = new Error(errorMessage)
+      err.code = 429
+      err.response = error.response
+      err.originalError = error
+      throw err
+    }
+    
+    // 503错误不应该重试（服务不可用，通常是配置问题）
+    if (status === 503) {
+      const errorMessage = data?.message || '服务暂时不可用，请稍后重试'
+      console.warn(`⚠️ [503] ${config?.url || 'unknown'}: 服务不可用 - 不重试`)
+      const err = new Error(errorMessage)
+      err.code = 503
+      err.response = error.response
+      err.originalError = error
+      throw err
+    }
+    
+    // 只有网络错误和部分服务器错误才重试（排除 503）
+    const shouldRetry = config && config.retry && 
+                       (!error.response || // 网络错误
+                       (status >= 500 && status < 600 && status !== 503) || // 服务器错误（5xx，但排除503）
+                       error.code === 'ECONNABORTED' || // 超时
+                       error.code === 'ETIMEDOUT') // 超时
+    
+    // 确保不应该重试的状态码不会重试
+    if (shouldRetry && status && noRetryStatuses.includes(status)) {
+      // 不应该重试的状态码，直接返回错误
+      const err = new Error(data?.message || `请求失败 (${status})`)
+      err.code = status
+      err.response = error.response
+      err.originalError = error
+      throw err
+    }
+    
+    if (shouldRetry) {
       config.__retryCount = config.__retryCount || 0
       
       if (config.__retryCount < config.retry) {
@@ -220,8 +261,8 @@ request.interceptors.response.use(
         
         // 指数退避重试策略
         const delay = config.retryDelay * Math.pow(2, config.__retryCount - 1)
-        const status = error.response?.status || '网络错误'
-        console.warn(`🔄 [重试 ${config.__retryCount}/${config.retry}] ${config.url} (${status}) - ${delay}ms 后重试`)
+        const statusText = status || '网络错误'
+        console.warn(`🔄 [重试 ${config.__retryCount}/${config.retry}] ${config.url} (${statusText}) - ${delay}ms 后重试`)
         
         await new Promise(resolve => setTimeout(resolve, delay))
         return request(config)
@@ -244,7 +285,8 @@ request.interceptors.response.use(
     }
     
     // 📛 HTTP 错误
-    const { status, data } = error.response
+    // status 和 data 已在第208-209行声明，无需重复声明
+    const requestUrl = error.config?.url || ''
     let errorMessage = '请求失败'
     
     // 尝试从响应数据中获取错误信息
@@ -258,6 +300,9 @@ request.interceptors.response.use(
       }
     }
     
+    // 判断是否为认证相关接口（登录、注册、发送验证码等）
+    const isAuthEndpoint = /\/auth\/(login|register|send-verify-code|verify-code|login-with-code|login-with-phone|forgot-password|reset-password)/.test(requestUrl)
+    
     // 特殊状态码处理
     switch (status) {
       case 400:
@@ -265,15 +310,22 @@ request.interceptors.response.use(
         console.error(`❌ [400] ${error.config.url}:`, errorMessage)
         break
       case 401:
-        errorMessage = '登录已过期，请重新登录'
-        console.warn(`🔒 [401] ${error.config.url}: Token 已过期`)
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        setTimeout(() => {
-          if (window.location.pathname !== '/login') {
-            window.location.href = '/login'
-          }
-        }, 1000)
+        // 如果是认证接口（登录/注册），使用后端返回的错误消息，不跳转
+        if (isAuthEndpoint) {
+          errorMessage = data?.message || '邮箱或密码错误'
+          console.warn(`🔒 [401] ${error.config.url}:`, errorMessage)
+        } else {
+          // 其他接口的 401 错误，表示 token 过期
+          errorMessage = data?.message || '登录已过期，请重新登录'
+          console.warn(`🔒 [401] ${error.config.url}: Token 已过期`)
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          setTimeout(() => {
+            if (window.location.pathname !== '/login') {
+              window.location.href = '/login'
+            }
+          }, 1000)
+        }
         break
       case 403:
         errorMessage = data?.message || '没有权限访问该资源'

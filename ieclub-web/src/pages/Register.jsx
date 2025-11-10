@@ -31,10 +31,21 @@ export default function Register() {
       return
     }
 
-    if (countdown > 0) return
+    if (countdown > 0 || loading) return
+
+    setLoading(true)
 
     try {
-      await sendCode(email, 'register')
+      const response = await sendCode(email, 'register')
+      
+      // 检查响应中的 emailSent 字段（response 已经是 data 对象）
+      if (response?.emailSent === false) {
+        const errorMsg = response?.error || '邮件发送失败，请稍后重试或联系管理员'
+        setError(errorMsg)
+        showToast(errorMsg, 'error')
+        setLoading(false)
+        return
+      }
       
       setCountdown(60)
       const timer = setInterval(() => {
@@ -47,9 +58,13 @@ export default function Register() {
         })
       }, 1000)
 
-      console.log('验证码已发送到邮箱')
+      showToast('验证码已发送到邮箱，请查收', 'success')
     } catch (err) {
-      setError(err.message || '发送验证码失败')
+      const errorMessage = err.response?.data?.message || err.message || '发送验证码失败，请稍后重试'
+      setError(errorMessage)
+      showToast(errorMessage, 'error')
+    } finally {
+      setLoading(false)
     }
   }
 

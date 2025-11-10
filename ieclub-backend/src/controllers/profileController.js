@@ -13,6 +13,11 @@ exports.getUserProfile = async (req, res, next) => {
     const { userId } = req.params
     const currentUserId = req.user?.id
 
+    // 验证 userId 参数
+    if (!userId || userId === 'undefined' || userId === 'null') {
+      throw new AppError('用户ID无效', 400)
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -136,6 +141,11 @@ exports.getUserPosts = async (req, res, next) => {
       page = 1,
       pageSize = 20
     } = req.query
+
+    // 验证 userId 参数
+    if (!userId || userId === 'undefined' || userId === 'null') {
+      throw new AppError('用户ID无效', 400)
+    }
 
     const where = {
       authorId: userId,
@@ -318,6 +328,11 @@ exports.getUserStats = async (req, res, next) => {
   try {
     const { userId } = req.params
 
+    // 验证 userId 参数
+    if (!userId || userId === 'undefined' || userId === 'null') {
+      throw new AppError('用户ID无效', 400)
+    }
+
     // 获取各类型发布数量
     const postStats = await prisma.post.groupBy({
       by: ['type'],
@@ -372,6 +387,4 @@ exports.getUserStats = async (req, res, next) => {
     next(error)
   }
 }
-
-module.exports = exports
 

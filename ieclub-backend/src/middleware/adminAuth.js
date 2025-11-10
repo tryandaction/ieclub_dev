@@ -28,7 +28,7 @@ const authenticateAdmin = async (req, res, next) => {
       decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-admin-secret-key');
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
-        return res.status(401).json({
+      return res.status(401).json({
           code: 401,
           message: '令牌已过期',
         });
@@ -224,17 +224,17 @@ const logAdminAction = (action, resourceType) => {
           const resourceId = req.params.id || req.body?.id || null;
 
           await prisma.adminAuditLog.create({
-            data: {
+        data: {
               adminId: admin.id,
               action: action,
               resourceType: resourceType,
               resourceId: resourceId,
               description: `${admin.username} ${action} ${resourceType} ${resourceId || ''}`,
-              details: JSON.stringify({
+          details: JSON.stringify({
                 method: req.method,
                 params: req.params,
                 body: req.body,
-                query: req.query,
+            query: req.query,
               }),
               ipAddress: req.ip || req.connection.remoteAddress,
               userAgent: req.get('user-agent'),
@@ -244,10 +244,10 @@ const logAdminAction = (action, resourceType) => {
               errorMessage: body?.message || null,
               level: res.statusCode >= 400 ? 'warning' : 'info',
             },
-          });
-        } catch (error) {
+      });
+    } catch (error) {
           console.error('记录审计日志失败:', error);
-        }
+    }
       });
 
       // 调用原始的json方法

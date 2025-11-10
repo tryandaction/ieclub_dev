@@ -58,25 +58,32 @@
 |--------|---------|---------|---------|
 | **EMAIL_HOST** | smtp.gmail.com | smtp.gmail.com | smtp.gmail.com |
 | **EMAIL_PORT** | 587 | 587 | 587 |
-| **EMAIL_USER** | 可留空 | your_email@gmail.com | **必须配置** ⚠️ |
-| **EMAIL_PASSWORD** | 可留空 | your_email_password | **必须配置** ⚠️ |
-| **行为** | 模拟发送 | 模拟发送（未配置时） | **真实发送** |
+| **EMAIL_USER** | 可留空 | **必须配置** ⚠️ | **必须配置** ⚠️ |
+| **EMAIL_PASSWORD** | 可留空 | **必须配置** ⚠️ | **必须配置** ⚠️ |
+| **行为** | 模拟发送（未配置时） | **真实发送** | **真实发送** |
 
 ⚠️ **邮件服务行为差异**:
 ```javascript
-// 开发/测试环境：邮件未配置时
+// 开发环境：邮件未配置时（允许模拟）
 return { 
   success: true,  // 返回成功
   mock: true,     // 标记为模拟
   env: 'development' 
 }
 
-// 生产环境：邮件未配置时
+// 测试环境/生产环境：邮件未配置时（必须真实发送）
 return { 
   success: false, // 返回失败 ⚠️
-  error: '邮件服务未配置'
+  error: '邮件服务未配置或初始化失败',
+  message: '请配置邮件服务'
 }
 ```
+
+✅ **重要说明**：
+- **测试环境（staging）和生产环境（production）行为完全一致**
+- 两者都必须配置真实的邮件服务，不能模拟发送
+- 只有开发环境（development）允许模拟发送，用于本地开发测试
+- 这确保了测试环境能真实验证邮件发送功能，避免生产环境出现问题
 
 ### 微信小程序配置
 
@@ -382,7 +389,8 @@ globalData: {
 
 - [部署指南](../deployment/Deployment_guide.md)
 - [生产环境检查清单](../deployment/PRE_PRODUCTION_CHECKLIST.md)
-- [邮件服务配置](./CONFIGURE_REAL_EMAIL.md)
+- [邮件服务配置指南](./EMAIL_SETUP_GUIDE.md)
+- [环境变量配置说明](./ENVIRONMENT_VARIABLES.md)
 - [安全配置指南](./SECURITY_GUIDE.md)
 
 ---

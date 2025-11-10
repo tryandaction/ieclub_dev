@@ -500,5 +500,3 @@ exports.getAnnouncementStats = async (req, res) => {
   }
 };
 
-module.exports = exports;
-

@@ -4,8 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const monitoringController = require('../controllers/monitoringController');
-const { authenticate } = require('../middleware/auth');
-const { requireAdmin } = require('../middleware/adminAuth');
+const { authenticateAdmin } = require('../middleware/adminAuth');
 
 // ==================== 公共接口 ====================
 /**
@@ -17,8 +16,7 @@ router.get('/health', monitoringController.healthCheck);
 
 // ==================== 管理员接口 ====================
 // 需要管理员权限
-router.use(authenticate);
-router.use(requireAdmin);
+router.use(authenticateAdmin);
 
 /**
  * @route   GET /api/monitoring/system

@@ -15,15 +15,20 @@ class ConfigValidator {
   validateApiConfig() {
     let apiBaseUrl = import.meta.env.VITE_API_BASE_URL
     const mode = import.meta.env.MODE
+    const appEnv = import.meta.env.VITE_APP_ENV
+    const currentHost = window.location.hostname
 
     // 如果未配置，根据当前域名自动推断
     if (!apiBaseUrl) {
-      if (mode === 'production') {
+      // 测试环境：test.ieclub.online
+      if (currentHost === 'test.ieclub.online' || appEnv === 'staging') {
+        apiBaseUrl = 'https://test.ieclub.online/api'
+        console.log('🔧 测试环境，自动配置 API 地址:', apiBaseUrl)
+      } else if (mode === 'production' || appEnv === 'production') {
         // 生产环境默认配置
-        const currentHost = window.location.hostname
         if (currentHost === 'ieclub.online' || currentHost.endsWith('.ieclub.online')) {
           apiBaseUrl = 'https://ieclub.online/api'
-          console.log('🔧 自动配置 API 地址:', apiBaseUrl)
+          console.log('🔧 生产环境，自动配置 API 地址:', apiBaseUrl)
         } else {
           this.warnings.push('生产环境未配置 VITE_API_BASE_URL，已尝试自动配置')
         }

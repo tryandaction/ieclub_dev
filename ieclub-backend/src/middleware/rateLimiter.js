@@ -93,11 +93,14 @@ function createRateLimiter(options = {}) {
           await onLimitReached(req, res, { ttl, reason: 'blocked' });
         }
         
-        throw new AppError(
+        // 返回更友好的错误信息
+        const error = new AppError(
           `请求过于频繁，请在${ttl}秒后重试`,
           429,
           'RATE_LIMIT_EXCEEDED'
         );
+        error.retryAfter = ttl;
+        throw error;
       }
 
       // 获取当前计数
@@ -123,11 +126,14 @@ function createRateLimiter(options = {}) {
           });
         }
         
-        throw new AppError(
-          `请求过于频繁，已被封禁${finalBlockDuration}秒`,
+        // 返回更友好的错误信息
+        const error = new AppError(
+          `请求过于频繁，已被封禁${finalBlockDuration}秒，请稍后重试`,
           429,
           'RATE_LIMIT_EXCEEDED'
         );
+        error.retryAfter = finalBlockDuration;
+        throw error;
       }
 
       // 增加计数
@@ -238,6 +244,48 @@ const rateLimiters = {
     duration: 60,
     blockDuration: 120,
     keyGenerator: (req) => `interaction:${req.user?.id || req.ip}`
+  }),
+
+  // 发送验证码（基于邮箱，更宽松的限制，配合数据库层面的1分钟限制）
+  sendVerifyCode: createRateLimiter({
+    keyPrefix: 'send_verify_code',
+    points: 5,         // 5次发送（降低限制，配合数据库1分钟限制）
+    duration: 60,      // 60秒内（与数据库限制对齐）
+    blockDuration: 60, // 封禁60秒（与数据库限制对齐）
+    keyGenerator: (req) => {
+      // 基于邮箱限流，而不是IP
+      const email = req.body?.email || req.query?.email || 'unknown';
+      return `send_verify_code:${email}`;
+    },
+    onLimitReached: async (req, res, info) => {
+      logger.warn('发送验证码速率限制触发', {
+        email: req.body?.email,
+        ip: req.ip,
+        path: req.path,
+        ...info
+      });
+    }
+  }),
+
+  // 验证码验证（基于邮箱，允许更多尝试次数）
+  verifyCode: createRateLimiter({
+    keyPrefix: 'verify_code',
+    points: 20,        // 20次尝试（增加尝试次数）
+    duration: 300,    // 5分钟内
+    blockDuration: 300,  // 封禁5分钟
+    keyGenerator: (req) => {
+      // 基于邮箱限流，而不是IP
+      const email = req.body?.email || req.query?.email || 'unknown';
+      return `verify_code:${email}`;
+    },
+    onLimitReached: async (req, res, info) => {
+      logger.warn('验证码验证速率限制触发', {
+        email: req.body?.email,
+        ip: req.ip,
+        path: req.path,
+        ...info
+      });
+    }
   })
 };
 

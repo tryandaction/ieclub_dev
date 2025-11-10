@@ -4,8 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const moderationController = require('../controllers/moderationController');
-const { authenticate } = require('../middleware/auth');
-const { requireAdmin, logAdminAction } = require('../middleware/adminAuth');
+const { authenticateAdmin, logAdminAction } = require('../middleware/adminAuth');
 
 // ==================== 公共接口 ====================
 /**
@@ -17,8 +16,7 @@ router.post('/check', moderationController.checkText);
 
 // ==================== 管理员接口 ====================
 // 需要管理员权限
-router.use(authenticate);
-router.use(requireAdmin);
+router.use(authenticateAdmin);
 
 /**
  * @route   GET /api/moderation/pending

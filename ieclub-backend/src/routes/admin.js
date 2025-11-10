@@ -20,6 +20,7 @@ const adminAuthController = require('../controllers/adminAuthController');
 const announcementController = require('../controllers/admin/announcementController');
 const userManagementController = require('../controllers/admin/userManagementController');
 const statsController = require('../controllers/admin/statsController');
+const emailWhitelistController = require('../controllers/admin/emailWhitelistController');
 
 // ==================== 认证路由 ====================
 // 登录
@@ -305,6 +306,61 @@ router.get(
       });
     }
   }
+);
+
+// ==================== 邮箱白名单管理路由（测试环境） ====================
+router.get(
+  '/email-whitelist',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.USER_READ),
+  emailWhitelistController.getWhitelist
+);
+
+router.get(
+  '/email-whitelist/pending',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.USER_READ),
+  emailWhitelistController.getPending
+);
+
+router.post(
+  '/email-whitelist',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.USER_UPDATE),
+  logAdminAction('add', 'email_whitelist'),
+  emailWhitelistController.addToWhitelist
+);
+
+router.post(
+  '/email-whitelist/:email/approve',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.USER_UPDATE),
+  logAdminAction('approve', 'email_whitelist'),
+  emailWhitelistController.approveEmail
+);
+
+router.post(
+  '/email-whitelist/:email/reject',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.USER_UPDATE),
+  logAdminAction('reject', 'email_whitelist'),
+  emailWhitelistController.rejectEmail
+);
+
+router.delete(
+  '/email-whitelist/:email',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.USER_UPDATE),
+  logAdminAction('remove', 'email_whitelist'),
+  emailWhitelistController.removeEmail
+);
+
+router.post(
+  '/email-whitelist/batch-approve',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.USER_UPDATE),
+  logAdminAction('batch_approve', 'email_whitelist'),
+  emailWhitelistController.batchApprove
 );
 
 module.exports = router;

@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { sendCode, resetPassword } from '../api/auth'
+import { sendCode, verifyCode, resetPassword } from '../api/auth'
 import { validateEmail, getEmailErrorMessage, getEmailPlaceholder } from '../utils/emailValidator'
+import { showToast } from '../components/Toast'
 
 export default function ForgotPassword() {
   const [step, setStep] = useState(1) // 1: 验证邮箱, 2: 重置密码
@@ -40,13 +41,13 @@ export default function ForgotPassword() {
         })
       }, 1000)
 
-      console.log('验证码已发送到邮箱')
+      showToast('验证码已发送到邮箱，请查收', 'success')
     } catch (err) {
       setError(err.message || '发送验证码失败')
     }
   }
 
-  // 步骤1: 验证邮箱
+  // 步骤1: 验证邮箱和验证码
   const handleStep1 = async (e) => {
     e.preventDefault()
     setError('')
@@ -61,8 +62,22 @@ export default function ForgotPassword() {
       return
     }
 
-    // 验证码验证成功，进入下一步
-    setStep(2)
+    setLoading(true)
+
+    try {
+      // 调用后端验证接口验证验证码
+      const { verifyCode } = await import('../api/auth')
+      await verifyCode(email, code)
+      
+      // 验证成功，进入下一步
+      showToast('验证码验证成功！', 'success')
+      setStep(2)
+    } catch (err) {
+      setError(err.message || '验证码错误或已过期')
+      showToast(err.message || '验证码错误或已过期', 'error')
+    } finally {
+      setLoading(false)
+    }
   }
 
   // 步骤2: 重置密码
@@ -85,14 +100,15 @@ export default function ForgotPassword() {
     try {
       await resetPassword(email, code, newPassword)
       
-      console.log('✅ 密码重置成功！')
+      showToast('密码重置成功！请使用新密码登录', 'success')
       
-      // 提示成功并跳转到登录页
-      alert('密码重置成功，请使用新密码登录')
-      navigate('/login')
+      // 延迟跳转到登录页
+      setTimeout(() => {
+        navigate('/login')
+      }, 1500)
     } catch (err) {
       setError(err.message || '密码重置失败，请重试')
-      console.error('❌ 密码重置失败:', err)
+      showToast(err.message || '密码重置失败，请重试', 'error')
     } finally {
       setLoading(false)
     }

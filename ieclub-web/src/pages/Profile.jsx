@@ -61,12 +61,12 @@ export default function Profile() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500 mb-4">用户不存在</p>
-          <button
+            <button
             onClick={() => navigate('/plaza')}
             className="px-6 py-2 bg-purple-600 text-white rounded-lg"
           >
             返回广场
-          </button>
+            </button>
         </div>
       </div>
     )
@@ -95,7 +95,7 @@ export default function Profile() {
 
       {/* 主要内容 */}
       <div className="max-w-5xl mx-auto px-4 -mt-20">
-        {/* 用户信息卡片 */}
+      {/* 用户信息卡片 */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             {/* 头像 */}
@@ -179,8 +179,8 @@ export default function Profile() {
                       📺 Bilibili
                     </a>
                   )}
-                </div>
-              )}
+                  </div>
+                )}
 
               {/* 统计数据 */}
               <div className="flex gap-6 text-sm">
@@ -191,17 +191,17 @@ export default function Profile() {
                 <div className="text-center">
                   <div className="text-xl font-bold text-purple-600">{profile.followsCount}</div>
                   <div className="text-gray-500">关注</div>
-                </div>
+            </div>
                 <div className="text-center">
                   <div className="text-xl font-bold text-purple-600">{profile.fansCount}</div>
                   <div className="text-gray-500">粉丝</div>
-                </div>
+          </div>
                 <div className="text-center">
                   <div className="text-xl font-bold text-purple-600">{profile.likesCount}</div>
                   <div className="text-gray-500">获赞</div>
-                </div>
-              </div>
-            </div>
+          </div>
+        </div>
+      </div>
 
             {/* 操作按钮 */}
             {!profile.isOwner && (
@@ -236,8 +236,8 @@ export default function Profile() {
                       {skill}
                     </span>
                   ))}
-                </div>
-              </div>
+        </div>
+          </div>
             )}
 
             {profile.interests && profile.interests.length > 0 && (
@@ -252,11 +252,11 @@ export default function Profile() {
                       {interest}
                     </span>
                   ))}
-                </div>
-              </div>
-            )}
-          </div>
         </div>
+          </div>
+            )}
+        </div>
+      </div>
 
         {/* Tab导航 */}
         <div className="bg-white rounded-2xl shadow-lg mb-6">
@@ -271,7 +271,7 @@ export default function Profile() {
             >
               发布内容 ({posts.length})
             </button>
-            <button
+          <button
               onClick={() => setActiveTab('about')}
               className={`flex-1 py-4 font-medium transition ${
                 activeTab === 'about'
@@ -280,8 +280,8 @@ export default function Profile() {
               }`}
             >
               关于我
-            </button>
-            <button
+          </button>
+        <button
               onClick={() => setActiveTab('achievements')}
               className={`flex-1 py-4 font-medium transition ${
                 activeTab === 'achievements'
@@ -290,7 +290,7 @@ export default function Profile() {
               }`}
             >
               成就勋章
-            </button>
+        </button>
           </div>
 
           <div className="p-6">

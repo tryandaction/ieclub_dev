@@ -13,22 +13,30 @@ lerna-debug.log*
 # ============================
 # 构建产物
 # ============================
-dist/
-dist.zip
-*.tar.gz
-build/
-coverage/
+**/dist/
+**/build/
+**/coverage/
 
-# 部署压缩包
-web-dist.zip
-web-staging.zip
-backend-code.zip
-backend-staging.zip
-deploy-*.sh
+# ============================
+# 部署相关文件（本地生成，不应提交）
+# ============================
+# 所有位置的压缩包（使用 ** 匹配任意深度）
+**/*.zip
+**/*.tar.gz
+**/*.tgz
+
+# 临时部署脚本（由 PowerShell 动态生成，任意位置）
+**/deploy-*.sh
+**/start-*.sh
+
+# 临时构建目录（任意位置）
+**/temp-*/
+**/tmp-*/
 
 # ============================
 # 环境变量
 # ============================
+# ⚠️  重要：.env 文件包含敏感信息（密码、密钥等），永远不要提交到 Git
 .env
 .env.local
 .env.development.local
@@ -44,6 +52,7 @@ ieclub-frontend/.env.local
 ieclub-frontend/.env.development.local
 ieclub-frontend/.env.test.local
 ieclub-frontend/.env.production.local
+# 注意：.env.example 是模板文件，可以提交到 Git
 
 # ============================
 # 日志文件
@@ -53,6 +62,15 @@ logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pm2-*.log
+error.log
+combined.log
+
+# PM2 相关
+.pm2/
+# 注意：保留 docs/deployment/ 下的配置文件模板
+ecosystem.*.config.js
+!docs/deployment/ecosystem.*.config.js
 
 # ============================
 # 操作系统
@@ -80,14 +98,19 @@ Thumbs.db
 *.sublime-project
 
 # ============================
-# 临时文件
+# 临时文件（任意位置）
 # ============================
-tmp/
-temp/
-*.tmp
-*.bak
-*.swp
-.cache/
+**/tmp/
+**/temp/
+**/*.tmp
+**/*.bak
+**/*.swp
+**/.cache/
+
+# 备份文件（任意位置）
+**/*.backup
+**/*.backup_*
+**/*_backup/
 
 # ============================
 # 数据库
@@ -132,5 +155,3 @@ test-results/
 # 取消以下注释可忽略锁定文件
 # package-lock.json
 # yarn.lock
-backend-production.zip
-web-production.zip

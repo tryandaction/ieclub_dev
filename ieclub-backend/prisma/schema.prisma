@@ -23,7 +23,7 @@ model User {
 
   // 基本信息
   nickname String  @db.VarChar(50)
-  avatar   String? @default("") @db.Text // 头像可选
+  avatar   String? @db.Text // 头像可选
   gender   Int     @default(0) @db.TinyInt
   phone    String? @unique @db.VarChar(20)
   bio      String? @db.Text
@@ -1387,4 +1387,36 @@ model SystemConfig {
   @@index([category])
   @@index([isPublic])
   @@map("system_configs")
+}
+
+// ==================== 邮箱白名单表（测试环境） ====================
+model EmailWhitelist {
+  id String @id @default(cuid())
+  
+  // 邮箱地址（小写存储）
+  email String @unique @db.VarChar(100)
+  
+  // 状态
+  status String @default("pending") @db.VarChar(20) // pending, approved, rejected
+  
+  // 备注
+  note String? @db.Text
+  
+  // 申请理由
+  reason String? @db.Text
+  
+  // 处理信息
+  approvedBy String? // 批准人管理员ID
+  approvedAt DateTime?
+  rejectedBy String? // 拒绝人管理员ID
+  rejectedAt DateTime?
+  
+  // 时间戳
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([status])
+  @@index([email])
+  @@index([createdAt])
+  @@map("email_whitelist")
 }

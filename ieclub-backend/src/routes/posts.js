@@ -5,13 +5,13 @@ const express = require('express')
 const router = express.Router()
 const postController = require('../controllers/postController')
 const { authenticate, optionalAuth } = require('../middleware/auth')
-const { apiLimiter } = require('../middleware/rateLimiter')
+const { rateLimiters } = require('../middleware/rateLimiter')
 
 // 解析外链信息（需要登录）
 router.post('/parse-link', authenticate, postController.parseLink)
 
 // 创建发布内容（需要登录）
-router.post('/', authenticate, apiLimiter, postController.createPost)
+router.post('/', authenticate, rateLimiters.content, postController.createPost)
 
 // 获取发布列表（可选登录）
 router.get('/', optionalAuth, postController.getPosts)

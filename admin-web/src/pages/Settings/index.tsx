@@ -16,6 +16,7 @@ import {
   Row,
   Col,
   Alert,
+  Spin,
 } from 'antd';
 import {
   SettingOutlined,
@@ -24,21 +25,36 @@ import {
   BellOutlined,
   UploadOutlined,
   SaveOutlined,
+  LockOutlined,
 } from '@ant-design/icons';
 import { useAppSelector } from '@/store/hooks';
 import { hasPermission } from '@/utils/auth';
+import { adminAuthApi } from '@/api/admin';
 import './index.less';
 
 const { TabPane } = Tabs;
 const { TextArea } = Input;
 
 const Settings: React.FC = () => {
-  const { admin } = useAppSelector((state) => state.auth);
+  const { admin, loading: authLoading } = useAppSelector((state) => state.auth);
   const [loading, setLoading] = useState(false);
   const [basicForm] = Form.useForm();
   const [securityForm] = Form.useForm();
   const [emailForm] = Form.useForm();
   const [notificationForm] = Form.useForm();
+  const [passwordForm] = Form.useForm();
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  // 等待 admin 信息加载（由 App.tsx 的 PrivateRoute 处理）
+
+  // 加载中状态
+  if (authLoading || !admin) {
+    return (
+      <div style={{ padding: 24, textAlign: 'center' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   // 检查权限
   if (!hasPermission(admin, 'system:setting')) {
@@ -65,6 +81,39 @@ const Settings: React.FC = () => {
       message.error('保存失败');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 修改密码
+  const handleChangePassword = async (values: any) => {
+    try {
+      setPasswordLoading(true);
+      const { oldPassword, newPassword, confirmPassword } = values;
+
+      if (newPassword !== confirmPassword) {
+        message.error('两次输入的密码不一致');
+        return;
+      }
+
+      await adminAuthApi.changePassword({
+        oldPassword,
+        newPassword,
+      });
+
+      message.success('密码修改成功，请重新登录');
+      passwordForm.resetFields();
+      
+      // 延迟跳转到登录页
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 1500);
+    } catch (error: any) {
+      // 错误消息已经在响应拦截器中显示，这里只需要处理特殊情况
+      if (!error?.response && !error?.message) {
+        console.error('密码修改失败:', error);
+      }
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -229,21 +278,100 @@ const Settings: React.FC = () => {
             }
             key="security"
           >
-            <Form
-              form={securityForm}
-              layout="vertical"
-              onFinish={handleSaveSecurity}
-              initialValues={{
-                enableTwoFactor: false,
-                loginAttempts: 5,
-                lockoutDuration: 15,
-                sessionTimeout: 24,
-                passwordMinLength: 8,
-                passwordRequireSpecial: true,
-                enableCaptcha: true,
-              }}
+            {/* 修改密码 */}
+            <Card
+              title={
+                <span>
+                  <LockOutlined /> 修改密码
+                </span>
+              }
+              style={{ marginBottom: 24 }}
             >
-              <Row gutter={24}>
+              <Form
+                form={passwordForm}
+                layout="vertical"
+                onFinish={handleChangePassword}
+              >
+                <Row gutter={24}>
+                  <Col xs={24} lg={12}>
+                    <Form.Item
+                      label="当前密码"
+                      name="oldPassword"
+                      rules={[{ required: true, message: '请输入当前密码' }]}
+                    >
+                      <Input.Password placeholder="请输入当前密码" />
+                    </Form.Item>
+                  </Col>
+
+                  <Col xs={24} lg={12}>
+                    <Form.Item
+                      label="新密码"
+                      name="newPassword"
+                      rules={[
+                        { required: true, message: '请输入新密码' },
+                        { min: 8, message: '密码长度至少8位' },
+                        {
+                          pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+                          message: '密码必须包含大小写字母、数字和特殊字符',
+                        },
+                      ]}
+                    >
+                      <Input.Password placeholder="请输入新密码（至少8位，包含大小写字母、数字和特殊字符）" />
+                    </Form.Item>
+                  </Col>
+
+                  <Col xs={24} lg={12}>
+                    <Form.Item
+                      label="确认新密码"
+                      name="confirmPassword"
+                      dependencies={['newPassword']}
+                      rules={[
+                        { required: true, message: '请确认新密码' },
+                        ({ getFieldValue }) => ({
+                          validator(_, value) {
+                            if (!value || getFieldValue('newPassword') === value) {
+                              return Promise.resolve();
+                            }
+                            return Promise.reject(new Error('两次输入的密码不一致'));
+                          },
+                        }),
+                      ]}
+                    >
+                      <Input.Password placeholder="请再次输入新密码" />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Form.Item>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    icon={<LockOutlined />}
+                    loading={passwordLoading}
+                  >
+                    修改密码
+                  </Button>
+                </Form.Item>
+              </Form>
+            </Card>
+
+            {/* 系统安全设置 */}
+            <Card title="系统安全设置">
+              <Form
+                form={securityForm}
+                layout="vertical"
+                onFinish={handleSaveSecurity}
+                initialValues={{
+                  enableTwoFactor: false,
+                  loginAttempts: 5,
+                  lockoutDuration: 15,
+                  sessionTimeout: 24,
+                  passwordMinLength: 8,
+                  passwordRequireSpecial: true,
+                  enableCaptcha: true,
+                }}
+              >
+                <Row gutter={24}>
                 <Col xs={24}>
                   <Form.Item
                     label="双因素认证"
@@ -318,12 +446,13 @@ const Settings: React.FC = () => {
                 </Col>
               </Row>
 
-              <Form.Item>
-                <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={loading}>
-                  保存设置
-                </Button>
-              </Form.Item>
-            </Form>
+                <Form.Item>
+                  <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={loading}>
+                    保存设置
+                  </Button>
+                </Form.Item>
+              </Form>
+            </Card>
           </TabPane>
 
           {/* 邮件设置 */}

@@ -474,5 +474,3 @@ async function getPostGrowthTrend(days = 30, startDate, endDate) {
   return data;
 }
 
-module.exports = exports;
-

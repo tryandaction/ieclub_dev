@@ -6,19 +6,9 @@
     "auditLog": "c:\\universe\\GitHub_try\\IEclub_dev\\ieclub-backend\\logs\\.0559a3255672595db09d3be3d405905ffb5e7d99-audit.json",
     "files": [
         {
-            "date": 1760600138335,
-            "name": "c:\\universe\\GitHub_try\\IEclub_dev\\ieclub-backend\\logs\\error-2025-10-16.log",
-            "hash": "bc51e80b59e4281f84abb64201d49d2299df35ca91beda218e10a34936a9626a"
-        },
-        {
-            "date": 1760773258344,
-            "name": "c:\\universe\\GitHub_try\\IEclub_dev\\ieclub-backend\\logs\\error-2025-10-18.log",
-            "hash": "112998180006be6ceec04478bcbd356eaa0633708ded4d0c8924eb86cb382dd3"
-        },
-        {
-            "date": 1761064552734,
-            "name": "c:\\universe\\GitHub_try\\IEclub_dev\\ieclub-backend\\logs\\error-2025-10-22.log",
-            "hash": "5fa502f62965a506ce521d1bdb8c4d56814af197f503f7a0469ffca9cdcc9a01"
+            "date": 1762768060803,
+            "name": "c:\\universe\\GitHub_try\\IEclub_dev\\ieclub-backend\\logs\\error-2025-11-10.log",
+            "hash": "92b1afbb023f2a1ddc2b084b42994c64a94d51489cc474d113378c2bd5b48dc2"
         }
     ],
     "hashType": "sha256"

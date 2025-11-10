@@ -75,6 +75,8 @@
 | **health-check/Check-Deploy-Ready.ps1** | 部署前检查脚本 |
 | **health-check/create-test-user-simple.js** | 创建测试用户脚本 ⭐ |
 | **health-check/test-login.sh** | 登录功能自动化测试脚本 ⭐ |
+| **testing/Test-Auth-Simple.ps1** | 认证流程简单测试（4个测试用例） ⭐ |
+| **testing/Test-Auth-Full.ps1** | 认证流程完整测试（5个测试用例） ⭐⭐ |
 | **testing/test-email-domain-validation.js** | 邮箱域名验证测试脚本 ⭐⭐ |
 
 

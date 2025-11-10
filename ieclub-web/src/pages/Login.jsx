@@ -33,23 +33,37 @@ export default function Login() {
     setError('')
     
     // 倒计时中不允许重复发送
-    if (countdown > 0) {
+    if (countdown > 0 || loading) {
       return
     }
+
+    setLoading(true)
 
     try {
       if (loginMode === 'email_code') {
         // 邮箱验证码登录
         if (!validateEmail(email)) {
           setError(getEmailErrorMessage())
+          setLoading(false)
           return
         }
-        await sendCode(email, 'login')
-        showToast('验证码已发送到邮箱', 'success')
+        const response = await sendCode(email, 'login')
+        
+        // 检查响应中的 emailSent 字段（response 已经是 data 对象）
+        if (response?.emailSent === false) {
+          const errorMsg = response?.error || '邮件发送失败，请稍后重试或联系管理员'
+          setError(errorMsg)
+          showToast(errorMsg, 'error')
+          setLoading(false)
+          return
+        }
+        
+        showToast('验证码已发送到邮箱，请查收', 'success')
       } else if (loginMode === 'phone') {
         // 手机号验证码登录
         if (!validatePhone(phone)) {
           setError('请输入正确的手机号')
+          setLoading(false)
           return
         }
         await sendPhoneCode(phone, 'login')
@@ -68,7 +82,11 @@ export default function Login() {
         })
       }, 1000)
     } catch (err) {
-      setError(err.message || '发送验证码失败')
+      const errorMessage = err.response?.data?.message || err.message || '发送验证码失败，请稍后重试'
+      setError(errorMessage)
+      showToast(errorMessage, 'error')
+    } finally {
+      setLoading(false)
     }
   }
 

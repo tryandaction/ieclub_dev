@@ -28,7 +28,12 @@ const errorHandler = (err, req, res, _next) => {
 
   // 如果是自定义AppError
   if (err instanceof AppError) {
-    return res.status(err.statusCode).json(err.toJSON());
+    const errorResponse = err.toJSON();
+    // 如果是429错误，添加Retry-After响应头
+    if (err.statusCode === 429 && err.retryAfter) {
+      res.setHeader('Retry-After', err.retryAfter);
+    }
+    return res.status(err.statusCode).json(errorResponse);
   }
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -42,7 +47,24 @@ const errorHandler = (err, req, res, _next) => {
     if (err.code === 'P2003') {
       return response.error(res, '关联数据不存在', 400);
     }
+    // 数据库连接错误
+    if (err.code === 'P1001' || err.code === 'P1000') {
+      logger.error('数据库连接失败:', err);
+      return res.status(503).json({
+        success: false,
+        message: '服务暂时不可用，请稍后重试'
+      });
+    }
     return response.error(res, '数据库操作失败', 400);
+  }
+  
+  // Prisma 客户端初始化错误
+  if (err.name === 'PrismaClientInitializationError') {
+    logger.error('Prisma 客户端初始化失败:', err);
+    return res.status(503).json({
+      success: false,
+      message: '服务暂时不可用，请稍后重试'
+    });
   }
 
   if (err instanceof Prisma.PrismaClientValidationError) {

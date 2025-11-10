@@ -22,7 +22,7 @@ const { rateLimiters } = require('../middleware/rateLimiter');
 const { requestLogger } = require('../middleware/requestLogger');
 const { performanceMiddleware } = require('../utils/performanceMonitor');
 const { sendVerifyCodeValidation, registerValidation, loginValidation } = require('../middleware/validators');
-const { validationResult } = require('express-validator');
+const { handleValidationErrors } = require('../middleware/handleValidation');
 
 // ==================== 全局中间件 ====================
 // 请求日志（记录所有请求）
@@ -46,31 +46,40 @@ const csrfIgnorePaths = [
 
 const csrf = csrfProtection({ ignorePaths: csrfIgnorePaths });
 
-// 验证错误处理中间件
-const handleValidationErrors = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      code: 400,
-      message: errors.array()[0].msg,
-      errors: errors.array()
-    });
-  }
-  next();
-};
-
 // ==================== Authentication Routes ====================
-// 发送验证码（严格限制，无需CSRF）
+// 发送验证码（基于邮箱限流，无需CSRF）
 router.post('/auth/send-verify-code', 
-  rateLimiters.auth,
+  rateLimiters.sendVerifyCode || rateLimiters.auth, // 使用专门的限流器，如果没有则回退到auth
   sendVerifyCodeValidation,
   handleValidationErrors,
+  (req, res, next) => {
+    // 添加路由调试日志
+    const logger = require('../utils/logger');
+    logger.info('📨 收到发送验证码请求:', { 
+      email: req.body?.email, 
+      type: req.body?.type,
+      ip: req.ip,
+      path: req.path
+    });
+    next();
+  },
   AuthController.sendVerifyCode
 );
 
-// 验证验证码（严格限制，无需CSRF - 改为公开接口供测试使用）
+// 验证验证码（基于邮箱限流，允许更多尝试次数）
 router.post('/auth/verify-code', 
-  rateLimiters.auth, 
+  rateLimiters.verifyCode,
+  (req, res, next) => {
+    // 添加路由调试日志
+    const logger = require('../utils/logger');
+    logger.info('🔐 收到验证验证码请求:', { 
+      email: req.body?.email, 
+      code: req.body?.code ? '***' : undefined,
+      ip: req.ip,
+      path: req.path
+    });
+    next();
+  },
   AuthController.verifyCode
 );
 
@@ -90,9 +99,9 @@ router.post('/auth/login',
   AuthController.login
 );
 
-// 验证码登录（严格限制，无需CSRF - 验证码本身就是验证）
+// 验证码登录（基于邮箱限流，允许更多尝试次数）
 router.post('/auth/login-with-code', 
-  rateLimiters.auth, 
+  rateLimiters.verifyCode, 
   AuthController.loginWithCode
 );
 

@@ -49,7 +49,7 @@ function App() {
             
             {/* 需要登录的页面 */}
             <Route path="publish" element={<ProtectedRoute><Publish /></ProtectedRoute>} />
-            <Route path="profile" element={<Profile />} />
+            <Route path="profile/:userId" element={<Profile />} />
             <Route path="notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
             <Route path="feedback" element={<Feedback />} />
             <Route path="feedback/my" element={<ProtectedRoute><MyFeedback /></ProtectedRoute>} />

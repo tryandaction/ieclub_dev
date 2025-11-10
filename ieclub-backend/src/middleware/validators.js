@@ -14,9 +14,9 @@ const sendVerifyCodeValidation = [
     .trim()
     .isEmail().withMessage('请输入有效的邮箱地址')
     .normalizeEmail()
-    .custom((email, { req }) => {
+    .custom(async (email, { req }) => {
       const type = req.body.type || 'register';
-      const emailCheck = checkEmailAllowed(email, type);
+      const emailCheck = await checkEmailAllowed(email, type);
       if (!emailCheck.valid) {
         throw new Error(emailCheck.message);
       }
@@ -36,8 +36,8 @@ const registerValidation = [
     .trim()
     .isEmail().withMessage('请输入有效的邮箱地址')
     .normalizeEmail()
-    .custom((email) => {
-      const emailCheck = checkEmailAllowed(email, 'register');
+    .custom(async (email) => {
+      const emailCheck = await checkEmailAllowed(email, 'register');
       if (!emailCheck.valid) {
         throw new Error(emailCheck.message);
       }
@@ -73,8 +73,8 @@ const loginValidation = [
     .trim()
     .isEmail().withMessage('请输入有效的邮箱地址')
     .normalizeEmail()
-    .custom((email) => {
-      const emailCheck = checkEmailAllowed(email, 'login');
+    .custom(async (email) => {
+      const emailCheck = await checkEmailAllowed(email, 'login');
       if (!emailCheck.valid) {
         throw new Error(emailCheck.message);
       }
