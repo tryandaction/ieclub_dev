@@ -28,8 +28,24 @@ export default function ForgotPassword() {
     if (countdown > 0) return
 
     try {
-      await sendCode(email, 'reset_password')
-      
+      const response = await sendCode(email, 'reset_password')
+
+      if (response?.emailSent === false) {
+        if (response?.verificationCode) {
+          const note = response?.note || '验证码已生成（测试环境）'
+          setCode(response.verificationCode)
+          showToast(note, 'info')
+          console.log('🔐 [TEST] 重置密码验证码:', response.verificationCode)
+        } else {
+          const errorMsg = response?.error || '邮件发送失败，请稍后重试或联系管理员'
+          setError(errorMsg)
+          showToast(errorMsg, 'error')
+          return
+        }
+      } else {
+        showToast('验证码已发送到邮箱，请查收', 'success')
+      }
+
       setCountdown(60)
       const timer = setInterval(() => {
         setCountdown((prev) => {
@@ -40,8 +56,6 @@ export default function ForgotPassword() {
           return prev - 1
         })
       }, 1000)
-
-      showToast('验证码已发送到邮箱，请查收', 'success')
     } catch (err) {
       setError(err.message || '发送验证码失败')
     }

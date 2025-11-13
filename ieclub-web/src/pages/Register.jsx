@@ -37,16 +37,24 @@ export default function Register() {
 
     try {
       const response = await sendCode(email, 'register')
-      
-      // 检查响应中的 emailSent 字段（response 已经是 data 对象）
+
       if (response?.emailSent === false) {
-        const errorMsg = response?.error || '邮件发送失败，请稍后重试或联系管理员'
-        setError(errorMsg)
-        showToast(errorMsg, 'error')
-        setLoading(false)
-        return
+        if (response?.verificationCode) {
+          const note = response?.note || '验证码已生成（测试环境）'
+          setCode(response.verificationCode)
+          showToast(note, 'info')
+          console.log('🔐 [TEST] 注册验证码:', response.verificationCode)
+        } else {
+          const errorMsg = response?.error || '邮件发送失败，请稍后重试或联系管理员'
+          setError(errorMsg)
+          showToast(errorMsg, 'error')
+          setLoading(false)
+          return
+        }
+      } else {
+        showToast('验证码已发送到邮箱，请查收', 'success')
       }
-      
+
       setCountdown(60)
       const timer = setInterval(() => {
         setCountdown((prev) => {
@@ -58,7 +66,6 @@ export default function Register() {
         })
       }, 1000)
 
-      showToast('验证码已发送到邮箱，请查收', 'success')
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || '发送验证码失败，请稍后重试'
       setError(errorMessage)

@@ -453,11 +453,38 @@ if [ ! -f .env.production ]; then
     exit 1
 fi
 
+echo "    → 规范化环境变量文件（移除 Windows 换行符）"
+sed -i 's/\r$//' .env.production
+
+echo "    → 加载生产环境环境变量 (.env.production)"
+set -a
+source .env.production
+set +a
+
+if [ -z "$DATABASE_URL" ]; then
+    echo "❌ 错误: .env.production 中缺少 DATABASE_URL"
+    exit 1
+fi
+
+DB_INFO=$(echo "$DATABASE_URL" | sed -E 's/^mysql:\/\/[^@]+@([^\/]+)\/([^?]+).*$/\1 \/ \2/')
+echo "    → 目标数据库: ${DB_INFO}"
+echo "    → 当前 NODE_ENV: ${NODE_ENV:-未设置（默认 production）}"
+
 echo "[4/8] 安装依赖..."
 npm install --omit=dev --loglevel=error
 
 echo "[5/8] 运行数据库迁移..."
-npx prisma migrate deploy
+if ! npx prisma migrate deploy; then
+    echo "❌ 数据库迁移执行失败"
+    echo ""
+    echo "💡 常见问题排查："
+    echo "   • 如果看到 P3009 错误，说明存在未完成的迁移。"
+    echo "     请执行："
+    echo "       npx prisma migrate resolve --rolled-back 20251108_add_profile_fields"
+    echo "       npx prisma migrate deploy"
+    echo "   • 确认 DATABASE_URL 已指向生产数据库。"
+    exit 1
+fi
 
 echo "[6/8] 生成 Prisma 客户端..."
 npx prisma generate
@@ -503,7 +530,6 @@ ECOSYSTEM_EOF
 
 # 删除旧进程并启动新进程
 pm2 delete ieclub-backend 2>/dev/null || true
-pm2 delete all 2>/dev/null || true
 pm2 start ecosystem.production.config.js
 pm2 save
 
