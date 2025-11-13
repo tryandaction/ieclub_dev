@@ -601,9 +601,10 @@ function Deploy-Backend-Staging {
     Write-Info "部署后端到测试环境..."
     
     # 创建部署脚本（避免 Windows 换行符问题）
-    $backendScript = @'
+# shell script executed on staging server
+$backendScript = @'
 #!/bin/bash
-set -e
+set -euo pipefail
 
 echo "========================================"
 echo "  测试环境后端部署开始"
@@ -653,11 +654,15 @@ fi
 
 # 步骤 4: 安装依赖
 echo "[4/8] 安装依赖..."
-npm install --omit=dev --loglevel=error 2>&1 | head -20
-if [ $? -eq 0 ]; then
-echo "✅ 依赖安装完成"
+npm_install_log="/tmp/npm-install-staging.log"
+rm -f "$npm_install_log"
+echo "    这一步可能需要几分钟，请耐心等待..."
+if npm install --omit=dev --loglevel=warn 2>&1 | tee "$npm_install_log"; then
+    echo "✅ 依赖安装完成"
+    rm -f "$npm_install_log"
 else
     echo "❌ 依赖安装失败！"
+    echo "📄 请查看日志: $npm_install_log"
     exit 1
 fi
 
