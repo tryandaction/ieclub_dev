@@ -43,7 +43,7 @@
 - **快速启动**: `.\scripts\admin\START_ADMIN_NOW.ps1`
 
 ### 小程序
-- **AppID**: wx5c959d4b00c7f61b
+- **AppID**: 略！！！！
 - **生产API**: https://ieclub.online/api
 - **测试API**: https://test.ieclub.online/api
 
