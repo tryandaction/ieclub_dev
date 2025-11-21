@@ -329,29 +329,10 @@ class AuthController {
       }
       
       // 验证必填字段
-      const validation = validateRequired(req.body, ['email', { field: 'code', altField: 'verifyCode' }]);
-      if (!validation.valid) {
+      if (!email || !code) {
         return res.status(400).json({
           success: false,
-          message: validation.message
-        });
-      }
-      
-      // 验证邮箱格式
-      const emailValidation = validateEmailFormat(email);
-      if (!emailValidation.valid) {
-        return res.status(400).json({
-          success: false,
-          message: emailValidation.message
-        });
-      }
-      
-      // 验证验证码格式
-      const codeValidation = validatePassword(code);
-      if (!codeValidation.valid) {
-        return res.status(400).json({
-          success: false,
-          message: codeValidation.message
+          message: '邮箱和验证码不能为空'
         });
       }
 
@@ -555,12 +536,11 @@ class AuthController {
         gender
       });
 
-      // 使用验证工具 - 必填字段
-      const validation = validateRequired(req.body, ['email', 'password', { field: 'verifyCode', altField: 'code' }]);
-      if (!validation.valid) {
+      // 验证必填字段
+      if (!email || !password || !verifyCode) {
         return res.status(400).json({
           success: false,
-          message: validation.message
+          message: '邮箱、密码和验证码不能为空'
         });
       }
 
@@ -573,12 +553,11 @@ class AuthController {
         });
       }
 
-      // 验证密码强度
-      const passwordCheck = validatePassword(password);
-      if (!passwordCheck.valid) {
+      // 简单验证密码长度
+      if (password.length < 6) {
         return res.status(400).json({
           success: false,
-          message: passwordCheck.message
+          message: '密码长度不能少于6个字符'
         });
       }
 
@@ -586,13 +565,6 @@ class AuthController {
       let stored;
       try {
         const verifyCodeStr = String(verifyCode).trim();
-        const codeValidation = validatePassword(verifyCodeStr);
-        if (!codeValidation.valid) {
-          return res.status(400).json({
-            success: false,
-            message: codeValidation.message
-          });
-        }
         stored = await prisma.verificationCode.findFirst({
           where: {
             email,
@@ -1043,11 +1015,10 @@ class AuthController {
       const { email } = req.body || {};
 
       // 验证必填字段
-      const validation = validateRequired(req.body, ['email']);
-      if (!validation.valid) {
+      if (!email) {
         return res.status(400).json({
           success: false,
-          message: validation.message
+          message: '邮箱地址不能为空'
         });
       }
 
@@ -1128,20 +1099,18 @@ class AuthController {
       }
 
       // 参数验证
-      const validation = validateRequired(req.body, ['newPassword']);
-      if (!validation.valid) {
+      if (!newPassword) {
         return res.status(400).json({
           success: false,
-          message: validation.message
+          message: '新密码不能为空'
         });
       }
 
-      // 验证密码强度
-      const passwordCheck = validatePassword(newPassword);
-      if (!passwordCheck.valid) {
+      // 简单验证密码长度
+      if (newPassword.length < 6) {
         return res.status(400).json({
           success: false,
-          message: passwordCheck.message
+          message: '新密码长度不能少于6个字符'
         });
       }
 
@@ -1149,14 +1118,6 @@ class AuthController {
 
       // 方式1: 使用验证码重置（前端使用）
       if (email && code) {
-        // 校验验证码格式
-        const codeValidation = validatePassword(code);
-        if (!codeValidation.valid) {
-          return res.status(400).json({
-            success: false,
-            message: codeValidation.message
-          });
-        }
         // 验证邮箱格式与域名限制
         const emailCheck = checkEmailAllowed(email, 'reset');
         if (!emailCheck.valid) {
@@ -1283,93 +1244,6 @@ class AuthController {
     }
   }
 
-  // 获取用户信息
-  static async getProfile(req, res, next) {
-    try {
-      const userId = req.user.id;
-      
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          email: true,
-          nickname: true,
-          avatar: true,
-          bio: true,
-          interests: true,
-          skills: true,
-          level: true,
-          credits: true,
-          exp: true,
-          isCertified: true,
-          createdAt: true,
-          updatedAt: true
-        }
-      });
-
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: '用户不存在'
-        });
-      }
-
-      res.json({
-        success: true,
-        message: '获取用户信息成功',
-        data: user
-      });
-    } catch (error) {
-      logger.error('获取用户信息失败:', { userId: req.user?.id, error: error.message });
-      next(error);
-    }
-  }
-
-  // 更新个人信息
-  static async updateProfile(req, res, next) {
-    try {
-      const userId = req.user?.id;
-      if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: '未授权'
-        });
-      }
-      
-      const { nickname, bio, skills, interests } = req.body || {};
-
-      // 构建更新数据
-      const updateData = {};
-      if (nickname !== undefined) updateData.nickname = nickname;
-      if (bio !== undefined) updateData.bio = bio;
-      if (skills !== undefined) updateData.skills = JSON.stringify(skills);
-      if (interests !== undefined) updateData.interests = JSON.stringify(interests);
-
-      const user = await prisma.user.update({
-        where: { id: userId },
-        data: updateData,
-        select: {
-          id: true,
-          email: true,
-          nickname: true,
-          avatar: true,
-          bio: true,
-          skills: true,
-          interests: true
-        }
-      });
-
-      res.json({
-        success: true,
-        message: '个人信息更新成功',
-        data: user
-      });
-    } catch (error) {
-      logger.error('更新个人信息失败:', { userId: req.user?.id, error: error.message });
-      next(error);
-    }
-  }
-
   // 验证码登录
   static async loginWithCode(req, res, next) {
     try {
@@ -1381,11 +1255,10 @@ class AuthController {
       }
 
       // 验证必填字段
-      const validation = validateRequired(req.body, ['email', { field: 'code', altField: 'verifyCode' }]);
-      if (!validation.valid) {
+      if (!email || !code) {
         return res.status(400).json({
           success: false,
-          message: validation.message
+          message: '邮箱和验证码不能为空'
         });
       }
 
@@ -1395,15 +1268,6 @@ class AuthController {
         return res.status(400).json({
           success: false,
           message: emailCheck.message
-        });
-      }
-
-      // 校验验证码格式
-      const codeValidation = validatePassword(code);
-      if (!codeValidation.valid) {
-        return res.status(400).json({
-          success: false,
-          message: codeValidation.message
         });
       }
 
@@ -1517,21 +1381,19 @@ class AuthController {
       
       const { oldPassword, newPassword } = req.body || {};
 
-      // 使用验证工具
-      const validation = validateRequired(req.body, ['oldPassword', 'newPassword']);
-      if (!validation.valid) {
+      // 验证必填字段
+      if (!oldPassword || !newPassword) {
         return res.status(400).json({
           success: false,
-          message: validation.message
+          message: '旧密码和新密码不能为空'
         });
       }
 
-      // 验证新密码强度
-      const passwordCheck = validatePassword(newPassword);
-      if (!passwordCheck.valid) {
+      // 简单验证密码长度
+      if (newPassword.length < 6) {
         return res.status(400).json({
           success: false,
-          message: passwordCheck.message
+          message: '新密码长度不能少于6个字符'
         });
       }
 
