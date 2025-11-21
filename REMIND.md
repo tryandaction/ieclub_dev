@@ -22,6 +22,10 @@ pwsh .\scripts\admin\set-admin-local.ps1
 
 ### 步骤2：部署生产环境（3分钟）
 
+# 部署全部
+cd C:\universe\GitHub_try\IEclub_dev
+.\scripts\deployment\Deploy-Staging.ps1 -Target all -Message "测试"
+
 ```powershell
 .\scripts\deployment\Deploy-Production.ps1 -Target backend -Message "修复验证码+图形验证码"
 ```
