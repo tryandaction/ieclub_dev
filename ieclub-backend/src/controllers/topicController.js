@@ -1,7 +1,6 @@
 // src/controllers/topicController.js
 // 话题控制器 - 核心功能
 
-const { PrismaClient } = require('@prisma/client');
 const response = require('../utils/response');
 const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
@@ -10,9 +9,11 @@ const WechatService = require('../services/wechatService');
 const creditService = require('../services/creditService');
 const notificationService = require('../services/notificationService');
 const websocketService = require('../services/websocketService');
-const { CacheManager } = require('../utils/redis');
 const config = require('../config');
 const prisma = require('../config/database');
+const { withCache, buildKey } = require('../utils/cacheHelper');
+const { validatePagination, validateId, validateRequired } = require('../utils/validationHelper');
+const { canOperate } = require('../utils/permissionHelper');
 
 class TopicController {
   /**
@@ -22,17 +23,19 @@ class TopicController {
   static async getTopics(req, res) {
     try {
       const {
-        page = 1,
-        limit = 20,
+        page: rawPage,
+        limit: rawLimit,
         category,
         topicType,
-        sortBy = 'hot', // hot, new, trending
+        sortBy = 'hot',
         tags,
         search,
       } = req.query;
 
-      const skip = (parseInt(page) - 1) * parseInt(limit);
-      const take = parseInt(limit);
+      // 使用验证工具统一分页参数
+      const { page, pageSize } = validatePagination(rawPage, rawLimit, 100);
+      const skip = (page - 1) * pageSize;
+      const take = pageSize;
 
       // 构建查询条件（只使用数据库中最基本的字段）
       const where = {};
