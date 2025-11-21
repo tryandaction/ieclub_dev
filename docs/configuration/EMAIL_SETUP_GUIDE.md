@@ -57,9 +57,9 @@ cp .env.example .env
 EMAIL_HOST=smtp.qq.com
 EMAIL_PORT=587
 EMAIL_SECURE=false
-EMAIL_USER=2812149844@qq.com
+EMAIL_USER=your_qq_number@qq.com
 EMAIL_PASSWORD=你的QQ邮箱授权码（16位）
-EMAIL_FROM="IEClub <2812149844@qq.com>"
+EMAIL_FROM="IEClub <your_qq_number@qq.com>"
 ```
 
 **重要提示**：
@@ -216,9 +216,9 @@ node scripts/test-email-service.js your_test_email@example.com
 EMAIL_HOST=smtp.qq.com
 EMAIL_PORT=587
 EMAIL_SECURE=false
-EMAIL_USER=2812149844@qq.com
+EMAIL_USER=your_qq_number@qq.com
 EMAIL_PASSWORD=abcdefghijklmnop
-EMAIL_FROM="IEClub <2812149844@qq.com>"
+EMAIL_FROM="IEClub <your_qq_number@qq.com>"
 ```
 
 ### 完整配置示例（学校邮箱）

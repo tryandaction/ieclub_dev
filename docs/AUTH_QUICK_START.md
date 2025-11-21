@@ -35,9 +35,9 @@ copy .env.example .env
 EMAIL_HOST=smtp.qq.com
 EMAIL_PORT=587
 EMAIL_SECURE=false
-EMAIL_USER=2812149844@qq.com          # 改成你的QQ邮箱
-EMAIL_PASSWORD=你的16位授权码           # 不是QQ密码！
-EMAIL_FROM=2812149844@qq.com           # 改成你的QQ邮箱
+EMAIL_USER=your_qq_number@qq.com     # 改成你的QQ邮箱
+EMAIL_PASSWORD=你的16位授权码            # 不是QQ密码！
+EMAIL_FROM=your_qq_number@qq.com      # 改成你的QQ邮箱
 ```
 
 **如何获取QQ邮箱授权码**：
@@ -72,7 +72,7 @@ POST http://localhost:3000/api/auth/send-verify-code
 Content-Type: application/json
 
 {
-  "email": "你的邮箱@qq.com",
+  "email": "your_email@example.com",
   "type": "register"
 }
 ```
@@ -106,7 +106,7 @@ Content-Type: application/json
 cd ieclub-backend
 node -e "
 const emailService = require('./src/services/emailService');
-emailService.sendVerificationCode('你的邮箱@qq.com', '123456', 'register')
+emailService.sendVerificationCode('your_email@example.com', '123456', 'register')
   .then(res => console.log('结果:', res));
 "
 ```

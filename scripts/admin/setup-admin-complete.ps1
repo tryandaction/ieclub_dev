@@ -7,7 +7,14 @@ Write-Host " IEClub 测试环境管理员设置" -ForegroundColor Green
 Write-Host "=" * 70 -ForegroundColor Cyan
 Write-Host ""
 
-$adminEmail = "12310203@mail.sustech.edu.cn"
+$adminEmail = Read-Host "请输入管理员邮箱（学校邮箱）"
+
+if (-not $adminEmail -or $adminEmail -notmatch "@mail\.sustech\.edu\.cn$") {
+    Write-Host ""
+    Write-Host "❌ 请输入有效的学校邮箱（@mail.sustech.edu.cn）" -ForegroundColor Red
+    Write-Host ""
+    exit 1
+}
 $baseUrl = "https://test.ieclub.online/api"
 
 Write-Host "管理员邮箱: $adminEmail" -ForegroundColor Yellow
@@ -128,7 +135,7 @@ $continue = Read-Host "  是否继续设置管理员权限？(Y/N)"
 
 if ($continue -eq 'Y' -or $continue -eq 'y') {
     Write-Host "  正在设置..." -ForegroundColor Gray
-    ssh root@ieclub.online "cd /root/IEclub_dev_staging/ieclub-backend && node set-admin-staging.js"
+    ssh root@ieclub.online "cd /root/IEclub_dev_staging/ieclub-backend && node set-admin-staging.js '$adminEmail'"
 }
 
 Write-Host ""

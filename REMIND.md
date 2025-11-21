@@ -1,40 +1,27 @@
 # ⚠️ IEClub 待办事项
 
 > 📌 **更新**: 2025-11-21  
-> �� **状态**: ✅ 测试环境就绪，待验证后部署生产
+> �� **状态**: ✅ 测试环境就绪，管理员设置脚本已修复
 
 ---
 
-## 🎯 您需要完成的操作（共3步，约10分钟）
+## 🎯 您需要完成的操作（共2步，约5分钟）
 
-### 步骤1：测试环境注册管理员（5分钟）
+### 步骤1：测试环境设置管理员（2分钟）
 
 ```powershell
 cd c:\universe\GitHub_try\IEclub_dev
-pwsh .\scripts\admin\setup-admin-complete.ps1
+pwsh .\scripts\admin\set-admin-staging.js
 ```
 
-- 脚本会自动发送验证码、注册、设置管理员权限
-- 邮箱：`12310203@mail.sustech.edu.cn`
-- 跟随提示输入密码即可
+说明：
+- 您已在测试环境注册账号
+- 运行此脚本设置您的账号为管理员
+- 脚本已修复RBAC权限系统问题
 
 ---
 
-### 步骤2：测试功能（3分钟）
-
-```powershell
-pwsh .\scripts\test\test-staging-api.ps1
-```
-
-测试项目：
-- ✅ 健康检查
-- ✅ 图形验证码
-- ✅ 邮件验证码
-- ✅ 注册登录
-
----
-
-### 步骤3：部署到生产环境（2分钟）
+### 步骤2：部署到生产环境（3分钟）
 
 确认测试无误后：
 
@@ -49,14 +36,19 @@ pwsh .\scripts\test\test-staging-api.ps1
 
 ## 🔧 可选操作
 
+### 测试功能
+
+```powershell
+pwsh .\scripts\test\test-staging-api.ps1
+```
+
 ### 添加测试环境白名单
 
 ```powershell
 pwsh .\scripts\admin\add-whitelist.ps1
 ```
 
-- 输入邮箱，多个用分号 `;` 分隔
-- 例如：`test1@qq.com;test2@gmail.com`
+输入邮箱，多个用分号 `;` 分隔
 
 ---
 
@@ -71,13 +63,14 @@ pwsh .\scripts\admin\add-whitelist.ps1
 
 - ✅ 图形验证码服务
 - ✅ 邮件服务（QQ邮箱）
-- ✅ 测试环境白名单（您的邮箱已添加）
+- ✅ 测试环境白名单配置
 - ✅ 生产环境邮箱策略（只允许学校邮箱）
 - ✅ PM2服务配置
+- ✅ 管理员设置脚本已修复
 
 ---
 
-## 📂 重要文件位置
+## 📂 重要文件
 
 - `README.md` - 项目介绍
 - `DEVELOPMENT_ROADMAP.md` - 开发规划
@@ -88,4 +81,4 @@ pwsh .\scripts\admin\add-whitelist.ps1
 
 ---
 
-**下一步**: 完成步骤1-3后，生产环境即可正常使用 ✅
+**下一步**: 完成步骤1-2后，生产环境即可正常使用 ✅
