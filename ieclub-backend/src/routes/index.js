@@ -140,19 +140,21 @@ router.post('/auth/reset-password',
 );
 
 // 获取个人信息（API限制）
-router.get('/auth/profile', 
-  authenticate, 
-  rateLimiters.api, 
-  AuthController.getProfile
-);
+// TODO: 实现 AuthController.getProfile 方法
+// router.get('/auth/profile', 
+//   authenticate, 
+//   rateLimiters.api, 
+//   AuthController.getProfile
+// );
 
 // 更新个人信息（API限制）
-router.put('/auth/profile', 
-  authenticate, 
-  rateLimiters.api, 
-  csrf, 
-  AuthController.updateProfile
-);
+// TODO: 实现 AuthController.updateProfile 方法
+// router.put('/auth/profile', 
+//   authenticate, 
+//   rateLimiters.api, 
+//   csrf, 
+//   AuthController.updateProfile
+// );
 
 // 修改密码（API限制）
 router.put('/auth/change-password', 
