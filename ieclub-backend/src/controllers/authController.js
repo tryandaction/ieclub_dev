@@ -11,6 +11,7 @@ const smsService = require('../services/smsService');
 const wechatService = require('../services/wechatService');
 const { validateEmail } = require('../utils/common');
 const { checkEmailAllowed } = require('../utils/emailDomainChecker');
+const { handleDatabaseError } = require('../utils/errorHandler');
 
 // 密码强度验证函数
 function validatePasswordStrength(password) {
@@ -65,26 +66,7 @@ class AuthController {
           orderBy: { createdAt: 'desc' }
         });
       } catch (dbError) {
-        // 数据库连接错误
-        if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
-          logger.error('数据库连接失败:', { 
-            error: dbError.message, 
-            code: dbError.code, 
-            name: dbError.name,
-            stack: dbError.stack 
-          });
-          return res.status(503).json({
-            success: false,
-            message: '服务暂时不可用，请稍后重试'
-          });
-        }
-        // 其他数据库错误也记录日志
-        logger.error('数据库操作失败:', { 
-          error: dbError.message, 
-          code: dbError.code, 
-          name: dbError.name,
-          stack: dbError.stack 
-        });
+        if (handleDatabaseError(dbError, res, '查询验证码')) return;
         throw dbError;
       }
 

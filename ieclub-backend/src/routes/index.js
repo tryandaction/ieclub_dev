@@ -6,6 +6,7 @@ const router = express.Router();
 
 // 控制器
 const AuthController = require('../controllers/authController');
+const CaptchaController = require('../controllers/captchaController');
 const topicController = require('../controllers/topicController');
 const commentController = require('../controllers/commentController');
 const UserController = require('../controllers/userController');
@@ -35,6 +36,25 @@ router.use(performanceMiddleware());
 // 获取CSRF Token（公开接口）- 前端必须先调用此接口才能调用需要CSRF保护的接口
 const { getCsrfToken } = require('../middleware/csrf');
 router.get('/auth/csrf-token', getCsrfToken);
+
+// ==================== Captcha Routes（图形验证码）====================
+// 生成验证码（宽松限制，公开接口）
+router.get('/captcha/generate', 
+  rateLimiters.api,
+  CaptchaController.generate
+);
+
+// 验证验证码（中等限制）
+router.post('/captcha/verify', 
+  rateLimiters.api,
+  CaptchaController.verify
+);
+
+// 刷新验证码（宽松限制）
+router.post('/captcha/refresh', 
+  rateLimiters.api,
+  CaptchaController.refresh
+);
 
 // ==================== CSRF 保护配置 ====================
 // 不需要CSRF保护的认证接口（公开接口、只读操作）

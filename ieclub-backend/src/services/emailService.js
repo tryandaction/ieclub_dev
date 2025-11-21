@@ -5,45 +5,25 @@ const nodemailer = require('nodemailer');
 const logger = require('../utils/logger');
 const config = require('../config');
 
-const PLACEHOLDER_PATTERNS = [
-  /^your_/i,
-  /example\.com/i,
-  /app_specific_password/i,
-  /changeme/i,
-  /^password$/i,
-  /^test@/i,
-];
-
-function isPlaceholder(value) {
-  if (!value || typeof value !== 'string') {
-    return true;
-  }
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return true;
-  }
-  return PLACEHOLDER_PATTERNS.some((regex) => regex.test(trimmed));
-}
-
+// 简化配置检测：只检查必填字段是否存在
 function hasValidEmailConfig(emailConfig) {
-  if (!emailConfig) {
-    return false;
+  if (!emailConfig) return false;
+  
+  const { host, user, password } = emailConfig;
+  
+  // 只检查是否有值，不检查是否是占位符
+  if (!host || !user || !password) return false;
+  
+  // 检查是否看起来像占位符
+  const placeholderKeywords = ['your_', 'changeme', 'example', 'password123'];
+  const isLikelyPlaceholder = placeholderKeywords.some(keyword => 
+    password.toLowerCase().includes(keyword) || user.toLowerCase().includes(keyword)
+  );
+  
+  if (isLikelyPlaceholder && process.env.NODE_ENV === 'production') {
+    return false; // 生产环境拒绝明显的占位符
   }
-  const host = emailConfig.host;
-  const user = emailConfig.user;
-  const password = emailConfig.password || emailConfig.pass;
-  if (!host || !user || !password) {
-    return false;
-  }
-
-  if (process.env.EMAIL_FORCE_SEND === 'true') {
-    return true;
-  }
-
-  if (isPlaceholder(user) || isPlaceholder(password)) {
-    return false;
-  }
-
+  
   return true;
 }
 

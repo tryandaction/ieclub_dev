@@ -374,6 +374,33 @@ function errorMiddleware() {
   };
 }
 
+/**
+ * 处理数据库连接错误
+ * @param {Error} error - 数据库错误
+ * @param {Object} res - 响应对象
+ * @param {string} operation - 操作名称
+ * @returns {boolean} 是否是连接错误（已处理）
+ */
+function handleDatabaseError(error, res, operation = '数据库操作') {
+  // 检查是否是Prisma连接错误
+  if (error.code === 'P1001' || error.code === 'P1000' || error.name === 'PrismaClientInitializationError') {
+    logger.error(`${operation}失败 - 数据库连接错误:`, {
+      error: error.message,
+      code: error.code,
+      name: error.name
+    });
+    
+    res.status(503).json({
+      success: false,
+      message: '服务暂时不可用，请稍后重试'
+    });
+    return true;
+  }
+  
+  // 不是连接错误，返回false让调用者继续处理
+  return false;
+}
+
 module.exports = {
   ErrorHandler,
   asyncHandler,
@@ -385,6 +412,7 @@ module.exports = {
   conflictError,
   businessError,
   errorMiddleware,
+  handleDatabaseError,
   ERROR_TYPES
 };
 
