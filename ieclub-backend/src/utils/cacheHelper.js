@@ -3,7 +3,7 @@
  * 减少重复的缓存操作代码
  */
 
-const CacheManager = require('../config/cache');
+const { cacheManager } = require('./redis');
 const logger = require('./logger');
 
 /**
@@ -16,14 +16,10 @@ const logger = require('./logger');
 async function withCache(key, ttl, fetchFn) {
   try {
     // 尝试从缓存获取
-    const cached = await CacheManager.get(key);
+    const cached = await cacheManager.get(key);
     if (cached !== null) {
       logger.debug(`Cache hit: ${key}`);
-      try {
-        return JSON.parse(cached);
-      } catch {
-        return cached;
-      }
+      return cached; // cacheManager.get已经自动parse了
     }
     
     logger.debug(`Cache miss: ${key}`);
@@ -33,7 +29,7 @@ async function withCache(key, ttl, fetchFn) {
     
     // 存入缓存
     if (data !== null && data !== undefined) {
-      await CacheManager.set(key, JSON.stringify(data), ttl);
+      await cacheManager.set(key, data, ttl); // cacheManager.set会自动stringify
     }
     
     return data;
@@ -50,11 +46,8 @@ async function withCache(key, ttl, fetchFn) {
  */
 async function deletePattern(pattern) {
   try {
-    const keys = await CacheManager.keys(pattern);
-    if (keys && keys.length > 0) {
-      await Promise.all(keys.map(key => CacheManager.del(key)));
-      logger.debug(`Deleted cache pattern: ${pattern}, count: ${keys.length}`);
-    }
+    await cacheManager.delPattern(pattern);
+    logger.debug(`Deleted cache pattern: ${pattern}`);
   } catch (error) {
     logger.error('Delete cache pattern error:', { pattern, error: error.message });
   }

@@ -153,9 +153,9 @@ async function canOperate(userId, resourceType, action, resource) {
  * @param {string} userId - 用户ID
  */
 async function clearUserPermissionCache(userId) {
-  const CacheManager = require('../config/cache');
-  await CacheManager.del(`user:${userId}:roles`);
-  await CacheManager.del(`user:${userId}:permissions`);
+  const { cacheManager } = require('./redis');
+  await cacheManager.del(`user:${userId}:roles`);
+  await cacheManager.del(`user:${userId}:permissions`);
   logger.debug(`Cleared permission cache for user: ${userId}`);
 }
 
