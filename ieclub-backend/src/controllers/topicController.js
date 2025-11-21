@@ -12,7 +12,6 @@ const websocketService = require('../services/websocketService');
 const config = require('../config');
 const prisma = require('../config/database');
 const { withCache, buildKey } = require('../utils/cacheHelper');
-const { validatePagination, validateId, validateRequired } = require('../utils/validationHelper');
 const { canOperate } = require('../utils/permissionHelper');
 
 class TopicController {
@@ -23,8 +22,8 @@ class TopicController {
   static async getTopics(req, res) {
     try {
       const {
-        page: rawPage,
-        limit: rawLimit,
+        page = 1,
+        limit = 20,
         category,
         topicType,
         sortBy = 'hot',
@@ -32,10 +31,9 @@ class TopicController {
         search,
       } = req.query;
 
-      // 使用验证工具统一分页参数
-      const { page, pageSize } = validatePagination(rawPage, rawLimit, 100);
-      const skip = (page - 1) * pageSize;
-      const take = pageSize;
+      // 分页参数处理
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+      const take = parseInt(limit);
 
       // 构建查询条件（只使用数据库中最基本的字段）
       const where = {};
