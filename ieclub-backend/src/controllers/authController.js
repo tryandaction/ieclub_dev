@@ -12,7 +12,6 @@ const wechatService = require('../services/wechatService');
 const { validateEmail } = require('../utils/common');
 const { checkEmailAllowed } = require('../utils/emailDomainChecker');
 const { handleDatabaseError } = require('../utils/errorHandler');
-const { validateRequired, validatePassword, validateEmail: validateEmailFormat } = require('../utils/validationHelper');
 
 function generateVerificationCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -24,12 +23,11 @@ class AuthController {
     try {
       const { email, type = 'register' } = req.body || {}; // type: register, reset, login
 
-      // 使用验证工具
-      const validation = validateRequired(req.body, ['email']);
-      if (!validation.valid) {
+      // 验证必填字段
+      if (!email) {
         return res.status(400).json({
           success: false,
-          message: validation.message
+          message: '邮箱地址不能为空'
         });
       }
 
