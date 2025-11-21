@@ -811,12 +811,11 @@ class AuthController {
     try {
       const { email, password } = req.body || {};
 
-      // 使用验证工具
-      const validation = validateRequired(req.body, ['email', 'password']);
-      if (!validation.valid) {
+      // 验证必填字段
+      if (!email || !password) {
         return res.status(400).json({
           success: false,
-          message: validation.message
+          message: '邮箱和密码不能为空'
         });
       }
 
