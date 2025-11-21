@@ -316,7 +316,7 @@ request.interceptors.response.use(
           console.warn(`🔒 [401] ${error.config.url}:`, errorMessage)
         } else {
           // 其他接口的 401 错误，表示 token 过期
-          errorMessage = data?.message || '登录已过期，请重新登录'
+          errorMessage = '登录已过期，请重新登录'
           console.warn(`🔒 [401] ${error.config.url}: Token 已过期`)
           localStorage.removeItem('token')
           localStorage.removeItem('user')

@@ -108,15 +108,10 @@ export default function Register() {
 
   // 密码强度验证
   const validatePassword = (password) => {
-    if (password.length < 8) {
-      return '密码至少8位'
+    if (password.length < 6) {
+      return '密码至少6位'
     }
-    if (!/[a-zA-Z]/.test(password)) {
-      return '密码需包含字母'
-    }
-    if (!/[0-9]/.test(password)) {
-      return '密码需包含数字'
-    }
+    // 可选：建议包含字母和数字，但不强制要求
     return null
   }
 

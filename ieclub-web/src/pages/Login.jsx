@@ -116,8 +116,8 @@ export default function Login() {
 
     if (loginMode === 'password') {
       // 密码登录
-      if (!password || password.length < 8) {
-        setError('密码至少8位')
+      if (!password || password.length < 6) {
+        setError('密码至少6位')
         return
       }
     } else {
