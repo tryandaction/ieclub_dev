@@ -38,7 +38,9 @@
    - ✅ 创建`validationHelper`工具类（统一参数验证）
    - ✅ 优化日志配置（生产warn，测试info，开发debug）
    - ✅ 重构`topicController`使用新工具类
-   - ✅ 减少重复代码约30%
+   - ✅ 重构`authController`应用验证工具（减少100+行）
+   - ✅ 修复工具类模块引用错误
+   - ✅ 减少重复代码约30%+
 
 ### ⚠️ 发现的问题
 
