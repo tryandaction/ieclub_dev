@@ -1,6 +1,36 @@
 import axios from 'axios'
 import useLoadingStore from '../stores/loadingStore'
 
+// 🔒 敏感数据过滤函数（防止密码泄露到控制台）
+const sanitizeSensitiveData = (data) => {
+  if (!data) return data
+  
+  // 如果是字符串，尝试解析为JSON
+  let parsedData = data
+  if (typeof data === 'string') {
+    try {
+      parsedData = JSON.parse(data)
+    } catch {
+      return data
+    }
+  }
+  
+  // 复制对象，避免修改原数据
+  const sanitized = { ...parsedData }
+  
+  // 敏感字段列表
+  const sensitiveFields = ['password', 'oldPassword', 'newPassword', 'token', 'accessToken', 'refreshToken']
+  
+  // 过滤敏感字段
+  sensitiveFields.forEach(field => {
+    if (sanitized[field]) {
+      sanitized[field] = '***hidden***'
+    }
+  })
+  
+  return sanitized
+}
+
 // 🔧 获取 API 基础地址（智能推断 + 降级方案）
 const getApiBaseUrl = () => {
   // 1. 优先使用环境变量配置
@@ -109,11 +139,12 @@ request.interceptors.request.use(
     // 添加请求时间戳（用于性能监控）
     config.metadata = { startTime: Date.now() }
     
-    // 打印请求信息
+    // 打印请求信息（隐藏敏感字段）
     const fullURL = config.baseURL + config.url
+    const sanitizedData = config.data ? sanitizeSensitiveData(config.data) : undefined
     console.log(`🚀 [${config.method?.toUpperCase()}] ${fullURL}`, {
       params: config.params,
-      data: config.data,
+      data: sanitizedData,
       headers: config.headers
     })
     
