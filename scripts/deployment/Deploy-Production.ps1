@@ -301,9 +301,16 @@ function Deploy-Web-Production {
     Write-Info "上传到生产服务器..."
     scp -P $ServerPort "web-production.zip" "${ServerUser}@${ServerHost}:/tmp/"
     
-    # 部署
+    # 部署到Nginx实际读取的目录
     Write-Info "部署到生产目录..."
-    $webDeployCmd = "mkdir -p /var/www/ieclub.online && unzip -oq /tmp/web-production.zip -d /var/www/ieclub.online/ && rm -f /tmp/web-production.zip && chmod -R 755 /var/www/ieclub.online && echo '用户前端部署完成'"
+    $webDeployCmd = @"
+rm -rf /root/IEclub_dev/ieclub-web/dist && 
+mkdir -p /root/IEclub_dev/ieclub-web && 
+unzip -oq /tmp/web-production.zip -d /root/IEclub_dev/ieclub-web/dist/ && 
+rm -f /tmp/web-production.zip && 
+chmod -R 755 /root/IEclub_dev/ieclub-web/dist && 
+echo '用户前端部署完成'
+"@
     ssh -p $ServerPort "${ServerUser}@${ServerHost}" $webDeployCmd
     
     # 健康检查
