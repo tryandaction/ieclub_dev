@@ -121,6 +121,28 @@ export const unbindWechat = () => {
 }
 
 /**
+ * 绑定手机号
+ * @param {object} data - { phone, code }
+ * @returns {Promise}
+ */
+export const bindPhone = (data) => {
+  return request('/auth/bind-phone', {
+    method: 'POST',
+    data
+  })
+}
+
+/**
+ * 解绑手机号
+ * @returns {Promise}
+ */
+export const unbindPhone = () => {
+  return request('/auth/unbind-phone', {
+    method: 'POST'
+  })
+}
+
+/**
  * 首次设置密码
  * @param {object} data - { password, confirmPassword }
  * @returns {Promise<{accessToken: string, refreshToken: string}>}
@@ -186,6 +208,14 @@ export const deleteAccount = (data) => {
  */
 export const getCurrentUser = () => {
   return request('/auth/profile')
+}
+
+/**
+ * 获取用户信息（包含绑定状态）
+ * @returns {Promise<object>}
+ */
+export const getUserInfo = () => {
+  return request('/auth/me')
 }
 
 /**
