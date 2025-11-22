@@ -167,37 +167,13 @@ Page({
   },
 
   /**
-   * 切换密码显示
+   * 切换密码显示（用于登录和注册）
    */
   togglePassword() {
-    const newState = !this.data.showPassword
-    console.log('👁️ [Auth] 切换密码显示:', {
-      原状态: this.data.showPassword,
-      新状态: newState,
-      type将变为: newState ? 'text' : 'password',
-      图标将变为: newState ? '👁️' : '🙈'
-    })
     this.setData({
-      showPassword: newState
+      showPassword: !this.data.showPassword
     })
-    // 确认状态已更新
-    setTimeout(() => {
-      console.log('✅ [Auth] 密码显示状态已更新为:', this.data.showPassword)
-    }, 100)
-  },
-  
-  /**
-   * 切换确认密码显示
-   */
-  toggleConfirmPassword() {
-    const newState = !this.data.showConfirmPassword
-    console.log('👁️ [Auth] 切换确认密码显示:', {
-      原状态: this.data.showConfirmPassword,
-      新状态: newState
-    })
-    this.setData({
-      showConfirmPassword: newState
-    })
+    console.log('👁️ [Auth] 切换密码显示状态:', this.data.showPassword)
   },
 
   /**
@@ -454,6 +430,7 @@ Page({
     this.setData({
       showConfirmPassword: !this.data.showConfirmPassword
     })
+    console.log('👁️ [Auth] 切换确认密码显示状态:', this.data.showConfirmPassword)
   },
 
   /**

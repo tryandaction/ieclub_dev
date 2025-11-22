@@ -5,9 +5,10 @@
 .auth-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 0 40rpx 80rpx;
+  padding: 0 40rpx 120rpx; /* 增加底部padding确保按钮不被遮挡 */
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto; /* 允许垂直滚动 */
   box-sizing: border-box;
 }
 
@@ -231,19 +232,22 @@
 
 .eye-icon {
   position: absolute;
-  right: 20rpx;
+  right: 8rpx; /* 调整位置确保不被input遮挡 */
   top: 50%;
   transform: translateY(-50%);
   font-size: 40rpx;
-  padding: 20rpx;
+  padding: 24rpx; /* 增加点击区域 */
   cursor: pointer;
   transition: all 0.2s;
-  z-index: 10;
+  z-index: 100; /* 提高层级确保可点击 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .eye-icon:active {
   transform: translateY(-50%) scale(0.9);
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 /* ==================== 验证码相关 ==================== */
@@ -343,7 +347,7 @@
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 12rpx 32rpx rgba(0, 0, 0, 0.2);
-  margin-bottom: 24rpx;
+  margin-bottom: 30rpx; /* 增加按钮间距 */
 }
 
 .primary-btn {
@@ -450,10 +454,11 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 400rpx;
+  height: 300rpx; /* 降低高度减少遮挡 */
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
+  opacity: 0.8; /* 降低不透明度 */
 }
 
 .decoration-circle {
