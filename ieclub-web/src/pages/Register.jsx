@@ -90,20 +90,10 @@ export default function Register() {
       return
     }
 
-    setLoading(true)
-
-    try {
-      // 调用后端验证接口验证验证码
-      await verifyCode(email, code)
-      
-      // 验证成功，进入下一步
-      showToast('验证码验证成功！', 'success')
-      setStep(2)
-    } catch (err) {
-      setError(err.message || '验证码错误或已过期')
-    } finally {
-      setLoading(false)
-    }
+    // 前端验证通过，直接进入下一步
+    // 验证码的有效性将在注册时由后端验证
+    showToast('请设置密码和个人信息', 'success')
+    setStep(2)
   }
 
   // 密码强度验证

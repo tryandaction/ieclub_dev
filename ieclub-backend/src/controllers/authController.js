@@ -464,50 +464,21 @@ class AuthController {
           now: new Date()
         });
         return res.status(400).json({
-          success: false,
           message: '验证码已过期，请重新获取'
         });
       }
 
       logger.info(`✅ 验证码验证通过:`, { email, code: code.trim(), type: stored.type });
 
-      // 标记验证码为已使用
-      try {
-        await prisma.verificationCode.update({
-          where: { id: stored.id },
-          data: { 
-            used: true,
-            usedAt: new Date()
-          }
-        });
-        logger.info(`✅ 验证码已标记为已使用:`, { email, code: code.trim() });
-      } catch (dbError) {
-        if (dbError.code === 'P1001' || dbError.code === 'P1000' || dbError.name === 'PrismaClientInitializationError') {
-          logger.error('数据库连接失败:', { 
-            error: dbError.message, 
-            code: dbError.code, 
-            name: dbError.name,
-            stack: dbError.stack 
-          });
-          return res.status(503).json({
-            success: false,
-            message: '服务暂时不可用，请稍后重试'
-          });
-        }
-        // 其他数据库错误也记录日志
-        logger.error('数据库操作失败:', { 
-          error: dbError.message, 
-          code: dbError.code, 
-          name: dbError.name,
-          stack: dbError.stack 
-        });
-        throw dbError;
-      }
+      // 注意：这里只验证验证码有效性，不标记为已使用
+      // 验证码将在真正使用时（注册或重置密码）才被标记为已使用
+      // 这样可以避免用户在多步骤流程中因中途退出导致验证码失效
 
-      res.json({
+      return res.json({
         success: true,
-        message: '验证成功'
+        message: '验证码验证成功'
       });
+
     } catch (error) {
       logger.error('验证验证码失败:', { 
         email: req.body?.email, 
