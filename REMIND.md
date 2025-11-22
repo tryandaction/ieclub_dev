@@ -30,6 +30,7 @@ npm run dev          # http://localhost:5173
 # 1. 导入项目：ieclub-frontend
 # 2. 详情 -> 本地设置 -> 不校验合法域名
 # 3. 编译 -> 查看效果（Ctrl+R刷新）
+# ⚠️ 如遇域名错误：确保 app.js 中 apiBase 为 https://www.ieclub.online/api（带www）
 
 # 测试通过后提交
 git add .
