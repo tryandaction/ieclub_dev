@@ -59,14 +59,26 @@ router.post('/captcha/refresh',
 );
 
 // ==================== CSRF 保护配置 ====================
-// 不需要CSRF保护的认证接口（公开接口、只读操作）
+// 不需要CSRF保护的认证接口（公开接口、新用户操作、已有验证码验证）
 const csrfIgnorePaths = [
-  '^/auth/login$',              // 密码登录（使用其他安全措施）
+  // 登录类接口（新用户没有session，无需CSRF）
+  '^/auth/login$',              // 密码登录
+  '^/auth/login-with-code$',    // 验证码登录
+  '^/auth/login-with-phone$',   // 手机号登录
   '^/auth/wechat-login$',       // 微信登录
-  '^/auth/send-verify-code$',   // 发送验证码（有频率限制）
-  '^/auth/reset-password$',     // 重置密码（已有验证码验证）
-  '^/auth/register$',           // 注册（已有验证码验证）
-  '^/auth/verify-code$'         // 验证验证码
+  
+  // 注册和密码重置（已有验证码验证，验证码本身提供CSRF保护）
+  '^/auth/register$',           // 注册
+  '^/auth/reset-password$',     // 重置密码
+  '^/auth/forgot-password$',    // 忘记密码入口
+  
+  // 验证码相关（有频率限制和时效性）
+  '^/auth/send-verify-code$',   // 发送验证码
+  '^/auth/verify-code$',        // 验证验证码
+  
+  // 健康检查和公开API
+  '^/health$',                  // 健康检查
+  '^/api/health$'               // 健康检查（带前缀）
 ];
 
 const csrf = csrfProtection({ ignorePaths: csrfIgnorePaths });
@@ -130,10 +142,9 @@ router.post('/auth/login-with-code',
   AuthController.loginWithCode
 );
 
-// 忘记密码（严格限制，需要CSRF）
+// 忘记密码（严格限制，无需CSRF - 公开入口）
 router.post('/auth/forgot-password', 
   rateLimiters.auth, 
-  csrf, 
   AuthController.forgotPassword
 );
 

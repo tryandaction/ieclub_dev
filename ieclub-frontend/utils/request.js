@@ -26,13 +26,27 @@ function onRefreshed(token) {
 }
 
 // 无需认证的API白名单（不携带token）
+// 注意：这些接口对应后端路由中不需要token的公开接口
 const NO_AUTH_URLS = [
-  '/auth/login',
-  '/auth/register',
-  '/auth/send-code',
-  '/auth/wechat-login',
-  '/auth/refresh',
-  '/auth/forgot-password'
+  // 登录相关
+  '/auth/login',                // 密码登录
+  '/auth/login-with-code',      // 验证码登录
+  '/auth/login-with-phone',     // 手机号登录
+  '/auth/wechat-login',         // 微信登录
+  
+  // 注册和密码重置
+  '/auth/register',             // 注册
+  '/auth/forgot-password',      // 忘记密码
+  '/auth/reset-password',       // 重置密码
+  
+  // 验证码相关
+  '/auth/send-verify-code',     // 发送邮箱验证码
+  '/auth/send-code',            // 发送验证码（兼容旧版）
+  '/auth/verify-code',          // 验证验证码
+  '/auth/send-phone-code',      // 发送手机验证码
+  
+  // Token相关
+  '/auth/refresh'               // 刷新token
 ]
 
 const request = (url, options = {}) => {
