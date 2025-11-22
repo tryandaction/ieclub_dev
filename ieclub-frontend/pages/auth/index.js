@@ -170,8 +170,33 @@ Page({
    * 切换密码显示
    */
   togglePassword() {
+    const newState = !this.data.showPassword
+    console.log('👁️ [Auth] 切换密码显示:', {
+      原状态: this.data.showPassword,
+      新状态: newState,
+      type将变为: newState ? 'text' : 'password',
+      图标将变为: newState ? '👁️' : '🙈'
+    })
     this.setData({
-      showPassword: !this.data.showPassword
+      showPassword: newState
+    })
+    // 确认状态已更新
+    setTimeout(() => {
+      console.log('✅ [Auth] 密码显示状态已更新为:', this.data.showPassword)
+    }, 100)
+  },
+  
+  /**
+   * 切换确认密码显示
+   */
+  toggleConfirmPassword() {
+    const newState = !this.data.showConfirmPassword
+    console.log('👁️ [Auth] 切换确认密码显示:', {
+      原状态: this.data.showConfirmPassword,
+      新状态: newState
+    })
+    this.setData({
+      showConfirmPassword: newState
     })
   },
 
@@ -302,16 +327,25 @@ Page({
     this.setData({ loginLoading: true })
 
     try {
-      console.log('📤 [Auth] 发送登录请求:', { email, loginType })
+      console.log('📤 [Auth] 发送登录请求:', { 
+        email, 
+        loginType,
+        passwordLength: password ? password.length : 0,
+        codeLength: code ? code.length : 0,
+        passwordValue: password,  // 临时调试用，生产环境删除
+        codeValue: code  // 临时调试用，生产环境删除
+      })
       
       let result
       if (loginType === 'password') {
+        console.log('🔑 [Auth] 使用密码登录')
         result = await login({ email, password })
       } else {
+        console.log('🔢 [Auth] 使用验证码登录')
         result = await loginWithCode({ email, code })
       }
       
-      console.log('✅ [Auth] 登录成功:', result)
+      console.log('✅ [Auth] 登录成功，返回数据:', JSON.stringify(result))
       
       const { token, accessToken, refreshToken, user } = result
       
