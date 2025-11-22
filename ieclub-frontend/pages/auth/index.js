@@ -1,5 +1,5 @@
 // pages/auth/index.js
-import { login, register, sendVerifyCode } from '../../api/auth'
+import { login, loginWithCode, register, sendVerifyCode } from '../../api/auth'
 
 /**
  * 认证页面（登录/注册）
