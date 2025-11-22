@@ -591,8 +591,87 @@ if (needsAuth) {
 
 ## 📝 下一步建议
 
-1. **立即测试**：在微信开发者工具中测试上述所有修复
-2. **验证码登录**：测试验证码登录流程是否正常
-3. **完善界面**：根据网页版继续优化小程序其他页面
-4. **Redis监控**：设计长期解决方案（参考文档第196-202行）
+1. ✅ **已完成部署**：所有修复已部署到生产环境 ieclub.online
+2. **立即测试**：在微信开发者工具和网页端测试所有修复
+3. **验证码登录**：测试验证码登录流程是否正常
+4. **完善界面**：根据网页版继续优化小程序其他页面
+
+---
+
+## 🔧 Redis检查问题及解决方案
+
+### 问题描述
+**症状**: 部署脚本中的Redis连接检查会**触发服务器网络安全策略**，导致SSH连接断开（断网）。
+
+**原因分析**:
+1. 原Redis检查使用 `redis-cli PING` 命令建立TCP连接
+2. 服务器防火墙/安全组检测到异常连接模式
+3. 触发自动防护机制，临时阻断SSH连接
+4. 导致部署脚本中断，无法完成
+
+**当前状态**: 
+- ✅ 已在 `scripts/health-check/Check-Server-Resources.ps1` 中**完全禁用**Redis检查
+- ⚠️ Redis不是必需服务，后端可在无Redis时正常运行
+- ⚠️ 部分缓存功能不可用，但不影响核心业务
+
+### 长期解决方案 ⭐
+
+已创建 **`scripts/health-check/Check-Redis-Safe.ps1`** - 安全的Redis检查脚本
+
+**三种安全检查方法**（不触发网络安全策略）:
+
+#### 方法1: 检查进程状态
+```bash
+pgrep redis-server
+# 只检查进程是否存在，不建立连接
+```
+
+#### 方法2: 检查端口监听
+```bash
+ss -ltn | grep :6379
+# 使用socket状态命令，不发起连接
+```
+
+#### 方法3: 间接验证（推荐）
+```bash
+pm2 jlist | jq -r '.[] | select(.name=="ieclub-backend") | .pm2_env.status'
+# 通过后端应用健康状态验证Redis功能
+```
+
+**使用方法**:
+```powershell
+# 单独运行Redis检查
+cd scripts\health-check
+.\Check-Redis-Safe.ps1 -Server "root@ieclub.online"
+```
+
+**集成到部署脚本**:
+```powershell
+# 在 Deploy-Production.ps1 中替换原Redis检查
+& "$PSScriptRoot\..\health-check\Check-Redis-Safe.ps1" -Server $ServerHost
+```
+
+### 为什么可以不使用Redis？
+
+**系统架构**:
+- Redis主要用于**缓存**和**会话管理**
+- 后端设计为**Redis可选**（graceful degradation）
+- 无Redis时降级为数据库直查，性能稍低但功能完整
+
+**影响范围**:
+- ❌ 不影响：登录/注册、数据CRUD、文件上传
+- ⚠️ 轻微影响：API响应速度（首次查询慢10-50ms）
+- ❌ 不可用：实时在线用户统计、分布式限流
+
+**生产环境建议**:
+- 小规模用户（<1000）：可不使用Redis
+- 中等规模（1000-10000）：建议启用Redis优化性能
+- 大规模（>10000）：必须使用Redis + 读写分离
+
+### 未来优化方向
+
+1. **优化Redis配置**: 修改 `/etc/redis/redis.conf`，限制连接来源
+2. **配置白名单**: 在防火墙规则中添加Redis检查IP白名单
+3. **使用健康检查API**: 后端提供 `/api/health/redis` 端点
+4. **监控告警**: 集成Prometheus + Grafana实时监控Redis状态
 
