@@ -1,123 +1,53 @@
 # 🎯 IEClub 快速操作指南
 
-## 📌 核心配置
+##  日常开发流程（精简版）
 
-### 测试环境白名单控制
-
-测试环境支持两种邮箱验证模式，通过环境变量切换：
-
-#### 模式1：白名单模式（开启白名单）
-```bash
-# 在服务器上设置环境变量
-ssh root@ieclub.online
-cd /root/IEclub_dev_staging/ieclub-backend
-
-# 编辑.env.staging文件
-nano .env.staging
-
-# 添加或修改以下行
-USE_EMAIL_WHITELIST=true
-
-# 重启服务
-pm2 restart staging-backend
-```
-
-**特点**：
-- ✅ 只允许白名单内的邮箱注册
-- ✅ 白名单邮箱可以是任何邮箱（包括非学校邮箱）
-- ✅ 适合邀请特定测试人员
-
-#### 模式2：学校邮箱模式（关闭白名单）
-```bash
-# 在服务器上设置
-ssh root@ieclub.online
-cd /root/IEclub_dev_staging/ieclub-backend
-
-# 编辑.env.staging文件
-nano .env.staging
-
-# 添加或修改以下行
-USE_EMAIL_WHITELIST=false
-# 或者直接注释掉/删除这一行
-
-# 重启服务
-pm2 restart staging-backend
-```
-
-**特点**：
-- ✅ 只允许学校邮箱注册（sustech.edu.cn, mail.sustech.edu.cn）
-- ✅ 与生产环境行为一致
-- ✅ 适合模拟真实环境测试
-
-### 管理白名单邮箱
-
-当开启白名单模式时，需要在数据库中添加允许的邮箱：
-
-```bash
-# SSH登录服务器
-ssh root@ieclub.online
-
-# 进入测试环境目录
-cd /root/IEclub_dev_staging/ieclub-backend
-
-# 使用Prisma Studio管理（推荐）
-NODE_ENV=staging npx prisma studio
-
-# 或使用SQL直接添加
-psql -U postgres -d ieclub_staging
-INSERT INTO "EmailWhitelist" (email, status, "createdAt", "updatedAt")
-VALUES ('test@example.com', 'approved', NOW(), NOW());
-```
-
-## 🚀 常用操作
-
-### 本地开发
+### 1️⃣ 本地开发 + 测试
 ```powershell
-# 启动后端
+# 后端
 cd ieclub-backend
 npm run dev          # http://localhost:3000
 
-# 启动前端
+# 前端
 cd ieclub-web
 npm run dev          # http://localhost:5173
+
+# 测试通过后提交
+git add .
+git commit -m "功能描述"
+git push origin develop
 ```
 
-### 部署到测试环境
+### 2️⃣ 部署到生产环境
 ```powershell
-# ⚠️ 测试环境暂时关闭（节省服务器资源）
-# 如需测试，请在生产环境验证后再考虑
-
-# 或者本地测试：
-cd ieclub-backend
-npm run dev  # 后端 http://localhost:3000
-
-cd ieclub-web  
-npm run dev  # 前端 http://localhost:5173
-```
-
-### 部署到生产环境
-```powershell
-# ⚠️ 需要先在测试环境验证，并输入YES确认
+# ⚠️ 重要：确保本地测试通过！
 cd scripts\deployment
-.\Deploy-Production.ps1 -Target all -Message "发布v1.0"
+.\Deploy-Production.ps1 -Target all -Message "更新说明"
+# 输入 YES 确认部署
 ```
 
-### 查看日志
+### 3️⃣ 查看服务器状态
 ```powershell
-# SSH登录服务器
+# 登录服务器
 ssh root@ieclub.online
 
-# 查看测试环境日志
-pm2 logs staging-backend
+# 查看进程
+pm2 list
 
-# 查看生产环境日志
-pm2 logs ieclub-backend
+# 查看日志（最近50行）
+pm2 logs ieclub-backend --lines 50
 
-# 查看进程状态
-pm2 status
+# 查看资源
+free -h && df -h
 ```
 
-## 📖 重要文档
+### ⚠️ 关于测试环境
+- **状态**：已永久关闭
+- **原因**：2GB服务器无法同时运行生产+测试环境
+- **测试方式**：本地开发环境充分测试 → 谨慎部署生产
+- **未来**：服务器升级4GB或独立测试服务器后再启用
+
+## 重要文档
 
 - **README.md** - 项目总览和快速开始
 - **本文档(REMIND.md)** - 常用操作快速参考
@@ -125,29 +55,21 @@ pm2 status
 - **DEVELOPMENT_ROADMAP.md** - 开发路线图
 - **PROJECT_FOR_AI.md** - AI开发指南
 
-## ⚠️ 注意事项
+## ⚠️ 重要提醒
 
-1. **测试环境白名单**
-   - 默认关闭（USE_EMAIL_WHITELIST=false）
-   - 修改后需要重启服务才能生效
-   - 白名单数据存储在EmailWhitelist表中
+1. **部署流程（新）**
+   - 本地开发 → 本地充分测试 → 提交代码 → 直接部署生产
+   - ⚠️ 不再使用测试环境，务必本地测试彻底
+   - 建议：每次改动小，部署快，降低风险
 
-2. **环境区别**
-   - 开发环境（development）：不限制邮箱
-   - 测试环境（staging）：可选白名单或学校邮箱
-   - 生产环境（production）：只允许学校邮箱
+2. **当前环境**
+   - 生产环境：✅ https://ieclub.online （正常运行）
+   - 测试环境：❌ 已永久关闭（资源限制）
 
-3. **部署流程**
-   - 本地开发 → 本地测试 → 提交代码
-   - 部署测试环境（轻量模式） → 测试验证
-   - 确认无误 → 部署生产环境
-   - **详细步骤见**: docs/DEPLOYMENT_GUIDE.md
-
-4. **当前环境状态** ⚠️
-   - **生产环境**：✅ 正常运行 (https://ieclub.online)
-   - **测试环境**：❌ 已关闭（节省2GB服务器资源）
-   - **建议**：在本地测试或直接小心部署生产环境
-   - **原因**：2GB内存服务器无法同时运行两个环境
+3. **生产环境配置**
+   - 只允许学校邮箱注册（@sustech.edu.cn）
+   - 数据库：MySQL ieclub_production
+   - Redis：DB 0
 
 ## 🔗 访问地址
 
