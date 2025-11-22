@@ -37,7 +37,9 @@ param(
     [string]$ServerUser = "root",
     [string]$ServerHost = "ieclub.online",
     [switch]$SkipConfirmation,
-    [switch]$SkipGitPush
+    [switch]$SkipGitPush,
+    [switch]$SkipHealthCheck,
+    [switch]$MinimalHealthCheck  # 使用极简安全版健康检查（推荐）
 )
 
 # 🔧 设置控制台编码为UTF-8
@@ -602,23 +604,42 @@ pm2 status
 
 # --- 服务器资源检查 ---
 function Check-ServerResources {
+    if ($SkipHealthCheck) {
+        Write-Section "服务器资源检查"
+        Write-Warning "⚠️  已跳过健康检查 (-SkipHealthCheck)"
+        Write-Host ""
+        return
+    }
+    
     Write-Section "服务器资源检查"
     Write-Info "检查服务器资源状态..."
     
-    $checkScript = Join-Path $PSScriptRoot "..\health-check\Check-Server-Resources.ps1"
+    # 选择检查脚本版本
+    $checkScript = if ($MinimalHealthCheck) {
+        Write-Info "使用极简安全版健康检查（避免触发网络安全策略）"
+        Join-Path $PSScriptRoot "..\health-check\Check-Server-Resources-Minimal.ps1"
+    } else {
+        Write-Warning "⚠️  使用完整版健康检查（可能触发网络安全策略导致断网）"
+        Write-Warning "    建议使用: -MinimalHealthCheck 参数"
+        Join-Path $PSScriptRoot "..\health-check\Check-Server-Resources.ps1"
+    }
+    
     if (Test-Path $checkScript) {
-        & $checkScript -ServerUser $ServerUser -ServerHost $ServerHost
+        & $checkScript -Server "${ServerUser}@${ServerHost}"
         if ($LASTEXITCODE -ne 0) {
             Write-Warning "服务器资源检查发现问题"
-            Write-Warning "是否继续部署？(Y/N)"
-            $continue = Read-Host
-            if ($continue -ne 'Y' -and $continue -ne 'y') {
-                Write-Info "部署已取消"
-                exit 0
+            if (-not $SkipConfirmation) {
+                Write-Warning "是否继续部署？(Y/N)"
+                $continue = Read-Host
+                if ($continue -ne 'Y' -and $continue -ne 'y') {
+                    Write-Info "部署已取消"
+                    exit 0
+                }
             }
         }
     } else {
-        Write-Warning "资源检查脚本不存在，跳过检查"
+        Write-Warning "资源检查脚本不存在: $checkScript"
+        Write-Warning "跳过健康检查"
     }
     Write-Host ""
 }

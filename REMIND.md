@@ -38,11 +38,20 @@ git commit -m "功能描述"
 git push origin develop
 ```
 
-### 2️⃣ 部署到生产环境
+### 2️⃣ 部署到生产环境（推荐使用安全模式）
+
+**⭐ 推荐方式 - 使用极简安全检查（避免断网）**:
 ```powershell
-# ⚠️ 重要：确保本地测试通过！
+# 使用极简健康检查（只检查内存和磁盘，不会触发网络安全策略）
 cd scripts\deployment
-.\Deploy-Production.ps1 -Target all -Message "更新说明"
+.\Deploy-Production.ps1 -Target all -Message "更新说明" -MinimalHealthCheck -SkipGitPush
+```
+
+**备选方式 - 完全跳过健康检查**:
+```powershell
+# 适用于紧急部署或已确认服务器状态良好的情况
+cd scripts\deployment
+.\Deploy-Production.ps1 -Target all -Message "更新说明" -SkipHealthCheck -SkipGitPush
 
 
 ### 3️⃣ 查看服务器状态
