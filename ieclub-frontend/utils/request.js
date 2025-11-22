@@ -158,6 +158,12 @@ const request = (url, options = {}) => {
             errorMessage = data.message || '请求参数错误'
             break
           case 401:
+            // 对于登录/注册接口的401，直接显示后端返回的错误消息
+            if (url.includes('/auth/login') || url.includes('/auth/register') || url.includes('/auth/wechat-login')) {
+              errorMessage = data.message || '认证失败'
+              break
+            }
+            
             // 尝试刷新 Token
             const refreshToken = wx.getStorageSync('refreshToken')
             

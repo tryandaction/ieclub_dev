@@ -194,6 +194,7 @@
 
 /* ==================== 输入框 ==================== */
 .input-wrapper {
+  position: relative;
   background: white;
   border-radius: 20rpx;
   padding: 28rpx 32rpx;
@@ -229,15 +230,20 @@
 }
 
 .eye-icon {
+  position: absolute;
+  right: 20rpx;
+  top: 50%;
+  transform: translateY(-50%);
   font-size: 40rpx;
-  padding: 10rpx;
-  margin-right: -10rpx;
+  padding: 20rpx;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: all 0.2s;
+  z-index: 10;
 }
 
 .eye-icon:active {
-  transform: scale(0.9);
+  transform: translateY(-50%) scale(0.9);
+  opacity: 0.6;
 }
 
 /* ==================== 验证码相关 ==================== */

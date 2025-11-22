@@ -442,11 +442,28 @@ Page({
       this.setData({ codeSending: false })
       
       wx.vibrateShort()
-      wx.showToast({
-        title: error.message || '发送失败',
-        icon: 'none',
-        duration: 2000
-      })
+      
+      // 特殊处理"已注册"错误，提示用户切换到登录
+      if (error.message && error.message.includes('已注册')) {
+        wx.showModal({
+          title: '该邮箱已注册',
+          content: '请切换到登录页面进行登录',
+          showCancel: true,
+          cancelText: '留在注册',
+          confirmText: '去登录',
+          success: (res) => {
+            if (res.confirm) {
+              this.switchTab({ detail: { index: 0 } })
+            }
+          }
+        })
+      } else {
+        wx.showToast({
+          title: error.message || '发送失败',
+          icon: 'none',
+          duration: 2000
+        })
+      }
     }
   },
 
