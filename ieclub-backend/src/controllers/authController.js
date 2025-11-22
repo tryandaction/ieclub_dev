@@ -12,6 +12,7 @@ const wechatService = require('../services/wechatService');
 const { validateEmail } = require('../utils/common');
 const { checkEmailAllowed } = require('../utils/emailDomainChecker');
 const { handleDatabaseError } = require('../utils/errorHandler');
+const { generateTokenPair } = require('../utils/tokenUtils');
 
 function generateVerificationCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -737,18 +738,22 @@ class AuthController {
         // 不阻止注册流程，只记录日志
       }
 
-      // 生成token
-      const token = jwt.sign(
-        { userId: user.id, email: user.email },
-        config.jwt.secret,
-        { expiresIn: config.jwt.expiresIn }
-      );
+      // 生成 access token 和 refresh token
+      const tokens = generateTokenPair(user);
+
+      // 保存 refresh token 到数据库
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { refreshToken: tokens.refreshToken }
+      });
 
       res.status(201).json({
         success: true,
         message: '注册成功',
         data: {
-          token,
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          token: tokens.accessToken, // 兼容旧版前端
           user: {
             id: user.id,
             email: user.email,
@@ -1340,18 +1345,22 @@ class AuthController {
         }
       });
 
-      // 生成token
-      const token = jwt.sign(
-        { userId: user.id, email: user.email },
-        config.jwt.secret,
-        { expiresIn: config.jwt.expiresIn }
-      );
+      // 生成 access token 和 refresh token
+      const tokens = generateTokenPair(user);
+
+      // 保存 refresh token 到数据库
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { refreshToken: tokens.refreshToken }
+      });
 
       res.json({
         success: true,
         message: '登录成功',
         data: {
-          token,
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          token: tokens.accessToken, // 兼容旧版前端
           user: {
             id: user.id,
             email: user.email,
@@ -1364,367 +1373,6 @@ class AuthController {
       });
     } catch (error) {
       logger.error('验证码登录失败:', { email: req.body.email, error: error.message });
-      next(error);
-    }
-  }
-
-  // 修改密码
-  static async changePassword(req, res, next) {
-    try {
-      const userId = req.user?.id;
-      if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: '未授权'
-        });
-      }
-      
-      const { oldPassword, newPassword } = req.body || {};
-
-      // 验证必填字段
-      if (!oldPassword || !newPassword) {
-        return res.status(400).json({
-          success: false,
-          message: '旧密码和新密码不能为空'
-        });
-      }
-
-      // 简单验证密码长度
-      if (newPassword.length < 6) {
-        return res.status(400).json({
-          success: false,
-          message: '新密码长度不能少于6个字符'
-        });
-      }
-
-      // 查找用户
-      const user = await prisma.user.findUnique({
-        where: { id: userId }
-      });
-
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: '用户不存在'
-        });
-      }
-
-      // 验证旧密码
-      const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
-      if (!isPasswordValid) {
-        return res.status(401).json({
-          success: false,
-          message: '原密码错误'
-        });
-      }
-
-      // 加密新密码
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-      // 更新密码
-      await prisma.user.update({
-        where: { id: userId },
-        data: { 
-          password: hashedPassword,
-          updatedAt: new Date()
-        }
-      });
-
-      res.json({
-        success: true,
-        message: '密码修改成功，请重新登录'
-      });
-    } catch (error) {
-      logger.error('修改密码失败:', { userId: req.user?.id, error: error.message });
-      next(error);
-    }
-  }
-
-  // 绑定微信
-  static async bindWechat(req, res, next) {
-    try {
-      const userId = req.user?.id;
-      if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: '未授权'
-        });
-      }
-      
-      const { openid, unionid, nickname, avatar } = req.body || {};
-
-      if (!openid) {
-        return res.status(400).json({
-          success: false,
-          message: '缺少微信openid'
-        });
-      }
-
-      // 检查openid是否已被绑定
-      const existingBinding = await prisma.userBinding.findUnique({
-        where: {
-          type_bindValue: {
-            type: 'wechat',
-            bindValue: openid
-          }
-        }
-      });
-
-      if (existingBinding && existingBinding.userId !== userId) {
-        return res.status(400).json({
-          success: false,
-          message: '该微信已被其他账号绑定'
-        });
-      }
-
-      // 创建或更新绑定
-      await prisma.userBinding.upsert({
-        where: {
-          type_bindValue: {
-            type: 'wechat',
-            bindValue: openid
-          }
-        },
-        update: {
-          metadata: JSON.stringify({ unionid, nickname, avatar }),
-          updatedAt: new Date()
-        },
-        create: {
-          userId,
-          type: 'wechat',
-          bindValue: openid,
-          metadata: JSON.stringify({ unionid, nickname, avatar })
-        }
-      });
-
-      // 同时更新用户的openid和unionid字段
-      await prisma.user.update({
-        where: { id: userId },
-        data: { openid, unionid }
-      });
-
-      res.json({
-        success: true,
-        message: '微信绑定成功'
-      });
-    } catch (error) {
-      logger.error('绑定微信失败:', { userId: req.user?.id, error: error.message });
-      next(error);
-    }
-  }
-
-  // 发送手机验证码
-  static async sendPhoneCode(req, res, next) {
-    try {
-      const { phone, type = 'bind' } = req.body || {}; // type: bind, login
-      
-      // 验证必填字段
-      if (!phone) {
-        return res.status(400).json({
-          code: 400,
-          message: '手机号不能为空'
-        });
-      }
-
-      // 验证手机号格式
-      if (!/^1[3-9]\d{9}$/.test(phone)) {
-        return res.status(400).json({
-          code: 400,
-          message: '手机号格式不正确'
-        });
-      }
-
-      // 频率限制：同一手机号1分钟内只能发送1次
-      const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
-      const recentCode = await prisma.verificationCode.findFirst({
-        where: {
-          email: phone, // 复用email字段存储手机号
-          createdAt: { gte: oneMinuteAgo }
-        },
-        orderBy: { createdAt: 'desc' }
-      });
-
-      if (recentCode) {
-        const waitSeconds = Math.ceil((recentCode.createdAt.getTime() + 60000 - Date.now()) / 1000);
-        return res.status(429).json({
-          success: false,
-          message: `验证码发送过于频繁，请${waitSeconds}秒后重试`
-        });
-      }
-
-      // 绑定手机时检查是否已被绑定
-      if (type === 'bind') {
-        const existingUser = await prisma.user.findUnique({
-          where: { phone }
-        });
-
-        if (existingUser && existingUser.id !== req.user?.id) {
-          return res.status(400).json({
-            code: 400,
-            message: '该手机号已被其他账号绑定'
-          });
-        }
-      }
-
-      // 手机登录时检查手机号是否存在
-      if (type === 'login') {
-        const user = await prisma.user.findUnique({
-          where: { phone }
-        });
-
-        if (!user) {
-          return res.status(404).json({
-            code: 404,
-            message: '该手机号未绑定账号'
-          });
-        }
-      }
-
-      // 生成验证码
-      const code = generateVerificationCode();
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10分钟后过期
-
-      // 保存验证码到数据库
-      await prisma.verificationCode.create({
-        data: {
-          email: phone, // 复用email字段
-          code,
-          type: type === 'bind' ? 'bind_phone' : 'login',
-          expiresAt
-        }
-      });
-
-      // 发送短信
-      const sendResult = await smsService.sendVerificationCode(phone, code, type);
-      
-      if (!sendResult || !sendResult.success) {
-        logger.error('短信发送失败:', { phone, error: sendResult?.error });
-        
-        return res.json({
-          code: 200,
-          message: '验证码已生成，但短信发送失败',
-          data: {
-            expiresIn: 600,
-            smsSent: false,
-            code: process.env.NODE_ENV === 'development' ? code : undefined
-          }
-        });
-      }
-
-      res.json({
-        code: 200,
-        message: '验证码已发送',
-        data: {
-          expiresIn: 600,
-          smsSent: true
-        }
-      });
-    } catch (error) {
-      logger.error('发送手机验证码失败:', { phone: req.body.phone, error: error.message });
-      next(error);
-    }
-  }
-
-  // 绑定手机号
-  static async bindPhone(req, res, next) {
-    try {
-      const userId = req.user?.id;
-      if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: '未授权'
-        });
-      }
-      
-      const { phone, code } = req.body || {};
-
-      if (!phone || !code) {
-        return res.status(400).json({
-          success: false,
-          message: '缺少必要参数'
-        });
-      }
-
-      // 验证手机号格式
-      const phoneRegex = /^1[3-9]\d{9}$/;
-      if (!phoneRegex.test(phone)) {
-        return res.status(400).json({
-          success: false,
-          message: '手机号格式不正确'
-        });
-      }
-
-      // 验证验证码
-      const stored = await prisma.verificationCode.findFirst({
-        where: {
-          email: phone, // 这里复用email字段存储手机号
-          code,
-          type: 'bind_phone',
-          used: false
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      });
-
-      if (!stored || stored.expiresAt < new Date()) {
-        return res.status(400).json({
-          success: false,
-          message: '验证码错误或已过期'
-        });
-      }
-
-      // 检查手机号是否已被绑定
-      const existingUser = await prisma.user.findUnique({
-        where: { phone }
-      });
-
-      if (existingUser && existingUser.id !== userId) {
-        return res.status(400).json({
-          success: false,
-          message: '该手机号已被其他账号绑定'
-        });
-      }
-
-      // 标记验证码为已使用
-      await prisma.verificationCode.update({
-        where: { id: stored.id },
-        data: { 
-          used: true,
-          usedAt: new Date()
-        }
-      });
-
-      // 更新用户手机号
-      await prisma.user.update({
-        where: { id: userId },
-        data: { phone }
-      });
-
-      // 创建绑定记录
-      await prisma.userBinding.upsert({
-        where: {
-          type_bindValue: {
-            type: 'phone',
-            bindValue: phone
-          }
-        },
-        update: {
-          updatedAt: new Date()
-        },
-        create: {
-          userId,
-          type: 'phone',
-          bindValue: phone
-        }
-      });
-
-      res.json({
-        success: true,
-        message: '手机号绑定成功'
-      });
-    } catch (error) {
-      logger.error('绑定手机号失败:', { userId: req.user?.id, error: error.message });
       next(error);
     }
   }
@@ -1819,18 +1467,22 @@ class AuthController {
         }
       });
 
-      // 生成token
-      const token = jwt.sign(
-        { userId: user.id, email: user.email },
-        config.jwt.secret,
-        { expiresIn: config.jwt.expiresIn }
-      );
+      // 生成 access token 和 refresh token
+      const tokens = generateTokenPair(user);
+
+      // 保存 refresh token 到数据库
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { refreshToken: tokens.refreshToken }
+      });
 
       res.json({
         success: true,
         message: '登录成功',
         data: {
-          token,
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          token: tokens.accessToken, // 兼容旧版前端
           user: {
             id: user.id,
             email: user.email,

@@ -6,6 +6,7 @@ const router = express.Router();
 
 // 控制器
 const AuthController = require('../controllers/authController');
+const TokenController = require('../controllers/tokenController');
 const CaptchaController = require('../controllers/captchaController');
 const topicController = require('../controllers/topicController');
 const commentController = require('../controllers/commentController');
@@ -216,12 +217,33 @@ router.delete('/auth/account',
   AuthController.deleteAccount
 );
 
-// 登出（API限制）
+// ==================== Token Management Routes ====================
+// 刷新 Token（宽松限制，无需 CSRF - 使用 refreshToken 验证）
+router.post('/auth/refresh', 
+  rateLimiters.api,
+  TokenController.refreshToken
+);
+
+// 验证 Token 有效性（API限制）
+router.get('/auth/verify-token', 
+  authenticate,
+  rateLimiters.api,
+  TokenController.verifyToken
+);
+
+// 登出（撤销 Refresh Token，API限制）
 router.post('/auth/logout', 
   authenticate, 
-  rateLimiters.api, 
-  csrf, 
-  AuthController.logout
+  rateLimiters.api,
+  TokenController.logout
+);
+
+// 登出所有设备（撤销所有 Token，严格限制）
+router.post('/auth/logout-all', 
+  authenticate, 
+  rateLimiters.auth,
+  csrf,
+  TokenController.logoutAll
 );
 
 // 微信登录（严格限制）

@@ -68,6 +68,10 @@ model User {
   isCertified Boolean @default(false)
   isVip       Boolean @default(false)
 
+  // 会话管理（Token Refresh 机制）
+  refreshToken String? @db.Text // 当前有效的 Refresh Token
+  tokenVersion Int     @default(0) // Token 版本号，用于撤销所有 token
+
   // 时间戳
   lastLoginAt  DateTime?
   lastActiveAt DateTime?
