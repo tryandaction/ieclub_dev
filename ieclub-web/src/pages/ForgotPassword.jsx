@@ -28,7 +28,7 @@ export default function ForgotPassword() {
     if (countdown > 0) return
 
     try {
-      const response = await sendCode(email, 'reset_password')
+      const response = await sendCode(email, 'reset')
 
       if (response?.emailSent === false) {
         if (response?.verificationCode) {
