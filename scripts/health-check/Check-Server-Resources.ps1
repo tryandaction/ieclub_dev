@@ -187,15 +187,23 @@ Write-Host ""
 # 6. 检查PM2进程
 Write-Host "[6/8] 检查PM2进程..." -ForegroundColor Yellow
 try {
-    $pm2Status = ssh $Server "pm2 list 2>&1" 2>&1
+    # 先检查PM2是否安装
+    $pm2VersionCheck = ssh $Server "pm2 --version 2>&1" 2>&1
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "  PM2状态:" -ForegroundColor Green
-        $pm2Status | ForEach-Object { Write-Host "    $_" -ForegroundColor Gray }
+        Write-Host "  PM2已安装: 版本 $pm2VersionCheck" -ForegroundColor Green
         
-        # 检查是否有错误状态
-        if ($pm2Status -match 'errored|stopped') {
-            Write-Host "  PM2进程: 有错误或停止的进程" -ForegroundColor Yellow
-            $warnings += "PM2中有错误或停止的进程"
+        # 获取PM2进程列表
+        $pm2Status = ssh $Server "pm2 list 2>&1" 2>&1
+        
+        # 检查是否有错误状态（但仍然是可用的）
+        if ($pm2Status -match 'errored') {
+            Write-Host "  PM2进程: 发现错误进程（需要修复）" -ForegroundColor Yellow
+            $warnings += "PM2中有错误进程（后端服务可能未正常运行）"
+        } elseif ($pm2Status -match 'stopped') {
+            Write-Host "  PM2进程: 发现停止的进程" -ForegroundColor Yellow
+            $warnings += "PM2中有停止的进程"
+        } else {
+            Write-Host "  PM2进程: 运行正常" -ForegroundColor Green
         }
     } else {
         Write-Host "  PM2未安装或无法访问" -ForegroundColor Yellow
