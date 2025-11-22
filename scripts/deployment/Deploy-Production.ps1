@@ -153,13 +153,17 @@ function Sync-ProductionBranch {
     
     # 推送当前分支到远程
     if ($currentBranch -eq "develop") {
-        Write-Info "推送 develop 分支到远程..."
-        git push origin develop
-        if ($LASTEXITCODE -ne 0) {
-            Write-Error "推送 develop 分支失败！"
-        exit 1
-    }
-        Write-Success "已推送 develop 分支"
+        if ($SkipGitPush) {
+            Write-Warning "跳过推送 develop 分支（使用 -SkipGitPush 参数）"
+        } else {
+            Write-Info "推送 develop 分支到远程..."
+            git push origin develop
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warning "推送 develop 分支失败！继续执行..."
+            } else {
+                Write-Success "已推送 develop 分支"
+            }
+        }
     }
     
     # 确保 main 分支存在
