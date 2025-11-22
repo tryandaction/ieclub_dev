@@ -68,8 +68,8 @@
         </view>
         <view class="input-wrapper">
           <input 
-            class="form-input password-input" 
-            type="{{showPassword ? 'text' : 'password'}}"
+            class="form-input password-input"
+            password="{{!showPassword}}"
             placeholder="请输入密码"
             placeholder-class="input-placeholder"
             value="{{loginForm.password}}"
@@ -77,7 +77,7 @@
             maxlength="20"
           />
           <view class="eye-icon" bindtap="togglePassword">
-            <text>{{showPassword ? '👁️' : '🙈'}}</text>
+            <text>{{showPassword ? '👁️' : '👁️‍🗨️'}}</text>
           </view>
         </view>
         <view class="error-message" wx:if="{{loginErrors.password}}">
@@ -227,8 +227,8 @@
         </view>
         <view class="input-wrapper">
           <input 
-            class="form-input password-input" 
-            type="{{showPassword ? 'text' : 'password'}}"
+            class="form-input password-input"
+            password="{{!showPassword}}"
             placeholder="请输入密码（6-20位）"
             placeholder-class="input-placeholder"
             value="{{registerForm.password}}"
@@ -236,7 +236,7 @@
             maxlength="20"
           />
           <view class="eye-icon" bindtap="togglePassword">
-            <text>{{showPassword ? '👁️' : '🙈'}}</text>
+            <text>{{showPassword ? '👁️' : '👁️‍🗨️'}}</text>
           </view>
         </view>
         <view class="error-message" wx:if="{{registerErrors.password}}">
@@ -253,8 +253,8 @@
         </view>
         <view class="input-wrapper">
           <input 
-            class="form-input password-input" 
-            type="{{showConfirmPassword ? 'text' : 'password'}}"
+            class="form-input password-input"
+            password="{{!showConfirmPassword}}"
             placeholder="请再次输入密码"
             placeholder-class="input-placeholder"
             value="{{registerForm.confirmPassword}}"
@@ -262,7 +262,7 @@
             maxlength="20"
           />
           <view class="eye-icon" bindtap="toggleConfirmPassword">
-            <text>{{showConfirmPassword ? '👁️' : '🙈'}}</text>
+            <text>{{showConfirmPassword ? '👁️' : '👁️‍🗨️'}}</text>
           </view>
         </view>
         <view class="error-message" wx:if="{{registerErrors.confirmPassword}}">

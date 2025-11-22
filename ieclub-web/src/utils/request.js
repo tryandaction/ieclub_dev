@@ -109,6 +109,17 @@ let requestStats = {
 // 获取统计信息
 export const getRequestStats = () => ({ ...requestStats })
 
+// 🔐 无需认证的API白名单（不携带token）
+const NO_AUTH_URLS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/send-code',
+  '/auth/wechat-login',
+  '/auth/refresh',
+  '/auth/forgot-password',
+  '/auth/reset-password'
+]
+
 // 显示 Loading
 const showLoading = () => {
   useLoadingStore.getState().incrementRequest()
@@ -125,10 +136,17 @@ request.interceptors.request.use(
     // 统计请求数
     requestStats.total++
     
-    // 注入 Token
-    const token = localStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+    // 检查是否需要认证
+    const needsAuth = !NO_AUTH_URLS.some(url => config.url?.includes(url))
+    
+    // 仅对需要认证的接口注入 Token
+    if (needsAuth) {
+      const token = localStorage.getItem('token')
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+      }
+    } else {
+      console.log('✅ [Request] 无需认证接口，不添加token:', config.url)
     }
     
     // 显示 Loading（除非明确设置 loading: false）

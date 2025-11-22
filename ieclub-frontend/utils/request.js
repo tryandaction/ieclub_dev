@@ -25,6 +25,16 @@ function onRefreshed(token) {
   refreshSubscribers = []
 }
 
+// 无需认证的API白名单（不携带token）
+const NO_AUTH_URLS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/send-code',
+  '/auth/wechat-login',
+  '/auth/refresh',
+  '/auth/forgot-password'
+]
+
 const request = (url, options = {}) => {
   const {
     method = 'GET',
@@ -47,29 +57,50 @@ const request = (url, options = {}) => {
     const app = getApp()
     const baseURL = app.globalData.apiBase || 'http://localhost:3000/api'
     
-    // 获取 Token
-    const token = wx.getStorageSync('token')
+    // 检查是否需要token认证
+    const needsAuth = !NO_AUTH_URLS.some(noAuthUrl => url.includes(noAuthUrl))
+    
+    // 调试：显示白名单检查详情
+    console.log('🔍 [Request] 白名单检查:', {
+      url,
+      isInWhitelist: NO_AUTH_URLS.some(noAuthUrl => url.includes(noAuthUrl)),
+      whitelist: NO_AUTH_URLS,
+      needsAuth
+    })
+    
+    // 仅对需要认证的接口获取 Token
+    const token = needsAuth ? wx.getStorageSync('token') : null
 
     const fullUrl = baseURL + url
-    console.log('📡 发起请求:', {
+    console.log('📡 [Request] 发起请求:', {
       url: fullUrl,
       method: method.toUpperCase(),
-      data,
-      hasToken: !!token
+      needsAuth,
+      hasToken: !!token,
+      willSendAuthHeader: needsAuth && !!token
     })
 
     // 请求执行函数（支持重试）
     let retryCount = 0
     const doRequest = () => {
+      // 构建请求头
+      const headers = {
+        'Content-Type': 'application/json'
+      }
+      // 仅在需要认证且有token时才添加Authorization header
+      if (needsAuth && token) {
+        headers['Authorization'] = `Bearer ${token}`
+        console.log('🔑 [Request] 已添加Authorization header')
+      } else {
+        console.log('✅ [Request] 未添加Authorization header (needsAuth=' + needsAuth + ', hasToken=' + !!token + ')')
+      }
+      
       wx.request({
         url: fullUrl,
         method: method.toUpperCase(),
         data,
         timeout,
-        header: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : ''
-        },
+        header: headers,
       success: (res) => {
         console.log('📥 收到响应:', {
           url: fullUrl,
