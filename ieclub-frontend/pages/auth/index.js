@@ -328,12 +328,10 @@ Page({
 
     try {
       console.log('📤 [Auth] 发送登录请求:', { 
-        email, 
+        email: email.substring(0, 3) + '***',  // 只显示前3个字符
         loginType,
-        passwordLength: password ? password.length : 0,
-        codeLength: code ? code.length : 0,
-        passwordValue: password,  // 临时调试用，生产环境删除
-        codeValue: code  // 临时调试用，生产环境删除
+        hasPassword: !!password,
+        hasCode: !!code
       })
       
       let result
@@ -345,7 +343,7 @@ Page({
         result = await loginWithCode({ email, code })
       }
       
-      console.log('✅ [Auth] 登录成功，返回数据:', JSON.stringify(result))
+      console.log('✅ [Auth] 登录成功')
       
       const { token, accessToken, refreshToken, user } = result
       
