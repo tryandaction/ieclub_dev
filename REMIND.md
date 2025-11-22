@@ -26,6 +26,11 @@ npm run dev          # http://localhost:3000
 cd ieclub-web
 npm run dev          # http://localhost:5173
 
+# 小程序（微信开发者工具）
+# 1. 导入项目：ieclub-frontend
+# 2. 详情 -> 本地设置 -> 不校验合法域名
+# 3. 编译 -> 查看效果（Ctrl+R刷新）
+
 # 测试通过后提交
 git add .
 git commit -m "功能描述"
