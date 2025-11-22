@@ -61,7 +61,7 @@ export default function ForgotPassword() {
     }
   }
 
-  // 步骤1: 验证邮箱和验证码（前端验证即可，不调用后端）
+  // 步骤1: 验证邮箱和验证码
   const handleStep1 = async (e) => {
     e.preventDefault()
     setError('')
@@ -76,10 +76,21 @@ export default function ForgotPassword() {
       return
     }
 
-    // 前端验证通过，直接进入下一步
-    // 验证码的有效性将在重置密码时由后端验证
-    showToast('请设置新密码', 'success')
-    setStep(2)
+    setLoading(true)
+
+    try {
+      // 调用后端验证验证码（后端已优化，不会标记为已使用）
+      await verifyCode(email, code)
+      
+      // 验证成功，进入下一步
+      showToast('验证码验证成功！请设置新密码', 'success')
+      setStep(2)
+    } catch (err) {
+      setError(err.message || '验证码错误或已过期')
+      showToast(err.message || '验证码错误或已过期', 'error')
+    } finally {
+      setLoading(false)
+    }
   }
 
   // 步骤2: 重置密码
