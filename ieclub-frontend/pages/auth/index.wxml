@@ -77,7 +77,7 @@
             maxlength="20"
           />
           <view class="eye-icon" bindtap="togglePassword">
-            <text>{{showPassword ? '👁️' : '👁️‍🗨️'}}</text>
+            <text>{{showPassword ? '🙈' : '👁️'}}</text>
           </view>
         </view>
         <view class="error-message" wx:if="{{loginErrors.password}}">
@@ -200,7 +200,7 @@
             maxlength="20"
           />
           <view class="eye-icon" bindtap="togglePassword">
-            <text>{{showPassword ? '👁️' : '👁️‍🗨️'}}</text>
+            <text>{{showPassword ? '🙈' : '👁️'}}</text>
           </view>
         </view>
         <view class="error-message" wx:if="{{registerErrors.password}}">
@@ -226,7 +226,7 @@
             maxlength="20"
           />
           <view class="eye-icon" bindtap="toggleConfirmPassword">
-            <text>{{showConfirmPassword ? '👁️' : '👁️‍🗨️'}}</text>
+            <text>{{showConfirmPassword ? '🙈' : '👁️'}}</text>
           </view>
         </view>
         <view class="error-message" wx:if="{{registerErrors.confirmPassword}}">
