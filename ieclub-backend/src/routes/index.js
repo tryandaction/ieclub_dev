@@ -63,7 +63,10 @@ router.post('/captcha/refresh',
 const csrfIgnorePaths = [
   '^/auth/login$',              // 密码登录（使用其他安全措施）
   '^/auth/wechat-login$',       // 微信登录
-  '^/auth/send-verify-code$'    // 发送验证码（有频率限制）
+  '^/auth/send-verify-code$',   // 发送验证码（有频率限制）
+  '^/auth/reset-password$',     // 重置密码（已有验证码验证）
+  '^/auth/register$',           // 注册（已有验证码验证）
+  '^/auth/verify-code$'         // 验证验证码
 ];
 
 const csrf = csrfProtection({ ignorePaths: csrfIgnorePaths });
