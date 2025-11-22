@@ -37,23 +37,23 @@
 
 ## 📋 开发任务清单
 
-### 阶段一：后端 Token 刷新机制（高优先级）
+### ✅ 阶段一：后端 Token 刷新机制（已完成）
 
 #### 1.1 数据库准备
-- [ ] 为 `User` 表添加 `refreshToken` 字段（存储当前有效的 refresh token）
-- [ ] 为 `User` 表添加 `tokenVersion` 字段（用于撤销所有 token）
-- [ ] 创建数据库迁移
+- [x] 为 `User` 表添加 `refreshToken` 字段（存储当前有效的 refresh token）
+- [x] 为 `User` 表添加 `tokenVersion` 字段（用于撤销所有 token）
+- [x] 创建数据库迁移
 
 #### 1.2 JWT 配置优化
-- [ ] 修改 `.env` 配置
+- [x] 修改 `.env` 配置
   - `JWT_SECRET`：Access Token 密钥（保持）
   - `JWT_EXPIRES_IN`：2h（从 7d 改为 2h）
   - `JWT_REFRESH_SECRET`：Refresh Token 密钥（新增）
   - `JWT_REFRESH_EXPIRES_IN`：30d（新增）
-- [ ] 更新 `config/index.js` 读取新配置
+- [x] 更新 `config/index.js` 读取新配置
 
 #### 1.3 Token 生成逻辑
-- [ ] 创建 `utils/tokenUtils.js`
+- [x] 创建 `utils/tokenUtils.js`
   - `generateAccessToken(userId)`：生成 2 小时 access token
   - `generateRefreshToken(userId, tokenVersion)`：生成 30 天 refresh token
   - `generateTokenPair(user)`：同时生成两个 token
@@ -61,24 +61,47 @@
   - `verifyRefreshToken(token)`：验证 refresh token
 
 #### 1.4 认证控制器更新
-- [ ] 修改 `authController.js`
+- [x] 创建 `tokenController.js`
+  - `refreshToken()`：刷新 token 接口
+  - `logout()`：登出接口（撤销 refresh token）
+  - `logoutAll()`：登出所有设备（更新 tokenVersion）
+  - `verifyToken()`：验证 token 有效性
+- [x] 修改 `authController.js`
   - `register()`：返回 access token + refresh token
   - `login()`：返回 access token + refresh token
   - `loginWithCode()`：返回 access token + refresh token
-  - **新增** `refreshToken()`：刷新 token 接口
-  - **新增** `logout()`：登出接口（撤销 refresh token）
-  - **新增** `logoutAll()`：登出所有设备（更新 tokenVersion）
+  - `loginWithPhone()`：返回 access token + refresh token
 
-#### 1.5 中间件更新
-- [ ] 修改 `middleware/auth.js`
-  - `authenticate()`：验证 access token，过期返回明确错误码
-  - **新增** `validateRefreshToken()`：验证 refresh token 中间件
-
-#### 1.6 路由配置
-- [ ] 添加路由
+#### 1.5 路由配置
+- [x] 添加路由
   - `POST /api/auth/refresh`：刷新 token
+  - `GET /api/auth/verify-token`：验证 token
   - `POST /api/auth/logout`：登出
   - `POST /api/auth/logout-all`：登出所有设备
+
+---
+
+### ✅ 阶段四：前端 Token 管理（已完成）
+
+#### 4.1 Token 存储优化
+- [x] 修改 `AuthContext.jsx`
+  - 同时存储 `accessToken` 和 `refreshToken`
+  - `login()` 接收两个 token
+  - `logout()` 清除两个 token
+
+#### 4.2 请求拦截器优化
+- [x] 修改 `utils/request.js`
+  - 请求拦截器注入 `accessToken`
+  - 响应拦截器捕获 401 错误
+  - 实现自动刷新 token 逻辑
+  - 防并发刷新机制（刷新锁 + 请求队列）
+  - 刷新失败跳转登录
+
+#### 4.3 登录/注册页面更新
+- [x] 修改 `Login.jsx`
+  - 保存 `refreshToken`
+- [x] 修改 `Register.jsx`
+  - 保存 `refreshToken`
 
 ---
 
