@@ -179,14 +179,15 @@ router.post('/auth/bind-wechat',
   authenticate, 
   rateLimiters.api, 
   csrf, 
-  AuthController.bindWechat
+  BindingController.bindWechat
 );
 
 // 发送手机验证码（严格限制）
-router.post('/auth/send-phone-code', 
-  rateLimiters.auth, 
-  AuthController.sendPhoneCode
-);
+// TODO: 实现 sendPhoneCode 方法
+// router.post('/auth/send-phone-code', 
+//   rateLimiters.auth, 
+//   AuthController.sendPhoneCode
+// );
 
 // 绑定手机（API限制）
 router.post('/auth/bind-phone', 
