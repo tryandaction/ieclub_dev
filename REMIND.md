@@ -43,8 +43,7 @@ git push origin develop
 # ⚠️ 重要：确保本地测试通过！
 cd scripts\deployment
 .\Deploy-Production.ps1 -Target all -Message "更新说明"
-# 输入 YES 确认部署
-```
+
 
 ### 3️⃣ 查看服务器状态
 ```powershell
