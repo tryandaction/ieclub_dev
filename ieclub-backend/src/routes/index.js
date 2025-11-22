@@ -134,10 +134,10 @@ router.post('/auth/forgot-password',
   AuthController.forgotPassword
 );
 
-// 重置密码（严格限制，需要CSRF）
+// 重置密码（已有验证码验证，不需要CSRF）
+// 验证码本身就是CSRF保护的一种形式（时效性+一次性）
 router.post('/auth/reset-password', 
   rateLimiters.auth, 
-  csrf, 
   AuthController.resetPassword
 );
 
