@@ -41,8 +41,11 @@ export function AuthProvider({ children }) {
   }
 
   // 登录成功后调用
-  const login = (userData, token) => {
+  const login = (userData, token, refreshToken) => {
     localStorage.setItem('token', token)
+    if (refreshToken) {
+      localStorage.setItem('refreshToken', refreshToken)
+    }
     localStorage.setItem('user', JSON.stringify(userData))
     setUser(userData)
     setIsAuthenticated(true)
@@ -51,6 +54,7 @@ export function AuthProvider({ children }) {
   // 退出登录
   const logout = () => {
     localStorage.removeItem('token')
+    localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
     setUser(null)
     setIsAuthenticated(false)

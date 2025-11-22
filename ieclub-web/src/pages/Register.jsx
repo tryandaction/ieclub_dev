@@ -159,7 +159,7 @@ export default function Register() {
       })
       
       // 使用 AuthContext 的 login 方法
-      authLogin(result.user, result.token)
+      authLogin(result.user, result.accessToken || result.token, result.refreshToken)
       
       showToast('🎉 注册成功！欢迎加入IEClub', 'success')
       

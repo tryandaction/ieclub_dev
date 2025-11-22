@@ -141,7 +141,7 @@ export default function Login() {
       }
       
       // 使用 AuthContext 的 login 方法
-      authLogin(result.user, result.token)
+      authLogin(result.user, result.accessToken || result.token, result.refreshToken)
       
       // 显示成功提示
       showToast('🎉 登录成功！', 'success')
