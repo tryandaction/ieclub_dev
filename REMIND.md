@@ -82,22 +82,24 @@ cd ieclub-web
 npm run dev          # http://localhost:5173
 ```
 
-### 部署到测试环境
+### 部署到测试环境（推荐：轻量模式）
 ```powershell
-# 部署后端
-.\scripts\deployment\Deploy-Staging.ps1 -Target backend -Message "更新说明"
+# 完整部署（前端+后端）- 轻量模式，无需npm install
+cd scripts\deployment
+.\Deploy-Staging-Light.ps1 -Target all -Message "更新说明"
 
-# 部署前端
-.\scripts\deployment\Deploy-Staging.ps1 -Target web -Message "更新说明"
+# 仅部署前端
+.\Deploy-Staging-Light.ps1 -Target web -Message "前端更新"
 
-# 部署全部
-.\scripts\deployment\Deploy-Staging.ps1 -Target all -Message "更新说明"
+# 仅部署后端
+.\Deploy-Staging-Light.ps1 -Target backend -Message "后端更新"
 ```
 
 ### 部署到生产环境
 ```powershell
-# 需要输入YES确认
-.\scripts\deployment\Deploy-Production.ps1 -Target all -Message "发布v1.0"
+# ⚠️ 需要先在测试环境验证，并输入YES确认
+cd scripts\deployment
+.\Deploy-Production.ps1 -Target all -Message "发布v1.0"
 ```
 
 ### 查看日志
@@ -118,8 +120,10 @@ pm2 status
 ## 📖 重要文档
 
 - **README.md** - 项目总览和快速开始
-- **DEVELOPMENT_ROADMAP.md** - 开发路线图和功能规划
-- **本文档(REMIND.md)** - 常用操作和配置说明
+- **本文档(REMIND.md)** - 常用操作快速参考
+- **docs/DEPLOYMENT_GUIDE.md** - 完整部署指南（必读）
+- **DEVELOPMENT_ROADMAP.md** - 开发路线图
+- **PROJECT_FOR_AI.md** - AI开发指南
 
 ## ⚠️ 注意事项
 
@@ -135,13 +139,15 @@ pm2 status
 
 3. **部署流程**
    - 本地开发 → 本地测试 → 提交代码
-   - 部署测试环境 → 测试验证
+   - 部署测试环境（轻量模式） → 测试验证
    - 确认无误 → 部署生产环境
+   - **详细步骤见**: docs/DEPLOYMENT_GUIDE.md
 
-4. **数据库**
-   - 测试环境：ieclub_staging（独立）
-   - 生产环境：ieclub_production
-   - 不会互相影响
+4. **测试环境优化**
+   - 使用软链接共享生产环境依赖
+   - 无需npm install，节省60%资源
+   - 部署时间：30秒（vs 5分钟）
+   - 共用生产数据库（不同Redis DB隔离缓存）
 
 ## 🔗 访问地址
 
@@ -151,4 +157,17 @@ pm2 status
 
 ---
 
-**最后更新**: 2025-11-21 15:18
+## 🚨 故障恢复
+
+如果服务器出问题或部署失败：
+```powershell
+# 自动恢复脚本
+cd scripts\deployment
+.\Server-Recovery.ps1
+```
+
+**详细故障处理**: 见 docs/DEPLOYMENT_GUIDE.md
+
+---
+
+**最后更新**: 2025-11-22 13:15

@@ -102,52 +102,43 @@ echo '前端部署完成'
 function Deploy-Backend {
     Write-Info "开始部署后端（轻量模式 - 共享依赖）..."
     
-    # 部署脚本
-    $deployScript = @"
-#!/bin/bash
-set -e
-
-echo '[INFO] 更新代码...'
-cd /root/IEclub_dev_staging/ieclub-backend
-git fetch origin develop
+    Write-Info "更新代码..."
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" @"
+cd /root/IEclub_dev_staging/ieclub-backend && \
+git fetch origin develop && \
 git reset --hard origin/develop
-
-echo '[INFO] 设置node_modules软链接（共享生产依赖）...'
-if [ ! -L 'node_modules' ]; then
-    rm -rf node_modules
-    ln -s /root/IEclub_dev/ieclub-backend/node_modules node_modules
-    echo '[SUCCESS] 软链接创建成功'
-else
-    echo '[INFO] 软链接已存在'
-fi
-
-echo '[INFO] 复制环境配置...'
-cp /root/IEclub_dev/ieclub-backend/.env.staging .env.staging || echo '[WARN] .env.staging不存在'
-
-echo '[INFO] 重启PM2服务...'
-pm2 delete staging-backend 2>/dev/null || true
-NODE_ENV=staging PORT=3001 pm2 start src/server-staging.js --name staging-backend
-
-echo '[INFO] 等待服务启动...'
-sleep 5
-
-echo '[INFO] 查看服务状态...'
-pm2 list | grep staging
-
-echo '[INFO] 查看最近日志...'
-pm2 logs staging-backend --lines 10 --nostream
-
-echo '[SUCCESS] 后端部署完成！'
 "@
     
-    # 上传并执行
-    $scriptPath = "/tmp/deploy-staging-light.sh"
+    Write-Info "配置软链接（共享依赖）..."
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" @"
+cd /root/IEclub_dev_staging/ieclub-backend && \
+if [ ! -L 'node_modules' ]; then \
+  rm -rf node_modules && \
+  ln -s /root/IEclub_dev/ieclub-backend/node_modules node_modules && \
+  echo '✅ 软链接创建成功'; \
+else \
+  echo 'ℹ️ 软链接已存在'; \
+fi && \
+ls -la node_modules | head -3
+"@
     
-    Write-Info "上传部署脚本..."
-    $deployScript | ssh -p $ServerPort "${ServerUser}@${ServerHost}" "cat > $scriptPath && chmod +x $scriptPath"
+    Write-Info "复制环境配置..."
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" @"
+cp /root/IEclub_dev/ieclub-backend/.env.staging /root/IEclub_dev_staging/ieclub-backend/.env.staging 2>/dev/null || echo '⚠️ 环境配置可能需要手动检查'
+"@
     
-    Write-Info "执行部署..."
-    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "bash $scriptPath"
+    Write-Info "重启PM2服务..."
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" @"
+pm2 delete staging-backend 2>/dev/null; \
+cd /root/IEclub_dev_staging/ieclub-backend && \
+NODE_ENV=staging PORT=3001 pm2 start src/server-staging.js --name staging-backend
+"@
+    
+    Write-Info "等待服务启动..."
+    Start-Sleep -Seconds 5
+    
+    Write-Info "查看服务状态..."
+    ssh -p $ServerPort "${ServerUser}@${ServerHost}" "pm2 list && pm2 logs staging-backend --lines 10 --nostream"
     
     Write-Success "后端部署完成"
 }
