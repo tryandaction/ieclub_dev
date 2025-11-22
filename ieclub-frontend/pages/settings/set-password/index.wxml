@@ -1,61 +1,44 @@
-<!--pages/settings/change-password/index.wxml-->
+<!--pages/settings/set-password/index.wxml-->
 <view class="container">
   <!-- Header -->
   <view class="header">
     <view class="header-icon">🔐</view>
-    <view class="header-title">修改密码</view>
-    <view class="header-subtitle">为了您的账号安全，请定期修改密码</view>
+    <view class="header-title">设置密码</view>
+    <view class="header-subtitle">为您的账号设置一个安全密码</view>
   </view>
 
-  <!-- 修改密码表单 -->
+  <!-- 设置密码表单 -->
   <view class="form-container">
-    <!-- 旧密码 -->
-    <view class="form-item {{errors.oldPassword ? 'error' : ''}}">
+    <!-- 新密码 -->
+    <view class="form-item {{errors.password ? 'error' : ''}}">
       <view class="form-label">
         <text class="label-icon">🔑</text>
-        <text class="label-text">原密码</text>
-      </view>
-      <view class="input-wrapper">
-        <input 
-          class="form-input" 
-          type="{{showOldPassword ? 'text' : 'password'}}"
-          placeholder="请输入原密码"
-          value="{{form.oldPassword}}"
-          bindinput="onOldPasswordInput"
-          maxlength="20"
-        />
-        <view class="password-toggle" bindtap="toggleOldPassword">
-          <text class="toggle-icon">{{showOldPassword ? '👁' : '🙈'}}</text>
-        </view>
-      </view>
-      <view class="error-message" wx:if="{{errors.oldPassword}}">
-        <text class="error-icon">⚠️</text>
-        <text class="error-text">{{errors.oldPassword}}</text>
-      </view>
-    </view>
-
-    <!-- 新密码 -->
-    <view class="form-item {{errors.newPassword ? 'error' : ''}}">
-      <view class="form-label">
-        <text class="label-icon">🆕</text>
         <text class="label-text">新密码</text>
       </view>
       <view class="input-wrapper">
         <input 
           class="form-input" 
-          type="{{showNewPassword ? 'text' : 'password'}}"
-          placeholder="请输入新密码（6-20位）"
-          value="{{form.newPassword}}"
-          bindinput="onNewPasswordInput"
+          type="{{showPassword ? 'text' : 'password'}}"
+          placeholder="请输入密码（8-20位）"
+          value="{{form.password}}"
+          bindinput="onPasswordInput"
           maxlength="20"
         />
-        <view class="password-toggle" bindtap="toggleNewPassword">
-          <text class="toggle-icon">{{showNewPassword ? '👁' : '🙈'}}</text>
+        <view class="password-toggle" bindtap="togglePassword">
+          <text class="toggle-icon">{{showPassword ? '👁' : '🙈'}}</text>
         </view>
       </view>
-      <view class="error-message" wx:if="{{errors.newPassword}}">
+      <view class="error-message" wx:if="{{errors.password}}">
         <text class="error-icon">⚠️</text>
-        <text class="error-text">{{errors.newPassword}}</text>
+        <text class="error-text">{{errors.password}}</text>
+      </view>
+      
+      <!-- 密码强度指示器 -->
+      <view class="strength-indicator" wx:if="{{form.password}}">
+        <view class="strength-bar">
+          <view class="strength-fill strength-{{passwordStrength}}"></view>
+        </view>
+        <text class="strength-text strength-{{passwordStrength}}">{{strengthText}}</text>
       </view>
     </view>
 
@@ -69,7 +52,7 @@
         <input 
           class="form-input" 
           type="{{showConfirmPassword ? 'text' : 'password'}}"
-          placeholder="请再次输入新密码"
+          placeholder="请再次输入密码"
           value="{{form.confirmPassword}}"
           bindinput="onConfirmPasswordInput"
           maxlength="20"
@@ -81,6 +64,16 @@
       <view class="error-message" wx:if="{{errors.confirmPassword}}">
         <text class="error-icon">⚠️</text>
         <text class="error-text">{{errors.confirmPassword}}</text>
+      </view>
+      
+      <!-- 密码匹配提示 -->
+      <view class="match-indicator" wx:if="{{form.confirmPassword}}">
+        <text class="match-icon {{form.password === form.confirmPassword ? 'match' : 'mismatch'}}">
+          {{form.password === form.confirmPassword ? '✓' : '✗'}}
+        </text>
+        <text class="match-text {{form.password === form.confirmPassword ? 'match' : 'mismatch'}}">
+          {{form.password === form.confirmPassword ? '密码匹配' : '密码不匹配'}}
+        </text>
       </view>
     </view>
 
@@ -101,8 +94,7 @@
       hover-class="btn-hover"
     >
       <text wx:if="{{loading}}" class="loading-icon">⏳</text>
-      <text>{{loading ? '修改中...' : '确认修改'}}</text>
+      <text>{{loading ? '设置中...' : '设置密码'}}</text>
     </button>
   </view>
 </view>
-

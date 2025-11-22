@@ -111,8 +111,11 @@ Page({
     if (!newPassword) {
       errors.newPassword = '请输入新密码'
       isValid = false
-    } else if (newPassword.length < 6 || newPassword.length > 20) {
-      errors.newPassword = '密码长度为6-20位'
+    } else if (newPassword.length < 8 || newPassword.length > 20) {
+      errors.newPassword = '密码长度为8-20位'
+      isValid = false
+    } else if (!/[a-zA-Z]/.test(newPassword) || !/\d/.test(newPassword)) {
+      errors.newPassword = '密码必须包含字母和数字'
       isValid = false
     }
 
@@ -158,15 +161,25 @@ Page({
 
     this.setData({ loading: true })
 
+    const { confirmPassword } = this.data.form
+
     try {
       // 调用修改密码API
       console.log('📤 [ChangePassword] 发送修改密码请求')
       const result = await changePassword({
         oldPassword,
-        newPassword
+        newPassword,
+        confirmPassword
       })
 
       console.log('✅ [ChangePassword] 修改密码成功:', result)
+
+      // 保存新的 token
+      if (result.data && result.data.accessToken && result.data.refreshToken) {
+        wx.setStorageSync('token', result.data.accessToken)
+        wx.setStorageSync('refreshToken', result.data.refreshToken)
+        console.log('✅ [ChangePassword] 已保存新的 Token')
+      }
 
       // 显示成功提示
       wx.showToast({

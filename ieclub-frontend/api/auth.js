@@ -121,9 +121,21 @@ export const unbindWechat = () => {
 }
 
 /**
+ * 首次设置密码
+ * @param {object} data - { password, confirmPassword }
+ * @returns {Promise<{accessToken: string, refreshToken: string}>}
+ */
+export const setPassword = (data) => {
+  return request('/auth/set-password', {
+    method: 'POST',
+    data
+  })
+}
+
+/**
  * 修改密码
- * @param {object} data - { oldPassword, newPassword }
- * @returns {Promise}
+ * @param {object} data - { oldPassword, newPassword, confirmPassword }
+ * @returns {Promise<{accessToken: string, refreshToken: string}>}
  */
 export const changePassword = (data) => {
   return request('/auth/change-password', {
