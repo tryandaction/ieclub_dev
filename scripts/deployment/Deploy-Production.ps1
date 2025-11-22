@@ -36,7 +36,8 @@ param(
     [string]$Message,
     [string]$ServerUser = "root",
     [string]$ServerHost = "ieclub.online",
-    [switch]$SkipConfirmation
+    [switch]$SkipConfirmation,
+    [switch]$SkipGitPush
 )
 
 # 🔧 设置控制台编码为UTF-8
@@ -209,12 +210,19 @@ function Sync-ProductionBranch {
     Write-Success "成功合并 develop → $targetBranch"
     
     # 推送 main 分支到远程
-    Write-Info "推送 $targetBranch 分支到远程..."
-    git push origin $targetBranch
-    
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "推送 $targetBranch 分支失败！"
-        exit 1
+    if ($SkipGitPush) {
+        Write-Warning "跳过推送到远程仓库（使用 -SkipGitPush 参数）"
+        Write-Info "代码已在本地合并到 $targetBranch 分支"
+    } else {
+        Write-Info "推送 $targetBranch 分支到远程..."
+        git push origin $targetBranch
+        
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "推送 $targetBranch 分支失败！继续部署..."
+            Write-Info "提示：下次可使用 -SkipGitPush 跳过此步骤"
+        } else {
+            Write-Success "✅ 代码已推送到远程仓库"
+        }
     }
     
     Write-Success "✅ 代码同步完成！$targetBranch 分支已更新"

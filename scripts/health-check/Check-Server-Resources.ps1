@@ -188,18 +188,30 @@ Write-Host ""
 Write-Host "[6/8] 检查PM2进程..." -ForegroundColor Yellow
 try {
     # 先检查PM2是否安装
-    $pm2VersionCheck = ssh $Server "pm2 --version 2>&1" 2>&1
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "  PM2已安装: 版本 $pm2VersionCheck" -ForegroundColor Green
+    $pm2VersionOutput = ssh $Server "which pm2 && pm2 --version 2>&1" 2>&1
+    
+    # 处理数组输出
+    if ($pm2VersionOutput -is [Array]) {
+        $pm2VersionOutput = ($pm2VersionOutput | Out-String).Trim()
+    }
+    
+    if ($pm2VersionOutput -match '6\.\d+\.\d+|5\.\d+\.\d+') {
+        $version = $matches[0]
+        Write-Host "  PM2已安装: 版本 $version" -ForegroundColor Green
         
         # 获取PM2进程列表
-        $pm2Status = ssh $Server "pm2 list 2>&1" 2>&1
+        $pm2StatusOutput = ssh $Server "pm2 status 2>&1" 2>&1
         
-        # 检查是否有错误状态（但仍然是可用的）
-        if ($pm2Status -match 'errored') {
+        # 处理数组输出
+        if ($pm2StatusOutput -is [Array]) {
+            $pm2StatusOutput = ($pm2StatusOutput | Out-String).Trim()
+        }
+        
+        # 检查是否有错误状态
+        if ($pm2StatusOutput -match 'errored') {
             Write-Host "  PM2进程: 发现错误进程（需要修复）" -ForegroundColor Yellow
             $warnings += "PM2中有错误进程（后端服务可能未正常运行）"
-        } elseif ($pm2Status -match 'stopped') {
+        } elseif ($pm2StatusOutput -match 'stopped') {
             Write-Host "  PM2进程: 发现停止的进程" -ForegroundColor Yellow
             $warnings += "PM2中有停止的进程"
         } else {
