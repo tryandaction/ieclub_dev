@@ -8,6 +8,7 @@ const router = express.Router();
 const AuthController = require('../controllers/authController');
 const TokenController = require('../controllers/tokenController');
 const CaptchaController = require('../controllers/captchaController');
+const BindingController = require('../controllers/bindingController');
 const topicController = require('../controllers/topicController');
 const commentController = require('../controllers/commentController');
 const UserController = require('../controllers/userController');
@@ -192,7 +193,7 @@ router.post('/auth/bind-phone',
   authenticate, 
   rateLimiters.api, 
   csrf, 
-  AuthController.bindPhone
+  BindingController.bindPhone
 );
 
 // 手机号登录（严格限制，无需CSRF）
