@@ -10,6 +10,7 @@ import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
 import SetPassword from './pages/SetPassword'
 import ChangePassword from './pages/ChangePassword'
+import AccountBinding from './pages/AccountBinding'
 import Plaza from './pages/Plaza'
 import TopicDetail from './pages/TopicDetail'
 import Search from './pages/Search'
@@ -56,6 +57,7 @@ function App() {
             <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="set-password" element={<ProtectedRoute><SetPassword /></ProtectedRoute>} />
             <Route path="change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
+            <Route path="account-binding" element={<ProtectedRoute><AccountBinding /></ProtectedRoute>} />
             <Route path="notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
             <Route path="feedback" element={<Feedback />} />
             <Route path="feedback/my" element={<ProtectedRoute><MyFeedback /></ProtectedRoute>} />

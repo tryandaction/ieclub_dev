@@ -122,12 +122,19 @@ export const sendPhoneCode = (phone, type = 'bind') => {
 
 /**
  * 绑定手机号
- * @param {string} phone - 手机号
- * @param {string} code - 验证码
+ * @param {object} data - { phone, code }
  * @returns {Promise}
  */
-export const bindPhone = (phone, code) => {
-  return request.post('/auth/bind-phone', { phone, code })
+export const bindPhone = (data) => {
+  return request.post('/auth/bind-phone', data)
+}
+
+/**
+ * 获取用户信息（包含绑定状态）
+ * @returns {Promise<object>}
+ */
+export const getUserInfo = () => {
+  return request.get('/auth/me')
 }
 
 /**
