@@ -105,36 +105,46 @@
 
 ---
 
-### 阶段二：密码管理完善（高优先级）
+### ✅ 阶段二：密码管理完善（已完成）
 
 #### 2.1 首次设置密码
-- [ ] 检查 `User` 表 `password` 字段是否允许 null
-- [ ] 创建 `POST /api/auth/set-password` 接口
+- [x] 检查 `User` 表 `password` 字段是否允许 null
+- [x] 创建 `POST /api/auth/set-password` 接口
   - 验证用户已登录
   - 验证用户未设置密码
   - 密码强度校验（8-20位，包含字母和数字）
   - 设置密码后返回新 token
 
 #### 2.2 修改密码
-- [ ] 完善 `POST /api/auth/change-password` 接口
+- [x] 完善 `PUT /api/auth/change-password` 接口
   - 验证旧密码
   - 密码强度校验
   - 更新 tokenVersion（使所有设备重新登录）
   - 返回新 token
 
 #### 2.3 重置密码
-- [ ] 完善 `POST /api/auth/reset-password` 接口
+- [x] 完善 `POST /api/auth/reset-password` 接口
   - 验证验证码
   - 密码强度校验
   - 更新 tokenVersion
   - 返回新 token
 
 #### 2.4 密码强度验证
-- [ ] 创建 `utils/passwordValidator.js`
+- [x] 创建 `utils/passwordValidator.js`
   - 长度：8-20 位
   - 复杂度：必须包含字母和数字
   - 禁止常见弱密码（如 123456、password）
   - 返回友好的错误提示
+
+#### 2.5 前端实现（双端）
+- [x] 网页端：SetPassword.jsx、ChangePassword.jsx
+  - 实时密码强度指示器
+  - 密码可见性切换
+  - 响应式设计
+- [x] 小程序端：set-password、change-password 页面
+  - 密码强度实时检测
+  - 美观的渐变UI
+  - Token自动保存
 
 ---
 
@@ -398,8 +408,9 @@ Response: { message: string }
 ---
 
 **开始时间**：2025-11-22  
-**完成时间**：2025-11-22  
-**当前阶段**：✅ Token 刷新机制已完成并提交
+**完成时间**：进行中  
+**当前阶段**：✅ Token 刷新机制已完成 | ✅ 密码管理功能已完成（双端）  
+**下一阶段**：绑定功能完善（手机号、微信、邮箱）
 
 ---
 
