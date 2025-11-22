@@ -37,16 +37,24 @@ export default function Register() {
 
     try {
       const response = await sendCode(email, 'register')
-      
-      // 检查响应中的 emailSent 字段（response 已经是 data 对象）
+
       if (response?.emailSent === false) {
-        const errorMsg = response?.error || '邮件发送失败，请稍后重试或联系管理员'
-        setError(errorMsg)
-        showToast(errorMsg, 'error')
-        setLoading(false)
-        return
+        if (response?.verificationCode) {
+          const note = response?.note || '验证码已生成（测试环境）'
+          setCode(response.verificationCode)
+          showToast(note, 'info')
+          console.log('🔐 [TEST] 注册验证码:', response.verificationCode)
+        } else {
+          const errorMsg = response?.error || '邮件发送失败，请稍后重试或联系管理员'
+          setError(errorMsg)
+          showToast(errorMsg, 'error')
+          setLoading(false)
+          return
+        }
+      } else {
+        showToast('验证码已发送到邮箱，请查收', 'success')
       }
-      
+
       setCountdown(60)
       const timer = setInterval(() => {
         setCountdown((prev) => {
@@ -58,7 +66,6 @@ export default function Register() {
         })
       }, 1000)
 
-      showToast('验证码已发送到邮箱，请查收', 'success')
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || '发送验证码失败，请稍后重试'
       setError(errorMessage)
@@ -101,15 +108,10 @@ export default function Register() {
 
   // 密码强度验证
   const validatePassword = (password) => {
-    if (password.length < 8) {
-      return '密码至少8位'
+    if (password.length < 6) {
+      return '密码至少6位'
     }
-    if (!/[a-zA-Z]/.test(password)) {
-      return '密码需包含字母'
-    }
-    if (!/[0-9]/.test(password)) {
-      return '密码需包含数字'
-    }
+    // 可选：建议包含字母和数字，但不强制要求
     return null
   }
 
@@ -157,7 +159,7 @@ export default function Register() {
       })
       
       // 使用 AuthContext 的 login 方法
-      authLogin(result.user, result.token)
+      authLogin(result.user, result.accessToken || result.token, result.refreshToken)
       
       showToast('🎉 注册成功！欢迎加入IEClub', 'success')
       

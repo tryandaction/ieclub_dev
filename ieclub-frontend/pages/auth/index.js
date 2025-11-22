@@ -1,5 +1,5 @@
 // pages/auth/index.js
-import { login, register, sendVerifyCode } from '../../api/auth'
+import { login, loginWithCode, register, sendVerifyCode } from '../../api/auth'
 
 /**
  * 认证页面（登录/注册）
@@ -13,11 +13,13 @@ Page({
     // 显示控制
     showPassword: false,
     showConfirmPassword: false,
+    loginType: 'password', // password 或 code
     
     // 登录表单
     loginForm: {
       email: '',
-      password: ''
+      password: '',
+      code: ''
     },
     
     // 注册表单
@@ -168,16 +170,106 @@ Page({
    * 切换密码显示
    */
   togglePassword() {
-    this.setData({
-      showPassword: !this.data.showPassword
+    const newState = !this.data.showPassword
+    console.log('👁️ [Auth] 切换密码显示:', {
+      原状态: this.data.showPassword,
+      新状态: newState,
+      type将变为: newState ? 'text' : 'password',
+      图标将变为: newState ? '👁️' : '🙈'
     })
+    this.setData({
+      showPassword: newState
+    })
+    // 确认状态已更新
+    setTimeout(() => {
+      console.log('✅ [Auth] 密码显示状态已更新为:', this.data.showPassword)
+    }, 100)
+  },
+  
+  /**
+   * 切换确认密码显示
+   */
+  toggleConfirmPassword() {
+    const newState = !this.data.showConfirmPassword
+    console.log('👁️ [Auth] 切换确认密码显示:', {
+      原状态: this.data.showConfirmPassword,
+      新状态: newState
+    })
+    this.setData({
+      showConfirmPassword: newState
+    })
+  },
+
+  /**
+   * 切换登录方式
+   */
+  switchLoginType() {
+    const newType = this.data.loginType === 'password' ? 'code' : 'password'
+    console.log('🔄 [Auth] 切换登录方式:', newType)
+    this.setData({
+      loginType: newType,
+      'loginForm.password': '',
+      'loginForm.code': '',
+      loginErrors: {}
+    })
+  },
+
+  /**
+   * 登录验证码输入
+   */
+  onLoginCodeInput(e) {
+    this.setData({
+      'loginForm.code': e.detail.value,
+      'loginErrors.code': ''
+    })
+  },
+
+  /**
+   * 发送登录验证码
+   */
+  async sendLoginCode() {
+    const { email } = this.data.loginForm
+    
+    if (!email) {
+      this.setData({ 'loginErrors.email': '请输入邮箱' })
+      wx.vibrateShort()
+      return
+    }
+
+    const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/
+    if (!emailRegex.test(email)) {
+      this.setData({ 'loginErrors.email': '请使用南科大邮箱' })
+      wx.vibrateShort()
+      return
+    }
+
+    this.setData({ codeSending: true })
+
+    try {
+      await sendVerifyCode(email, 'login')
+      wx.showToast({
+        title: '验证码已发送',
+        icon: 'success',
+        duration: 1500
+      })
+      this.startCountdown()
+    } catch (error) {
+      console.error('❌ [Auth] 发送验证码失败:', error)
+      this.setData({ codeSending: false })
+      wx.showToast({
+        title: error.message || '发送失败',
+        icon: 'none',
+        duration: 2000
+      })
+    }
   },
 
   /**
    * 验证登录表单
    */
   validateLoginForm() {
-    const { email, password } = this.data.loginForm
+    const { email, password, code } = this.data.loginForm
+    const { loginType } = this.data
     const errors = {}
     let isValid = true
 
@@ -193,13 +285,23 @@ Page({
       }
     }
 
-    // 验证密码
-    if (!password) {
-      errors.password = '请输入密码'
-      isValid = false
-    } else if (password.length < 6) {
-      errors.password = '密码长度至少6位'
-      isValid = false
+    // 根据登录方式验证
+    if (loginType === 'password') {
+      if (!password) {
+        errors.password = '请输入密码'
+        isValid = false
+      } else if (password.length < 6) {
+        errors.password = '密码长度至少6位'
+        isValid = false
+      }
+    } else {
+      if (!code) {
+        errors.code = '请输入验证码'
+        isValid = false
+      } else if (code.length !== 6) {
+        errors.code = '验证码为6位数字'
+        isValid = false
+      }
     }
 
     this.setData({ loginErrors: errors })
@@ -219,29 +321,49 @@ Page({
       return
     }
 
-    const { email, password } = this.data.loginForm
+    const { email, password, code } = this.data.loginForm
+    const { loginType } = this.data
 
     this.setData({ loginLoading: true })
 
     try {
-      console.log('📤 [Auth] 发送登录请求:', { email })
+      console.log('📤 [Auth] 发送登录请求:', { 
+        email: email.substring(0, 3) + '***',  // 只显示前3个字符
+        loginType,
+        hasPassword: !!password,
+        hasCode: !!code
+      })
       
-      const result = await login({ email, password })
+      let result
+      if (loginType === 'password') {
+        console.log('🔑 [Auth] 使用密码登录')
+        result = await login({ email, password })
+      } else {
+        console.log('🔢 [Auth] 使用验证码登录')
+        result = await loginWithCode({ email, code })
+      }
       
-      console.log('✅ [Auth] 登录成功:', result)
+      console.log('✅ [Auth] 登录成功')
       
-      const { token, user } = result
+      const { token, accessToken, refreshToken, user } = result
       
-      // 存储登录信息
-      wx.setStorageSync('token', token)
+      // 存储登录信息（支持新旧格式）
+      const finalAccessToken = accessToken || token
+      wx.setStorageSync('token', finalAccessToken)
+      if (refreshToken) {
+        wx.setStorageSync('refreshToken', refreshToken)
+      }
       wx.setStorageSync('user', user)
       
-      console.log('💾 [Auth] 已保存Token和用户信息')
+      console.log('💾 [Auth] 已保存Token和用户信息', { 
+        hasAccessToken: !!finalAccessToken, 
+        hasRefreshToken: !!refreshToken 
+      })
 
       // 更新全局状态
       const app = getApp()
       app.globalData.isLogin = true
-      app.globalData.token = token
+      app.globalData.token = finalAccessToken
       app.globalData.userInfo = user
 
       // 显示成功提示
@@ -435,11 +557,28 @@ Page({
       this.setData({ codeSending: false })
       
       wx.vibrateShort()
-      wx.showToast({
-        title: error.message || '发送失败',
-        icon: 'none',
-        duration: 2000
-      })
+      
+      // 特殊处理"已注册"错误，提示用户切换到登录
+      if (error.message && error.message.includes('已注册')) {
+        wx.showModal({
+          title: '该邮箱已注册',
+          content: '请切换到登录页面进行登录',
+          showCancel: true,
+          cancelText: '留在注册',
+          confirmText: '去登录',
+          success: (res) => {
+            if (res.confirm) {
+              this.switchTab({ detail: { index: 0 } })
+            }
+          }
+        })
+      } else {
+        wx.showToast({
+          title: error.message || '发送失败',
+          icon: 'none',
+          duration: 2000
+        })
+      }
     }
   },
 

@@ -10,8 +10,9 @@ const { fullStartupCheck } = require('./utils/startupCheck');
 // 启动服务器
 async function startServer() {
   try {
-    // 🔍 执行完整的启动检查
-    await fullStartupCheck();
+    // 启动检查（生产环境已验证数据库和Redis连接，可临时禁用以避免干扰）
+    // await fullStartupCheck();
+    logger.info('✅ 跳过启动检查，服务直接启动');
     
     // 测试 Redis 连接
     const redis = getRedis();

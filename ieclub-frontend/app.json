@@ -6,7 +6,10 @@
     "pages/publish/index",
     "pages/activities/index",
     "pages/profile/index",
-    "pages/login/index"
+    "pages/login/index",
+    "pages/settings/set-password/index",
+    "pages/settings/change-password/index",
+    "pages/settings/account-binding/index"
   ],
   "window": {
     "backgroundTextStyle": "light",

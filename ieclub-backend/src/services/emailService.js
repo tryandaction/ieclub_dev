@@ -5,10 +5,33 @@ const nodemailer = require('nodemailer');
 const logger = require('../utils/logger');
 const config = require('../config');
 
+// 简化配置检测：只检查必填字段是否存在
+function hasValidEmailConfig(emailConfig) {
+  if (!emailConfig) return false;
+  
+  const { host, user, password } = emailConfig;
+  
+  // 只检查是否有值，不检查是否是占位符
+  if (!host || !user || !password) return false;
+  
+  // 检查是否看起来像占位符
+  const placeholderKeywords = ['your_', 'changeme', 'example', 'password123'];
+  const isLikelyPlaceholder = placeholderKeywords.some(keyword => 
+    password.toLowerCase().includes(keyword) || user.toLowerCase().includes(keyword)
+  );
+  
+  if (isLikelyPlaceholder && process.env.NODE_ENV === 'production') {
+    return false; // 生产环境拒绝明显的占位符
+  }
+  
+  return true;
+}
+
 class EmailService {
   constructor() {
     this.transporter = null;
     this.initialized = false;
+    this.hasValidConfig = false;
     this.initTransporter();
   }
 
@@ -19,9 +42,10 @@ class EmailService {
     try {
       const emailConfig = config.email || {};
       const env = process.env.NODE_ENV || 'development';
+      this.hasValidConfig = hasValidEmailConfig(emailConfig);
 
       // 如果没有配置，使用测试模式
-      if (!emailConfig.host || !emailConfig.user || !emailConfig.password) {
+      if (!this.hasValidConfig) {
         logger.warn('⚠️ 邮件服务未配置，将使用测试模式');
         logger.warn('提示: 要启用真实邮件发送，请配置 EMAIL_HOST, EMAIL_USER, EMAIL_PASSWORD');
         logger.warn('当前环境:', env);
@@ -33,6 +57,7 @@ class EmailService {
           secure: emailConfig.secure || false
         });
         this.initialized = false;
+        this.transporter = null;
         return;
       }
 
@@ -119,7 +144,7 @@ class EmailService {
     // 如果未初始化，检查是否是因为配置缺失
     if (!this.initialized || !this.transporter) {
       const emailConfig = config.email || {};
-      const hasConfig = emailConfig.host && emailConfig.user && emailConfig.password;
+      const hasConfig = hasValidEmailConfig(emailConfig);
       
       // 生产环境和测试环境：必须真实发送，不能模拟
       if (env === 'production' || env === 'staging') {
@@ -134,7 +159,7 @@ class EmailService {
           logger.error('请检查: 1) SMTP服务器地址和端口是否正确 2) 用户名和密码是否正确 3) 网络连接是否正常 4) 防火墙是否阻止连接');
         } else {
           logger.error(`[${env.toUpperCase()}] 邮件服务未配置，无法发送邮件`);
-          logger.error('请配置 EMAIL_HOST, EMAIL_USER, EMAIL_PASSWORD 环境变量');
+        logger.error('请配置 EMAIL_HOST, EMAIL_USER, EMAIL_PASSWORD 环境变量（占位符/示例值不会被视为有效配置）');
         }
         
         return { 

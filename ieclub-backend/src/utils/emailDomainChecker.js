@@ -4,7 +4,9 @@
  * 
  * 环境行为：
  * - production: 只允许学校邮箱注册（sustech.edu.cn, mail.sustech.edu.cn）
- * - staging: 检查白名单，学校邮箱可直接注册，其他邮箱需要管理员同意（白名单）
+ * - staging: 
+ *   - 白名单开启(USE_EMAIL_WHITELIST=true): 只允许白名单内邮箱注册（可以是非学校邮箱）
+ *   - 白名单关闭(USE_EMAIL_WHITELIST=false): 只允许学校邮箱注册（同生产环境）
  * - development: 不限制（允许所有邮箱）
  */
 
@@ -158,36 +160,44 @@ async function checkEmailAllowed(email, type = 'register') {
       };
     }
     
-    // 测试环境：检查白名单
+    // 测试环境：根据白名单开关决定策略
     if (env === 'staging') {
-      // 先检查是否是学校邮箱
-      const isSchoolEmail = SCHOOL_EMAIL_DOMAINS.some(domain => 
-        emailDomain.toLowerCase() === domain.toLowerCase()
-      );
+      const useWhitelist = process.env.USE_EMAIL_WHITELIST === 'true';
       
-      if (isSchoolEmail) {
+      if (useWhitelist) {
+        // 白名单模式：只检查白名单
+        const inWhitelist = await isEmailInWhitelist(email);
+        
+        if (inWhitelist) {
+          return {
+            valid: true,
+            message: '邮箱验证通过（白名单）'
+          };
+        }
+        
         return {
-          valid: true,
-          message: '邮箱验证通过'
+          valid: false,
+          message: '该邮箱不在测试环境白名单中，请联系管理员'
+        };
+      } else {
+        // 学校邮箱模式：只允许学校邮箱
+        const isSchoolEmail = SCHOOL_EMAIL_DOMAINS.some(domain => 
+          emailDomain.toLowerCase() === domain.toLowerCase()
+        );
+        
+        if (isSchoolEmail) {
+          return {
+            valid: true,
+            message: '邮箱验证通过'
+          };
+        }
+        
+        const domainList = SCHOOL_EMAIL_DOMAINS.join(', ');
+        return {
+          valid: false,
+          message: `测试环境仅限学校邮箱注册：${domainList}`
         };
       }
-      
-      // 不是学校邮箱，检查白名单
-      const inWhitelist = await isEmailInWhitelist(email);
-      
-      if (inWhitelist) {
-        return {
-          valid: true,
-          message: '邮箱验证通过'
-        };
-      }
-      
-      // 不在白名单中，返回需要管理员同意的提示
-      return {
-        valid: false,
-        message: '该邮箱需要管理员同意后才能注册。请联系管理员或使用学校邮箱注册。',
-        needApproval: true
-      };
     }
     
     // 开发环境：不限制

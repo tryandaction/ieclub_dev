@@ -1,5 +1,5 @@
 /**
- * 统一请求封装 - 小程序版（优化版）
+ * 统一请求封装 - 小程序版（优化版 + Token 刷新）
  * @param {String} url - 请求地址
  * @param {Object} options - 请求选项
  * @param {String} options.method - 请求方法 GET/POST/PUT/DELETE
@@ -9,6 +9,22 @@
  * @param {Number} options.timeout - 超时时间（毫秒），默认 15000
  * @returns {Promise}
  */
+
+// Token 刷新锁（防止并发刷新）
+let isRefreshing = false
+let refreshSubscribers = []
+
+// 添加刷新队列订阅
+function subscribeTokenRefresh(cb) {
+  refreshSubscribers.push(cb)
+}
+
+// 刷新成功后通知所有订阅者
+function onRefreshed(token) {
+  refreshSubscribers.forEach(cb => cb(token))
+  refreshSubscribers = []
+}
+
 const request = (url, options = {}) => {
   const {
     method = 'GET',
@@ -142,13 +158,94 @@ const request = (url, options = {}) => {
             errorMessage = data.message || '请求参数错误'
             break
           case 401:
-            errorMessage = '登录已过期'
-            wx.removeStorageSync('token')
-            setTimeout(() => {
-              wx.reLaunch({
-                url: '/pages/auth/index'  // 修正路径到auth页面
+            // 对于登录/注册接口的401，直接显示后端返回的错误消息
+            if (url.includes('/auth/login') || url.includes('/auth/register') || url.includes('/auth/wechat-login')) {
+              errorMessage = data.message || '认证失败'
+              break
+            }
+            
+            // 尝试刷新 Token
+            const refreshToken = wx.getStorageSync('refreshToken')
+            
+            if (refreshToken && !isRefreshing) {
+              isRefreshing = true
+              console.log('🔄 Token 已过期，尝试自动刷新...')
+              
+              // 调用刷新接口
+              wx.request({
+                url: app.globalData.apiBase + '/auth/refresh',
+                method: 'POST',
+                data: { refreshToken },
+                header: { 'Content-Type': 'application/json' },
+                success: (refreshRes) => {
+                  if (refreshRes.statusCode === 200 && refreshRes.data.success) {
+                    const { accessToken, refreshToken: newRefreshToken } = refreshRes.data.data
+                    
+                    // 更新 Token
+                    wx.setStorageSync('token', accessToken)
+                    wx.setStorageSync('refreshToken', newRefreshToken)
+                    
+                    console.log('✅ Token 刷新成功')
+                    
+                    // 通知所有等待的请求
+                    onRefreshed(accessToken)
+                    isRefreshing = false
+                    
+                    // 重试原请求
+                    request(url, options).then(resolve).catch(reject)
+                  } else {
+                    // 刷新失败，跳转登录
+                    isRefreshing = false
+                    refreshSubscribers = []
+                    wx.removeStorageSync('token')
+                    wx.removeStorageSync('refreshToken')
+                    wx.showToast({
+                      title: '登录已过期',
+                      icon: 'none',
+                      duration: 1500
+                    })
+                    setTimeout(() => {
+                      wx.reLaunch({ url: '/pages/auth/index' })
+                    }, 1500)
+                  }
+                },
+                fail: () => {
+                  // 刷新失败
+                  isRefreshing = false
+                  refreshSubscribers = []
+                  wx.removeStorageSync('token')
+                  wx.removeStorageSync('refreshToken')
+                  wx.showToast({
+                    title: '登录已过期',
+                    icon: 'none',
+                    duration: 1500
+                  })
+                  setTimeout(() => {
+                    wx.reLaunch({ url: '/pages/auth/index' })
+                  }, 1500)
+                }
               })
-            }, 1500)
+              return
+            } else if (refreshToken && isRefreshing) {
+              // 正在刷新中，加入队列
+              subscribeTokenRefresh((token) => {
+                request(url, options).then(resolve).catch(reject)
+              })
+              return
+            } else {
+              // 没有 refreshToken，直接跳转登录
+              errorMessage = '登录已过期'
+              wx.removeStorageSync('token')
+              wx.removeStorageSync('refreshToken')
+              wx.showToast({
+                title: errorMessage,
+                icon: 'none',
+                duration: 1500
+              })
+              setTimeout(() => {
+                wx.reLaunch({ url: '/pages/auth/index' })
+              }, 1500)
+            }
             break
           case 403:
             errorMessage = '没有权限访问'

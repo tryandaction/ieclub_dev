@@ -48,17 +48,23 @@ export default function Login() {
           return
         }
         const response = await sendCode(email, 'login')
-        
-        // 检查响应中的 emailSent 字段（response 已经是 data 对象）
+
         if (response?.emailSent === false) {
-          const errorMsg = response?.error || '邮件发送失败，请稍后重试或联系管理员'
-          setError(errorMsg)
-          showToast(errorMsg, 'error')
-          setLoading(false)
-          return
+          if (response?.verificationCode) {
+            const note = response?.note || '验证码已生成（测试环境）'
+            setCode(response.verificationCode)
+            showToast(note, 'info')
+            console.log('🔐 [TEST] 验证码已生成:', response.verificationCode)
+          } else {
+            const errorMsg = response?.error || '邮件发送失败，请稍后重试或联系管理员'
+            setError(errorMsg)
+            showToast(errorMsg, 'error')
+            setLoading(false)
+            return
+          }
+        } else {
+          showToast('验证码已发送到邮箱，请查收', 'success')
         }
-        
-        showToast('验证码已发送到邮箱，请查收', 'success')
       } else if (loginMode === 'phone') {
         // 手机号验证码登录
         if (!validatePhone(phone)) {
@@ -110,8 +116,8 @@ export default function Login() {
 
     if (loginMode === 'password') {
       // 密码登录
-      if (!password || password.length < 8) {
-        setError('密码至少8位')
+      if (!password || password.length < 6) {
+        setError('密码至少6位')
         return
       }
     } else {
@@ -135,7 +141,7 @@ export default function Login() {
       }
       
       // 使用 AuthContext 的 login 方法
-      authLogin(result.user, result.token)
+      authLogin(result.user, result.accessToken || result.token, result.refreshToken)
       
       // 显示成功提示
       showToast('🎉 登录成功！', 'success')

@@ -86,7 +86,7 @@ module.exports = {
 
   // 日志配置
   log: {
-    level: process.env.LOG_LEVEL || 'info',
+    level: process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'warn' : process.env.NODE_ENV === 'staging' ? 'info' : 'debug'),
     maxSize: process.env.LOG_MAX_SIZE || '20m',
     maxFiles: process.env.LOG_MAX_FILES || '14d',
   },

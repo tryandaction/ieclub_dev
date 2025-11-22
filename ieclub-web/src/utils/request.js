@@ -1,6 +1,36 @@
 import axios from 'axios'
 import useLoadingStore from '../stores/loadingStore'
 
+// 🔒 敏感数据过滤函数（防止密码泄露到控制台）
+const sanitizeSensitiveData = (data) => {
+  if (!data) return data
+  
+  // 如果是字符串，尝试解析为JSON
+  let parsedData = data
+  if (typeof data === 'string') {
+    try {
+      parsedData = JSON.parse(data)
+    } catch {
+      return data
+    }
+  }
+  
+  // 复制对象，避免修改原数据
+  const sanitized = { ...parsedData }
+  
+  // 敏感字段列表
+  const sensitiveFields = ['password', 'oldPassword', 'newPassword', 'token', 'accessToken', 'refreshToken']
+  
+  // 过滤敏感字段
+  sensitiveFields.forEach(field => {
+    if (sanitized[field]) {
+      sanitized[field] = '***hidden***'
+    }
+  })
+  
+  return sanitized
+}
+
 // 🔧 获取 API 基础地址（智能推断 + 降级方案）
 const getApiBaseUrl = () => {
   // 1. 优先使用环境变量配置
@@ -109,11 +139,12 @@ request.interceptors.request.use(
     // 添加请求时间戳（用于性能监控）
     config.metadata = { startTime: Date.now() }
     
-    // 打印请求信息
+    // 打印请求信息（隐藏敏感字段）
     const fullURL = config.baseURL + config.url
+    const sanitizedData = config.data ? sanitizeSensitiveData(config.data) : undefined
     console.log(`🚀 [${config.method?.toUpperCase()}] ${fullURL}`, {
       params: config.params,
-      data: config.data,
+      data: sanitizedData,
       headers: config.headers
     })
     
@@ -126,6 +157,21 @@ request.interceptors.request.use(
     return Promise.reject(error)
   }
 )
+
+// 刷新 token 的锁（防止并发刷新）
+let isRefreshing = false
+let refreshSubscribers = []
+
+// 添加刷新队列订阅
+function subscribeTokenRefresh(cb) {
+  refreshSubscribers.push(cb)
+}
+
+// 刷新成功后通知所有订阅者
+function onRefreshed(token) {
+  refreshSubscribers.forEach(cb => cb(token))
+  refreshSubscribers = []
+}
 
 // ✅ 响应拦截器（增强版）
 request.interceptors.response.use(
@@ -315,16 +361,72 @@ request.interceptors.response.use(
           errorMessage = data?.message || '邮箱或密码错误'
           console.warn(`🔒 [401] ${error.config.url}:`, errorMessage)
         } else {
-          // 其他接口的 401 错误，表示 token 过期
-          errorMessage = data?.message || '登录已过期，请重新登录'
-          console.warn(`🔒 [401] ${error.config.url}: Token 已过期`)
-          localStorage.removeItem('token')
-          localStorage.removeItem('user')
-          setTimeout(() => {
-            if (window.location.pathname !== '/login') {
-              window.location.href = '/login'
+          // 其他接口的 401 错误，尝试刷新 token
+          const refreshToken = localStorage.getItem('refreshToken')
+          
+          if (refreshToken && !isRefreshing) {
+            isRefreshing = true
+            console.log('🔄 Token 已过期，尝试自动刷新...')
+            
+            try {
+              // 调用刷新接口
+              const { data: refreshData } = await axios.post(
+                `${getApiBaseUrl()}/auth/refresh`,
+                { refreshToken },
+                { headers: { 'Content-Type': 'application/json' } }
+              )
+              
+              const { accessToken, refreshToken: newRefreshToken } = refreshData.data || refreshData
+              
+              // 更新 token
+              localStorage.setItem('token', accessToken)
+              localStorage.setItem('refreshToken', newRefreshToken)
+              
+              // 通知所有等待的请求
+              onRefreshed(accessToken)
+              isRefreshing = false
+              
+              // 重试原请求
+              error.config.headers.Authorization = `Bearer ${accessToken}`
+              return request(error.config)
+              
+            } catch (refreshError) {
+              // 刷新失败，清除 token 并跳转登录
+              isRefreshing = false
+              refreshSubscribers = []
+              console.error('❌ Token 刷新失败:', refreshError)
+              
+              errorMessage = '登录已过期，请重新登录'
+              localStorage.removeItem('token')
+              localStorage.removeItem('refreshToken')
+              localStorage.removeItem('user')
+              setTimeout(() => {
+                if (window.location.pathname !== '/login') {
+                  window.location.href = '/login'
+                }
+              }, 1000)
             }
-          }, 1000)
+          } else if (refreshToken && isRefreshing) {
+            // 正在刷新中，将请求加入队列
+            return new Promise((resolve) => {
+              subscribeTokenRefresh((token) => {
+                error.config.headers.Authorization = `Bearer ${token}`
+                resolve(request(error.config))
+              })
+            })
+          } else {
+            // 没有 refresh token，直接跳转登录
+            errorMessage = '登录已过期，请重新登录'
+            console.warn(`🔒 [401] ${error.config.url}: Token 已过期`)
+            localStorage.removeItem('token')
+            localStorage.removeItem('refreshToken')
+            localStorage.removeItem('user')
+            setTimeout(() => {
+              if (window.location.pathname !== '/login') {
+                window.location.href = '/login'
+              }
+            }, 1000)
+          }
         }
         break
       case 403:

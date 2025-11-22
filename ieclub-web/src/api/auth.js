@@ -64,13 +64,24 @@ export const resetPassword = (email, code, newPassword) => {
 }
 
 /**
+ * 首次设置密码
+ * @param {string} password - 密码
+ * @param {string} confirmPassword - 确认密码
+ * @returns {Promise<{accessToken: string, refreshToken: string}>}
+ */
+export const setPassword = (password, confirmPassword) => {
+  return request.post('/auth/set-password', { password, confirmPassword })
+}
+
+/**
  * 修改密码
  * @param {string} oldPassword - 旧密码
  * @param {string} newPassword - 新密码
- * @returns {Promise}
+ * @param {string} confirmPassword - 确认新密码
+ * @returns {Promise<{accessToken: string, refreshToken: string}>}
  */
-export const changePassword = (oldPassword, newPassword) => {
-  return request.post('/auth/change-password', { oldPassword, newPassword })
+export const changePassword = (oldPassword, newPassword, confirmPassword) => {
+  return request.put('/auth/change-password', { oldPassword, newPassword, confirmPassword })
 }
 
 /**
@@ -111,12 +122,19 @@ export const sendPhoneCode = (phone, type = 'bind') => {
 
 /**
  * 绑定手机号
- * @param {string} phone - 手机号
- * @param {string} code - 验证码
+ * @param {object} data - { phone, code }
  * @returns {Promise}
  */
-export const bindPhone = (phone, code) => {
-  return request.post('/auth/bind-phone', { phone, code })
+export const bindPhone = (data) => {
+  return request.post('/auth/bind-phone', data)
+}
+
+/**
+ * 获取用户信息（包含绑定状态）
+ * @returns {Promise<object>}
+ */
+export const getUserInfo = () => {
+  return request.get('/auth/me')
 }
 
 /**

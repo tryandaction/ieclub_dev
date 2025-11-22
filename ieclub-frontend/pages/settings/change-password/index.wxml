@@ -87,7 +87,8 @@
     <!-- 密码强度提示 -->
     <view class="password-tips">
       <view class="tips-title">💡 密码安全提示：</view>
-      <view class="tips-item">• 密码长度6-20位</view>
+      <view class="tips-item">• 密码长度8-20位</view>
+      <view class="tips-item">• 必须包含字母和数字</view>
       <view class="tips-item">• 建议使用字母、数字、符号组合</view>
       <view class="tips-item">• 不要使用过于简单的密码</view>
     </view>

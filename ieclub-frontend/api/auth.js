@@ -121,9 +121,43 @@ export const unbindWechat = () => {
 }
 
 /**
- * 修改密码
- * @param {object} data - { oldPassword, newPassword }
+ * 绑定手机号
+ * @param {object} data - { phone, code }
  * @returns {Promise}
+ */
+export const bindPhone = (data) => {
+  return request('/auth/bind-phone', {
+    method: 'POST',
+    data
+  })
+}
+
+/**
+ * 解绑手机号
+ * @returns {Promise}
+ */
+export const unbindPhone = () => {
+  return request('/auth/unbind-phone', {
+    method: 'POST'
+  })
+}
+
+/**
+ * 首次设置密码
+ * @param {object} data - { password, confirmPassword }
+ * @returns {Promise<{accessToken: string, refreshToken: string}>}
+ */
+export const setPassword = (data) => {
+  return request('/auth/set-password', {
+    method: 'POST',
+    data
+  })
+}
+
+/**
+ * 修改密码
+ * @param {object} data - { oldPassword, newPassword, confirmPassword }
+ * @returns {Promise<{accessToken: string, refreshToken: string}>}
  */
 export const changePassword = (data) => {
   return request('/auth/change-password', {
@@ -177,6 +211,14 @@ export const getCurrentUser = () => {
 }
 
 /**
+ * 获取用户信息（包含绑定状态）
+ * @returns {Promise<object>}
+ */
+export const getUserInfo = () => {
+  return request('/auth/me')
+}
+
+/**
  * 更新用户信息
  * @param {object} data - 用户信息
  * @returns {Promise<object>}
@@ -189,11 +231,34 @@ export const updateProfile = (data) => {
 }
 
 /**
- * 登出
+ * 刷新 Token
+ * @param {string} refreshToken - Refresh Token
+ * @returns {Promise<{accessToken: string, refreshToken: string}>}
+ */
+export const refreshToken = (refreshToken) => {
+  return request('/auth/refresh', {
+    method: 'POST',
+    data: { refreshToken },
+    loading: false // 刷新 token 不显示 loading
+  })
+}
+
+/**
+ * 登出（撤销 Refresh Token）
  * @returns {Promise}
  */
 export const logout = () => {
   return request('/auth/logout', {
+    method: 'POST'
+  })
+}
+
+/**
+ * 登出所有设备
+ * @returns {Promise}
+ */
+export const logoutAll = () => {
+  return request('/auth/logout-all', {
     method: 'POST'
   })
 }

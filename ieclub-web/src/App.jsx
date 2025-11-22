@@ -8,6 +8,9 @@ import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
+import SetPassword from './pages/SetPassword'
+import ChangePassword from './pages/ChangePassword'
+import AccountBinding from './pages/AccountBinding'
 import Plaza from './pages/Plaza'
 import TopicDetail from './pages/TopicDetail'
 import Search from './pages/Search'
@@ -19,6 +22,7 @@ import Profile from './pages/Profile'
 import Notifications from './pages/Notifications'
 import Feedback from './pages/Feedback'
 import MyFeedback from './pages/MyFeedback'
+import Settings from './pages/Settings'
 import useLoadingStore from './stores/loadingStore'
 
 function App() {
@@ -50,6 +54,10 @@ function App() {
             {/* 需要登录的页面 */}
             <Route path="publish" element={<ProtectedRoute><Publish /></ProtectedRoute>} />
             <Route path="profile/:userId" element={<Profile />} />
+            <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="set-password" element={<ProtectedRoute><SetPassword /></ProtectedRoute>} />
+            <Route path="change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
+            <Route path="account-binding" element={<ProtectedRoute><AccountBinding /></ProtectedRoute>} />
             <Route path="notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
             <Route path="feedback" element={<Feedback />} />
             <Route path="feedback/my" element={<ProtectedRoute><MyFeedback /></ProtectedRoute>} />

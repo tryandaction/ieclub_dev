@@ -6,6 +6,9 @@ const router = express.Router();
 
 // 控制器
 const AuthController = require('../controllers/authController');
+const TokenController = require('../controllers/tokenController');
+const CaptchaController = require('../controllers/captchaController');
+const BindingController = require('../controllers/bindingController');
 const topicController = require('../controllers/topicController');
 const commentController = require('../controllers/commentController');
 const UserController = require('../controllers/userController');
@@ -35,6 +38,25 @@ router.use(performanceMiddleware());
 // 获取CSRF Token（公开接口）- 前端必须先调用此接口才能调用需要CSRF保护的接口
 const { getCsrfToken } = require('../middleware/csrf');
 router.get('/auth/csrf-token', getCsrfToken);
+
+// ==================== Captcha Routes（图形验证码）====================
+// 生成验证码（宽松限制，公开接口）
+router.get('/captcha/generate', 
+  rateLimiters.api,
+  CaptchaController.generate
+);
+
+// 验证验证码（中等限制）
+router.post('/captcha/verify', 
+  rateLimiters.api,
+  CaptchaController.verify
+);
+
+// 刷新验证码（宽松限制）
+router.post('/captcha/refresh', 
+  rateLimiters.api,
+  CaptchaController.refresh
+);
 
 // ==================== CSRF 保护配置 ====================
 // 不需要CSRF保护的认证接口（公开接口、只读操作）
@@ -120,18 +142,28 @@ router.post('/auth/reset-password',
 );
 
 // 获取个人信息（API限制）
-router.get('/auth/profile', 
-  authenticate, 
-  rateLimiters.api, 
-  AuthController.getProfile
-);
+// TODO: 实现 AuthController.getProfile 方法
+// router.get('/auth/profile', 
+//   authenticate, 
+//   rateLimiters.api, 
+//   AuthController.getProfile
+// );
 
 // 更新个人信息（API限制）
-router.put('/auth/profile', 
+// TODO: 实现 AuthController.updateProfile 方法
+// router.put('/auth/profile', 
+//   authenticate, 
+//   rateLimiters.api, 
+//   csrf, 
+//   AuthController.updateProfile
+// );
+
+// 首次设置密码（API限制）
+router.post('/auth/set-password', 
   authenticate, 
   rateLimiters.api, 
   csrf, 
-  AuthController.updateProfile
+  AuthController.setPassword
 );
 
 // 修改密码（API限制）
@@ -147,21 +179,22 @@ router.post('/auth/bind-wechat',
   authenticate, 
   rateLimiters.api, 
   csrf, 
-  AuthController.bindWechat
+  BindingController.bindWechat
 );
 
 // 发送手机验证码（严格限制）
-router.post('/auth/send-phone-code', 
-  rateLimiters.auth, 
-  AuthController.sendPhoneCode
-);
+// TODO: 实现 sendPhoneCode 方法
+// router.post('/auth/send-phone-code', 
+//   rateLimiters.auth, 
+//   AuthController.sendPhoneCode
+// );
 
 // 绑定手机（API限制）
 router.post('/auth/bind-phone', 
   authenticate, 
   rateLimiters.api, 
   csrf, 
-  AuthController.bindPhone
+  BindingController.bindPhone
 );
 
 // 手机号登录（严格限制，无需CSRF）
@@ -194,12 +227,33 @@ router.delete('/auth/account',
   AuthController.deleteAccount
 );
 
-// 登出（API限制）
+// ==================== Token Management Routes ====================
+// 刷新 Token（宽松限制，无需 CSRF - 使用 refreshToken 验证）
+router.post('/auth/refresh', 
+  rateLimiters.api,
+  TokenController.refreshToken
+);
+
+// 验证 Token 有效性（API限制）
+router.get('/auth/verify-token', 
+  authenticate,
+  rateLimiters.api,
+  TokenController.verifyToken
+);
+
+// 登出（撤销 Refresh Token，API限制）
 router.post('/auth/logout', 
   authenticate, 
-  rateLimiters.api, 
-  csrf, 
-  AuthController.logout
+  rateLimiters.api,
+  TokenController.logout
+);
+
+// 登出所有设备（撤销所有 Token，严格限制）
+router.post('/auth/logout-all', 
+  authenticate, 
+  rateLimiters.auth,
+  csrf,
+  TokenController.logoutAll
 );
 
 // 微信登录（严格限制）

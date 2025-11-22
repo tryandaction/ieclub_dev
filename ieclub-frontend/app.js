@@ -44,9 +44,9 @@ App({
     systemInfo: null,
     // API 基础地址配置
     // 根据环境自动选择（可在 config.js 中配置）
-    // 生产环境: https://ieclub.online/api
+    // 生产环境: https://www.ieclub.online/api
     // 测试环境: https://test.ieclub.online/api
-    apiBase: 'https://ieclub.online/api' // 生产环境
+    apiBase: 'https://www.ieclub.online/api' // 生产环境（必须与小程序域名白名单一致）
     // 如需测试环境，修改为: 'https://test.ieclub.online/api'
   }
 })

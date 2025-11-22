@@ -82,6 +82,7 @@ ecosystem.*.config.js
 .Trashes
 ehthumbs.db
 Thumbs.db
+SETUP_ADMIN_EMAIL.mdb
 
 # ============================
 # IDE
@@ -155,3 +156,5 @@ test-results/
 # 取消以下注释可忽略锁定文件
 # package-lock.json
 # yarn.lock
+# REMIND.md - 现在可以提交到git（无敏感信息）
+

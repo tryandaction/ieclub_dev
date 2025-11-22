@@ -167,6 +167,7 @@ export default function Layout() {
               <span className="text-xl">🔍</span>
             </button>
             <button 
+              onClick={() => navigate('/settings')}
               className="p-3 rounded-lg hover:bg-gray-100 transition-colors"
               title="设置"
             >
