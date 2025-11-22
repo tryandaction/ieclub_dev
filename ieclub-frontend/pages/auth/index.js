@@ -230,18 +230,25 @@ Page({
       
       console.log('✅ [Auth] 登录成功:', result)
       
-      const { token, user } = result
+      const { token, accessToken, refreshToken, user } = result
       
-      // 存储登录信息
-      wx.setStorageSync('token', token)
+      // 存储登录信息（支持新旧格式）
+      const finalAccessToken = accessToken || token
+      wx.setStorageSync('token', finalAccessToken)
+      if (refreshToken) {
+        wx.setStorageSync('refreshToken', refreshToken)
+      }
       wx.setStorageSync('user', user)
       
-      console.log('💾 [Auth] 已保存Token和用户信息')
+      console.log('💾 [Auth] 已保存Token和用户信息', { 
+        hasAccessToken: !!finalAccessToken, 
+        hasRefreshToken: !!refreshToken 
+      })
 
       // 更新全局状态
       const app = getApp()
       app.globalData.isLogin = true
-      app.globalData.token = token
+      app.globalData.token = finalAccessToken
       app.globalData.userInfo = user
 
       // 显示成功提示

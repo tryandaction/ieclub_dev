@@ -189,11 +189,34 @@ export const updateProfile = (data) => {
 }
 
 /**
- * 登出
+ * 刷新 Token
+ * @param {string} refreshToken - Refresh Token
+ * @returns {Promise<{accessToken: string, refreshToken: string}>}
+ */
+export const refreshToken = (refreshToken) => {
+  return request('/auth/refresh', {
+    method: 'POST',
+    data: { refreshToken },
+    loading: false // 刷新 token 不显示 loading
+  })
+}
+
+/**
+ * 登出（撤销 Refresh Token）
  * @returns {Promise}
  */
 export const logout = () => {
   return request('/auth/logout', {
+    method: 'POST'
+  })
+}
+
+/**
+ * 登出所有设备
+ * @returns {Promise}
+ */
+export const logoutAll = () => {
+  return request('/auth/logout-all', {
     method: 'POST'
   })
 }

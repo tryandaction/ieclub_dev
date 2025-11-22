@@ -44,23 +44,28 @@ Page({
 
             try {
               // 3. 调用后端登录接口
-              const { token, user } = await wechatLogin({
+              const result = await wechatLogin({
                 code: loginRes.code,
                 nickName: userInfo.nickName,
                 avatarUrl: userInfo.avatarUrl,
                 gender: userInfo.gender
               })
               
+              const { token, accessToken, refreshToken, user } = result
               console.log('登录成功:', user)
 
-              // 4. 存储 Token 和用户信息
-              wx.setStorageSync('token', token)
+              // 4. 存储 Token 和用户信息（支持新旧格式）
+              const finalAccessToken = accessToken || token
+              wx.setStorageSync('token', finalAccessToken)
+              if (refreshToken) {
+                wx.setStorageSync('refreshToken', refreshToken)
+              }
               wx.setStorageSync('user', user)
 
               // 5. 更新全局状态
               const app = getApp()
               app.globalData.isLogin = true
-              app.globalData.token = token
+              app.globalData.token = finalAccessToken
               app.globalData.userInfo = user
 
               // 6. 提示成功
