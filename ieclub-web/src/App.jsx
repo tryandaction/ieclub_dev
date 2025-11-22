@@ -8,6 +8,8 @@ import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
+import SetPassword from './pages/SetPassword'
+import ChangePassword from './pages/ChangePassword'
 import Plaza from './pages/Plaza'
 import TopicDetail from './pages/TopicDetail'
 import Search from './pages/Search'
@@ -52,6 +54,8 @@ function App() {
             <Route path="publish" element={<ProtectedRoute><Publish /></ProtectedRoute>} />
             <Route path="profile/:userId" element={<Profile />} />
             <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="set-password" element={<ProtectedRoute><SetPassword /></ProtectedRoute>} />
+            <Route path="change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
             <Route path="notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
             <Route path="feedback" element={<Feedback />} />
             <Route path="feedback/my" element={<ProtectedRoute><MyFeedback /></ProtectedRoute>} />

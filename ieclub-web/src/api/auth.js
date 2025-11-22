@@ -64,13 +64,24 @@ export const resetPassword = (email, code, newPassword) => {
 }
 
 /**
+ * 首次设置密码
+ * @param {string} password - 密码
+ * @param {string} confirmPassword - 确认密码
+ * @returns {Promise<{accessToken: string, refreshToken: string}>}
+ */
+export const setPassword = (password, confirmPassword) => {
+  return request.post('/auth/set-password', { password, confirmPassword })
+}
+
+/**
  * 修改密码
  * @param {string} oldPassword - 旧密码
  * @param {string} newPassword - 新密码
- * @returns {Promise}
+ * @param {string} confirmPassword - 确认新密码
+ * @returns {Promise<{accessToken: string, refreshToken: string}>}
  */
-export const changePassword = (oldPassword, newPassword) => {
-  return request.post('/auth/change-password', { oldPassword, newPassword })
+export const changePassword = (oldPassword, newPassword, confirmPassword) => {
+  return request.put('/auth/change-password', { oldPassword, newPassword, confirmPassword })
 }
 
 /**

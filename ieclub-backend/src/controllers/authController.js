@@ -13,6 +13,7 @@ const { validateEmail } = require('../utils/common');
 const { checkEmailAllowed } = require('../utils/emailDomainChecker');
 const { handleDatabaseError } = require('../utils/errorHandler');
 const { generateTokenPair } = require('../utils/tokenUtils');
+const { validatePassword, validatePasswordMatch } = require('../utils/passwordValidator');
 
 function generateVerificationCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -1206,21 +1207,60 @@ class AuthController {
         });
       }
 
+      // 验证新密码强度
+      const passwordValidation = validatePassword(newPassword);
+      if (!passwordValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: passwordValidation.message,
+          strength: passwordValidation.strength
+        });
+      }
+
+      // 查询用户获取 tokenVersion
+      const user = await prisma.user.findUnique({
+        where: { id: userId }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: '用户不存在'
+        });
+      }
+
       // 加密新密码
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-      // 更新密码
+      // 更新密码并递增 tokenVersion（使所有设备重新登录）
       await prisma.user.update({
         where: { id: userId },
         data: { 
           password: hashedPassword,
+          tokenVersion: user.tokenVersion + 1,
+          refreshToken: null, // 清除旧的 refresh token
           updatedAt: new Date()
         }
       });
 
+      // 生成新的 token 对
+      const tokens = generateTokenPair({ ...user, tokenVersion: user.tokenVersion + 1 });
+
+      // 保存新的 refresh token
+      await prisma.user.update({
+        where: { id: userId },
+        data: { refreshToken: tokens.refreshToken }
+      });
+
+      logger.info('用户重置密码成功:', { userId, email: user.email });
+
       res.json({
         success: true,
-        message: '密码重置成功，请重新登录'
+        message: '密码重置成功',
+        data: {
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken
+        }
       });
     } catch (error) {
       if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
@@ -1902,9 +1942,7 @@ class AuthController {
       logger.error('微信登录失败:', { 
         code: req.body?.code, 
         error: error.message, 
-        stack: error.stack,
-        code: error.code,
-        name: error.name
+        stack: error.stack
       });
       
       // 如果是数据库连接错误，返回更友好的错误信息
@@ -1914,7 +1952,219 @@ class AuthController {
           message: '服务暂时不可用，请稍后重试'
         });
       }
-      
+
+      next(error);
+    }
+  }
+
+  /**
+   * 首次设置密码
+   * POST /api/auth/set-password
+   * 适用于微信登录后想设置密码的用户
+   */
+  static async setPassword(req, res, next) {
+    try {
+      const { password, confirmPassword } = req.body || {};
+      const userId = req.user?.id;
+
+      if (!password || !confirmPassword) {
+        return res.status(400).json({
+          success: false,
+          message: '密码和确认密码不能为空'
+        });
+      }
+
+      const passwordValidation = validatePassword(password);
+      if (!passwordValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: passwordValidation.message,
+          strength: passwordValidation.strength
+        });
+      }
+
+      const matchValidation = validatePasswordMatch(password, confirmPassword);
+      if (!matchValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: matchValidation.message
+        });
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: userId }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: '用户不存在'
+        });
+      }
+
+      if (user.password && user.password.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: '您已设置过密码，请使用修改密码功能'
+        });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: { 
+          password: hashedPassword,
+          tokenVersion: user.tokenVersion + 1,
+          updatedAt: new Date()
+        }
+      });
+
+      const tokens = generateTokenPair({ ...user, tokenVersion: user.tokenVersion + 1 });
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: { refreshToken: tokens.refreshToken }
+      });
+
+      logger.info('用户首次设置密码成功:', { userId, email: user.email });
+
+      res.json({
+        success: true,
+        message: '密码设置成功',
+        data: {
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken
+        }
+      });
+    } catch (error) {
+      logger.error('设置密码失败:', { 
+        userId: req.user?.id, 
+        error: error.message,
+        stack: error.stack
+      });
+
+      if (error.code === 'P1001' || error.code === 'P1000' || error.name === 'PrismaClientInitializationError') {
+        return res.status(503).json({
+          success: false,
+          message: '服务暂时不可用，请稍后重试'
+        });
+      }
+
+      next(error);
+    }
+  }
+
+  /**
+   * 修改密码
+   * PUT /api/auth/change-password
+   * 需要提供旧密码
+   */
+  static async changePassword(req, res, next) {
+    try {
+      const { oldPassword, newPassword, confirmPassword } = req.body || {};
+      const userId = req.user?.id;
+
+      if (!oldPassword || !newPassword || !confirmPassword) {
+        return res.status(400).json({
+          success: false,
+          message: '旧密码、新密码和确认密码不能为空'
+        });
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: userId }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: '用户不存在'
+        });
+      }
+
+      if (!user.password || user.password.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: '您还未设置密码，请先设置密码'
+        });
+      }
+
+      const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
+      if (!isOldPasswordValid) {
+        return res.status(401).json({
+          success: false,
+          message: '旧密码错误'
+        });
+      }
+
+      if (oldPassword === newPassword) {
+        return res.status(400).json({
+          success: false,
+          message: '新密码不能与旧密码相同'
+        });
+      }
+
+      const passwordValidation = validatePassword(newPassword);
+      if (!passwordValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: passwordValidation.message,
+          strength: passwordValidation.strength
+        });
+      }
+
+      const matchValidation = validatePasswordMatch(newPassword, confirmPassword);
+      if (!matchValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: matchValidation.message
+        });
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: { 
+          password: hashedPassword,
+          tokenVersion: user.tokenVersion + 1,
+          refreshToken: null,
+          updatedAt: new Date()
+        }
+      });
+
+      const tokens = generateTokenPair({ ...user, tokenVersion: user.tokenVersion + 1 });
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: { refreshToken: tokens.refreshToken }
+      });
+
+      logger.info('用户修改密码成功:', { userId, email: user.email });
+
+      res.json({
+        success: true,
+        message: '密码修改成功，请使用新密码登录',
+        data: {
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken
+        }
+      });
+    } catch (error) {
+      logger.error('修改密码失败:', { 
+        userId: req.user?.id, 
+        error: error.message,
+        stack: error.stack
+      });
+
+      if (error.code === 'P1001' || error.code === 'P1000' || error.name === 'PrismaClientInitializationError') {
+        return res.status(503).json({
+          success: false,
+          message: '服务暂时不可用，请稍后重试'
+        });
+      }
+
       next(error);
     }
   }

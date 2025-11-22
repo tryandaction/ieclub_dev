@@ -157,6 +157,14 @@ router.post('/auth/reset-password',
 //   AuthController.updateProfile
 // );
 
+// 首次设置密码（API限制）
+router.post('/auth/set-password', 
+  authenticate, 
+  rateLimiters.api, 
+  csrf, 
+  AuthController.setPassword
+);
+
 // 修改密码（API限制）
 router.put('/auth/change-password', 
   authenticate, 
