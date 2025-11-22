@@ -398,5 +398,81 @@ Response: { message: string }
 ---
 
 **开始时间**：2025-11-22  
-**预计完成**：2025-12-13（3周）  
-**当前阶段**：✅ 规划完成，准备开发
+**完成时间**：2025-11-22  
+**当前阶段**：✅ Token 刷新机制已完成并提交
+
+---
+
+## 🚀 部署指南
+
+### 服务器部署步骤
+
+#### 1. 生成 JWT Refresh Secret
+```bash
+ssh root@ieclub.online
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
+
+#### 2. 更新生产环境配置
+```bash
+cd /root/IEclub_dev/ieclub-backend
+nano .env
+```
+
+添加/更新以下配置：
+```bash
+JWT_EXPIRES_IN=2h
+JWT_REFRESH_SECRET=<刚才生成的64位字符串>
+JWT_REFRESH_EXPIRES_IN=30d
+```
+
+#### 3. 执行数据库迁移
+```bash
+cd /root/IEclub_dev/ieclub-backend
+npx prisma migrate deploy
+npx prisma generate
+```
+
+#### 4. 重启服务
+```bash
+pm2 restart ieclub-backend
+pm2 save
+```
+
+#### 5. 验证部署
+```bash
+# 测试健康检查
+curl -s http://localhost:3000/health
+
+# 测试刷新接口（需要先登录获取 refreshToken）
+curl -X POST http://localhost:3000/api/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d '{"refreshToken":"YOUR_REFRESH_TOKEN"}'
+```
+
+---
+
+## 📊 功能验证清单
+
+### 后端验证
+- [ ] 登录返回 `accessToken` 和 `refreshToken`
+- [ ] `/api/auth/refresh` 接口正常工作
+- [ ] `/api/auth/logout` 清除 refreshToken
+- [ ] `/api/auth/logout-all` 递增 tokenVersion
+- [ ] 2小时后 accessToken 过期
+
+### 前端验证
+- [ ] 登录后保存两个 token
+- [ ] 401 错误自动刷新 token
+- [ ] 刷新失败跳转登录页
+- [ ] 登出清除两个 token
+- [ ] 多个 401 不会重复刷新
+
+---
+
+## ✅ 已解决的问题
+
+1. **Token 过期登出问题** → Access Token 2小时自动刷新
+2. **登录超时体验差** → 无感知自动刷新，30天免登录
+3. **安全性不足** → Refresh Token 数据库存储，支持撤销
+4. **多设备登录管理** → 登出所有设备功能
