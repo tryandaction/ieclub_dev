@@ -308,11 +308,14 @@
 
 /* ==================== 忘记密码 ==================== */
 .forgot-password {
-  text-align: right;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 30rpx;
-  padding-right: 8rpx;
+  padding: 0 8rpx;
 }
 
+.switch-link,
 .forgot-link {
   font-size: 26rpx;
   color: rgba(255, 255, 255, 0.95);
@@ -320,6 +323,7 @@
   transition: opacity 0.3s;
 }
 
+.switch-link:active,
 .forgot-link:active {
   opacity: 0.7;
 }

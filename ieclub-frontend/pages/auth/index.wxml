@@ -61,7 +61,7 @@
       </view>
 
       <!-- 密码输入 -->
-      <view class="form-item {{loginErrors.password ? 'error' : ''}}">
+      <view class="form-item {{loginErrors.password ? 'error' : ''}}" wx:if="{{loginType === 'password'}}">
         <view class="form-label">
           <text class="label-icon">🔒</text>
           <text class="label-text">密码</text>
@@ -77,7 +77,7 @@
             maxlength="20"
           />
           <view class="eye-icon" bindtap="togglePassword">
-            <text>{{showPassword ? '🙈' : '👁️'}}</text>
+            <text>{{showPassword ? '👁️' : '🙈'}}</text>
           </view>
         </view>
         <view class="error-message" wx:if="{{loginErrors.password}}">
@@ -86,9 +86,45 @@
         </view>
       </view>
 
-      <!-- 忘记密码 -->
+      <!-- 验证码输入 -->
+      <view class="form-item {{loginErrors.code ? 'error' : ''}}" wx:if="{{loginType === 'code'}}">
+        <view class="form-label">
+          <text class="label-icon">🔢</text>
+          <text class="label-text">验证码</text>
+        </view>
+        <view class="input-wrapper code-wrapper">
+          <input 
+            class="form-input code-input" 
+            type="number"
+            placeholder="请输入6位验证码"
+            placeholder-class="input-placeholder"
+            value="{{loginForm.code}}"
+            bindinput="onLoginCodeInput"
+            maxlength="6"
+          />
+          <button 
+            class="code-btn {{codeSending || countdown > 0 ? 'disabled' : ''}}"
+            bindtap="sendLoginCode"
+            disabled="{{codeSending || countdown > 0}}"
+            hover-class="code-btn-hover"
+          >
+            <text wx:if="{{countdown > 0}}">{{countdown}}s</text>
+            <text wx:elif="{{codeSending}}">发送中...</text>
+            <text wx:else>获取验证码</text>
+          </button>
+        </view>
+        <view class="error-message" wx:if="{{loginErrors.code}}">
+          <text class="error-icon">⚠️</text>
+          <text class="error-text">{{loginErrors.code}}</text>
+        </view>
+      </view>
+
+      <!-- 切换登录方式 & 忘记密码 -->
       <view class="forgot-password">
-        <text class="forgot-link" bindtap="goToForgotPassword">忘记密码？</text>
+        <text class="switch-link" bindtap="switchLoginType">
+          {{loginType === 'password' ? '验证码登录' : '密码登录'}}
+        </text>
+        <text class="forgot-link" bindtap="goToForgotPassword" wx:if="{{loginType === 'password'}}">忘记密码？</text>
       </view>
 
       <!-- 登录按钮 -->
@@ -200,7 +236,7 @@
             maxlength="20"
           />
           <view class="eye-icon" bindtap="togglePassword">
-            <text>{{showPassword ? '🙈' : '👁️'}}</text>
+            <text>{{showPassword ? '👁️' : '🙈'}}</text>
           </view>
         </view>
         <view class="error-message" wx:if="{{registerErrors.password}}">
@@ -226,7 +262,7 @@
             maxlength="20"
           />
           <view class="eye-icon" bindtap="toggleConfirmPassword">
-            <text>{{showConfirmPassword ? '🙈' : '👁️'}}</text>
+            <text>{{showConfirmPassword ? '👁️' : '🙈'}}</text>
           </view>
         </view>
         <view class="error-message" wx:if="{{registerErrors.confirmPassword}}">

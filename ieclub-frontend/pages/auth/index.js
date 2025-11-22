@@ -13,11 +13,13 @@ Page({
     // 显示控制
     showPassword: false,
     showConfirmPassword: false,
+    loginType: 'password', // password 或 code
     
     // 登录表单
     loginForm: {
       email: '',
-      password: ''
+      password: '',
+      code: ''
     },
     
     // 注册表单
@@ -174,10 +176,75 @@ Page({
   },
 
   /**
+   * 切换登录方式
+   */
+  switchLoginType() {
+    const newType = this.data.loginType === 'password' ? 'code' : 'password'
+    console.log('🔄 [Auth] 切换登录方式:', newType)
+    this.setData({
+      loginType: newType,
+      'loginForm.password': '',
+      'loginForm.code': '',
+      loginErrors: {}
+    })
+  },
+
+  /**
+   * 登录验证码输入
+   */
+  onLoginCodeInput(e) {
+    this.setData({
+      'loginForm.code': e.detail.value,
+      'loginErrors.code': ''
+    })
+  },
+
+  /**
+   * 发送登录验证码
+   */
+  async sendLoginCode() {
+    const { email } = this.data.loginForm
+    
+    if (!email) {
+      this.setData({ 'loginErrors.email': '请输入邮箱' })
+      wx.vibrateShort()
+      return
+    }
+
+    const emailRegex = /^[a-zA-Z0-9._-]+@(mail\.)?sustech\.edu\.cn$/
+    if (!emailRegex.test(email)) {
+      this.setData({ 'loginErrors.email': '请使用南科大邮箱' })
+      wx.vibrateShort()
+      return
+    }
+
+    this.setData({ codeSending: true })
+
+    try {
+      await sendVerifyCode(email, 'login')
+      wx.showToast({
+        title: '验证码已发送',
+        icon: 'success',
+        duration: 1500
+      })
+      this.startCountdown()
+    } catch (error) {
+      console.error('❌ [Auth] 发送验证码失败:', error)
+      this.setData({ codeSending: false })
+      wx.showToast({
+        title: error.message || '发送失败',
+        icon: 'none',
+        duration: 2000
+      })
+    }
+  },
+
+  /**
    * 验证登录表单
    */
   validateLoginForm() {
-    const { email, password } = this.data.loginForm
+    const { email, password, code } = this.data.loginForm
+    const { loginType } = this.data
     const errors = {}
     let isValid = true
 
@@ -193,13 +260,23 @@ Page({
       }
     }
 
-    // 验证密码
-    if (!password) {
-      errors.password = '请输入密码'
-      isValid = false
-    } else if (password.length < 6) {
-      errors.password = '密码长度至少6位'
-      isValid = false
+    // 根据登录方式验证
+    if (loginType === 'password') {
+      if (!password) {
+        errors.password = '请输入密码'
+        isValid = false
+      } else if (password.length < 6) {
+        errors.password = '密码长度至少6位'
+        isValid = false
+      }
+    } else {
+      if (!code) {
+        errors.code = '请输入验证码'
+        isValid = false
+      } else if (code.length !== 6) {
+        errors.code = '验证码为6位数字'
+        isValid = false
+      }
     }
 
     this.setData({ loginErrors: errors })
@@ -219,14 +296,20 @@ Page({
       return
     }
 
-    const { email, password } = this.data.loginForm
+    const { email, password, code } = this.data.loginForm
+    const { loginType } = this.data
 
     this.setData({ loginLoading: true })
 
     try {
-      console.log('📤 [Auth] 发送登录请求:', { email })
+      console.log('📤 [Auth] 发送登录请求:', { email, loginType })
       
-      const result = await login({ email, password })
+      let result
+      if (loginType === 'password') {
+        result = await login({ email, password })
+      } else {
+        result = await loginWithCode({ email, code })
+      }
       
       console.log('✅ [Auth] 登录成功:', result)
       
