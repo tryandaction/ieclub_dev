@@ -614,7 +614,35 @@ if (needsAuth) {
 - ⚠️ Redis不是必需服务，后端可在无Redis时正常运行
 - ⚠️ 部分缓存功能不可用，但不影响核心业务
 
-### 长期解决方案 ⭐
+### 长期解决方案 ⭐ **已实施**
+
+#### 方案1: 极简安全健康检查（推荐）✅
+
+已创建 **`scripts/health-check/Check-Server-Resources-Minimal.ps1`**
+
+**特点**:
+- ✅ 只检查3项：SSH连接、内存、磁盘
+- ✅ **完全避免使用网络相关命令**（lsof、netstat等）
+- ✅ 不检查PM2和Redis（通过部署后API验证）
+- ✅ **不会触发网络安全策略，不会断网**
+
+**使用方法**（已集成到部署脚本）:
+```powershell
+# 推荐：使用极简安全检查
+cd scripts\deployment
+.\Deploy-Production.ps1 -Target all -Message "更新说明" -MinimalHealthCheck -SkipGitPush
+
+# 或者完全跳过健康检查
+.\Deploy-Production.ps1 -Target all -Message "更新说明" -SkipHealthCheck -SkipGitPush
+```
+
+**危险命令已识别并移除**:
+- ❌ `lsof -i :port` - 端口检查（触发安全策略）
+- ❌ `pm2 status` - 进程状态（触发安全策略）
+- ❌ `pgrep mysql` - 数据库进程（触发安全策略）
+- ❌ `redis-cli PING` - Redis连接（触发安全策略）
+
+#### 方案2: Redis安全检查
 
 已创建 **`scripts/health-check/Check-Redis-Safe.ps1`** - 安全的Redis检查脚本
 
