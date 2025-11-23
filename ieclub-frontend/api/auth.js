@@ -179,12 +179,39 @@ export const forgotPassword = (email) => {
 }
 
 /**
+ * 验证验证码
+ * @param {string} email - 邮箱
+ * @param {string} code - 验证码
+ * @returns {Promise}
+ */
+export const verifyCode = (email, code) => {
+  return request('/auth/verify-code', {
+    method: 'POST',
+    data: { email, code }
+  })
+}
+
+/**
  * 重置密码（通过验证码）
+ * @param {string} email - 邮箱
+ * @param {string} code - 验证码
+ * @param {string} newPassword - 新密码
+ * @returns {Promise}
+ */
+export const resetPassword = (email, code, newPassword) => {
+  return request('/auth/reset-password', {
+    method: 'POST',
+    data: { email, code, newPassword }
+  })
+}
+
+/**
+ * 重置密码（旧接口，兼容）
  * @param {object} data - { email, code, newPassword }
  * @returns {Promise}
  */
 export const resetPasswordByCode = (data) => {
-  return request('/auth/reset-password-by-code', {
+  return request('/auth/reset-password', {
     method: 'POST',
     data
   })
