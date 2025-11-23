@@ -289,6 +289,81 @@ PM2不断重启（337次）
    - 解决：移除未实现的sendPhoneCode路由
    - 注释：手机验证码功能暂未实现
 
+#### Prisma Schema字段名称错误修复（2025-11-23 23:50）：
+10. **User模型字段错误** - Controller中Field名称不匹配
+    - `username` 不存在 → 删除
+    - `following` 不存在 → 改为 `follows`
+    - `ownedProjects` 不存在 → 改为 `projects`
+    - `hasPassword` 不存在 → 删除
+
+11. **路由参数不匹配** - userController.js
+    - `req.params.id` → `req.params.userId`
+    - 修复：`const { userId: id } = req.params`
+
+### ⚠️ 核忄经验教训
+
+#### 1. Prisma Schema字段一致性
+**重要性**: ⭐️⭐️⭐️⭐️⭐️
+
+**问题**:
+- Controller中使用不存在的字段名，导致500错误
+- Prisma会返回"Unknown field"错误，但容易被忽略
+
+**解决方案**:
+```javascript
+// ✅ 正确：使用schema.prisma中定义的字段
+const user = await prisma.user.findUnique({
+  where: { id },
+  select: {
+    id: true,
+    nickname: true,    // ✅ schema中存在
+    avatar: true,
+    _count: {
+      select: {
+        topics: true,
+        followers: true,
+        follows: true,      // ✅ 关系名称
+        projects: true      // ✅ 关系名称
+      }
+    }
+  }
+});
+
+// ❌ 错误：使用不存在的字段
+const user = await prisma.user.findUnique({
+  select: {
+    username: true,        // ❌ schema中没有
+    hasPassword: true,     // ❌ schema中没有
+    _count: {
+      select: {
+        following: true,     // ❌ 应该是 follows
+        ownedProjects: true  // ❌ 应该是 projects
+      }
+    }
+  }
+});
+```
+
+**防范措施**:
+1. 修改Controller前先查看`prisma/schema.prisma`
+2. 注意关系字段名称（如`@relation`）
+3. 使用TypeScript可以捧获类型错误
+4. 本地测试API后再部署
+
+#### 2. 路由参数名称一致性
+**问题**: 路由定义`/profile/:userId`，Controller中使用`req.params.id`
+
+**解决**:
+```javascript
+// 路由定义
+router.get('/profile/:userId', userController.getUserProfile);
+
+// Controller中正确获取
+const { userId: id } = req.params;  // ✅ 正确
+// 或
+const { userId } = req.params;      // ✅ 也可以
+```
+
 ### 📝 经验教训 - npm install事件
 
 **错误操作**：
