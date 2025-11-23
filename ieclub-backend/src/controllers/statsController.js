@@ -3,7 +3,7 @@
 
 const statsService = require('../services/statsService');
 const asyncHandler = require('../utils/asyncHandler');
-const { success } = require('../utils/response');
+const { successResponse } = require('../utils/response');
 
 /**
  * 获取用户统计数据
@@ -13,7 +13,7 @@ exports.getUserStats = asyncHandler(async (req, res) => {
 
   const stats = await statsService.getUserStats(userId);
 
-  res.json(success(stats));
+  res.json(successResponse(stats));
 });
 
 /**
@@ -22,7 +22,7 @@ exports.getUserStats = asyncHandler(async (req, res) => {
 exports.getPlatformStats = asyncHandler(async (req, res) => {
   const stats = await statsService.getPlatformStats();
 
-  res.json(success(stats));
+  res.json(successResponse(stats));
 });
 
 /**

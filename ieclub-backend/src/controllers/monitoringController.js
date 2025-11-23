@@ -3,14 +3,14 @@
 
 const { monitor } = require('../utils/performanceMonitor');
 const asyncHandler = require('../utils/asyncHandler');
-const { success } = require('../utils/response');
+const { successResponse } = require('../utils/response');
 
 /**
  * 获取系统指标
  */
 exports.getSystemMetrics = asyncHandler(async (req, res) => {
   const metrics = await monitor.getCurrentMetrics();
-  res.json(success(metrics));
+  res.json(successResponse(metrics));
 });
 
 /**
@@ -18,7 +18,7 @@ exports.getSystemMetrics = asyncHandler(async (req, res) => {
  */
 exports.getApiMetrics = asyncHandler(async (req, res) => {
   const metrics = monitor.getApiMetrics();
-  res.json(success(metrics));
+  res.json(successResponse(metrics));
 });
 
 /**
@@ -26,7 +26,7 @@ exports.getApiMetrics = asyncHandler(async (req, res) => {
  */
 exports.getErrorMetrics = asyncHandler(async (req, res) => {
   const metrics = monitor.getErrorMetrics();
-  res.json(success(metrics));
+  res.json(successResponse(metrics));
 });
 
 /**
@@ -36,7 +36,7 @@ exports.getSlowQueries = asyncHandler(async (req, res) => {
   // 慢查询功能已集成到性能监控中
   const apiMetrics = monitor.getApiMetrics();
   const slowEndpoints = apiMetrics.endpoints.filter(e => parseFloat(e.avgDuration) > 1000);
-  res.json(success({ slowQueries: slowEndpoints }));
+  res.json(successResponse({ slowQueries: slowEndpoints }));
 });
 
 /**
@@ -44,7 +44,7 @@ exports.getSlowQueries = asyncHandler(async (req, res) => {
  */
 exports.getDatabaseMetrics = asyncHandler(async (req, res) => {
   const health = await monitor.healthCheck();
-  res.json(success({ database: health.database }));
+  res.json(successResponse({ database: health.database }));
 });
 
 /**
@@ -56,7 +56,7 @@ exports.healthCheck = asyncHandler(async (req, res) => {
   // 根据健康状态设置HTTP状态码
   const statusCode = health.overall === 'healthy' ? 200 : 503;
   
-  res.status(statusCode).json(success(health));
+  res.status(statusCode).json(successResponse(health));
 });
 
 /**
@@ -78,6 +78,6 @@ exports.exportMetrics = asyncHandler(async (req, res) => {
     exportedAt: new Date()
   };
   
-  res.json(success(metrics));
+  res.json(successResponse(metrics));
 });
 

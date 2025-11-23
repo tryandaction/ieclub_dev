@@ -2,7 +2,7 @@
 const commentService = require('../services/commentService');
 const creditService = require('../services/creditService');
 const asyncHandler = require('../utils/asyncHandler');
-const { success } = require('../utils/response');
+const { successResponse } = require('../utils/response');
 
 class CommentController {
   // 获取评论列表
@@ -17,7 +17,7 @@ class CommentController {
         sortBy
       });
 
-      res.json(success(result));
+      res.json(successResponse(result));
     })(req, res);
   }
 
@@ -93,7 +93,7 @@ class CommentController {
         pageSize: parseInt(pageSize)
       });
 
-      res.json(success(result));
+      res.json(successResponse(result));
     })(req, res);
   }
 }
