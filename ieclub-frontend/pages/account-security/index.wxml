@@ -1,0 +1,187 @@
+<!--pages/account-security/index.wxml-->
+<view class="security-page">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="header-icon">🔐</text>
+    <text class="header-title">账号与安全</text>
+    <text class="header-desc">保护您的账号安全</text>
+  </view>
+
+  <!-- 登录方式列表 -->
+  <view class="security-section">
+    <view class="section-title">登录方式</view>
+    
+    <!-- 邮箱（不可解绑） -->
+    <view class="security-item">
+      <view class="item-left">
+        <text class="item-icon">📧</text>
+        <view class="item-info">
+          <text class="item-label">邮箱</text>
+          <text class="item-value">{{user.email || '未设置'}}</text>
+        </view>
+      </view>
+      <view class="item-right">
+        <text class="item-status primary">主要账号</text>
+      </view>
+    </view>
+
+    <!-- 手机号 -->
+    <view class="security-item" hover-class="security-item-hover">
+      <view class="item-left">
+        <text class="item-icon">📱</text>
+        <view class="item-info">
+          <text class="item-label">手机号</text>
+          <text class="item-value" wx:if="{{hasPhone}}">{{user.phone}}</text>
+          <text class="item-value placeholder" wx:else>未绑定</text>
+        </view>
+      </view>
+      <view class="item-right">
+        <button 
+          class="item-btn {{hasPhone ? 'danger' : 'primary'}}"
+          bindtap="{{hasPhone ? 'handleUnbindPhone' : 'showPhoneBindModal'}}"
+          hover-class="item-btn-hover"
+        >
+          {{hasPhone ? '解绑' : '绑定'}}
+        </button>
+      </view>
+    </view>
+
+    <!-- 微信 -->
+    <view class="security-item" hover-class="security-item-hover">
+      <view class="item-left">
+        <text class="item-icon">💬</text>
+        <view class="item-info">
+          <text class="item-label">微信</text>
+          <text class="item-value" wx:if="{{hasWechat}}">已绑定</text>
+          <text class="item-value placeholder" wx:else>未绑定</text>
+        </view>
+      </view>
+      <view class="item-right">
+        <button 
+          class="item-btn {{hasWechat ? 'danger' : 'primary'}}"
+          bindtap="{{hasWechat ? 'handleUnbindWechat' : 'showWechatBindModal'}}"
+          hover-class="item-btn-hover"
+        >
+          {{hasWechat ? '解绑' : '绑定'}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 密码管理 -->
+  <view class="security-section">
+    <view class="section-title">密码管理</view>
+    
+    <view class="security-item" hover-class="security-item-hover">
+      <view class="item-left">
+        <text class="item-icon">🔑</text>
+        <view class="item-info">
+          <text class="item-label">登录密码</text>
+          <text class="item-value" wx:if="{{hasPassword}}">已设置</text>
+          <text class="item-value placeholder" wx:else>未设置</text>
+        </view>
+      </view>
+      <view class="item-right">
+        <button 
+          class="item-btn secondary"
+          bindtap="{{hasPassword ? 'goToChangePassword' : 'goToSetPassword'}}"
+          hover-class="item-btn-hover"
+        >
+          {{hasPassword ? '修改' : '设置'}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 绑定手机号弹窗 -->
+  <view class="modal-mask" wx:if="{{showPhoneModal}}" bindtap="hidePhoneModal">
+    <view class="modal-container" catchtap="doNothing">
+      <view class="modal-header">
+        <text class="modal-title">绑定手机号</text>
+        <text class="modal-close" bindtap="hidePhoneModal">✕</text>
+      </view>
+
+      <view class="modal-body">
+        <view class="form-item {{errors.phone ? 'error' : ''}}">
+          <view class="form-label">手机号</view>
+          <input 
+            class="form-input"
+            type="number"
+            placeholder="请输入手机号"
+            value="{{phone}}"
+            bindinput="onPhoneInput"
+            maxlength="11"
+          />
+          <view class="error-message" wx:if="{{errors.phone}}">
+            <text class="error-text">{{errors.phone}}</text>
+          </view>
+        </view>
+
+        <view class="form-item {{errors.phoneCode ? 'error' : ''}}">
+          <view class="form-label">验证码</view>
+          <view class="code-input-wrapper">
+            <input 
+              class="form-input code-input"
+              type="number"
+              placeholder="请输入验证码"
+              value="{{phoneCode}}"
+              bindinput="onPhoneCodeInput"
+              maxlength="6"
+            />
+            <button 
+              class="code-btn {{phoneCountdown > 0 ? 'disabled' : ''}}"
+              bindtap="sendPhoneVerifyCode"
+              disabled="{{phoneCountdown > 0 || phoneSending}}"
+            >
+              <text wx:if="{{phoneCountdown > 0}}">{{phoneCountdown}}s</text>
+              <text wx:elif="{{phoneSending}}">发送中...</text>
+              <text wx:else>发送验证码</text>
+            </button>
+          </view>
+          <view class="error-message" wx:if="{{errors.phoneCode}}">
+            <text class="error-text">{{errors.phoneCode}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="modal-footer">
+        <button class="modal-btn cancel" bindtap="hidePhoneModal">取消</button>
+        <button 
+          class="modal-btn confirm {{phoneBinding ? 'loading' : ''}}"
+          bindtap="confirmBindPhone"
+          disabled="{{phoneBinding}}"
+        >
+          {{phoneBinding ? '绑定中...' : '确认绑定'}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 绑定微信弹窗 -->
+  <view class="modal-mask" wx:if="{{showWechatModal}}" bindtap="hideWechatModal">
+    <view class="modal-container" catchtap="doNothing">
+      <view class="modal-header">
+        <text class="modal-title">绑定微信</text>
+        <text class="modal-close" bindtap="hideWechatModal">✕</text>
+      </view>
+
+      <view class="modal-body">
+        <view class="wechat-info">
+          <text class="wechat-icon">💬</text>
+          <text class="wechat-title">授权微信账号</text>
+          <text class="wechat-desc">绑定后可使用微信快速登录</text>
+        </view>
+      </view>
+
+      <view class="modal-footer">
+        <button class="modal-btn cancel" bindtap="hideWechatModal">取消</button>
+        <button 
+          class="modal-btn confirm"
+          bindtap="handleBindWechat"
+        >
+          授权并绑定
+        </button>
+      </view>
+    </view>
+  </view>
+</view>

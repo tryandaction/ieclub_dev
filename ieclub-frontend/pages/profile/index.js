@@ -122,6 +122,13 @@ mixinPage({
     wx.showToast({ title: '功能开发中', icon: 'none' })
   },
 
+  // 跳转到账号安全
+  goToAccountSecurity() {
+    wx.navigateTo({
+      url: '/pages/account-security/index'
+    })
+  },
+
   // 跳转到数据统计
   goToStats() {
     wx.showToast({ title: '功能开发中', icon: 'none' })
