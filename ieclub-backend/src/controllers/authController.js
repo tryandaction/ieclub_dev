@@ -2133,46 +2133,34 @@ class AuthController {
   }
 
   // 获取个人信息
-  static async getProfile(req, res, next) {
+  static async getProfile(req, res) {
     try {
-      const userId = req.user.id;
-
       const user = await prisma.user.findUnique({
-        where: { id: userId },
+        where: { id: req.userId },
         select: {
           id: true,
-          email: true,
+          openid: true,
           nickname: true,
           avatar: true,
           gender: true,
           bio: true,
-          phone: true,
           school: true,
           major: true,
           grade: true,
-          level: true,
-          exp: true,
-          credits: true,
-          isCertified: true,
+          verified: true,
+          status: true,
           createdAt: true
         }
       });
 
       if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: '用户不存在'
-        });
+        return response.unauthorized(res, '用户不存在');
       }
 
-      res.json({
-        success: true,
-        message: '获取个人信息成功',
-        data: user
-      });
+      return response.success(res, user, '获取个人信息成功');
     } catch (error) {
       logger.error('获取个人信息失败:', error);
-      next(error);
+      return response.serverError(res);
     }
   }
 
