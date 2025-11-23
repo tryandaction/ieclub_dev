@@ -1,0 +1,99 @@
+/* pages/settings/index.wxss */
+
+/* ========== 页面容器 ========== */
+.settings-page {
+  min-height: 100vh;
+  background: #f3f4f6;
+  padding: 24rpx;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+}
+
+/* ========== 区块 ========== */
+.section {
+  margin-bottom: 32rpx;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+  padding: 0 8rpx;
+}
+
+.title-icon {
+  font-size: 32rpx;
+  line-height: 1;
+}
+
+.title-text {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+/* ========== 设置组 ========== */
+.settings-group {
+  background: #ffffff;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 24rpx;
+  border-bottom: 1rpx solid #f3f4f6;
+  transition: background 0.3s;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-item-hover {
+  background: #f9fafb;
+}
+
+.setting-left {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.setting-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.setting-desc {
+  font-size: 24rpx;
+  color: #9ca3af;
+}
+
+/* 设置开关 */
+switch {
+  transform: scale(0.9);
+}
+
+/* 右侧箭头 */
+.setting-arrow {
+  font-size: 48rpx;
+  color: #d1d5db;
+  font-weight: 300;
+  line-height: 1;
+}
+
+/* 操作按钮 */
+.setting-action {
+  padding: 8rpx 20rpx;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 10rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+}

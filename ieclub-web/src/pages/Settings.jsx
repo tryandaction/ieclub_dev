@@ -1,12 +1,123 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Bell, Lock, Eye, EyeOff, Shield, Info, Trash2 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { changePassword, bindPhone, unbindPhone, bindWechat, unbindWechat, sendPhoneCode } from '../api/auth'
+import { request } from '../utils/request'
 import { showToast } from '../components/Toast'
 
 export default function Settings() {
   const { user, updateUser, logout } = useAuth()
   const navigate = useNavigate()
+  
+  // 通知设置
+  const [notifications, setNotifications] = useState({
+    system: true,
+    like: true,
+    comment: true,
+    follow: true,
+    activity: true
+  })
+  
+  // 隐私设置
+  const [privacy, setPrivacy] = useState({
+    showPhone: false,
+    showEmail: false,
+    allowSearch: true,
+    allowMessage: true
+  })
+  
+  // 通用设置
+  const [general, setGeneral] = useState({
+    language: 'zh-CN',
+    autoPlay: true,
+    saveTraffic: false
+  })
+  
+  // 加载设置
+  useEffect(() => {
+    loadSettings()
+  }, [])
+  
+  const loadSettings = async () => {
+    // 从localStorage加载隐私和通用设置
+    const savedPrivacy = localStorage.getItem('privacy_settings')
+    const savedGeneral = localStorage.getItem('general_settings')
+    
+    if (savedPrivacy) {
+      setPrivacy(JSON.parse(savedPrivacy))
+    }
+    
+    if (savedGeneral) {
+      setGeneral(JSON.parse(savedGeneral))
+    }
+    
+    // 从服务器加载通知设置
+    try {
+      const res = await request.get('/notifications/settings')
+      if (res.data?.settings) {
+        setNotifications(res.data.settings)
+      }
+    } catch (error) {
+      console.error('加载通知设置失败:', error)
+    }
+  }
+  
+  // 更新通知设置
+  const updateNotification = async (type) => {
+    const newValue = !notifications[type]
+    setNotifications(prev => ({ ...prev, [type]: newValue }))
+    
+    try {
+      await request.put('/notifications/settings', {
+        ...notifications,
+        [type]: newValue
+      })
+    } catch (error) {
+      // 回滚
+      setNotifications(prev => ({ ...prev, [type]: !newValue }))
+      showToast('设置失败', 'error')
+    }
+  }
+  
+  // 更新隐私设置
+  const updatePrivacy = (type) => {
+    const newPrivacy = { ...privacy, [type]: !privacy[type] }
+    setPrivacy(newPrivacy)
+    localStorage.setItem('privacy_settings', JSON.stringify(newPrivacy))
+    showToast('设置成功', 'success')
+  }
+  
+  // 更新通用设置
+  const updateGeneral = (type) => {
+    const newGeneral = { ...general, [type]: !general[type] }
+    setGeneral(newGeneral)
+    localStorage.setItem('general_settings', JSON.stringify(newGeneral))
+    showToast('设置成功', 'success')
+  }
+  
+  // 清除缓存
+  const clearCache = () => {
+    if (!confirm('确定要清除缓存吗？这不会删除你的个人数据。')) {
+      return
+    }
+    
+    // 保留重要数据
+    const token = localStorage.getItem('token')
+    const userInfo = localStorage.getItem('userInfo')
+    const privacySettings = localStorage.getItem('privacy_settings')
+    const generalSettings = localStorage.getItem('general_settings')
+    
+    localStorage.clear()
+    
+    // 恢复重要数据
+    localStorage.setItem('token', token)
+    localStorage.setItem('userInfo', userInfo)
+    if (privacySettings) localStorage.setItem('privacy_settings', privacySettings)
+    if (generalSettings) localStorage.setItem('general_settings', generalSettings)
+    
+    showToast('缓存已清除', 'success')
+  }
   
   // 修改密码相关状态
   const [showPasswordSection, setShowPasswordSection] = useState(false)
@@ -155,14 +266,141 @@ export default function Settings() {
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {/* 页面标题 */}
         <div className="px-6 py-4 border-b border-gray-200">
-          <h1 className="text-2xl font-bold text-gray-900">账号设置</h1>
-          <p className="text-sm text-gray-500 mt-1">管理您的账号信息和安全设置</p>
+          <h1 className="text-2xl font-bold text-gray-900">设置</h1>
+          <p className="text-sm text-gray-500 mt-1">管理您的账号、通知和隐私设置</p>
         </div>
 
         <div className="divide-y divide-gray-200">
+          {/* 通知设置 */}
+          <div className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Bell className="w-5 h-5" />
+              通知设置
+            </h2>
+            <div className="space-y-4">
+              {[
+                { key: 'system', label: '系统通知', desc: '接收系统消息和公告' },
+                { key: 'like', label: '点赞通知', desc: '有人点赞你的内容' },
+                { key: 'comment', label: '评论通知', desc: '有人评论你的内容' },
+                { key: 'follow', label: '关注通知', desc: '有人关注了你' },
+                { key: 'activity', label: '活动通知', desc: '活动提醒和更新' }
+              ].map(item => (
+                <div key={item.key} className="flex items-center justify-between py-2">
+                  <div>
+                    <div className="text-sm font-medium text-gray-700">{item.label}</div>
+                    <div className="text-xs text-gray-500 mt-1">{item.desc}</div>
+                  </div>
+                  <button
+                    onClick={() => updateNotification(item.key)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      notifications[item.key] ? 'bg-blue-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        notifications[item.key] ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 隐私设置 */}
+          <div className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Shield className="w-5 h-5" />
+              隐私设置
+            </h2>
+            <div className="space-y-4">
+              {[
+                { key: 'showPhone', label: '显示手机号', desc: '在个人主页显示' },
+                { key: 'showEmail', label: '显示邮箱', desc: '在个人主页显示' },
+                { key: 'allowSearch', label: '允许被搜索', desc: '其他用户可以搜索到你' },
+                { key: 'allowMessage', label: '允许私信', desc: '其他用户可以给你发私信' }
+              ].map(item => (
+                <div key={item.key} className="flex items-center justify-between py-2">
+                  <div>
+                    <div className="text-sm font-medium text-gray-700">{item.label}</div>
+                    <div className="text-xs text-gray-500 mt-1">{item.desc}</div>
+                  </div>
+                  <button
+                    onClick={() => updatePrivacy(item.key)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      privacy[item.key] ? 'bg-blue-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        privacy[item.key] ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 通用设置 */}
+          <div className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Info className="w-5 h-5" />
+              通用设置
+            </h2>
+            <div className="space-y-4">
+              {[
+                { key: 'autoPlay', label: '自动播放视频', desc: '在WiFi环境下自动播放' },
+                { key: 'saveTraffic', label: '省流量模式', desc: '减少图片和视频质量' }
+              ].map(item => (
+                <div key={item.key} className="flex items-center justify-between py-2">
+                  <div>
+                    <div className="text-sm font-medium text-gray-700">{item.label}</div>
+                    <div className="text-xs text-gray-500 mt-1">{item.desc}</div>
+                  </div>
+                  <button
+                    onClick={() => updateGeneral(item.key)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      general[item.key] ? 'bg-blue-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        general[item.key] ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 存储与缓存 */}
+          <div className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Trash2 className="w-5 h-5" />
+              存储与缓存
+            </h2>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-gray-700">清除缓存</div>
+                <div className="text-xs text-gray-500 mt-1">清除临时文件和数据</div>
+              </div>
+              <button
+                onClick={clearCache}
+                className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                清除
+              </button>
+            </div>
+          </div>
+
           {/* 基本信息 */}
           <div className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">基本信息</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Lock className="w-5 h-5" />
+              账号信息
+            </h2>
             <div className="space-y-3">
               <div className="flex items-center justify-between py-3">
                 <div>

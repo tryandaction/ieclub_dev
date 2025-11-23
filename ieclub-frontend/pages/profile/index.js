@@ -147,7 +147,9 @@ mixinPage({
 
   // 跳转到设置
   goToSettings() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.navigateTo({
+      url: '/pages/settings/index'
+    })
   },
 
   // 跳转到意见反馈

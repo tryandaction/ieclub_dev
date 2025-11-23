@@ -1,0 +1,246 @@
+<!--pages/settings/index.wxml-->
+<view class="settings-page">
+  <!-- 通知设置 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-icon">🔔</text>
+      <text class="title-text">通知设置</text>
+    </view>
+    <view class="settings-group">
+      <view class="setting-item">
+        <view class="setting-left">
+          <text class="setting-label">系统通知</text>
+          <text class="setting-desc">接收系统消息和公告</text>
+        </view>
+        <switch 
+          checked="{{notifications.system}}"
+          bindchange="toggleNotification"
+          data-type="system"
+          color="#3b82f6"
+        />
+      </view>
+      <view class="setting-item">
+        <view class="setting-left">
+          <text class="setting-label">点赞通知</text>
+          <text class="setting-desc">有人点赞你的内容</text>
+        </view>
+        <switch 
+          checked="{{notifications.like}}"
+          bindchange="toggleNotification"
+          data-type="like"
+          color="#3b82f6"
+        />
+      </view>
+      <view class="setting-item">
+        <view class="setting-left">
+          <text class="setting-label">评论通知</text>
+          <text class="setting-desc">有人评论你的内容</text>
+        </view>
+        <switch 
+          checked="{{notifications.comment}}"
+          bindchange="toggleNotification"
+          data-type="comment"
+          color="#3b82f6"
+        />
+      </view>
+      <view class="setting-item">
+        <view class="setting-left">
+          <text class="setting-label">关注通知</text>
+          <text class="setting-desc">有人关注了你</text>
+        </view>
+        <switch 
+          checked="{{notifications.follow}}"
+          bindchange="toggleNotification"
+          data-type="follow"
+          color="#3b82f6"
+        />
+      </view>
+      <view class="setting-item">
+        <view class="setting-left">
+          <text class="setting-label">活动通知</text>
+          <text class="setting-desc">活动提醒和更新</text>
+        </view>
+        <switch 
+          checked="{{notifications.activity}}"
+          bindchange="toggleNotification"
+          data-type="activity"
+          color="#3b82f6"
+        />
+      </view>
+    </view>
+  </view>
+
+  <!-- 隐私设置 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-icon">🔒</text>
+      <text class="title-text">隐私设置</text>
+    </view>
+    <view class="settings-group">
+      <view class="setting-item">
+        <view class="setting-left">
+          <text class="setting-label">显示手机号</text>
+          <text class="setting-desc">在个人主页显示</text>
+        </view>
+        <switch 
+          checked="{{privacy.showPhone}}"
+          bindchange="togglePrivacy"
+          data-type="showPhone"
+          color="#3b82f6"
+        />
+      </view>
+      <view class="setting-item">
+        <view class="setting-left">
+          <text class="setting-label">显示邮箱</text>
+          <text class="setting-desc">在个人主页显示</text>
+        </view>
+        <switch 
+          checked="{{privacy.showEmail}}"
+          bindchange="togglePrivacy"
+          data-type="showEmail"
+          color="#3b82f6"
+        />
+      </view>
+      <view class="setting-item">
+        <view class="setting-left">
+          <text class="setting-label">允许被搜索</text>
+          <text class="setting-desc">其他用户可以搜索到你</text>
+        </view>
+        <switch 
+          checked="{{privacy.allowSearch}}"
+          bindchange="togglePrivacy"
+          data-type="allowSearch"
+          color="#3b82f6"
+        />
+      </view>
+      <view class="setting-item">
+        <view class="setting-left">
+          <text class="setting-label">允许私信</text>
+          <text class="setting-desc">其他用户可以给你发私信</text>
+        </view>
+        <switch 
+          checked="{{privacy.allowMessage}}"
+          bindchange="togglePrivacy"
+          data-type="allowMessage"
+          color="#3b82f6"
+        />
+      </view>
+    </view>
+  </view>
+
+  <!-- 通用设置 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-icon">⚙️</text>
+      <text class="title-text">通用设置</text>
+    </view>
+    <view class="settings-group">
+      <view class="setting-item" bindtap="selectLanguage">
+        <view class="setting-left">
+          <text class="setting-label">语言</text>
+          <text class="setting-desc">{{general.language === 'zh-CN' ? '简体中文' : 'English'}}</text>
+        </view>
+        <text class="setting-arrow">›</text>
+      </view>
+      <view class="setting-item">
+        <view class="setting-left">
+          <text class="setting-label">自动播放视频</text>
+          <text class="setting-desc">在WiFi环境下自动播放</text>
+        </view>
+        <switch 
+          checked="{{general.autoPlay}}"
+          bindchange="toggleGeneral"
+          data-type="autoPlay"
+          color="#3b82f6"
+        />
+      </view>
+      <view class="setting-item">
+        <view class="setting-left">
+          <text class="setting-label">省流量模式</text>
+          <text class="setting-desc">减少图片和视频质量</text>
+        </view>
+        <switch 
+          checked="{{general.saveTraffic}}"
+          bindchange="toggleGeneral"
+          data-type="saveTraffic"
+          color="#3b82f6"
+        />
+      </view>
+    </view>
+  </view>
+
+  <!-- 存储与缓存 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-icon">💾</text>
+      <text class="title-text">存储与缓存</text>
+    </view>
+    <view class="settings-group">
+      <view class="setting-item" bindtap="clearCache">
+        <view class="setting-left">
+          <text class="setting-label">清除缓存</text>
+          <text class="setting-desc">当前缓存: {{cacheSize}}</text>
+        </view>
+        <text class="setting-action">清除</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 账号与安全 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-icon">🛡️</text>
+      <text class="title-text">账号与安全</text>
+    </view>
+    <view class="settings-group">
+      <view class="setting-item" bindtap="goToAccountSecurity" hover-class="setting-item-hover">
+        <view class="setting-left">
+          <text class="setting-label">账号安全</text>
+          <text class="setting-desc">修改密码、绑定账号</text>
+        </view>
+        <text class="setting-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 关于 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-icon">ℹ️</text>
+      <text class="title-text">关于</text>
+    </view>
+    <view class="settings-group">
+      <view class="setting-item" bindtap="checkUpdate" hover-class="setting-item-hover">
+        <view class="setting-left">
+          <text class="setting-label">检查更新</text>
+          <text class="setting-desc">当前版本 v{{version}}</text>
+        </view>
+        <text class="setting-arrow">›</text>
+      </view>
+      <view class="setting-item" bindtap="goToAbout" hover-class="setting-item-hover">
+        <view class="setting-left">
+          <text class="setting-label">关于我们</text>
+        </view>
+        <text class="setting-arrow">›</text>
+      </view>
+      <view class="setting-item" bindtap="goToPrivacyPolicy" hover-class="setting-item-hover">
+        <view class="setting-left">
+          <text class="setting-label">隐私政策</text>
+        </view>
+        <text class="setting-arrow">›</text>
+      </view>
+      <view class="setting-item" bindtap="goToUserAgreement" hover-class="setting-item-hover">
+        <view class="setting-left">
+          <text class="setting-label">用户协议</text>
+        </view>
+        <text class="setting-arrow">›</text>
+      </view>
+      <view class="setting-item" bindtap="contactSupport" hover-class="setting-item-hover">
+        <view class="setting-left">
+          <text class="setting-label">联系客服</text>
+        </view>
+        <text class="setting-arrow">›</text>
+      </view>
+    </view>
+  </view>
+</view>
