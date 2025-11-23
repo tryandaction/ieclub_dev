@@ -15,6 +15,38 @@
 
 ---
 
+## 📝 最近的重要更新
+
+### 2025-11-23: 认证功能修复 ✅
+**问题**: 
+1. 登录返回 401 Token已过期错误
+2. 忘记密码流程中验证码无法验证
+3. 重置密码返回 `{"success":false}` 无详细错误
+
+**修复**:
+1. **验证码类型支持** (`ieclub-backend/src/middleware/validators.js`)
+   - 添加 `reset_password` 到验证码类型白名单
+   - 现支持: `register`, `reset`, `reset_password`, `login`
+
+2. **重置密码逻辑** (`ieclub-backend/src/controllers/authController.js`)
+   - 修复 `checkEmailAllowed` 缺少 `await` 的问题
+   - 移除 `tokenVersion` 依赖，简化密码更新逻辑
+   - 修正用户查询和密码哈希流程
+
+3. **前端白名单配置** (`ieclub-web/src/utils/request.js`)
+   - 确认 `NO_AUTH_URLS` 包含所有认证相关接口
+   - 登录、重置密码等接口不携带 token
+
+**测试结果**:
+- ✅ 密码登录: 测试通过
+- ✅ 验证码验证: 测试通过  
+- ✅ 重置密码: 测试通过
+- ✅ 新密码登录: 测试通过
+
+**部署**: 已部署到生产环境 `ieclub.online`
+
+---
+
 ## 🔥 紧急待修复问题
 
 ### 1. **小程序密码显示/隐藏功能未实现** ⚠️ HIGH PRIORITY
