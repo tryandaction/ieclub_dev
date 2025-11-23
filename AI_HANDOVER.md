@@ -300,25 +300,66 @@ PM2不断重启（337次）
     - `req.params.id` → `req.params.userId`
     - 修复：`const { userId: id } = req.params`
 
-### ⚠️ 未解决问题 (2025-11-24)
+### ⚠️ 未解决问题 (2025-11-24 00:28)
 
-12. **/profile/:userId 持续500错误**
-    - **现象**: 即使使用最简单的内联路由也返回500
-    - **排查过**:
-      - ✅ Controller代码已简化
-      - ✅ Prisma字段错误已修复
-      - ✅ 路由顺序已调整
-      - ✅ 中间件已移除测试
-      - ❌ 仍然500错误
-    - **推测原因**:
-      - 请求根本没到达路由处理器
-      - 可能被全局错误中间件拦截
-      - 或app.js中有其他问题
-    - **建议下步**:
-      1. 检查`errorMiddleware()`和`notFoundHandler`
-      2. 在app.js中添加console.log追踪请求流
-      3. 检查PM2日志中是否有未显示的错误
-      4. 直接修改生产服务器代码添加debug日志
+12. **/profile相关API持续500/404错误** - **严重问题**
+    - **现象**: 
+      - `/api/auth/profile` - 500（authController字段问题已修复但仍500）
+      - `/api/profile/:userId` - 500（路由代码正确但不生效）
+      - `/api/profile/:userId/posts` - 404
+      - `/api/profile/:userId/stats` - 404
+    
+    - **已尝试的修复**:
+      - ✅ 修复authController中isCertified等不存在字段
+      - ✅ 重写profile路由为最简实现（async/await → promise）
+      - ✅ 移除中间件测试
+      - ✅ 手动修改生产服务器代码
+      - ✅ 多次PM2 restart/delete/start
+      - ✅ 完整重新部署（10+次）
+      - ❌ 问题依然存在
+    
+    - **核心问题**:
+      - **PM2服务持续errored状态**
+      - 本地代码正确但生产服务器无法正常运行
+      - 路由文件已修改但请求返回404（说明routes/index.js未被加载）
+      - 没有实际错误日志输出（只有session警告）
+    
+    - **推测根本原因**:
+      1. **PM2配置问题** - ecosystem.config.js可能有问题
+      2. **Node版本不兼容** - async/await或Promise处理问题
+      3. **依赖包缺失** - 生产环境npm包未正确安装
+      4. **环境变量问题** - DATABASE_URL或其他必要环境变量
+      5. **文件权限问题** - PM2无法正确读取修改后的文件
+    
+    - **建议立即排查**:
+      1. **SSH登录生产服务器手动测试**:
+         ```bash
+         cd /root/IEclub_dev/ieclub-backend
+         pm2 stop all
+         NODE_ENV=production node server.js
+         # 查看实际错误输出
+         ```
+      2. **检查PM2日志详细错误**:
+         ```bash
+         pm2 logs ieclub-backend --err --lines 100
+         cat /root/.pm2/logs/ieclub-backend-error.log
+         ```
+      3. **验证依赖和环境**:
+         ```bash
+         node -v  # 确认Node版本
+         npm list prisma  # 确认Prisma已安装
+         echo $DATABASE_URL  # 确认数据库连接
+         ```
+      4. **重新安装依赖**:
+         ```bash
+         rm -rf node_modules package-lock.json
+         npm install
+         ```
+    
+    - **临时解决方案**:
+      - 由于登录功能正常，建议用户先使用其他功能
+      - Profile相关功能暂时不可用
+      - 需要服务器管理员或有经验的开发者现场排查
 
 ### ⚠️ 核忄经验教训
 
