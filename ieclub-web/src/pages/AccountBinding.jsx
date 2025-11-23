@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link2, Phone, Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { bindPhone, getUserInfo } from '../api/auth';
+import { bindPhone, getUserInfo, sendPhoneCode } from '../api/auth';
 
 /**
  * 账号绑定页面
