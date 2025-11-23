@@ -9,6 +9,7 @@
     "pages/login/index",
     "pages/forgot-password/index",
     "pages/account-security/index",
+    "pages/my-topics/index",
     "pages/settings/set-password/index",
     "pages/settings/change-password/index",
     "pages/settings/account-binding/index"

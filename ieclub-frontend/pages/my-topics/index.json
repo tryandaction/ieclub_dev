@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "我的话题",
+  "navigationBarBackgroundColor": "#667eea",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#f3f4f6",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 50
+}
