@@ -63,11 +63,19 @@ router.delete('/comments/:id', authenticate, commentController.deleteComment);
 router.post('/comments/:id/like', authenticate, commentController.likeComment);
 
 // ==================== Users/Profile Routes ====================
-// 注意：具体路由必须在router.use之前，否则会被拦截
-// 暂时禁用profile子路由，直接使用userController
-// router.use('/profile', require('./profile'));
-router.get('/profile/:userId', optionalAuth, userController.getUserProfile);
-// TODO: 实现getUserPosts和getUserStats方法
+// 测试路由
+router.get('/profile/:userId', async (req, res) => {
+  try {
+    const prisma = require('../config/database');
+    const user = await prisma.user.findUnique({
+      where: { id: req.params.userId },
+      select: { id: true, nickname: true, avatar: true }
+    });
+    res.json({ success: true, data: user, timestamp: Date.now() });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
 
 // ==================== Upload Routes ====================
 router.delete('/upload/file', authenticate, rateLimiters.api, uploadController.deleteFile);

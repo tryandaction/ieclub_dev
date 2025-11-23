@@ -89,176 +89,46 @@ class UserController {
     */
   static async getUserProfile(req, res) {
     try {
-      const { userId: id } = req.params;
-      const {
-        sortBy = 'latest', // latest, likes, hearts, popular
-        filterType = 'all', // all, topics, projects, comments
-        // major, // 专业筛选
-        // skills, // 技能筛选
-        // interests // 兴趣筛选
-      } = req.query;
-
-      // 获取用户基本信息
+      const { userId } = req.params;
+      
+      // 最简单查询
       const user = await prisma.user.findUnique({
-        where: { id },
+        where: { id: userId },
         select: {
           id: true,
           nickname: true,
           avatar: true,
           bio: true,
-          verified: true,
           major: true,
           grade: true,
-          skills: true,
-          interests: true,
-          website: true,
-          github: true,
-          createdAt: true,
-          _count: {
-            select: {
-              topics: true,
-              followers: true,
-              follows: true,
-              projects: true
-            }
-          }
+          createdAt: true
         }
       });
 
       if (!user) {
-        return response.notFound(res, '用户不存在');
-      }
-
-      // 检查当前用户是否关注了该用户
-      let isFollowing = false;
-      if (req.userId && req.userId !== id) {
-        const follow = await prisma.follow.findUnique({
-          where: {
-            followerId_followingId: {
-              followerId: req.userId,
-              followingId: id
-            }
-          }
+        return res.status(404).json({
+          success: false,
+          code: 404,
+          message: '用户不存在',
+          timestamp: Date.now()
         });
-        isFollowing = !!follow;
       }
 
-      // 构建内容查询条件
-      const contentData = {};
-
-      // 获取用户话题（支持排序和筛选）
-      if (filterType === 'all' || filterType === 'topics') {
-        const topicOrderBy =
-          sortBy === 'latest' ? { createdAt: 'desc' } :
-          sortBy === 'likes' ? [{ likes: { _count: 'desc' } }] :
-          sortBy === 'hearts' ? [{ bookmarks: { _count: 'desc' } }] :
-          sortBy === 'popular' ? { viewCount: 'desc' } :
-          { createdAt: 'desc' };
-
-        const topics = await prisma.topic.findMany({
-          where: {
-            authorId: id,
-            status: 'published'
-          },
-          include: {
-            _count: {
-              select: {
-                likes: true,
-                bookmarks: true,
-                comments: true,
-                participants: true
-              }
-            }
-          },
-          orderBy: topicOrderBy,
-          take: 20
-        });
-
-        contentData.topics = topics.map(topic => ({
-          ...topic,
-          likeCount: topic._count.likes,
-          heartCount: topic._count.bookmarks,
-          commentCount: topic._count.comments,
-          participantCount: topic._count.participants
-        }));
-      }
-
-      // 获取用户项目
-      if (filterType === 'all' || filterType === 'projects') {
-        const projectOrderBy =
-          sortBy === 'latest' ? { createdAt: 'desc' } :
-          sortBy === 'likes' ? [{ likes: { _count: 'desc' } }] :
-          { createdAt: 'desc' };
-
-        const projects = await prisma.project.findMany({
-          where: { ownerId: id },
-          include: {
-            _count: {
-              select: {
-                members: true,
-                likes: true
-              }
-            }
-          },
-          orderBy: projectOrderBy,
-          take: 20
-        });
-
-        contentData.projects = projects.map(project => ({
-          ...project,
-          memberCount: project._count.members,
-          likeCount: project._count.likes
-        }));
-      }
-
-      // 获取用户评论
-      if (filterType === 'all' || filterType === 'comments') {
-        const comments = await prisma.comment.findMany({
-          where: { authorId: id },
-          include: {
-            topic: {
-              select: {
-                id: true,
-                title: true,
-                cover: true
-              }
-            },
-            _count: {
-              select: {
-                likes: true
-              }
-            }
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 20
-        });
-
-        contentData.comments = comments.map(comment => ({
-          ...comment,
-          likeCount: comment._count.likes
-        }));
-      }
-
-      return response.success(res, {
-        user: {
-          ...user,
-          topicCount: user._count.topics,
-          followerCount: user._count.followers,
-          followingCount: user._count.follows,
-          projectCount: user._count.projects
-        },
-        isFollowing,
-        content: contentData
+      return res.json({
+        success: true,
+        code: 200,
+        message: '获取用户主页成功',
+        data: user,
+        timestamp: Date.now()
       });
     } catch (error) {
-      logger.error('获取用户信息失败:', {
-        error: error.message,
-        code: error.code,
-        meta: error.meta,
-        stack: error.stack,
-        userId: req.params.userId
+      logger.error('获取用户信息失败:', error);
+      return res.status(500).json({
+        success: false,
+        code: 500,
+        message: '服务器内部错误',
+        timestamp: Date.now()
       });
-      return response.serverError(res, error.message);
     }
   }
 
