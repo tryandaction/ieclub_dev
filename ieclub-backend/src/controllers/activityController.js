@@ -1,669 +1,256 @@
-// src/controllers/activityController.js
-// 活动控制器 - 小红书式活动功能
+// ieclub-backend/src/controllers/activityControllerV2.js
+// 活动控制器 - 使用服务层重构
 
-const prisma = require('../config/database');
-const response = require('../utils/response');
-const logger = require('../utils/logger');
-const WechatService = require('../services/wechatService');
+const activityService = require('../services/activityService');
+const asyncHandler = require('../utils/asyncHandler');
+const { success } = require('../utils/response');
 
-class ActivityController {
-  /**
-   * 获取活动列表（瀑布流布局）
-   * GET /api/activities
-   */
-  static async getActivities(req, res) {
-    try {
-      const {
-        page = 1,
-        limit = 20,
-        category,
-        sortBy = 'latest', // latest, hot, popular
-        search,
-        status = 'upcoming' // upcoming, ongoing, ended
-      } = req.query;
+/**
+ * 创建活动
+ */
+exports.createActivity = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const data = req.body;
 
-      const skip = (parseInt(page) - 1) * parseInt(limit);
-      const take = parseInt(limit);
+  const activity = await activityService.createActivity(userId, data);
 
-      // 构建查询条件
-      const where = {
-        status: 'published'
-      };
+  res.status(201).json(success(activity, '创建成功'));
+});
 
-      if (category) {
-        where.category = category;
-      }
+/**
+ * 获取活动列表
+ */
+exports.getActivities = asyncHandler(async (req, res) => {
+  const { page, pageSize, status, categoryId, keyword, upcoming, past } = req.query;
 
-      if (search) {
-        where.OR = [
-          { title: { contains: search } },
-          { description: { contains: search } },
-          { tags: { contains: search } }
-        ];
-      }
+  const result = await activityService.getActivities({
+    page: parseInt(page) || 1,
+    pageSize: parseInt(pageSize) || 20,
+    status,
+    categoryId,
+    keyword,
+    upcoming: upcoming === 'true',
+    past: past === 'true'
+  });
 
-      // 根据状态筛选
-      const now = new Date();
-      if (status === 'upcoming') {
-        where.startTime = { gt: now };
-      } else if (status === 'ongoing') {
-        where.startTime = { lte: now };
-        where.endTime = { gte: now };
-      } else if (status === 'ended') {
-        where.endTime = { lt: now };
-      }
+  res.json(success(result));
+});
 
-      // 构建排序
-      let orderBy = {};
-      switch (sortBy) {
-        case 'hot':
-          orderBy = [
-            { participantsCount: 'desc' },
-            { likesCount: 'desc' },
-            { createdAt: 'desc' }
-          ];
-          break;
-        case 'popular':
-          orderBy = [
-            { likesCount: 'desc' },
-            { participantsCount: 'desc' },
-            { createdAt: 'desc' }
-          ];
-          break;
-        case 'latest':
-        default:
-          orderBy = { createdAt: 'desc' };
-          break;
-      }
+/**
+ * 获取活动详情
+ */
+exports.getActivityById = asyncHandler(async (req, res) => {
+  const { activityId } = req.params;
+  const userId = req.user ? req.user.id : null;
 
-      // 优化查询：使用数据库字段代替 _count 聚合
-      const [activities, total] = await Promise.all([
-        prisma.activity.findMany({
-          where,
-          skip,
-          take,
-          orderBy,
-          select: {
-            id: true,
-            title: true,
-            description: true,
-            cover: true,
-            images: true,
-            location: true,
-            startTime: true,
-            endTime: true,
-            maxParticipants: true,
-            category: true,
-            tags: true,
-            participantsCount: true, // 使用数据库字段
-            likesCount: true,        // 使用数据库字段
-            commentsCount: true,     // 使用数据库字段
-            createdAt: true,
-            updatedAt: true,
-            organizer: {
-              select: {
-                id: true,
-                nickname: true,
-                avatar: true,
-                isCertified: true
-              }
-            }
-          }
-        }),
-        prisma.activity.count({ where })
-      ]);
+  const activity = await activityService.getActivityById(activityId, userId);
 
-      // 批量检查用户点赞和参与状态（如果已登录）
-      const userId = req.userId;
-      let userLikes = new Set();
-      let userParticipations = new Set();
-      
-      if (userId && activities.length > 0) {
-        const activityIds = activities.map(a => a.id);
-        const [likes, participations] = await Promise.all([
-          prisma.activityLike.findMany({
-            where: { userId, activityId: { in: activityIds } },
-            select: { activityId: true }
-          }),
-          prisma.activityParticipant.findMany({
-            where: { userId, activityId: { in: activityIds } },
-            select: { activityId: true }
-          })
-        ]);
-        
-        userLikes = new Set(likes.map(l => l.activityId));
-        userParticipations = new Set(participations.map(p => p.activityId));
-      }
+  res.json(success(activity));
+});
 
-      // 格式化返回数据
-      const formattedActivities = activities.map(activity => ({
-        id: activity.id,
-        title: activity.title,
-        description: activity.description,
-        cover: activity.cover,
-        images: activity.images ? JSON.parse(activity.images) : [],
-        location: activity.location,
-        startTime: activity.startTime,
-        endTime: activity.endTime,
-        maxParticipants: activity.maxParticipants,
-        category: activity.category,
-        tags: activity.tags ? JSON.parse(activity.tags) : [],
-        author: activity.organizer,
-        participantsCount: activity.participantsCount,
-        likesCount: activity.likesCount,
-        commentsCount: activity.commentsCount,
-        isLiked: userLikes.has(activity.id),
-        isParticipated: userParticipations.has(activity.id),
-        createdAt: activity.createdAt,
-        updatedAt: activity.updatedAt
-      }));
+/**
+ * 更新活动
+ */
+exports.updateActivity = asyncHandler(async (req, res) => {
+  const { activityId } = req.params;
+  const userId = req.user.id;
+  const data = req.body;
 
-      return response.paginated(res, formattedActivities, {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        hasMore: skip + take < total
-      });
-    } catch (error) {
-      logger.error('获取活动列表失败:', error);
-      return response.serverError(res, '获取活动列表失败');
-    }
-  }
+  const activity = await activityService.updateActivity(activityId, userId, data);
 
-  /**
-   * 获取活动详情
-   * GET /api/activities/:id
-   */
-  static async getActivityDetail(req, res) {
-    try {
-      const { id } = req.params;
-      const userId = req.userId;
+  res.json(success(activity, '更新成功'));
+});
 
-      const activity = await prisma.activity.findUnique({
-        where: { id },
+/**
+ * 删除活动
+ */
+exports.deleteActivity = asyncHandler(async (req, res) => {
+  const { activityId } = req.params;
+  const userId = req.user.id;
+  const isAdmin = req.user.role === 'admin';
+
+  await activityService.deleteActivity(activityId, userId, isAdmin);
+
+  res.json(success(null, '删除成功'));
+});
+
+/**
+ * 报名参加活动
+ */
+exports.joinActivity = asyncHandler(async (req, res) => {
+  const { activityId } = req.params;
+  const userId = req.user.id;
+  const { note } = req.body;
+
+  const result = await activityService.joinActivity(activityId, userId, { note });
+
+  res.json(success(result, result.message));
+});
+
+/**
+ * 取消报名
+ */
+exports.leaveActivity = asyncHandler(async (req, res) => {
+  const { activityId } = req.params;
+  const userId = req.user.id;
+
+  const result = await activityService.leaveActivity(activityId, userId);
+
+  res.json(success(result, result.message));
+});
+
+/**
+ * 获取活动参与者列表
+ */
+exports.getParticipants = asyncHandler(async (req, res) => {
+  const { activityId } = req.params;
+  const { page, pageSize, status } = req.query;
+
+  const result = await activityService.getParticipants(activityId, {
+    page: parseInt(page) || 1,
+    pageSize: parseInt(pageSize) || 20,
+    status
+  });
+
+  res.json(success(result));
+});
+
+/**
+ * 活动签到
+ */
+exports.checkIn = asyncHandler(async (req, res) => {
+  const { activityId } = req.params;
+  const userId = req.user.id;
+  const { token } = req.body; // 签到令牌（从二维码获取）
+
+  const result = await activityService.checkIn(activityId, userId, token);
+
+  res.json(success(result, result.message));
+});
+
+/**
+ * 生成活动签到二维码
+ */
+exports.generateCheckInQRCode = asyncHandler(async (req, res) => {
+  const { activityId } = req.params;
+  const userId = req.user.id;
+
+  const result = await activityService.generateCheckInQRCode(activityId, userId);
+
+  res.json(success(result, '生成签到二维码成功'));
+});
+
+/**
+ * 验证签到令牌
+ */
+exports.verifyCheckInToken = asyncHandler(async (req, res) => {
+  const { activityId } = req.params;
+  const { token } = req.body;
+
+  const result = await activityService.verifyCheckInToken(activityId, token);
+
+  res.json(success(result, '验证成功'));
+});
+
+/**
+ * 获取活动签到统计
+ */
+exports.getCheckInStats = asyncHandler(async (req, res) => {
+  const { activityId } = req.params;
+  const userId = req.user.id;
+
+  const stats = await activityService.getCheckInStats(activityId, userId);
+
+  res.json(success(stats, '获取签到统计成功'));
+});
+
+/**
+ * 获取我的活动
+ */
+exports.getMyActivities = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { type = 'joined', page = 1, pageSize = 20 } = req.query; // joined 或 organized
+
+  const skip = (parseInt(page) - 1) * parseInt(pageSize);
+  const take = parseInt(pageSize);
+
+  const { PrismaClient } = require('@prisma/client');
+  const prisma = require('../config/database');
+
+  if (type === 'organized') {
+    // 我组织的活动
+    const [activities, total] = await Promise.all([
+      prisma.activity.findMany({
+        where: { organizerId: userId },
+        skip,
+        take,
+        orderBy: [{ createdAt: 'desc' }],
         include: {
-          author: {
+          category: {
             select: {
               id: true,
-              nickname: true,
-              avatar: true,
-              bio: true,
-              isCertified: true,
-              _count: {
-                select: {
-                  activities: true,
-                  followers: true
-                }
-              }
+              name: true
             }
           },
-          participants: {
-            take: 10,
+          _count: {
+            select: {
+              participants: true
+            }
+          }
+        }
+      }),
+      prisma.activity.count({ where: { organizerId: userId } })
+    ]);
+
+    res.json(success({
+      activities: activities.map(a => activityService.formatActivity(a)),
+      total,
+      hasMore: skip + take < total,
+      currentPage: parseInt(page)
+    }));
+  } else {
+    // 我参加的活动
+    const [participations, total] = await Promise.all([
+      prisma.activityParticipant.findMany({
+        where: { userId },
+        skip,
+        take,
+        orderBy: [{ joinedAt: 'desc' }],
+        include: {
+          activity: {
             include: {
-              user: {
+              organizer: {
                 select: {
                   id: true,
                   nickname: true,
                   avatar: true
                 }
+              },
+              category: {
+                select: {
+                  id: true,
+                  name: true
+                }
               }
             }
-          },
-          _count: {
-            select: {
-              participants: true,
-              likes: true,
-              comments: true
-            }
           }
         }
-      });
+      }),
+      prisma.activityParticipant.count({ where: { userId } })
+    ]);
 
-      if (!activity) {
-        return response.notFound(res, '活动不存在');
-      }
-
-      // 检查用户是否已点赞和参与
-      let isLiked = false;
-      let isParticipated = false;
-
-      if (userId) {
-        const [like, participation] = await Promise.all([
-          prisma.activityLike.findUnique({
-            where: {
-              userId_activityId: {
-                userId,
-                activityId: id
-              }
-            }
-          }),
-          prisma.activityParticipant.findUnique({
-            where: {
-              userId_activityId: {
-                userId,
-                activityId: id
-              }
-            }
-          })
-        ]);
-
-        isLiked = !!like;
-        isParticipated = !!participation;
-      }
-
-      // 格式化返回数据
-      const formattedActivity = {
-        id: activity.id,
-        title: activity.title,
-        description: activity.description,
-        cover: activity.cover,
-        images: activity.images ? JSON.parse(activity.images) : [],
-        location: activity.location,
-        startTime: activity.startTime,
-        endTime: activity.endTime,
-        maxParticipants: activity.maxParticipants,
-        category: activity.category,
-        tags: activity.tags ? JSON.parse(activity.tags) : [],
-        author: {
-          ...activity.author,
-          activitiesCount: activity.author._count.activities,
-          followersCount: activity.author._count.followers
-        },
-        participants: activity.participants.map(p => p.user),
-        participantsCount: activity._count.participants,
-        likesCount: activity._count.likes,
-        commentsCount: activity._count.comments,
-        isLiked,
-        isParticipated,
-        createdAt: activity.createdAt,
-        updatedAt: activity.updatedAt
-      };
-
-      return response.success(res, formattedActivity);
-    } catch (error) {
-      logger.error('获取活动详情失败:', error);
-      return response.serverError(res, '获取活动详情失败');
-    }
+    res.json(success({
+      activities: participations.map(p => ({
+        ...activityService.formatActivity(p.activity),
+        participationStatus: p.status,
+        joinedAt: p.joinedAt.toISOString(),
+        checkedIn: p.checkedIn,
+        checkedInAt: p.checkedInAt ? p.checkedInAt.toISOString() : null
+      })),
+      total,
+      hasMore: skip + take < total,
+      currentPage: parseInt(page)
+    }));
   }
+});
 
-  /**
-   * 创建活动
-   * POST /api/activities
-   */
-  static async createActivity(req, res) {
-    try {
-      const userId = req.userId;
-      const {
-        title,
-        description,
-        location,
-        startTime,
-        endTime,
-        maxParticipants,
-        category,
-        tags = [],
-        images = []
-      } = req.body;
-
-      // 验证必填字段
-      if (!title || !description || !location || !startTime || !category) {
-        return response.error(res, '请填写完整的活动信息');
-      }
-
-      // 验证时间
-      const start = new Date(startTime);
-      const end = endTime ? new Date(endTime) : null;
-
-      if (start <= new Date()) {
-        return response.error(res, '活动开始时间不能早于当前时间');
-      }
-
-      if (end && end <= start) {
-        return response.error(res, '活动结束时间不能早于开始时间');
-      }
-
-      // 内容安全检查
-      try {
-        const textCheck = await WechatService.msgSecCheck(`${title} ${description}`);
-        if (!textCheck.pass) {
-          return response.error(res, '活动内容包含违规信息');
-        }
-      } catch (error) {
-        logger.warn('内容安全检查失败:', error.message);
-      }
-
-      // 创建活动
-      const activity = await prisma.activity.create({
-        data: {
-          title,
-          description,
-          location,
-          startTime: start,
-          endTime: end,
-          maxParticipants: maxParticipants ? parseInt(maxParticipants) : null,
-          category,
-          tags: JSON.stringify(tags),
-          images: JSON.stringify(images),
-          cover: images.length > 0 ? images[0] : null,
-          authorId: userId,
-          status: 'published'
-        },
-        include: {
-          author: {
-            select: {
-              id: true,
-              nickname: true,
-              avatar: true,
-              isCertified: true
-            }
-          }
-        }
-      });
-
-      logger.info('活动创建成功:', {
-        activityId: activity.id,
-        userId,
-        title
-      });
-
-      return response.success(res, {
-        id: activity.id,
-        title: activity.title,
-        author: activity.author,
-        createdAt: activity.createdAt
-      }, '活动创建成功');
-    } catch (error) {
-      logger.error('创建活动失败:', error);
-      return response.serverError(res, '创建活动失败');
-    }
-  }
-
-  /**
-   * 更新活动
-   * PUT /api/activities/:id
-   */
-  static async updateActivity(req, res) {
-    try {
-      const { id } = req.params;
-      const userId = req.userId;
-      const updateData = req.body;
-
-      // 检查活动是否存在且用户有权限修改
-      const activity = await prisma.activity.findUnique({
-        where: { id },
-        select: { authorId: true, status: true }
-      });
-
-      if (!activity) {
-        return response.notFound(res, '活动不存在');
-      }
-
-      if (activity.authorId !== userId) {
-        return response.forbidden(res, '无权限修改此活动');
-      }
-
-      if (activity.status !== 'published') {
-        return response.error(res, '只能修改已发布的活动');
-      }
-
-      // 处理特殊字段
-      if (updateData.tags) {
-        updateData.tags = JSON.stringify(updateData.tags);
-      }
-      if (updateData.images) {
-        updateData.images = JSON.stringify(updateData.images);
-        updateData.cover = updateData.images.length > 0 ? updateData.images[0] : null;
-      }
-
-      // 更新时间
-      if (updateData.startTime) {
-        updateData.startTime = new Date(updateData.startTime);
-      }
-      if (updateData.endTime) {
-        updateData.endTime = new Date(updateData.endTime);
-      }
-
-      // 更新活动
-      const updatedActivity = await prisma.activity.update({
-        where: { id },
-        data: {
-          ...updateData,
-          updatedAt: new Date()
-        }
-      });
-
-      logger.info('活动更新成功:', {
-        activityId: id,
-        userId
-      });
-
-      return response.success(res, updatedActivity, '活动更新成功');
-    } catch (error) {
-      logger.error('更新活动失败:', error);
-      return response.serverError(res, '更新活动失败');
-    }
-  }
-
-  /**
-   * 删除活动
-   * DELETE /api/activities/:id
-   */
-  static async deleteActivity(req, res) {
-    try {
-      const { id } = req.params;
-      const userId = req.userId;
-
-      // 检查活动是否存在且用户有权限删除
-      const activity = await prisma.activity.findUnique({
-        where: { id },
-        select: { authorId: true }
-      });
-
-      if (!activity) {
-        return response.notFound(res, '活动不存在');
-      }
-
-      if (activity.authorId !== userId) {
-        return response.forbidden(res, '无权限删除此活动');
-      }
-
-      // 软删除活动
-      await prisma.activity.update({
-        where: { id },
-        data: { status: 'deleted' }
-      });
-
-      logger.info('活动删除成功:', {
-        activityId: id,
-        userId
-      });
-
-      return response.success(res, null, '活动删除成功');
-    } catch (error) {
-      logger.error('删除活动失败:', error);
-      return response.serverError(res, '删除活动失败');
-    }
-  }
-
-  /**
-   * 点赞/取消点赞活动
-   * POST /api/activities/:id/like
-   */
-  static async toggleLike(req, res) {
-    try {
-      const { id } = req.params;
-      const userId = req.userId;
-
-      // 检查活动是否存在
-      const activity = await prisma.activity.findUnique({
-        where: { id },
-        select: { id: true }
-      });
-
-      if (!activity) {
-        return response.notFound(res, '活动不存在');
-      }
-
-      // 检查是否已点赞
-      const existingLike = await prisma.activityLike.findUnique({
-        where: {
-          userId_activityId: {
-            userId,
-            activityId: id
-          }
-        }
-      });
-
-      let isLiked;
-
-      if (existingLike) {
-        // 取消点赞
-        await prisma.activityLike.delete({
-          where: {
-            userId_activityId: {
-              userId,
-              activityId: id
-            }
-          }
-        });
-        isLiked = false;
-      } else {
-        // 点赞
-        await prisma.activityLike.create({
-          data: {
-            userId,
-            activityId: id
-          }
-        });
-        isLiked = true;
-      }
-
-      // 获取最新点赞数
-      const likesCount = await prisma.activityLike.count({
-        where: { activityId: id }
-      });
-
-      return response.success(res, {
-        isLiked,
-        likesCount
-      }, isLiked ? '点赞成功' : '已取消点赞');
-    } catch (error) {
-      logger.error('点赞操作失败:', error);
-      return response.serverError(res, '操作失败');
-    }
-  }
-
-  /**
-   * 参与/取消参与活动
-   * POST /api/activities/:id/participate
-   */
-  static async toggleParticipation(req, res) {
-    try {
-      const { id } = req.params;
-      const userId = req.userId;
-
-      // 检查活动是否存在
-      const activity = await prisma.activity.findUnique({
-        where: { id },
-        select: { 
-          id: true, 
-          maxParticipants: true,
-          startTime: true,
-          endTime: true
-        }
-      });
-
-      if (!activity) {
-        return response.notFound(res, '活动不存在');
-      }
-
-      // 检查活动是否已开始
-      if (new Date() >= activity.startTime) {
-        return response.error(res, '活动已开始，无法参与');
-      }
-
-      // 检查是否已参与
-      const existingParticipation = await prisma.activityParticipant.findUnique({
-        where: {
-          userId_activityId: {
-            userId,
-            activityId: id
-          }
-        }
-      });
-
-      let isParticipated;
-
-      if (existingParticipation) {
-        // 取消参与
-        await prisma.activityParticipant.delete({
-          where: {
-            userId_activityId: {
-              userId,
-              activityId: id
-            }
-          }
-        });
-        isParticipated = false;
-      } else {
-        // 检查参与人数限制
-        if (activity.maxParticipants) {
-          const currentParticipants = await prisma.activityParticipant.count({
-            where: { activityId: id }
-          });
-
-          if (currentParticipants >= activity.maxParticipants) {
-            return response.error(res, '活动参与人数已满');
-          }
-        }
-
-        // 参与活动
-        await prisma.activityParticipant.create({
-          data: {
-            userId,
-            activityId: id
-          }
-        });
-        isParticipated = true;
-      }
-
-      // 获取最新参与人数
-      const participantsCount = await prisma.activityParticipant.count({
-        where: { activityId: id }
-      });
-
-      return response.success(res, {
-        isParticipated,
-        participantsCount
-      }, isParticipated ? '参与成功' : '已取消参与');
-    } catch (error) {
-      logger.error('参与操作失败:', error);
-      return response.serverError(res, '操作失败');
-    }
-  }
-
-  /**
-   * 获取活动分类列表
-   * GET /api/activities/categories
-   */
-  static async getCategories(req, res) {
-    try {
-      const categories = [
-        { key: 'academic', label: '学术讲座', icon: '🎓' },
-        { key: 'tech', label: '技术分享', icon: '💻' },
-        { key: 'social', label: '社交活动', icon: '👥' },
-        { key: 'sports', label: '体育运动', icon: '⚽' },
-        { key: 'culture', label: '文艺表演', icon: '🎭' },
-        { key: 'volunteer', label: '志愿服务', icon: '❤️' },
-        { key: 'other', label: '其他', icon: '🔖' }
-      ];
-
-      return response.success(res, categories);
-    } catch (error) {
-      logger.error('获取活动分类失败:', error);
-      return response.serverError(res, '获取活动分类失败');
-    }
-  }
-}
-
-module.exports = ActivityController;

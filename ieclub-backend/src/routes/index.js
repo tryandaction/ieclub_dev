@@ -478,18 +478,16 @@ router.get('/me/bookmarks',
 );
 
 // ==================== Search Routes ====================
-const searchControllerV2 = require('../controllers/searchControllerV2');
-
 // 全局搜索（搜索限制）
 router.get('/search', 
   rateLimiters.search, 
-  searchControllerV2.globalSearch
+  searchController.globalSearch
 );
 
 // 搜索帖子（搜索限制）
 router.get('/search/posts', 
   rateLimiters.search, 
-  searchControllerV2.searchPosts
+  searchController.searchPosts
 );
 
 // 搜索话题（搜索限制）
@@ -507,7 +505,7 @@ router.get('/search/users',
 // 搜索活动（搜索限制）
 router.get('/search/activities', 
   rateLimiters.search, 
-  searchControllerV2.searchActivities
+  searchController.searchActivities
 );
 
 // 热门关键词（API限制）
@@ -519,35 +517,27 @@ router.get('/search/hot-keywords',
 // 搜索建议（搜索限制）
 router.get('/search/suggestions', 
   rateLimiters.search, 
-  searchControllerV2.getSuggestions
+  searchController.getSuggestions
 );
 
 // 搜索历史（API限制）
 router.get('/search/history', 
   authenticate, 
   rateLimiters.api, 
-  searchControllerV2.getSearchHistory
+  searchController.getSearchHistory
 );
 
 // 清除搜索历史（API限制）
 router.delete('/search/history', 
   authenticate, 
   rateLimiters.api, 
-  searchControllerV2.clearSearchHistory
-);
-
-// 搜索建议（旧版）
-router.get('/search/suggest', 
-  rateLimiters.search, 
-  searchController.getSuggestions
+  searchController.clearSearchHistory
 );
 
 // ==================== Notification Routes ====================
 router.use('/notifications', require('./notificationRoutes'));
 
 // ==================== Upload Routes ====================
-const uploadControllerV2 = require('../controllers/uploadControllerV2');
-
 // 上传图片（上传限制）
 router.post('/upload/images', 
   authenticate, 
@@ -556,20 +546,12 @@ router.post('/upload/images',
   uploadController.uploadImages
 );
 
-// 上传图片 V2（上传限制）
-router.post('/upload/images-v2', 
-  authenticate, 
-  rateLimiters.upload, 
-  LocalUploadService.getUploadMiddleware().array('images', 9), 
-  uploadControllerV2.uploadImages
-);
-
 // 上传头像（上传限制）
 router.post('/upload/avatar', 
   authenticate, 
   rateLimiters.upload, 
   LocalUploadService.getUploadMiddleware().single('avatar'), 
-  uploadControllerV2.uploadAvatar
+  uploadController.uploadAvatar
 );
 
 // 上传文档（上传限制）
@@ -578,14 +560,6 @@ router.post('/upload/documents',
   rateLimiters.upload, 
   LocalUploadService.getUploadMiddleware().array('documents', 3), 
   uploadController.uploadDocuments
-);
-
-// 上传文档 V2（上传限制）
-router.post('/upload/documents-v2', 
-  authenticate, 
-  rateLimiters.upload, 
-  LocalUploadService.getUploadMiddleware().array('documents', 3), 
-  uploadControllerV2.uploadDocuments
 );
 
 // 链接预览（API限制）
@@ -600,13 +574,6 @@ router.delete('/upload/file',
   authenticate, 
   rateLimiters.api, 
   uploadController.deleteFile
-);
-
-// 删除文件 V2（API限制）
-router.delete('/upload/file-v2', 
-  authenticate, 
-  rateLimiters.api, 
-  uploadControllerV2.deleteFile
 );
 
 // ==================== Community Routes ====================
@@ -642,19 +609,19 @@ router.use('/leaderboard', require('./leaderboard'));
 router.use('/badges', require('./badges'));
 
 // ==================== Stats Routes ====================
-const statsControllerV2 = require('../controllers/statsControllerV2');
+const statsController = require('../controllers/statsController');
 router.use('/stats', require('./stats'));
 
 // 统计接口（API限制）
-router.get('/stats-v2/platform', rateLimiters.api, statsControllerV2.getPlatformStats);
-router.get('/stats-v2/user/:userId?', authenticate, rateLimiters.api, statsControllerV2.getUserStats);
-router.get('/stats-v2/trend', rateLimiters.api, statsControllerV2.getContentTrend);
-router.get('/stats-v2/hot', rateLimiters.api, statsControllerV2.getHotContent);
-router.get('/stats-v2/behavior/:userId?', authenticate, rateLimiters.api, statsControllerV2.getUserBehaviorAnalysis);
-router.get('/stats-v2/credits/:userId?', authenticate, rateLimiters.api, statsControllerV2.getCreditTrend);
-router.get('/stats-v2/categories', rateLimiters.api, statsControllerV2.getCategoryStats);
-router.get('/stats-v2/leaderboard', rateLimiters.api, statsControllerV2.getLeaderboard);
-router.get('/stats-v2/dashboard', authenticate, rateLimiters.api, statsControllerV2.getMyDashboard);
+router.get('/stats/platform', rateLimiters.api, statsController.getPlatformStats);
+router.get('/stats/user/:userId?', authenticate, rateLimiters.api, statsController.getUserStats);
+router.get('/stats/trend', rateLimiters.api, statsController.getContentTrend);
+router.get('/stats/hot', rateLimiters.api, statsController.getHotContent);
+router.get('/stats/behavior/:userId?', authenticate, rateLimiters.api, statsController.getUserBehaviorAnalysis);
+router.get('/stats/credits/:userId?', authenticate, rateLimiters.api, statsController.getCreditTrend);
+router.get('/stats/categories', rateLimiters.api, statsController.getCategoryStats);
+router.get('/stats/leaderboard', rateLimiters.api, statsController.getLeaderboard);
+router.get('/stats/dashboard', authenticate, rateLimiters.api, statsController.getMyDashboard);
 
 // ==================== Feedback Routes ====================
 router.use('/feedback', require('./feedback'));

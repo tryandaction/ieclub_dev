@@ -1,140 +1,116 @@
-// ===== controllers/statsController.js - 统计控制器 =====
+// ieclub-backend/src/controllers/statsControllerV2.js
+// 数据统计控制器
+
 const statsService = require('../services/statsService');
-const logger = require('../utils/logger');
+const asyncHandler = require('../utils/asyncHandler');
+const { success } = require('../utils/response');
 
-class StatsController {
-  /**
-   * 获取用户统计数据
-   */
-  async getUserStats(req, res) {
-    try {
-      const { userId } = req.params;
-      
-      const stats = await statsService.getUserStats(userId);
-      
-      res.json({
-        success: true,
-        data: stats
-      });
-    } catch (error) {
-      logger.error('获取用户统计失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '获取统计数据失败'
-      });
-    }
-  }
+/**
+ * 获取用户统计数据
+ */
+exports.getUserStats = asyncHandler(async (req, res) => {
+  const userId = req.params.userId || req.user.id;
 
-  /**
-   * 获取用户活跃度
-   */
-  async getUserActivity(req, res) {
-    try {
-      const { userId } = req.params;
-      const { days = 30 } = req.query;
-      
-      const activity = await statsService.calculateUserActivity(userId, parseInt(days));
-      
-      res.json({
-        success: true,
-        data: activity
-      });
-    } catch (error) {
-      logger.error('获取用户活跃度失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '获取活跃度失败'
-      });
-    }
-  }
+  const stats = await statsService.getUserStats(userId);
 
-  /**
-   * 获取用户影响力
-   */
-  async getUserInfluence(req, res) {
-    try {
-      const { userId } = req.params;
-      
-      const influence = await statsService.calculateUserInfluence(userId);
-      
-      res.json({
-        success: true,
-        data: { influence }
-      });
-    } catch (error) {
-      logger.error('获取用户影响力失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '获取影响力失败'
-      });
-    }
-  }
+  res.json(success(stats));
+});
 
-  /**
-   * 获取平台统计
-   */
-  async getPlatformStats(req, res) {
-    try {
-      const stats = await statsService.getPlatformStats();
-      
-      res.json({
-        success: true,
-        data: stats
-      });
-    } catch (error) {
-      logger.error('获取平台统计失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '获取统计数据失败'
-      });
-    }
-  }
+/**
+ * 获取平台整体统计
+ */
+exports.getPlatformStats = asyncHandler(async (req, res) => {
+  const stats = await statsService.getPlatformStats();
 
-  /**
-   * 获取热门标签
-   */
-  async getPopularTags(req, res) {
-    try {
-      const { limit = 20 } = req.query;
-      
-      const tags = await statsService.getPopularTags(parseInt(limit));
-      
-      res.json({
-        success: true,
-        data: tags
-      });
-    } catch (error) {
-      logger.error('获取热门标签失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '获取热门标签失败'
-      });
-    }
-  }
+  res.json(success(stats));
+});
 
-  /**
-   * 获取用户成长趋势
-   */
-  async getUserGrowthTrend(req, res) {
-    try {
-      const { userId } = req.params;
-      const { days = 30 } = req.query;
-      
-      const trend = await statsService.getUserGrowthTrend(userId, parseInt(days));
-      
-      res.json({
-        success: true,
-        data: trend
-      });
-    } catch (error) {
-      logger.error('获取成长趋势失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '获取成长趋势失败'
-      });
-    }
-  }
-}
+/**
+ * 获取内容趋势
+ */
+exports.getContentTrend = asyncHandler(async (req, res) => {
+  const { days } = req.query;
 
-module.exports = new StatsController();
+  const trend = await statsService.getContentTrend(parseInt(days) || 30);
+
+  res.json(success({ trend }));
+});
+
+/**
+ * 获取热门内容
+ */
+exports.getHotContent = asyncHandler(async (req, res) => {
+  const { type, limit, days } = req.query;
+
+  const content = await statsService.getHotContent({
+    type,
+    limit: parseInt(limit) || 10,
+    days: parseInt(days) || 7
+  });
+
+  res.json(success({ content }));
+});
+
+/**
+ * 获取用户行为分析
+ */
+exports.getUserBehaviorAnalysis = asyncHandler(async (req, res) => {
+  const userId = req.params.userId || req.user.id;
+
+  const analysis = await statsService.getUserBehaviorAnalysis(userId);
+
+  res.json(success(analysis));
+});
+
+/**
+ * 获取积分趋势
+ */
+exports.getCreditTrend = asyncHandler(async (req, res) => {
+  const userId = req.params.userId || req.user.id;
+  const { days } = req.query;
+
+  const trend = await statsService.getCreditTrend(userId, parseInt(days) || 30);
+
+  res.json(success({ trend }));
+});
+
+/**
+ * 获取分类统计
+ */
+exports.getCategoryStats = asyncHandler(async (req, res) => {
+  const stats = await statsService.getCategoryStats();
+
+  res.json(success({ categories: stats }));
+});
+
+/**
+ * 获取排行榜
+ */
+exports.getLeaderboard = asyncHandler(async (req, res) => {
+  const { type, limit } = req.query;
+
+  const leaderboard = await statsService.getLeaderboard(type, parseInt(limit) || 50);
+
+  res.json(success({ leaderboard }));
+});
+
+/**
+ * 获取我的数据概览（Dashboard）
+ */
+exports.getMyDashboard = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+
+  // 并行获取多个数据
+  const [stats, behavior, creditTrend] = await Promise.all([
+    statsService.getUserStats(userId),
+    statsService.getUserBehaviorAnalysis(userId),
+    statsService.getCreditTrend(userId, 7)
+  ]);
+
+  res.json(success({
+    stats,
+    behavior,
+    creditTrend
+  }));
+});
 
