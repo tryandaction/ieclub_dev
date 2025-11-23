@@ -63,27 +63,30 @@ router.delete('/comments/:id', authenticate, commentController.deleteComment);
 router.post('/comments/:id/like', authenticate, commentController.likeComment);
 
 // ==================== Users/Profile Routes ====================
-router.get('/profile/:userId', async (req, res) => {
+// Profile主页 - 简化版本
+router.get('/profile/:userId', (req, res) => {
   const prisma = require('../config/database');
-  const user = await prisma.user.findUnique({
+  prisma.user.findUnique({
     where: { id: req.params.userId },
     select: { id: true, nickname: true, avatar: true, bio: true, major: true, grade: true, createdAt: true }
-  }).catch(err => null);
-  
-  if (!user) {
-    return res.status(404).json({ success: false, code: 404, message: '用户不存在', timestamp: Date.now() });
-  }
-  
-  res.json({ success: true, code: 200, message: '获取成功', data: user, timestamp: Date.now() });
+  }).then(user => {
+    if (!user) {
+      return res.status(404).json({ success: false, message: '用户不存在' });
+    }
+    res.json({ success: true, data: user });
+  }).catch(err => {
+    res.status(500).json({ success: false, message: err.message });
+  });
 });
 
-// Posts和Stats路由（临时返回空数据）
+// Posts列表
 router.get('/profile/:userId/posts', (req, res) => {
-  res.json({ success: true, code: 200, data: { posts: [], total: 0 }, timestamp: Date.now() });
+  res.json({ success: true, data: { posts: [], total: 0 } });
 });
 
+// Stats统计
 router.get('/profile/:userId/stats', (req, res) => {
-  res.json({ success: true, code: 200, data: { topicCount: 0, followerCount: 0, followingCount: 0, likeCount: 0 }, timestamp: Date.now() });
+  res.json({ success: true, data: { topicCount: 0, followerCount: 0, followingCount: 0, likeCount: 0 } });
 });
 
 // ==================== Upload Routes ====================
