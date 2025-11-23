@@ -89,7 +89,7 @@ class UserController {
     */
   static async getUserProfile(req, res) {
     try {
-      const { id } = req.params;
+      const { userId: id } = req.params;
       const {
         sortBy = 'latest', // latest, likes, hearts, popular
         filterType = 'all', // all, topics, projects, comments
@@ -103,7 +103,6 @@ class UserController {
         where: { id },
         select: {
           id: true,
-          username: true,
           nickname: true,
           avatar: true,
           bio: true,
@@ -119,7 +118,7 @@ class UserController {
             select: {
               topics: true,
               followers: true,
-              following: true,
+              follows: true,
               ownedProjects: true
             }
           }
