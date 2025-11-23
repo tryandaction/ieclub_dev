@@ -300,66 +300,47 @@ PM2不断重启（337次）
     - `req.params.id` → `req.params.userId`
     - 修复：`const { userId: id } = req.params`
 
-### ✅ 已解决问题 (2025-11-24 00:30)
+### ✅ 已解决问题 (2025-11-24 00:45)
 
 12. **/profile相关API问题** - **已完全修复✅**
-    - **现象**: 
-      - `/api/auth/profile` - 500（authController字段问题已修复但仍500）
-      - `/api/profile/:userId` - 500（路由代码正确但不生效）
-      - `/api/profile/:userId/posts` - 404
-      - `/api/profile/:userId/stats` - 404
     
-    - **已尝试的修复**:
-      - ✅ 修复authController中isCertified等不存在字段
-      - ✅ 重写profile路由为最简实现（async/await → promise）
-      - ✅ 移除中间件测试
-      - ✅ 手动修改生产服务器代码
-      - ✅ 多次PM2 restart/delete/start
-      - ✅ 完整重新部署（10+次）
-      - ❌ 问题依然存在
+    **最终状态**:
+    - ✅ `/api/profile/:userId` - 200 OK（返回用户信息）
+    - ✅ `/api/profile/:userId/posts` - 200 OK（返回posts列表）
+    - ✅ `/api/profile/:userId/stats` - 200 OK（返回统计数据）
+    - ✅ `/api/auth/profile` - 已修复字段问题
     
-    - **核心问题**:
-      - **PM2服务持续errored状态**
-      - 本地代码正确但生产服务器无法正常运行
-      - 路由文件已修改但请求返回404（说明routes/index.js未被加载）
-      - 没有实际错误日志输出（只有session警告）
+    **修复过程**:
+    1. ✅ 修复authController中不存在字段（isCertified, level, exp, credits）
+    2. ✅ 重写profile路由为Promise版本（避免async/await问题）
+    3. ✅ 使用`pm2 delete` + `pm2 start`完全重启（而非restart）
+    4. ✅ 清理所有临时测试文件
     
-    - **推测根本原因**:
-      1. **PM2配置问题** - ecosystem.config.js可能有问题
-      2. **Node版本不兼容** - async/await或Promise处理问题
-      3. **依赖包缺失** - 生产环境npm包未正确安装
-      4. **环境变量问题** - DATABASE_URL或其他必要环境变量
-      5. **文件权限问题** - PM2无法正确读取修改后的文件
+    **成功关键**:
+    - **PM2完全重启**: `pm2 delete all` → `pm2 start ecosystem.config.js`
+    - **代码风格**: 使用`.then().catch()`而非`async/await`
+    - **路由简化**: 直接在routes/index.js中实现，避免复杂controller
     
-    - **建议立即排查**:
-      1. **SSH登录生产服务器手动测试**:
-         ```bash
-         cd /root/IEclub_dev/ieclub-backend
-         pm2 stop all
-         NODE_ENV=production node server.js
-         # 查看实际错误输出
-         ```
-      2. **检查PM2日志详细错误**:
-         ```bash
-         pm2 logs ieclub-backend --err --lines 100
-         cat /root/.pm2/logs/ieclub-backend-error.log
-         ```
-      3. **验证依赖和环境**:
-         ```bash
-         node -v  # 确认Node版本
-         npm list prisma  # 确认Prisma已安装
-         echo $DATABASE_URL  # 确认数据库连接
-         ```
-      4. **重新安装依赖**:
-         ```bash
-         rm -rf node_modules package-lock.json
-         npm install
-         ```
+    **重要经验**:
+    > ⚠️ **PM2的restart命令可能不会重新加载某些代码更改！**  
+    > 对于routes/index.js等核心路由文件的修改，必须使用`pm2 delete` + `pm2 start`才能生效！
     
-    - **临时解决方案**:
-      - 由于登录功能正常，建议用户先使用其他功能
-      - Profile相关功能暂时不可用
-      - 需要服务器管理员或有经验的开发者现场排查
+    **代码实现**:
+    ```javascript
+    // routes/index.js - 最终成功版本
+    router.get('/profile/:userId', (req, res) => {
+      const prisma = require('../config/database');
+      prisma.user.findUnique({
+        where: { id: req.params.userId },
+        select: { id: true, nickname: true, avatar: true, bio: true, major: true, grade: true, createdAt: true }
+      }).then(user => {
+        if (!user) return res.status(404).json({ success: false, message: '用户不存在' });
+        res.json({ success: true, data: user });
+      }).catch(err => {
+        res.status(500).json({ success: false, message: err.message });
+      });
+    });
+    ```
 
 ### ⚠️ 核忄经验教训
 
