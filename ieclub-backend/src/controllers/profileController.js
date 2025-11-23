@@ -85,21 +85,15 @@ exports.getUserProfile = async (req, res, next) => {
       isFollowing = !!follow
     }
 
-    // 解析 JSON 字段
-    const profile = {
-      ...user,
-      skills: user.skills ? JSON.parse(user.skills) : [],
-      interests: user.interests ? JSON.parse(user.interests) : [],
-      achievements: user.achievements ? JSON.parse(user.achievements) : [],
-      projects: user.projectsData ? JSON.parse(user.projectsData) : [],
-      isFollowing,
-      isOwner: currentUserId === userId
-    }
-
+    // 返回基本信息（暂时不解析JSON避免错误）
     res.json({
       success: true,
       message: '获取用户主页成功',
-      data: profile
+      data: {
+        ...user,
+        isFollowing,
+        isOwner: currentUserId === userId
+      }
     })
   } catch (error) {
     next(error)
