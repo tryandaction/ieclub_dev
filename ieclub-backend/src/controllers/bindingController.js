@@ -9,6 +9,82 @@ const logger = require('../utils/logger');
 
 class BindingController {
   /**
+   * 发送手机验证码
+   * POST /api/auth/send-phone-code
+   */
+  static async sendPhoneCode(req, res, next) {
+    try {
+      const { phone } = req.body || {};
+      const userId = req.user?.id; // 可选，用于检查是否已绑定
+
+      // 验证手机号
+      if (!phone) {
+        return res.status(400).json({
+          success: false,
+          message: '请输入手机号'
+        });
+      }
+
+      // 验证手机号格式
+      if (!/^1[3-9]\d{9}$/.test(phone)) {
+        return res.status(400).json({
+          success: false,
+          message: '手机号格式不正确'
+        });
+      }
+
+      // 检查手机号是否已被绑定（除了当前用户）
+      const existingUser = await prisma.user.findUnique({
+        where: { phone }
+      });
+
+      if (existingUser && existingUser.id !== userId) {
+        return res.status(400).json({
+          success: false,
+          message: '该手机号已被其他账号绑定'
+        });
+      }
+
+      // 生成6位数字验证码
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+      // 设置过期时间（10分钟）
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+      // 保存到数据库
+      await prisma.verificationCode.create({
+        data: {
+          email: phone, // 复用email字段存储手机号
+          code,
+          type: 'bind_phone',
+          expiresAt
+        }
+      });
+
+      // TODO: 发送短信验证码
+      // 需要集成短信服务（阿里云/腾讯云）
+      // await smsService.send(phone, code);
+
+      logger.info('📱 手机验证码已生成:', { phone, code });
+
+      // 开发环境返回验证码（生产环境不返回）
+      const responseData = process.env.NODE_ENV === 'development' 
+        ? { verificationCode: code, note: '开发环境：验证码已生成（生产环境将通过短信发送）' } 
+        : {};
+
+      return res.json({
+        success: true,
+        message: '验证码已发送',
+        ...responseData
+      });
+
+    } catch (error) {
+      logger.error('❌ 发送手机验证码失败:', error);
+      next(error);
+    }
+  }
+
+  /**
    * 绑定手机号
    * POST /api/auth/bind-phone
    */
@@ -45,7 +121,7 @@ class BindingController {
         where: {
           email: phone,
           code: code.trim(),
-          type: 'bind',
+          type: 'bind_phone',
           used: false
         },
         orderBy: {

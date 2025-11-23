@@ -196,12 +196,13 @@ router.post('/auth/bind-wechat',
   BindingController.bindWechat
 );
 
-// 发送手机验证码（严格限制）
-// TODO: 实现 sendPhoneCode 方法
-// router.post('/auth/send-phone-code', 
-//   rateLimiters.auth, 
-//   AuthController.sendPhoneCode
-// );
+// 发送手机验证码（严格限制，需要认证）
+router.post('/auth/send-phone-code', 
+  authenticate,  // 需要先登录才能绑定手机
+  rateLimiters.auth, 
+  csrf,
+  BindingController.sendPhoneCode
+);
 
 // 绑定手机（API限制）
 router.post('/auth/bind-phone', 
