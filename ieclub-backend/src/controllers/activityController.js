@@ -1,4 +1,4 @@
-// ieclub-backend/src/controllers/activityControllerV2.js
+// ieclub-backend/src/controllers/activityController.js
 // 活动控制器 - 使用服务层重构
 
 const activityService = require('../services/activityService');

@@ -1,5 +1,5 @@
-// ieclub-backend/src/controllers/searchControllerV2.js
-// 搜索控制器 V2 - 使用服务层重构
+// ieclub-backend/src/controllers/searchController.js
+// 搜索控制器 - 使用服务层重构
 
 const searchService = require('../services/searchService');
 const asyncHandler = require('../utils/asyncHandler');

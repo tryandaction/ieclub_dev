@@ -1,4 +1,4 @@
-// ieclub-backend/src/controllers/statsControllerV2.js
+// ieclub-backend/src/controllers/statsController.js
 // 数据统计控制器
 
 const statsService = require('../services/statsService');

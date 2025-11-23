@@ -1,5 +1,5 @@
-// ieclub-backend/src/controllers/uploadControllerV2.js
-// 文件上传控制器 V2 - 整合图片压缩功能
+// ieclub-backend/src/controllers/uploadController.js
+// 文件上传控制器 - 整合图片压缩功能
 
 const path = require('path');
 const fs = require('fs').promises;
