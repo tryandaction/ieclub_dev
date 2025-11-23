@@ -3,7 +3,7 @@
 
 const activityService = require('../services/activityService');
 const asyncHandler = require('../utils/asyncHandler');
-const { success } = require('../utils/response');
+const { successResponse } = require('../utils/response');
 
 /**
  * 创建活动
@@ -14,7 +14,7 @@ exports.createActivity = asyncHandler(async (req, res) => {
 
   const activity = await activityService.createActivity(userId, data);
 
-  res.status(201).json(success(activity, '创建成功'));
+  res.status(201).json(successResponse(activity, '创建成功'));
 });
 
 /**
@@ -33,7 +33,7 @@ exports.getActivities = asyncHandler(async (req, res) => {
     past: past === 'true'
   });
 
-  res.json(success(result));
+  res.json(successResponse(result));
 });
 
 /**
@@ -112,7 +112,7 @@ exports.getParticipants = asyncHandler(async (req, res) => {
     status
   });
 
-  res.json(success(result));
+  res.json(successResponse(result));
 });
 
 /**
