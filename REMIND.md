@@ -40,10 +40,21 @@ git push origin develop
 
 ### 2️⃣ 部署到生产环境
 
-**⚠️ 当前建议：手动部署**
+**⭐ 推荐方式 - 一键自动化部署**
+```powershell
+cd scripts\deployment
+.\Deploy-Production.ps1 -Target all -Message "更新说明" -MinimalHealthCheck
+```
+✅ **为什么加 -MinimalHealthCheck**:
+- 避免部署脚本参数歧义bug
+- 使用轻量级健康检查（不触发网络安全策略）
+- 部署速度更快
+- 已验证稳定可靠
+
+**手动部署方式（快速重启）**
 ```powershell
 # 1. 更新代码
-ssh root@ieclub.online "cd /root/IEclub_dev && git pull origin main"
+ssh root@ieclub.online "cd /root/IEclub_dev/ieclub-backend && git pull origin main"
 
 # 2. 重启服务
 ssh root@ieclub.online "pm2 restart ieclub-backend && pm2 save"
@@ -52,20 +63,13 @@ ssh root@ieclub.online "pm2 restart ieclub-backend && pm2 save"
 ssh root@ieclub.online "pm2 status && pm2 logs ieclub-backend --lines 20"
 ```
 
-**自动化部署脚本（谨慎使用）**
-
-**⭐ 推荐方式 - 使用极简安全检查（避免断网）**:
+**其他部署选项**
 ```powershell
-# 使用极简健康检查（只检查内存和磁盘，不会触发网络安全策略）
-cd scripts\deployment
-.\Deploy-Production.ps1 -Target all -Message "更新说明" -MinimalHealthCheck -SkipGitPush
-```
+# 仅部署后端
+.\Deploy-Production.ps1 -Target backend -Message "更新说明" -MinimalHealthCheck
 
-**备选方式 - 完全跳过健康检查**:
-```powershell
-# 适用于紧急部署或已确认服务器状态良好的情况
-cd scripts\deployment
-.\Deploy-Production.ps1 -Target all -Message "更新说明" -SkipHealthCheck -SkipGitPush
+# 完全跳过健康检查（最快，适合紧急修复）
+.\Deploy-Production.ps1 -Target all -Message "更新说明" -SkipHealthCheck
 
 
 ### 3️⃣ 调试500错误
@@ -148,5 +152,5 @@ cd scripts\deployment
 
 ---
 
-**最后更新**: 2025-11-22 14:05  
-**当前状态**: 生产环境正常，测试环境已关闭（资源限制）
+**最后更新**: 2025-11-23 21:40  
+**当前状态**: 生产环境稳定运行，自动化部署正常，Routes加载已修复
