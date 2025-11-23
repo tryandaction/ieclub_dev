@@ -153,19 +153,19 @@ exports.getUserPosts = async (req, res, next) => {
     }
 
     if (type) {
-      where.type = type
+      where.category = type // 使用category字段而不是type
     }
 
     // 如果不是本人查看，只显示公开内容
     if (req.user?.id !== userId) {
-      where.visibility = 'public'
+      where.isPublic = true // 使用isPublic字段
     }
 
     const skip = (page - 1) * pageSize
     const take = parseInt(pageSize)
 
     const [posts, total] = await Promise.all([
-      prisma.post.findMany({
+      prisma.topic.findMany({
         where,
         skip,
         take,
@@ -182,7 +182,7 @@ exports.getUserPosts = async (req, res, next) => {
           }
         }
       }),
-      prisma.post.count({ where })
+      prisma.topic.count({ where })
     ])
 
     // 解析 JSON 字段
