@@ -50,43 +50,47 @@ router.delete('/:id', authenticate, activityController.deleteActivity);
 /**
  * 点赞/取消点赞活动
  * POST /api/activities/:id/like
+ * TODO: 实现activityController.toggleLike方法
  */
-router.post('/:id/like', authenticate, activityController.toggleLike);
+// router.post('/:id/like', authenticate, activityController.toggleLike);
 
 /**
  * 参与/取消参与活动
  * POST /api/activities/:id/participate
+ * TODO: 实现activityController.toggleParticipation方法
  */
-router.post('/:id/participate', authenticate, activityController.toggleParticipation);
+// router.post('/:id/participate', authenticate, activityController.toggleParticipation);
 
 /**
  * V2 路由 - 新增功能
+ * TODO: 实现activityControllerV2或使用现有controller方法
  */
-// 报名参加活动
-router.post('/:activityId/join', authenticate, activityControllerV2.joinActivity);
+// 报名参加活动 - 使用现有joinActivity
+router.post('/:activityId/join', authenticate, activityController.joinActivity);
 
-// 取消报名
-router.post('/:activityId/leave', authenticate, activityControllerV2.leaveActivity);
+// 取消报名 - 使用现有leaveActivity
+router.post('/:activityId/leave', authenticate, activityController.leaveActivity);
+
+// 签到
+router.post('/:activityId/checkin', authenticate, activityController.checkIn);
+
+// 生成签到二维码
+router.get('/:activityId/qrcode', authenticate, activityController.generateCheckInQRCode);
+
+// 验证签到token
+router.post('/:activityId/verify-token', authenticate, activityController.verifyCheckInToken);
 
 // 获取参与者列表
-router.get('/:activityId/participants', activityControllerV2.getParticipants);
-
-// 活动签到
-router.post('/:activityId/checkin', authenticate, activityControllerV2.checkIn);
-
-// 生成签到二维码（组织者）
-router.post('/:activityId/qrcode', authenticate, activityControllerV2.generateCheckInQRCode);
-
-// 验证签到令牌
-router.post('/:activityId/verify-token', authenticate, activityControllerV2.verifyCheckInToken);
+router.get('/:activityId/participants', authenticate, activityController.getParticipants);
 
 // 获取签到统计
-router.get('/:activityId/checkin-stats', authenticate, activityControllerV2.getCheckInStats);
+router.get('/:activityId/checkin-stats', authenticate, activityController.getCheckInStats);
 
 /**
  * 获取活动分类列表
  * GET /api/activities/categories
+ * TODO: 实现activityController.getCategories方法
  */
-router.get('/categories', activityController.getCategories);
+// router.get('/categories', activityController.getCategories);
 
 module.exports = router;
