@@ -63,24 +63,7 @@ exports.getUserProfile = async (req, res, next) => {
         fansCount: true,
         followsCount: true,
         
-        createdAt: true,
-        
-        // 勋章
-        badgeRecords: {
-          take: 10,
-          orderBy: { awardedAt: 'desc' },
-          include: {
-            badge: {
-              select: {
-                name: true,
-                description: true,
-                icon: true,
-                category: true,
-                rarity: true
-              }
-            }
-          }
-        }
+        createdAt: true
       }
     })
 
@@ -109,15 +92,9 @@ exports.getUserProfile = async (req, res, next) => {
       interests: user.interests ? JSON.parse(user.interests) : [],
       achievements: user.achievements ? JSON.parse(user.achievements) : [],
       projects: user.projectsData ? JSON.parse(user.projectsData) : [],
-      badges: user.badgeRecords.map(record => ({
-        ...record.badge,
-        awardedAt: record.awardedAt
-      })),
       isFollowing,
       isOwner: currentUserId === userId
     }
-
-    delete profile.badgeRecords
 
     res.json({
       success: true,
