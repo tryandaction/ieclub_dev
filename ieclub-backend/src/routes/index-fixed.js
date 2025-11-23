@@ -1,5 +1,4 @@
-// src/routes/index.js - 完全验证通过的路由配置
-// 只包含实际存在的controller方法
+// src/routes/index.js - 精简但完整的路由配置
 const express = require('express');
 const router = express.Router();
 
@@ -8,7 +7,6 @@ const AuthController = require('../controllers/authController');
 const CaptchaController = require('../controllers/captchaController');
 const topicController = require('../controllers/topicController');
 const commentController = require('../controllers/commentController');
-const userController = require('../controllers/userController');
 const uploadController = require('../controllers/uploadController');
 const errorReportController = require('../controllers/errorReportController');
 
@@ -37,35 +35,29 @@ router.post('/auth/register', rateLimiters.auth, AuthController.register);
 router.get('/auth/profile', authenticate, AuthController.getProfile);
 router.put('/auth/profile', authenticate, AuthController.updateProfile);
 router.post('/auth/logout', authenticate, AuthController.logout);
-// refreshToken方法不存在，已注释
+router.post('/auth/refresh', rateLimiters.auth, AuthController.refreshToken);
 
 // ==================== Topics Routes ====================
-router.get('/topics', optionalAuth, topicController.getTopics);
-// getTopic方法不存在，使用/community子路由
-router.post('/topics', authenticate, topicController.createTopic);
-router.put('/topics/:id', authenticate, topicController.updateTopic);
-router.delete('/topics/:id', authenticate, topicController.deleteTopic);
-// likeTopic方法不存在，使用/community子路由
+// 使用community子路由处理topics
 
 // ==================== Comments Routes ====================
-router.get('/comments', commentController.getComments);
-router.post('/comments', authenticate, commentController.createComment);
-router.delete('/comments/:id', authenticate, commentController.deleteComment);
-router.post('/comments/:id/like', authenticate, commentController.likeComment);
+// 使用community子路由处理comments
 
 // ==================== Users/Profile Routes ====================
+const userController = require('../controllers/userController');
+router.get('/users/:id', userController.getUser);
 router.get('/profile/:userId', optionalAuth, userController.getUserProfile);
-// getUser, getUserPosts, getUserStats方法不存在
+router.get('/profile/:userId/posts', userController.getUserPosts);
+router.get('/profile/:userId/stats', userController.getUserStats);
 
 // ==================== Upload Routes ====================
+router.post('/upload/image', authenticate, rateLimiters.upload, uploadController.uploadImage);
 router.delete('/upload/file', authenticate, rateLimiters.api, uploadController.deleteFile);
-// uploadImage方法不存在，需要检查
 
 // ==================== Error Report Routes ====================
 router.post('/errors/report', rateLimiters.api, errorReportController.reportError);
 
 // ==================== Sub-Routes ====================
-// 这些子路由包含更多功能
 router.use('/community', require('./community'));
 router.use('/activities', require('./activities'));
 router.use('/notifications', require('./notificationRoutes'));
