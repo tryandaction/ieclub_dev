@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "我的活动",
+  "navigationBarBackgroundColor": "#f59e0b",
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#fff7ed",
+  "backgroundTextStyle": "dark"
+}

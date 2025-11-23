@@ -15,6 +15,13 @@ const { authenticate, optionalAuth } = require('../middleware/auth');
 router.get('/', optionalAuth, activityController.getActivities);
 
 /**
+ * 获取我的活动（必须在/:id之前）
+ * GET /api/activities/me/activities
+ * Query: type (joined/organized), page, pageSize
+ */
+router.get('/me/activities', authenticate, activityController.getMyActivities);
+
+/**
  * 获取活动详情
  * GET /api/activities/:id
  */
@@ -75,9 +82,6 @@ router.post('/:activityId/verify-token', authenticate, activityControllerV2.veri
 
 // 获取签到统计
 router.get('/:activityId/checkin-stats', authenticate, activityControllerV2.getCheckInStats);
-
-// 获取我的活动
-router.get('/me/activities', authenticate, activityControllerV2.getMyActivities);
 
 /**
  * 获取活动分类列表

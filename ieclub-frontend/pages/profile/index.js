@@ -128,7 +128,9 @@ mixinPage({
 
   // 跳转到参与的活动
   goToParticipated() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.navigateTo({
+      url: '/pages/my-activities/index'
+    })
   },
 
   // 跳转到账号安全

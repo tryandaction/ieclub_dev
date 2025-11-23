@@ -1,0 +1,140 @@
+<!--pages/my-activities/index.wxml-->
+<view class="my-activities-page">
+  <!-- 页面头部 -->
+  <view class="page-header">
+    <view class="header-content">
+      <view class="header-title">
+        <text class="title-icon">🎉</text>
+        <text class="title-text">我的活动</text>
+      </view>
+      
+      <!-- Tab切换 -->
+      <view class="tabs">
+        <view 
+          wx:for="{{tabs}}"
+          wx:key="*this"
+          class="tab-item {{currentTab === index ? 'active' : ''}}"
+          bindtap="switchTab"
+          data-index="{{index}}"
+        >
+          <text class="tab-text">{{item}}</text>
+          <view wx:if="{{currentTab === index}}" class="tab-indicator"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 活动列表 -->
+  <view class="activities-container">
+    <!-- 加载中骨架屏 -->
+    <view wx:if="{{loading && activities.length === 0}}" class="skeleton-list">
+      <view class="skeleton-item" wx:for="{{[1,2,3]}}" wx:key="*this">
+        <view class="skeleton-cover"></view>
+        <view class="skeleton-content">
+          <view class="skeleton-title"></view>
+          <view class="skeleton-text"></view>
+          <view class="skeleton-text"></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 活动列表 -->
+    <view wx:if="{{!isEmpty && activities.length > 0}}" class="activity-list">
+      <view 
+        class="activity-card"
+        wx:for="{{activities}}"
+        wx:key="id"
+        bindtap="goToActivityDetail"
+        data-id="{{item.id}}"
+        hover-class="activity-card-hover"
+      >
+        <!-- 活动封面 -->
+        <view class="activity-cover">
+          <image 
+            wx:if="{{item.cover}}"
+            class="cover-image" 
+            src="{{item.cover}}"
+            mode="aspectFill"
+          />
+          <view wx:else class="cover-placeholder">
+            <text class="placeholder-icon">🎊</text>
+          </view>
+          
+          <!-- 状态标签 -->
+          <view class="status-badge status-{{item.status}}">
+            <text>{{item.statusText}}</text>
+          </view>
+        </view>
+        
+        <!-- 活动信息 -->
+        <view class="activity-info">
+          <!-- 标题 -->
+          <view class="activity-title">{{item.title}}</view>
+          
+          <!-- 时间地点 -->
+          <view class="activity-meta">
+            <view class="meta-item">
+              <text class="meta-icon">⏰</text>
+              <text class="meta-text">{{item.timeText}}</text>
+            </view>
+            <view class="meta-item" wx:if="{{item.location}}">
+              <text class="meta-icon">📍</text>
+              <text class="meta-text">{{item.location}}</text>
+            </view>
+          </view>
+          
+          <!-- 底部信息 -->
+          <view class="activity-footer">
+            <view class="category-badge">
+              <text>{{item.categoryName}}</text>
+            </view>
+            <view class="participant-count">
+              <text class="count-icon">👥</text>
+              <text class="count-text">{{item.participantText}}</text>
+            </view>
+          </view>
+          
+          <!-- 参与状态（仅"我参加的"显示） -->
+          <view wx:if="{{currentTab === 0 && item.participationStatus}}" class="participation-status">
+            <view wx:if="{{item.checkedIn}}" class="status-tag checked-in">
+              <text class="tag-icon">✓</text>
+              <text class="tag-text">已签到</text>
+            </view>
+            <view wx:else class="status-tag pending">
+              <text class="tag-icon">⏳</text>
+              <text class="tag-text">{{item.participationStatus === 'confirmed' ? '已报名' : '待确认'}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:if="{{isEmpty && !loading}}" class="empty-state">
+      <text class="empty-icon">{{currentTab === 0 ? '🎪' : '🎭'}}</text>
+      <text class="empty-title">
+        {{currentTab === 0 ? '还没有参加任何活动' : '还没有组织活动'}}
+      </text>
+      <text class="empty-desc">
+        {{currentTab === 0 ? '快去发现感兴趣的活动吧' : '创建活动，召集志同道合的伙伴'}}
+      </text>
+      <button class="empty-btn" bindtap="goToActivities">
+        <text class="btn-icon">🔍</text>
+        <text>发现活动</text>
+      </button>
+    </view>
+
+    <!-- 加载更多 -->
+    <view wx:if="{{activities.length > 0}}" class="load-more">
+      <view wx:if="{{loading}}" class="loading-text">
+        <text class="loading-icon">⏳</text>
+        <text>加载中...</text>
+      </view>
+      <view wx:elif="{{!hasMore}}" class="no-more-text">
+        <text class="divider-line"></text>
+        <text class="no-more-label">没有更多了</text>
+        <text class="divider-line"></text>
+      </view>
+    </view>
+  </view>
+</view>
