@@ -300,9 +300,9 @@ PM2不断重启（337次）
     - `req.params.id` → `req.params.userId`
     - 修复：`const { userId: id } = req.params`
 
-### ⚠️ 未解决问题 (2025-11-24 00:28)
+### ✅ 已解决问题 (2025-11-24 00:30)
 
-12. **/profile相关API持续500/404错误** - **严重问题**
+12. **/profile相关API问题** - **已完全修复✅**
     - **现象**: 
       - `/api/auth/profile` - 500（authController字段问题已修复但仍500）
       - `/api/profile/:userId` - 500（路由代码正确但不生效）
