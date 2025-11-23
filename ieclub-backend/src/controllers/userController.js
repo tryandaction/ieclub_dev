@@ -244,7 +244,7 @@ class UserController {
           ...user,
           topicCount: user._count.topics,
           followerCount: user._count.followers,
-          followingCount: user._count.following,
+          followingCount: user._count.follows,
           projectCount: user._count.ownedProjects
         },
         isFollowing,
