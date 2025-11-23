@@ -25,6 +25,8 @@ import MyFeedback from './pages/MyFeedback'
 import Settings from './pages/Settings'
 import MyTopics from './pages/MyTopics'
 import MyFavorites from './pages/MyFavorites'
+import MyFollowing from './pages/MyFollowing'
+import MyFollowers from './pages/MyFollowers'
 import useLoadingStore from './stores/loadingStore'
 
 function App() {
@@ -58,6 +60,10 @@ function App() {
             <Route path="profile/:userId" element={<Profile />} />
             <Route path="my-topics" element={<ProtectedRoute><MyTopics /></ProtectedRoute>} />
             <Route path="my-favorites" element={<ProtectedRoute><MyFavorites /></ProtectedRoute>} />
+            <Route path="my-following" element={<ProtectedRoute><MyFollowing /></ProtectedRoute>} />
+            <Route path="my-following/:userId" element={<ProtectedRoute><MyFollowing /></ProtectedRoute>} />
+            <Route path="my-followers" element={<ProtectedRoute><MyFollowers /></ProtectedRoute>} />
+            <Route path="my-followers/:userId" element={<ProtectedRoute><MyFollowers /></ProtectedRoute>} />
             <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="set-password" element={<ProtectedRoute><SetPassword /></ProtectedRoute>} />
             <Route path="change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />

@@ -11,6 +11,8 @@
     "pages/account-security/index",
     "pages/my-topics/index",
     "pages/my-favorites/index",
+    "pages/following/index",
+    "pages/followers/index",
     "pages/settings/set-password/index",
     "pages/settings/change-password/index",
     "pages/settings/account-binding/index"

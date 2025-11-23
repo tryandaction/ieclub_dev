@@ -184,23 +184,32 @@ export default function Profile() {
 
               {/* 统计数据 */}
               <div className="flex gap-6 text-sm">
-                <div className="text-center">
-                  <div className="text-xl font-bold text-purple-600">{profile.topicsCount}</div>
+                <div 
+                  className="text-center cursor-pointer hover:opacity-80 transition"
+                  onClick={() => navigate('/my-topics')}
+                >
+                  <div className="text-xl font-bold text-purple-600">{profile.topicsCount || 0}</div>
                   <div className="text-gray-500">发布</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xl font-bold text-purple-600">{profile.followsCount}</div>
+                <div 
+                  className="text-center cursor-pointer hover:opacity-80 transition"
+                  onClick={() => navigate(`/my-following/${userId}`)}
+                >
+                  <div className="text-xl font-bold text-purple-600">{profile.followsCount || profile.followingCount || 0}</div>
                   <div className="text-gray-500">关注</div>
-            </div>
-                <div className="text-center">
-                  <div className="text-xl font-bold text-purple-600">{profile.fansCount}</div>
+                </div>
+                <div 
+                  className="text-center cursor-pointer hover:opacity-80 transition"
+                  onClick={() => navigate(`/my-followers/${userId}`)}
+                >
+                  <div className="text-xl font-bold text-purple-600">{profile.fansCount || profile.followerCount || 0}</div>
                   <div className="text-gray-500">粉丝</div>
-          </div>
+                </div>
                 <div className="text-center">
-                  <div className="text-xl font-bold text-purple-600">{profile.likesCount}</div>
+                  <div className="text-xl font-bold text-purple-600">{profile.likesCount || 0}</div>
                   <div className="text-gray-500">获赞</div>
-          </div>
-        </div>
+                </div>
+              </div>
       </div>
 
             {/* 操作按钮 */}

@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "关注列表",
+  "navigationBarBackgroundColor": "#06b6d4",
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#f0f9ff",
+  "backgroundTextStyle": "dark"
+}

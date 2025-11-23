@@ -1,0 +1,96 @@
+<!--pages/following/index.wxml-->
+<view class="following-page">
+  <!-- 页面头部 -->
+  <view class="page-header">
+    <view class="header-content">
+      <view class="header-title">
+        <text class="title-icon">👥</text>
+        <text class="title-text">关注列表</text>
+      </view>
+      <view class="header-stats">
+        <view class="stat-item">
+          <text class="stat-value">{{total}}</text>
+          <text class="stat-label">关注数</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 用户列表 -->
+  <view class="users-container">
+    <!-- 加载中骨架屏 -->
+    <view wx:if="{{loading && users.length === 0}}" class="skeleton-list">
+      <view class="skeleton-item" wx:for="{{[1,2,3,4]}}" wx:key="*this">
+        <view class="skeleton-avatar"></view>
+        <view class="skeleton-content">
+          <view class="skeleton-name"></view>
+          <view class="skeleton-bio"></view>
+        </view>
+        <view class="skeleton-button"></view>
+      </view>
+    </view>
+
+    <!-- 用户列表 -->
+    <view wx:if="{{!isEmpty && users.length > 0}}" class="user-list">
+      <view 
+        class="user-card"
+        wx:for="{{users}}"
+        wx:key="id"
+        bindtap="goToUserDetail"
+        data-id="{{item.id}}"
+        hover-class="user-card-hover"
+      >
+        <!-- 用户头像 -->
+        <image 
+          class="user-avatar" 
+          src="{{item.avatar || '/images/default-avatar.png'}}"
+          mode="aspectFill"
+        />
+        
+        <!-- 用户信息 -->
+        <view class="user-info">
+          <view class="user-name">
+            <text>{{item.nickname || '未设置昵称'}}</text>
+            <text wx:if="{{item.verified}}" class="verified-badge">✓</text>
+          </view>
+          <view class="user-bio">{{item.bio || '这个人很懒，什么都没写~'}}</view>
+        </view>
+
+        <!-- 取消关注按钮 -->
+        <view 
+          class="unfollow-btn"
+          catchtap="handleUnfollow"
+          data-id="{{item.id}}"
+          data-index="{{index}}"
+        >
+          <text class="unfollow-icon">✓</text>
+          <text class="unfollow-text">已关注</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:if="{{isEmpty && !loading}}" class="empty-state">
+      <text class="empty-icon">👤</text>
+      <text class="empty-title">还没有关注任何人</text>
+      <text class="empty-desc">快去发现感兴趣的用户吧</text>
+      <button class="empty-btn" bindtap="goToUserList">
+        <text class="btn-icon">🔍</text>
+        <text>发现用户</text>
+      </button>
+    </view>
+
+    <!-- 加载更多 -->
+    <view wx:if="{{users.length > 0}}" class="load-more">
+      <view wx:if="{{loading}}" class="loading-text">
+        <text class="loading-icon">⏳</text>
+        <text>加载中...</text>
+      </view>
+      <view wx:elif="{{!hasMore}}" class="no-more-text">
+        <text class="divider-line"></text>
+        <text class="no-more-label">没有更多了</text>
+        <text class="divider-line"></text>
+      </view>
+    </view>
+  </view>
+</view>

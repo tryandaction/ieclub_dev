@@ -108,10 +108,15 @@ mixinPage({
   },
 
   // 跳转到我的话题
-  goToTopics() {
+  goToMyTopics() {
     wx.navigateTo({
       url: '/pages/my-topics/index'
     })
+  },
+
+  // 跳转到我的话题（别名，保持兼容性）
+  goToTopics() {
+    this.goToMyTopics()
   },
 
   // 跳转到我的收藏
@@ -155,12 +160,26 @@ mixinPage({
 
   // 跳转到粉丝列表
   goToFollowers() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    const userId = this.data.user?.id
+    if (!userId) {
+      wx.showToast({ title: '请先登录', icon: 'none' })
+      return
+    }
+    wx.navigateTo({
+      url: `/pages/followers/index?userId=${userId}`
+    })
   },
 
   // 跳转到关注列表
   goToFollowing() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    const userId = this.data.user?.id
+    if (!userId) {
+      wx.showToast({ title: '请先登录', icon: 'none' })
+      return
+    }
+    wx.navigateTo({
+      url: `/pages/following/index?userId=${userId}`
+    })
   },
 
   /**
