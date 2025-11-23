@@ -166,6 +166,13 @@ mixinPage({
     })
   },
 
+  // 跳转到编辑资料
+  goToEditProfile() {
+    wx.navigateTo({
+      url: '/pages/edit-profile/index'
+    })
+  },
+
   // 跳转到粉丝列表
   goToFollowers() {
     const userId = this.data.user?.id

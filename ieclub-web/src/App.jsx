@@ -29,6 +29,7 @@ import MyFollowing from './pages/MyFollowing'
 import MyFollowers from './pages/MyFollowers'
 import MyActivities from './pages/MyActivities'
 import About from './pages/About'
+import EditProfile from './pages/EditProfile'
 import useLoadingStore from './stores/loadingStore'
 
 function App() {
@@ -75,6 +76,7 @@ function App() {
             <Route path="feedback" element={<Feedback />} />
             <Route path="feedback/my" element={<ProtectedRoute><MyFeedback /></ProtectedRoute>} />
             <Route path="about" element={<About />} />
+            <Route path="profile/:userId/edit" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
           </Route>
         </Routes>
       </ErrorBoundary>

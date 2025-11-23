@@ -1,0 +1,274 @@
+<!--pages/edit-profile/index.wxml-->
+<view class="edit-profile-page">
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading-state">
+    <text class="loading-icon">⏳</text>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <view wx:else class="form-container">
+    <!-- 头像和封面 -->
+    <view class="section">
+      <view class="section-title">基本信息</view>
+      
+      <!-- 头像 -->
+      <view class="image-item">
+        <view class="image-label">头像</view>
+        <view class="image-preview" bindtap="chooseAvatar">
+          <image wx:if="{{form.avatar}}" class="preview-img" src="{{form.avatar}}" mode="aspectFill" />
+          <view wx:else class="preview-placeholder">
+            <text class="placeholder-icon">📷</text>
+            <text class="placeholder-text">点击上传头像</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 封面图 -->
+      <view class="image-item">
+        <view class="image-label">主页封面</view>
+        <view class="cover-preview" bindtap="chooseCover">
+          <image wx:if="{{form.coverImage}}" class="preview-img" src="{{form.coverImage}}" mode="aspectFill" />
+          <view wx:else class="preview-placeholder">
+            <text class="placeholder-icon">🖼️</text>
+            <text class="placeholder-text">点击上传封面图</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 昵称 -->
+      <view class="input-item">
+        <view class="input-label">
+          <text class="required">*</text>
+          <text>昵称</text>
+        </view>
+        <input 
+          class="input-field"
+          placeholder="请输入昵称（2-20字符）"
+          value="{{form.nickname}}"
+          maxlength="20"
+          bindinput="onNicknameInput"
+        />
+      </view>
+
+      <!-- 性别 -->
+      <view class="picker-item">
+        <view class="picker-label">性别</view>
+        <picker mode="selector" range="{{genderOptions}}" value="{{genderIndex}}" bindchange="onGenderChange">
+          <view class="picker-value">
+            <text>{{genderOptions[genderIndex]}}</text>
+            <text class="picker-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 个人简介 -->
+      <view class="textarea-item">
+        <view class="textarea-label">个人简介</view>
+        <textarea 
+          class="textarea-field"
+          placeholder="一句话介绍自己..."
+          value="{{form.bio}}"
+          maxlength="100"
+          auto-height
+          bindinput="onBioInput"
+        />
+        <view class="char-count">{{form.bio.length}}/100</view>
+      </view>
+    </view>
+
+    <!-- 主页信息 -->
+    <view class="section">
+      <view class="section-title">主页信息</view>
+
+      <!-- 座右铭 -->
+      <view class="input-item">
+        <view class="input-label">座右铭</view>
+        <input 
+          class="input-field"
+          placeholder="你的座右铭或口号..."
+          value="{{form.motto}}"
+          maxlength="50"
+          bindinput="onMottoInput"
+        />
+      </view>
+
+      <!-- 详细介绍 -->
+      <view class="textarea-item">
+        <view class="textarea-label">详细介绍</view>
+        <textarea 
+          class="textarea-field"
+          placeholder="详细介绍自己的背景、经历、特长等..."
+          value="{{form.introduction}}"
+          maxlength="500"
+          auto-height
+          bindinput="onIntroductionInput"
+        />
+        <view class="char-count">{{form.introduction.length}}/500</view>
+      </view>
+    </view>
+
+    <!-- 社交链接 -->
+    <view class="section">
+      <view class="section-title">社交链接</view>
+
+      <view class="input-item">
+        <view class="input-label">
+          <text class="social-icon">🌐</text>
+          <text>个人网站</text>
+        </view>
+        <input 
+          class="input-field"
+          placeholder="https://..."
+          value="{{form.website}}"
+          bindinput="onWebsiteInput"
+        />
+      </view>
+
+      <view class="input-item">
+        <view class="input-label">
+          <text class="social-icon">💻</text>
+          <text>GitHub</text>
+        </view>
+        <input 
+          class="input-field"
+          placeholder="GitHub用户名或链接"
+          value="{{form.github}}"
+          bindinput="onGithubInput"
+        />
+      </view>
+
+      <view class="input-item">
+        <view class="input-label">
+          <text class="social-icon">📺</text>
+          <text>B站</text>
+        </view>
+        <input 
+          class="input-field"
+          placeholder="B站用户名或链接"
+          value="{{form.bilibili}}"
+          bindinput="onBilibiliInput"
+        />
+      </view>
+
+      <view class="input-item">
+        <view class="input-label">
+          <text class="social-icon">💬</text>
+          <text>微信</text>
+        </view>
+        <input 
+          class="input-field"
+          placeholder="微信号"
+          value="{{form.wechat}}"
+          bindinput="onWechatInput"
+        />
+      </view>
+    </view>
+
+    <!-- 学校信息 -->
+    <view class="section">
+      <view class="section-title">学校信息</view>
+
+      <view class="input-item">
+        <view class="input-label">学校</view>
+        <input 
+          class="input-field"
+          placeholder="请输入学校名称"
+          value="{{form.school}}"
+          bindinput="onSchoolInput"
+        />
+      </view>
+
+      <view class="input-item">
+        <view class="input-label">专业</view>
+        <input 
+          class="input-field"
+          placeholder="请输入专业"
+          value="{{form.major}}"
+          bindinput="onMajorInput"
+        />
+      </view>
+
+      <view class="input-item">
+        <view class="input-label">年级</view>
+        <input 
+          class="input-field"
+          placeholder="如：2021级"
+          value="{{form.grade}}"
+          bindinput="onGradeInput"
+        />
+      </view>
+    </view>
+
+    <!-- 技能标签 -->
+    <view class="section">
+      <view class="section-title">技能标签</view>
+      
+      <view class="tags-container">
+        <view 
+          wx:for="{{form.skills}}"
+          wx:key="*this"
+          class="tag-item"
+        >
+          <text class="tag-text">{{item}}</text>
+          <text 
+            class="tag-delete"
+            catchtap="deleteSkill"
+            data-index="{{index}}"
+          >×</text>
+        </view>
+      </view>
+
+      <view class="tag-input-container">
+        <input 
+          class="tag-input"
+          placeholder="输入技能标签"
+          value="{{skillInput}}"
+          bindinput="onSkillInput"
+        />
+        <button class="tag-add-btn" bindtap="addSkill">添加</button>
+      </view>
+    </view>
+
+    <!-- 兴趣标签 -->
+    <view class="section">
+      <view class="section-title">兴趣爱好</view>
+      
+      <view class="tags-container">
+        <view 
+          wx:for="{{form.interests}}"
+          wx:key="*this"
+          class="tag-item"
+        >
+          <text class="tag-text">{{item}}</text>
+          <text 
+            class="tag-delete"
+            catchtap="deleteInterest"
+            data-index="{{index}}"
+          >×</text>
+        </view>
+      </view>
+
+      <view class="tag-input-container">
+        <input 
+          class="tag-input"
+          placeholder="输入兴趣标签"
+          value="{{interestInput}}"
+          bindinput="onInterestInput"
+        />
+        <button class="tag-add-btn" bindtap="addInterest">添加</button>
+      </view>
+    </view>
+
+    <!-- 保存按钮 -->
+    <view class="save-section">
+      <button 
+        class="save-btn {{submitting ? 'submitting' : ''}}"
+        bindtap="saveProfile"
+        disabled="{{submitting}}"
+      >
+        <text wx:if="{{submitting}}">保存中...</text>
+        <text wx:else>保存资料</text>
+      </button>
+    </view>
+  </view>
+</view>
