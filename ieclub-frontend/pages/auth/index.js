@@ -656,10 +656,8 @@ Page({
    * 跳转到忘记密码
    */
   goToForgotPassword() {
-    wx.showToast({
-      title: '功能开发中',
-      icon: 'none',
-      duration: 1500
+    wx.navigateTo({
+      url: '/pages/forgot-password/index'
     })
   },
 
