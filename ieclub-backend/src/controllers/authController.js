@@ -2154,7 +2154,6 @@ class AuthController {
           exp: true,
           credits: true,
           isCertified: true,
-          hasPassword: true,
           createdAt: true
         }
       });

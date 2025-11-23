@@ -119,7 +119,7 @@ class UserController {
               topics: true,
               followers: true,
               follows: true,
-              ownedProjects: true
+              projects: true
             }
           }
         }
@@ -245,7 +245,7 @@ class UserController {
           topicCount: user._count.topics,
           followerCount: user._count.followers,
           followingCount: user._count.follows,
-          projectCount: user._count.ownedProjects
+          projectCount: user._count.projects
         },
         isFollowing,
         content: contentData
