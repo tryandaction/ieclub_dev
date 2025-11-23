@@ -251,8 +251,14 @@ class UserController {
         content: contentData
       });
     } catch (error) {
-      logger.error('获取用户信息失败:', error);
-      return response.serverError(res);
+      logger.error('获取用户信息失败:', {
+        error: error.message,
+        code: error.code,
+        meta: error.meta,
+        stack: error.stack,
+        userId: req.params.userId
+      });
+      return response.serverError(res, error.message);
     }
   }
 
