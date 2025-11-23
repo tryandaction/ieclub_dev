@@ -201,16 +201,9 @@ app.get('/api/test', (req, res) => {
 
 // API 路由
 try {
-  logger.info('⏭️  暂时跳过routes加载进行调试');
-  // TODO: 修复routes加载问题后取消注释
-  // const routes = require('./routes');
-  // app.use('/api', routes);
-  // logger.info('✅ 路由加载成功');
-  
-  // 临时测试路由
-  app.get('/api/health', (req, res) => {
-    res.json({ success: true, message: 'Server is running (debug mode - routes disabled)' });
-  });
+  const routes = require('./routes');
+  app.use('/api', routes);
+  logger.info('✅ 路由加载成功');
 } catch (error) {
   logger.error('❌ 路由加载失败:', error);
   process.exit(1); // 路由加载失败应该退出
