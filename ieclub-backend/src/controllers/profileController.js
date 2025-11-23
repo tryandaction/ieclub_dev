@@ -334,8 +334,8 @@ exports.getUserStats = async (req, res, next) => {
     }
 
     // 获取各类型发布数量
-    const postStats = await prisma.post.groupBy({
-      by: ['type'],
+    const postStats = await prisma.topic.groupBy({
+      by: ['category'],
       where: {
         authorId: userId,
         status: 'published'
@@ -344,20 +344,20 @@ exports.getUserStats = async (req, res, next) => {
     })
 
     // 获取总浏览量、总点赞数
-    const postAggregates = await prisma.post.aggregate({
+    const postAggregates = await prisma.topic.aggregate({
       where: {
         authorId: userId,
         status: 'published'
       },
       _sum: {
-        viewsCount: true,
-        likesCount: true,
-        commentsCount: true
+        viewCount: true,
+        likeCount: true,
+        commentCount: true
       }
     })
 
     // 获取最近活跃时间
-    const recentPost = await prisma.post.findFirst({
+    const recentPost = await prisma.topic.findFirst({
       where: {
         authorId: userId,
         status: 'published'
@@ -368,13 +368,13 @@ exports.getUserStats = async (req, res, next) => {
 
     const stats = {
       postsByType: postStats.reduce((acc, item) => {
-        acc[item.type] = item._count
+        acc[item.category || 'other'] = item._count
         return acc
       }, {}),
       totalPosts: postStats.reduce((sum, item) => sum + item._count, 0),
-      totalViews: postAggregates._sum.viewsCount || 0,
-      totalLikes: postAggregates._sum.likesCount || 0,
-      totalComments: postAggregates._sum.commentsCount || 0,
+      totalViews: postAggregates._sum.viewCount || 0,
+      totalLikes: postAggregates._sum.likeCount || 0,
+      totalComments: postAggregates._sum.commentCount || 0,
       lastActiveAt: recentPost?.createdAt || null
     }
 
