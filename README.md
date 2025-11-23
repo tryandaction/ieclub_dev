@@ -611,14 +611,14 @@ IEclub_dev/
 - **API**: https://ieclub.online/api
 - **健康检查**: https://ieclub.online/api/health
 
-### 📚 详细文档
+### 详细文档
 
-#### 🔥 必读文档
+#### 必读文档
 - [REMIND.md](REMIND.md) - **重要提醒和快速参考**（必读⭐）
 - [文档索引](docs/INDEX.md) - **所有文档导航**（推荐⭐）
 - [部署指南](docs/deployment/Deployment_guide.md) - 完整部署流程
 
-#### 💻 开发相关
+#### 开发相关
 - [后端快速开始](ieclub-backend/QUICK_START.md) - 后端开发快速上手
 - [后端README](ieclub-backend/README.md) - 后端项目说明
 - [管理员系统](ieclub-backend/scripts/README.md) - 管理员账号管理
