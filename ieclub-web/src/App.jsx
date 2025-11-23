@@ -24,6 +24,7 @@ import Feedback from './pages/Feedback'
 import MyFeedback from './pages/MyFeedback'
 import Settings from './pages/Settings'
 import MyTopics from './pages/MyTopics'
+import MyFavorites from './pages/MyFavorites'
 import useLoadingStore from './stores/loadingStore'
 
 function App() {
@@ -56,6 +57,7 @@ function App() {
             <Route path="publish" element={<ProtectedRoute><Publish /></ProtectedRoute>} />
             <Route path="profile/:userId" element={<Profile />} />
             <Route path="my-topics" element={<ProtectedRoute><MyTopics /></ProtectedRoute>} />
+            <Route path="my-favorites" element={<ProtectedRoute><MyFavorites /></ProtectedRoute>} />
             <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="set-password" element={<ProtectedRoute><SetPassword /></ProtectedRoute>} />
             <Route path="change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />

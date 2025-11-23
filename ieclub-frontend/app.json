@@ -10,6 +10,7 @@
     "pages/forgot-password/index",
     "pages/account-security/index",
     "pages/my-topics/index",
+    "pages/my-favorites/index",
     "pages/settings/set-password/index",
     "pages/settings/change-password/index",
     "pages/settings/account-binding/index"

@@ -1,0 +1,129 @@
+<!--pages/my-favorites/index.wxml-->
+<view class="my-favorites-page">
+  <!-- 页面头部 -->
+  <view class="page-header">
+    <view class="header-content">
+      <view class="header-title">
+        <text class="title-icon">⭐</text>
+        <text class="title-text">我的收藏</text>
+      </view>
+      <view class="header-subtitle">
+        <text>共收藏 {{total}} 个话题</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 收藏列表 -->
+  <view class="favorites-container">
+    <!-- 加载中骨架屏 -->
+    <view wx:if="{{loading && topics.length === 0}}" class="skeleton-list">
+      <view class="skeleton-item" wx:for="{{[1,2,3]}}" wx:key="*this">
+        <view class="skeleton-header">
+          <view class="skeleton-title"></view>
+          <view class="skeleton-time"></view>
+        </view>
+        <view class="skeleton-content"></view>
+        <view class="skeleton-footer">
+          <view class="skeleton-tag"></view>
+          <view class="skeleton-tag"></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 收藏话题列表 -->
+    <view wx:if="{{!isEmpty && topics.length > 0}}" class="topic-list">
+      <view 
+        class="topic-card"
+        wx:for="{{topics}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+      >
+        <!-- 话题内容区域（可点击） -->
+        <view 
+          class="topic-content-area"
+          bindtap="goToTopicDetail"
+          data-id="{{item.id}}"
+          hover-class="topic-content-hover"
+        >
+          <!-- 话题头部 -->
+          <view class="topic-header">
+            <view class="topic-category">
+              <text class="category-icon">{{item.category === 'demand' ? '🔍' : item.category === 'supply' ? '💡' : '📢'}}</text>
+              <text class="category-text">
+                {{item.category === 'demand' ? '需求' : item.category === 'supply' ? '供给' : '普通'}}
+              </text>
+            </view>
+            <text class="bookmark-time">{{item.bookmarkedAt}}</text>
+          </view>
+
+          <!-- 话题标题 -->
+          <view class="topic-title">{{item.title}}</view>
+
+          <!-- 话题内容 -->
+          <view class="topic-content">{{item.content}}</view>
+
+          <!-- 话题标签 -->
+          <view wx:if="{{item.tags && item.tags.length > 0}}" class="topic-tags">
+            <view class="tag-item" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">
+              #{{tag}}
+            </view>
+          </view>
+
+          <!-- 话题数据 -->
+          <view class="topic-stats">
+            <view class="stat-badge">
+              <text class="stat-icon">👍</text>
+              <text class="stat-count">{{item._count.likes || 0}}</text>
+            </view>
+            <view class="stat-badge">
+              <text class="stat-icon">💬</text>
+              <text class="stat-count">{{item._count.comments || 0}}</text>
+            </view>
+            <view class="stat-badge">
+              <text class="stat-icon">👁</text>
+              <text class="stat-count">{{item.viewsCount || 0}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 操作按钮区域 -->
+        <view class="topic-actions">
+          <button 
+            class="unbookmark-btn"
+            bindtap="handleUnbookmark"
+            data-id="{{item.id}}"
+            data-index="{{index}}"
+            hover-class="unbookmark-btn-hover"
+          >
+            <text class="btn-icon">💔</text>
+            <text>取消收藏</text>
+          </button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:if="{{isEmpty && !loading}}" class="empty-state">
+      <text class="empty-icon">📭</text>
+      <text class="empty-title">还没有收藏内容</text>
+      <text class="empty-desc">去广场发现感兴趣的话题吧</text>
+      <button class="empty-btn" bindtap="goToPlaza">
+        <text class="btn-icon">🔍</text>
+        <text>去发现</text>
+      </button>
+    </view>
+
+    <!-- 加载更多 -->
+    <view wx:if="{{topics.length > 0}}" class="load-more">
+      <view wx:if="{{loading}}" class="loading-text">
+        <text class="loading-icon">⏳</text>
+        <text>加载中...</text>
+      </view>
+      <view wx:elif="{{!hasMore}}" class="no-more-text">
+        <text class="divider-line"></text>
+        <text class="no-more-label">没有更多了</text>
+        <text class="divider-line"></text>
+      </view>
+    </view>
+  </view>
+</view>

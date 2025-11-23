@@ -470,6 +470,13 @@ router.get('/users/:id/comments',
   UserController.getUserComments
 );
 
+// 获取我的收藏列表（需要认证，API限制）
+router.get('/me/bookmarks', 
+  authenticate,
+  rateLimiters.api, 
+  UserController.getMyBookmarks
+);
+
 // ==================== Search Routes ====================
 const searchControllerV2 = require('../controllers/searchControllerV2');
 

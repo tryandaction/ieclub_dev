@@ -116,7 +116,9 @@ mixinPage({
 
   // 跳转到我的收藏
   goToFavorites() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.navigateTo({
+      url: '/pages/my-favorites/index'
+    })
   },
 
   // 跳转到参与的活动
