@@ -1112,7 +1112,7 @@ class AuthController {
         logger.info('使用验证码重置密码:', { email, codeLength: code.length });
         
         // 验证邮箱格式与域名限制
-        const emailCheck = checkEmailAllowed(email, 'reset');
+        const emailCheck = await checkEmailAllowed(email, 'reset');
         if (!emailCheck.valid) {
           return res.status(400).json({
             success: false,
@@ -1203,25 +1203,17 @@ class AuthController {
       // 加密新密码
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-      // 更新密码并递增 tokenVersion（使所有设备重新登录）
+      // 更新密码
       await prisma.user.update({
         where: { id: userId },
         data: { 
           password: hashedPassword,
-          tokenVersion: user.tokenVersion + 1,
-          refreshToken: null, // 清除旧的 refresh token
           updatedAt: new Date()
         }
       });
 
-      // 生成新的 token 对
-      const tokens = generateTokenPair({ ...user, tokenVersion: user.tokenVersion + 1 });
-
-      // 保存新的 refresh token
-      await prisma.user.update({
-        where: { id: userId },
-        data: { refreshToken: tokens.refreshToken }
-      });
+      // 生成新的 token 对（用于用户重新登录）
+      const tokens = generateTokenPair(user);
 
       logger.info('用户重置密码成功:', { userId, email: user.email });
 
