@@ -19,6 +19,7 @@
     "pages/settings/index",
     "pages/edit-profile/index",
     "pages/user-profile/index",
+    "pages/my-stats/index",
     "pages/settings/set-password/index",
     "pages/settings/change-password/index",
     "pages/settings/account-binding/index"

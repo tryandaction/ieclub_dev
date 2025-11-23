@@ -1,0 +1,165 @@
+<!--pages/my-stats/index.wxml-->
+<view class="my-stats-page">
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading-state">
+    <text class="loading-icon">⏳</text>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <scroll-view wx:else scroll-y class="content-scroll" enable-back-to-top>
+    <!-- 用户信息头部 -->
+    <view class="header-section">
+      <view class="user-avatar">
+        <image wx:if="{{userInfo.avatar}}" class="avatar-img" src="{{userInfo.avatar}}" mode="aspectFill" />
+        <text wx:else class="avatar-placeholder">👤</text>
+      </view>
+      <view class="user-info">
+        <text class="user-name">{{userInfo.nickname || '用户'}}</text>
+        <view class="level-badge">
+          <text class="level-text">LV{{growthData.level}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 成长数据卡片 -->
+    <view class="section growth-section">
+      <view class="section-header">
+        <text class="section-icon">📈</text>
+        <text class="section-title">成长数据</text>
+      </view>
+      
+      <view class="growth-card">
+        <!-- 等级进度 -->
+        <view class="growth-item">
+          <view class="growth-label">
+            <text class="label-icon">⭐</text>
+            <text class="label-text">当前等级</text>
+          </view>
+          <text class="growth-value">LV{{growthData.level}}</text>
+        </view>
+
+        <view class="progress-container">
+          <view class="progress-bar">
+            <view class="progress-fill" style="width: {{growthData.progress}}%"></view>
+          </view>
+          <text class="progress-text">{{growthData.exp}} / {{growthData.expToNext}} EXP</text>
+        </view>
+
+        <!-- 积分 -->
+        <view class="growth-item">
+          <view class="growth-label">
+            <text class="label-icon">💎</text>
+            <text class="label-text">积分余额</text>
+          </view>
+          <text class="growth-value credits">{{growthData.credits}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 数据概览 -->
+    <view class="section overview-section">
+      <view class="section-header">
+        <text class="section-icon">📊</text>
+        <text class="section-title">数据概览</text>
+      </view>
+
+      <view class="overview-grid">
+        <view 
+          wx:for="{{overviewCards}}" 
+          wx:key="label"
+          class="overview-card"
+          style="border-left-color: {{item.color}}"
+        >
+          <text class="card-icon">{{item.icon}}</text>
+          <view class="card-content">
+            <text class="card-value" style="color: {{item.color}}">{{item.value}}</text>
+            <text class="card-label">{{item.label}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 发布类型分布 -->
+    <view wx:if="{{postTypes.length > 0}}" class="section types-section">
+      <view class="section-header">
+        <text class="section-icon">📝</text>
+        <text class="section-title">发布类型分布</text>
+      </view>
+
+      <view class="types-list">
+        <view 
+          wx:for="{{postTypes}}" 
+          wx:key="name"
+          class="type-item"
+        >
+          <view class="type-info">
+            <text class="type-icon">{{item.icon}}</text>
+            <text class="type-name">{{item.name}}</text>
+          </view>
+          <view class="type-stats">
+            <text class="type-count">{{item.count}}篇</text>
+            <text class="type-percentage">{{item.percentage}}%</text>
+          </view>
+          <view class="type-bar">
+            <view 
+              class="type-bar-fill" 
+              style="width: {{item.percentage}}%; background: {{item.color}}"
+            ></view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 活跃度数据 -->
+    <view class="section activity-section">
+      <view class="section-header">
+        <text class="section-icon">🔥</text>
+        <text class="section-title">活跃度</text>
+      </view>
+
+      <view class="activity-card">
+        <view class="activity-item">
+          <text class="activity-label">最近活跃</text>
+          <text class="activity-value">{{activityData.lastActiveAt}}</text>
+        </view>
+        <view class="activity-divider"></view>
+        <view class="activity-item">
+          <text class="activity-label">活跃天数</text>
+          <text class="activity-value highlight">{{activityData.activeDays}}天</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 成就展示 -->
+    <view class="section achievements-section">
+      <view class="section-header">
+        <text class="section-icon">🏆</text>
+        <text class="section-title">我的成就</text>
+      </view>
+
+      <view class="achievements-grid">
+        <view class="achievement-card">
+          <text class="achievement-icon">🎯</text>
+          <text class="achievement-name">活跃用户</text>
+          <text class="achievement-desc">连续活跃7天</text>
+        </view>
+        <view class="achievement-card locked">
+          <text class="achievement-icon">🌟</text>
+          <text class="achievement-name">内容达人</text>
+          <text class="achievement-desc">发布10篇内容</text>
+        </view>
+        <view class="achievement-card locked">
+          <text class="achievement-icon">💪</text>
+          <text class="achievement-name">人气作者</text>
+          <text class="achievement-desc">获得100个点赞</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 提示信息 -->
+    <view class="tips-section">
+      <text class="tips-icon">💡</text>
+      <text class="tips-text">持续发布优质内容，可以获得更多经验和积分哦！</text>
+    </view>
+  </scroll-view>
+</view>

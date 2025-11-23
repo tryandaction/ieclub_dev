@@ -173,6 +173,13 @@ mixinPage({
     })
   },
 
+  // 跳转到数据统计
+  goToMyStats() {
+    wx.navigateTo({
+      url: '/pages/my-stats/index'
+    })
+  },
+
   // 跳转到粉丝列表
   goToFollowers() {
     const userId = this.data.user?.id
