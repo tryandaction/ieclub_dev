@@ -8,10 +8,12 @@
 - 后端: Node.js + Express + Prisma + MySQL
 - 部署: 生产环境 ieclub.online
 
-**当前状态**: 
-- ✅ Web前端功能完整
-- ⚠️ 小程序功能不完整，界面落后
-- ⚠️ 存在登录过期和密码显示问题
+**当前状态** (2025-11-23更新): 
+- ✅ **Web前端**：功能完整，认证系统正常
+- ✅ **后端API**：认证功能已修复，密码登录/重置正常
+- ✅ **小程序界面**：登录页面已优化，底部按钮显示正常
+- ✅ **小程序认证**：密码显示/隐藏功能已实现
+- ⚠️ **小程序其他页面**：需要进一步优化对齐网页版
 
 ---
 
@@ -259,6 +261,33 @@ Write-Host "Redis连接: 已禁用检查（会导致断网）" -ForegroundColor 
 2. 优化小程序界面
 3. 再回来处理Redis监控问题
 4. 可以在后端添加 `/api/health/redis` 接口间接检查
+
+---
+
+## 📁 项目文件结构
+
+### 根目录文件说明
+```
+IEclub_dev/
+├── README.md              # 项目总览和快速开始指南
+├── REMIND.md              # 开发提醒和常用命令
+├── DEVELOPMENT_ROADMAP.md # 开发路线图
+├── AI_HANDOVER.md         # AI开发交接文档（本文件）
+├── docs/                  # 文档目录
+│   ├── DEVELOPMENT_GUIDE.md    # 开发指南
+│   └── archived/          # 历史文档存档
+├── ieclub-web/           # 用户网页端
+├── admin-web/            # 管理后台网页端
+├── ieclub-backend/       # 后端API服务
+├── ieclub-frontend/      # 微信小程序
+└── scripts/              # 部署和工具脚本
+    └── deployment/       # 部署脚本
+```
+
+**文件整理规则**（2025-11-23）：
+- 保留核心文档在根目录
+- 历史文档移至 `docs/archived/`
+- 删除了过时的 `quick-deploy.ps1`（已有完善的部署脚本）
 
 ---
 
