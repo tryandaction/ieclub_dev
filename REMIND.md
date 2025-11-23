@@ -38,7 +38,21 @@ git commit -m "功能描述"
 git push origin develop
 ```
 
-### 2️⃣ 部署到生产环境（推荐使用安全模式）
+### 2️⃣ 部署到生产环境
+
+**⚠️ 当前建议：手动部署**
+```powershell
+# 1. 更新代码
+ssh root@ieclub.online "cd /root/IEclub_dev && git pull origin main"
+
+# 2. 重启服务
+ssh root@ieclub.online "pm2 restart ieclub-backend && pm2 save"
+
+# 3. 检查状态
+ssh root@ieclub.online "pm2 status && pm2 logs ieclub-backend --lines 20"
+```
+
+**自动化部署脚本（谨慎使用）**
 
 **⭐ 推荐方式 - 使用极简安全检查（避免断网）**:
 ```powershell
@@ -54,7 +68,21 @@ cd scripts\deployment
 .\Deploy-Production.ps1 -Target all -Message "更新说明" -SkipHealthCheck -SkipGitPush
 
 
-### 3️⃣ 查看服务器状态
+### 3️⃣ 调试500错误
+
+**当前Auth/Topics等API返回500错误**：
+```powershell
+# 查看详细错误日志
+ssh root@ieclub.online "pm2 logs ieclub-backend --lines 100 | grep -i error"
+
+# 测试数据库连接
+ssh root@ieclub.online "cd /root/IEclub_dev/ieclub-backend && npx prisma db pull"
+
+# 检查表结构
+ssh root@ieclub.online "cd /root/IEclub_dev/ieclub-backend && npx prisma studio"
+```
+
+### 4️⃣ 查看服务器状态
 ```powershell
 # 登录服务器
 ssh root@ieclub.online
