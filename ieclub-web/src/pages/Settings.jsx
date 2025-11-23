@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Bell, Lock, Eye, EyeOff, Shield, Info, Trash2 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { changePassword, bindPhone, unbindPhone, bindWechat, unbindWechat, sendPhoneCode } from '../api/auth'
-import { request } from '../utils/request'
+import request from '../utils/request'
 import { showToast } from '../components/Toast'
 
 export default function Settings() {
