@@ -1,0 +1,202 @@
+<!--pages/forgot-password/index.wxml-->
+<view class="forgot-password-page">
+  <!-- 顶部进度指示器 -->
+  <view class="steps-indicator">
+    <view class="step-item {{step >= 1 ? 'active' : ''}}">
+      <view class="step-circle">
+        <text class="step-number">1</text>
+      </view>
+      <text class="step-label">验证邮箱</text>
+    </view>
+    <view class="step-line {{step >= 2 ? 'active' : ''}}"></view>
+    <view class="step-item {{step >= 2 ? 'active' : ''}}">
+      <view class="step-circle">
+        <text class="step-number">2</text>
+      </view>
+      <text class="step-label">验证验证码</text>
+    </view>
+    <view class="step-line {{step >= 3 ? 'active' : ''}}"></view>
+    <view class="step-item {{step >= 3 ? 'active' : ''}}">
+      <view class="step-circle">
+        <text class="step-number">3</text>
+      </view>
+      <text class="step-label">重置密码</text>
+    </view>
+  </view>
+
+  <!-- 内容区域 -->
+  <view class="content-area">
+    <!-- 步骤1: 发送验证码 -->
+    <view wx:if="{{step === 1}}" class="step-content animated-fade-in">
+      <view class="step-header">
+        <text class="step-icon">📧</text>
+        <text class="step-title">验证您的邮箱</text>
+        <text class="step-desc">请输入您的注册邮箱，我们将发送验证码</text>
+      </view>
+
+      <view class="form-section">
+        <view class="form-item {{errors.email ? 'error' : ''}}">
+          <view class="form-label">
+            <text class="label-icon">📧</text>
+            <text class="label-text">邮箱地址</text>
+          </view>
+          <view class="input-wrapper">
+            <input 
+              class="form-input" 
+              type="text"
+              placeholder="请输入学校邮箱"
+              placeholder-class="input-placeholder"
+              value="{{email}}"
+              bindinput="onEmailInput"
+              maxlength="50"
+            />
+          </view>
+          <view class="error-message" wx:if="{{errors.email}}">
+            <text class="error-icon">⚠️</text>
+            <text class="error-text">{{errors.email}}</text>
+          </view>
+        </view>
+
+        <button 
+          class="submit-btn primary-btn {{codeSending ? 'loading' : ''}}"
+          bindtap="handleSendCode"
+          disabled="{{codeSending}}"
+          hover-class="btn-hover"
+        >
+          <text class="btn-text">{{codeSending ? '发送中...' : '发送验证码'}}</text>
+        </button>
+      </view>
+    </view>
+
+    <!-- 步骤2: 验证验证码 -->
+    <view wx:if="{{step === 2}}" class="step-content animated-fade-in">
+      <view class="step-header">
+        <text class="step-icon">🔢</text>
+        <text class="step-title">输入验证码</text>
+        <text class="step-desc">验证码已发送至 {{email}}</text>
+      </view>
+
+      <view class="form-section">
+        <view class="form-item {{errors.code ? 'error' : ''}}">
+          <view class="form-label">
+            <text class="label-icon">🔢</text>
+            <text class="label-text">验证码</text>
+          </view>
+          <view class="input-wrapper code-wrapper">
+            <input 
+              class="form-input code-input" 
+              type="number"
+              placeholder="请输入6位验证码"
+              placeholder-class="input-placeholder"
+              value="{{code}}"
+              bindinput="onCodeInput"
+              maxlength="6"
+            />
+            <button 
+              class="code-btn {{countdown > 0 ? 'disabled' : ''}}"
+              bindtap="resendCode"
+              disabled="{{countdown > 0}}"
+              hover-class="code-btn-hover"
+            >
+              <text wx:if="{{countdown > 0}}">{{countdown}}s</text>
+              <text wx:else>重新发送</text>
+            </button>
+          </view>
+          <view class="error-message" wx:if="{{errors.code}}">
+            <text class="error-icon">⚠️</text>
+            <text class="error-text">{{errors.code}}</text>
+          </view>
+        </view>
+
+        <button 
+          class="submit-btn primary-btn {{verifying ? 'loading' : ''}}"
+          bindtap="handleVerifyCode"
+          disabled="{{verifying}}"
+          hover-class="btn-hover"
+        >
+          <text class="btn-text">{{verifying ? '验证中...' : '下一步'}}</text>
+        </button>
+      </view>
+    </view>
+
+    <!-- 步骤3: 重置密码 -->
+    <view wx:if="{{step === 3}}" class="step-content animated-fade-in">
+      <view class="step-header">
+        <text class="step-icon">🔒</text>
+        <text class="step-title">设置新密码</text>
+        <text class="step-desc">请设置一个安全的新密码</text>
+      </view>
+
+      <view class="form-section">
+        <!-- 新密码 -->
+        <view class="form-item {{errors.newPassword ? 'error' : ''}}">
+          <view class="form-label">
+            <text class="label-icon">🔒</text>
+            <text class="label-text">新密码</text>
+          </view>
+          <view class="input-wrapper">
+            <input 
+              class="form-input password-input"
+              password="{{!showPassword}}"
+              placeholder="请输入新密码（6-20位）"
+              placeholder-class="input-placeholder"
+              value="{{newPassword}}"
+              bindinput="onNewPasswordInput"
+              maxlength="20"
+            />
+            <view class="eye-icon" bindtap="togglePassword">
+              <text>{{showPassword ? '👁️' : '👁️‍🗨️'}}</text>
+            </view>
+          </view>
+          <view class="error-message" wx:if="{{errors.newPassword}}">
+            <text class="error-icon">⚠️</text>
+            <text class="error-text">{{errors.newPassword}}</text>
+          </view>
+        </view>
+
+        <!-- 确认密码 -->
+        <view class="form-item {{errors.confirmPassword ? 'error' : ''}}">
+          <view class="form-label">
+            <text class="label-icon">🔐</text>
+            <text class="label-text">确认密码</text>
+          </view>
+          <view class="input-wrapper">
+            <input 
+              class="form-input password-input"
+              password="{{!showConfirmPassword}}"
+              placeholder="请再次输入密码"
+              placeholder-class="input-placeholder"
+              value="{{confirmPassword}}"
+              bindinput="onConfirmPasswordInput"
+              maxlength="20"
+            />
+            <view class="eye-icon" bindtap="toggleConfirmPassword">
+              <text>{{showConfirmPassword ? '👁️' : '👁️‍🗨️'}}</text>
+            </view>
+          </view>
+          <view class="error-message" wx:if="{{errors.confirmPassword}}">
+            <text class="error-icon">⚠️</text>
+            <text class="error-text">{{errors.confirmPassword}}</text>
+          </view>
+        </view>
+
+        <button 
+          class="submit-btn primary-btn {{resetting ? 'loading' : ''}}"
+          bindtap="handleResetPassword"
+          disabled="{{resetting}}"
+          hover-class="btn-hover"
+        >
+          <text class="btn-text">{{resetting ? '重置中...' : '完成重置'}}</text>
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部返回按钮 -->
+  <view class="footer-actions">
+    <button class="back-btn" bindtap="goBack" hover-class="back-btn-hover">
+      <text class="back-icon">‹</text>
+      <text class="back-text">{{step > 1 ? '上一步' : '返回登录'}}</text>
+    </button>
+  </view>
+</view>

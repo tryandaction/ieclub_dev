@@ -7,6 +7,7 @@
     "pages/activities/index",
     "pages/profile/index",
     "pages/login/index",
+    "pages/forgot-password/index",
     "pages/settings/set-password/index",
     "pages/settings/change-password/index",
     "pages/settings/account-binding/index"
