@@ -28,6 +28,7 @@ import MyFavorites from './pages/MyFavorites'
 import MyFollowing from './pages/MyFollowing'
 import MyFollowers from './pages/MyFollowers'
 import MyActivities from './pages/MyActivities'
+import About from './pages/About'
 import useLoadingStore from './stores/loadingStore'
 
 function App() {
@@ -73,6 +74,7 @@ function App() {
             <Route path="notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
             <Route path="feedback" element={<Feedback />} />
             <Route path="feedback/my" element={<ProtectedRoute><MyFeedback /></ProtectedRoute>} />
+            <Route path="about" element={<About />} />
           </Route>
         </Routes>
       </ErrorBoundary>

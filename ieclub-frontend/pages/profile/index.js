@@ -157,7 +157,9 @@ mixinPage({
 
   // 跳转到关于我们
   goToAbout() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.navigateTo({
+      url: '/pages/about/index'
+    })
   },
 
   // 跳转到粉丝列表

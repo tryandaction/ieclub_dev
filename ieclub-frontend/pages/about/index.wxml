@@ -1,0 +1,125 @@
+<!--pages/about/index.wxml-->
+<view class="about-page">
+  <!-- Logo和标题 -->
+  <view class="hero-section">
+    <view class="logo-container">
+      <text class="logo">🚀</text>
+    </view>
+    <view class="app-name">{{appInfo.name}}</view>
+    <view class="app-version">v{{appInfo.version}}</view>
+    <view class="app-slogan">{{appInfo.slogan}}</view>
+  </view>
+
+  <!-- 简介 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-icon">📖</text>
+      <text class="title-text">关于平台</text>
+    </view>
+    <view class="description-card">
+      <text class="description-text">{{appInfo.description}}</text>
+    </view>
+  </view>
+
+  <!-- 核心功能 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-icon">✨</text>
+      <text class="title-text">核心功能</text>
+    </view>
+    <view class="features-grid">
+      <view class="feature-card" wx:for="{{features}}" wx:key="title">
+        <text class="feature-icon">{{item.icon}}</text>
+        <text class="feature-title">{{item.title}}</text>
+        <text class="feature-desc">{{item.desc}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 数据统计 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-icon">📊</text>
+      <text class="title-text">平台数据</text>
+    </view>
+    <view class="stats-grid">
+      <view class="stat-item">
+        <text class="stat-value">{{stats.users}}</text>
+        <text class="stat-label">注册用户</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-value">{{stats.topics}}</text>
+        <text class="stat-label">话题数</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-value">{{stats.activities}}</text>
+        <text class="stat-label">活动数</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 团队介绍 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-icon">👨‍💻</text>
+      <text class="title-text">团队介绍</text>
+    </view>
+    <view class="team-list">
+      <view class="team-card" wx:for="{{team}}" wx:key="role">
+        <view class="team-role">{{item.role}}</view>
+        <view class="team-name">{{item.name}}</view>
+        <view class="team-desc">{{item.desc}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 联系方式 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-icon">📧</text>
+      <text class="title-text">联系我们</text>
+    </view>
+    <view class="contact-list">
+      <view class="contact-item" bindtap="copyText" data-text="{{contact.email}}">
+        <view class="contact-left">
+          <text class="contact-icon">📮</text>
+          <view class="contact-info">
+            <text class="contact-label">邮箱</text>
+            <text class="contact-value">{{contact.email}}</text>
+          </view>
+        </view>
+        <text class="contact-action">复制</text>
+      </view>
+      
+      <view class="contact-item" bindtap="openLink" data-url="{{contact.website}}">
+        <view class="contact-left">
+          <text class="contact-icon">🌐</text>
+          <view class="contact-info">
+            <text class="contact-label">官网</text>
+            <text class="contact-value">{{contact.website}}</text>
+          </view>
+        </view>
+        <text class="contact-action">访问</text>
+      </view>
+      
+      <view class="contact-item" bindtap="openLink" data-url="{{contact.github}}">
+        <view class="contact-left">
+          <text class="contact-icon">💻</text>
+          <view class="contact-info">
+            <text class="contact-label">GitHub</text>
+            <text class="contact-value">开源项目</text>
+          </view>
+        </view>
+        <text class="contact-action">查看</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 版权信息 -->
+  <view class="footer">
+    <text class="copyright">© 2024 IEClub. All rights reserved.</text>
+    <text class="made-with">Made with ❤️ by IEClub Team</text>
+  </view>
+</view>
