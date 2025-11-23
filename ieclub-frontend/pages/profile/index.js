@@ -152,7 +152,9 @@ mixinPage({
 
   // 跳转到意见反馈
   goToFeedback() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+    wx.navigateTo({
+      url: '/pages/feedback/index'
+    })
   },
 
   // 跳转到关于我们

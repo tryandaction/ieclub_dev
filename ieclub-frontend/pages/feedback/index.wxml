@@ -1,0 +1,205 @@
+<!--pages/feedback/index.wxml-->
+<view class="feedback-page">
+  <!-- Tab切换 -->
+  <view class="tabs-header">
+    <view 
+      wx:for="{{tabs}}" 
+      wx:key="*this"
+      class="tab-item {{currentTab === index ? 'active' : ''}}"
+      bindtap="switchTab"
+      data-index="{{index}}"
+    >
+      <text class="tab-text">{{item}}</text>
+      <view wx:if="{{currentTab === index}}" class="tab-indicator"></view>
+    </view>
+  </view>
+
+  <!-- 提交反馈Tab -->
+  <view wx:if="{{currentTab === 0}}" class="submit-tab">
+    <!-- 反馈类型选择 -->
+    <view class="section">
+      <view class="section-title">
+        <text class="required">*</text>
+        <text>反馈类型</text>
+      </view>
+      <view class="types-grid">
+        <view 
+          wx:for="{{types}}"
+          wx:key="value"
+          class="type-card {{form.type === item.value ? 'active' : ''}}"
+          bindtap="selectType"
+          data-type="{{item.value}}"
+        >
+          <text class="type-icon">{{item.icon}}</text>
+          <text class="type-label">{{item.label}}</text>
+          <text class="type-desc">{{item.desc}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 标题 -->
+    <view class="section">
+      <view class="section-title">
+        <text class="required">*</text>
+        <text>标题</text>
+        <text class="title-tip">(5-100字符)</text>
+      </view>
+      <input 
+        class="input-field"
+        placeholder="简要描述你的问题或建议"
+        value="{{form.title}}"
+        maxlength="100"
+        bindinput="onTitleInput"
+      />
+      <view class="char-count">{{form.title.length}}/100</view>
+    </view>
+
+    <!-- 内容 -->
+    <view class="section">
+      <view class="section-title">
+        <text class="required">*</text>
+        <text>详细描述</text>
+        <text class="title-tip">(10-2000字符)</text>
+      </view>
+      <textarea 
+        class="textarea-field"
+        placeholder="请详细描述问题的具体情况、复现步骤或功能建议..."
+        value="{{form.content}}"
+        maxlength="2000"
+        auto-height
+        bindinput="onContentInput"
+      />
+      <view class="char-count">{{form.content.length}}/2000</view>
+    </view>
+
+    <!-- 上传图片 -->
+    <view class="section">
+      <view class="section-title">
+        <text>截图/附件</text>
+        <text class="title-tip">(可选，最多5张)</text>
+      </view>
+      <view class="images-container">
+        <view 
+          wx:for="{{form.images}}"
+          wx:key="*this"
+          class="image-item"
+        >
+          <image 
+            class="preview-image" 
+            src="{{item}}" 
+            mode="aspectFill"
+            bindtap="previewImage"
+            data-url="{{item}}"
+          />
+          <view 
+            class="delete-btn"
+            catchtap="deleteImage"
+            data-index="{{index}}"
+          >
+            <text class="delete-icon">×</text>
+          </view>
+        </view>
+        
+        <view 
+          wx:if="{{form.images.length < 5}}"
+          class="add-image-btn"
+          bindtap="chooseImage"
+        >
+          <text class="add-icon">+</text>
+          <text class="add-text">添加图片</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 联系方式 -->
+    <view class="section">
+      <view class="section-title">
+        <text>联系方式</text>
+        <text class="title-tip">(可选)</text>
+      </view>
+      <input 
+        class="input-field"
+        placeholder="邮箱或微信号，便于我们联系你"
+        value="{{form.contact}}"
+        maxlength="100"
+        bindinput="onContactInput"
+      />
+    </view>
+
+    <!-- 提交按钮 -->
+    <view class="submit-section">
+      <button 
+        class="submit-btn {{submitting ? 'submitting' : ''}}"
+        bindtap="submitFeedback"
+        disabled="{{submitting}}"
+      >
+        <text wx:if="{{submitting}}">提交中...</text>
+        <text wx:else>提交反馈</text>
+      </button>
+      <view class="submit-tip">
+        <text class="tip-icon">💡</text>
+        <text>感谢你的反馈，我们会认真处理每一条意见</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 我的反馈Tab -->
+  <view wx:if="{{currentTab === 1}}" class="my-feedback-tab">
+    <!-- 加载中 -->
+    <view wx:if="{{loading}}" class="loading-state">
+      <text class="loading-icon">⏳</text>
+      <text class="loading-text">加载中...</text>
+    </view>
+
+    <!-- 反馈列表 -->
+    <view wx:elif="{{myFeedbacks.length > 0}}" class="feedback-list">
+      <view 
+        wx:for="{{myFeedbacks}}"
+        wx:key="id"
+        class="feedback-card"
+        bindtap="viewFeedbackDetail"
+        data-id="{{item.id}}"
+        hover-class="feedback-card-hover"
+      >
+        <!-- 头部 -->
+        <view class="feedback-header">
+          <view class="feedback-type">
+            <text class="type-icon">{{item.type === 'bug' ? '🐛' : item.type === 'feature' ? '💡' : item.type === 'improvement' ? '✨' : '💬'}}</text>
+          </view>
+          <view class="feedback-status status-{{item.statusColor}}">
+            <text>{{item.statusText}}</text>
+          </view>
+        </view>
+
+        <!-- 标题 -->
+        <view class="feedback-title">{{item.title}}</view>
+
+        <!-- 内容预览 -->
+        <view class="feedback-content">{{item.content}}</view>
+
+        <!-- 底部信息 -->
+        <view class="feedback-footer">
+          <text class="feedback-time">{{item.timeText}}</text>
+          <view 
+            class="delete-feedback-btn"
+            catchtap="deleteFeedback"
+            data-id="{{item.id}}"
+            data-index="{{index}}"
+          >
+            <text>删除</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:else class="empty-state">
+      <text class="empty-icon">📝</text>
+      <text class="empty-title">还没有提交过反馈</text>
+      <text class="empty-desc">欢迎提出你的宝贵意见</text>
+      <button class="empty-btn" bindtap="switchTab" data-index="0">
+        <text>去提交反馈</text>
+      </button>
+    </view>
+  </view>
+</view>
