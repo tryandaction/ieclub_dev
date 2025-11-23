@@ -23,6 +23,7 @@ import Notifications from './pages/Notifications'
 import Feedback from './pages/Feedback'
 import MyFeedback from './pages/MyFeedback'
 import Settings from './pages/Settings'
+import MyTopics from './pages/MyTopics'
 import useLoadingStore from './stores/loadingStore'
 
 function App() {
@@ -54,6 +55,7 @@ function App() {
             {/* 需要登录的页面 */}
             <Route path="publish" element={<ProtectedRoute><Publish /></ProtectedRoute>} />
             <Route path="profile/:userId" element={<Profile />} />
+            <Route path="my-topics" element={<ProtectedRoute><MyTopics /></ProtectedRoute>} />
             <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="set-password" element={<ProtectedRoute><SetPassword /></ProtectedRoute>} />
             <Route path="change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />

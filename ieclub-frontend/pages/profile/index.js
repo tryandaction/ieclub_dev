@@ -108,8 +108,10 @@ mixinPage({
   },
 
   // 跳转到我的话题
-  goToMyTopics() {
-    wx.showToast({ title: '功能开发中', icon: 'none' })
+  goToTopics() {
+    wx.navigateTo({
+      url: '/pages/my-topics/index'
+    })
   },
 
   // 跳转到我的收藏
