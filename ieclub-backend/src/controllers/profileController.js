@@ -11,92 +11,43 @@ const { AppError } = require('../middleware/errorHandler')
 exports.getUserProfile = async (req, res, next) => {
   try {
     const { userId } = req.params
-    const currentUserId = req.user?.id
-
-    // 验证 userId 参数
-    if (!userId || userId === 'undefined' || userId === 'null') {
-      throw new AppError('用户ID无效', 400)
-    }
-
+    
+    // 最简单查询
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
         nickname: true,
         avatar: true,
-        gender: true,
         bio: true,
-        
-        // 个人主页信息
-        coverImage: true,
-        motto: true,
-        introduction: true,
-        website: true,
-        github: true,
-        bilibili: true,
-        wechat: true,
-        
-        // 学校信息
-        school: true,
-        major: true,
-        grade: true,
-        verified: true,
-        
-        // 技能和兴趣
-        skills: true,
-        interests: true,
-        
-        // 个人成就
-        achievements: true,
-        projectsData: true,
-        
-        // 统计数据
-        level: true,
-        exp: true,
-        credits: true,
-        isCertified: true,
-        
-        // 计数器
-        topicsCount: true,
-        commentsCount: true,
-        likesCount: true,
-        fansCount: true,
-        followsCount: true,
-        
         createdAt: true
       }
     })
 
     if (!user) {
-      throw new AppError('用户不存在', 404)
-    }
-
-    // 检查是否已关注
-    let isFollowing = false
-    if (currentUserId && currentUserId !== userId) {
-      const follow = await prisma.follow.findUnique({
-        where: {
-          followerId_followingId: {
-            followerId: currentUserId,
-            followingId: userId
-          }
-        }
+      return res.status(404).json({
+        success: false,
+        code: 404,
+        message: '用户不存在',
+        timestamp: Date.now()
       })
-      isFollowing = !!follow
     }
 
-    // 返回基本信息（暂时不解析JSON避免错误）
     res.json({
       success: true,
+      code: 200,
       message: '获取用户主页成功',
-      data: {
-        ...user,
-        isFollowing,
-        isOwner: currentUserId === userId
-      }
+      data: user,
+      timestamp: Date.now()
     })
   } catch (error) {
-    next(error)
+    console.log('Profile Error:', error.message, error.stack)
+    res.status(500).json({
+      success: false,
+      code: 500,
+      message: '服务器内部错误: ' + error.message,
+      timestamp: Date.now()
+    })
   }
 }
 

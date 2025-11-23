@@ -63,10 +63,11 @@ router.delete('/comments/:id', authenticate, commentController.deleteComment);
 router.post('/comments/:id/like', authenticate, commentController.likeComment);
 
 // ==================== Users/Profile Routes ====================
-// 挂载profile子路由（包含posts、stats等）
-router.use('/profile', require('./profile'));
-// 向后兼容：保留旧路由
+// 注意：具体路由必须在router.use之前，否则会被拦截
+// 暂时禁用profile子路由，直接使用userController
+// router.use('/profile', require('./profile'));
 router.get('/profile/:userId', optionalAuth, userController.getUserProfile);
+// TODO: 实现getUserPosts和getUserStats方法
 
 // ==================== Upload Routes ====================
 router.delete('/upload/file', authenticate, rateLimiters.api, uploadController.deleteFile);
