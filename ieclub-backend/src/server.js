@@ -10,33 +10,33 @@ const { fullStartupCheck } = require('./utils/startupCheck');
 // 启动服务器
 async function startServer() {
   try {
-    // 启动检查（生产环境已验证数据库和Redis连接，可临时禁用以避免干扰）
-    // await fullStartupCheck();
-    logger.info('✅ 跳过启动检查，服务直接启动');
+    logger.info('🚀 开始启动 IEclub 后端服务...');
     
-    // 测试 Redis 连接
-    const redis = getRedis();
-    await redis.ping();
-    logger.info('Redis 连接正常');
+    // 测试 Redis 连接（带超时保护）
+    try {
+      const redis = getRedis();
+      await Promise.race([
+        redis.ping(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Redis timeout')), 3000))
+      ]);
+      logger.info('✅ Redis 连接正常');
+    } catch (error) {
+      logger.warn('⚠️  Redis 连接失败，但服务继续启动:', error.message);
+    }
 
-    // 启动 HTTP 服务器
-    const server = app.listen(config.port, () => {
+    // 启动 HTTP 服务器（监听所有网络接口）
+    const server = app.listen(config.port, '0.0.0.0', () => {
       logger.info(`🚀 IEclub 后端服务已启动`);
       logger.info(`📍 监听端口: ${config.port}`);
       logger.info(`🌍 环境: ${config.env}`);
       logger.info(`🔗 API 地址: http://localhost:${config.port}/api`);
-      logger.info(`💊 健康检查: http://localhost:${config.port}/health`);
+      logger.info(`💊 健康检查: http://localhost:${config.port}/api/health`);
+      console.log(`✅ Server is running on port ${config.port}`);
     });
 
-    // 启动WebSocket服务
-    const websocketService = require('./services/websocketService');
-    websocketService.start(server);
-    logger.info(`🔌 WebSocket 服务已启动: ws://localhost:${config.port}/ws`);
-
-    // 启动定时任务调度器
-    const scheduler = require('./jobs/scheduler');
-    scheduler.start();
-    logger.info('📅 定时任务调度器已启动');
+    // 设置服务器超时
+    server.timeout = 30000; // 30秒超时
+    server.keepAliveTimeout = 65000; // 65秒 keep-alive
 
     // 处理服务器错误
     server.on('error', (error) => {
@@ -103,11 +103,25 @@ async function startServer() {
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
+    // 未捕获的异常处理
+    process.on('uncaughtException', (error) => {
+      logger.error('未捕获的异常:', error);
+      gracefulShutdown('uncaughtException');
+    });
+
+    process.on('unhandledRejection', (reason, promise) => {
+      logger.error('未处理的 Promise 拒绝:', reason);
+    });
+
   } catch (error) {
     logger.error('服务器启动失败:', error);
+    console.error('❌ Server startup failed:', error);
     process.exit(1);
   }
 }
 
 // 启动服务器
-startServer();
+startServer().catch((error) => {
+  console.error('Fatal error during startup:', error);
+  process.exit(1);
+});
