@@ -488,11 +488,12 @@ router.get('/search/posts',
   searchController.searchPosts
 );
 
-// 搜索话题（搜索限制）
-router.get('/search/topics', 
-  rateLimiters.search, 
-  searchController.searchTopics
-);
+// 搜索话题（搜索限制）- 使用searchPosts代替
+// TODO: 实现searchController.searchTopics方法
+// router.get('/search/topics', 
+//   rateLimiters.search, 
+//   searchController.searchTopics
+// );
 
 // 搜索用户（搜索限制）
 router.get('/search/users', 
