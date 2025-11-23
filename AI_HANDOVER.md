@@ -300,6 +300,26 @@ PM2不断重启（337次）
     - `req.params.id` → `req.params.userId`
     - 修复：`const { userId: id } = req.params`
 
+### ⚠️ 未解决问题 (2025-11-24)
+
+12. **/profile/:userId 持续500错误**
+    - **现象**: 即使使用最简单的内联路由也返回500
+    - **排查过**:
+      - ✅ Controller代码已简化
+      - ✅ Prisma字段错误已修复
+      - ✅ 路由顺序已调整
+      - ✅ 中间件已移除测试
+      - ❌ 仍然500错误
+    - **推测原因**:
+      - 请求根本没到达路由处理器
+      - 可能被全局错误中间件拦截
+      - 或app.js中有其他问题
+    - **建议下步**:
+      1. 检查`errorMiddleware()`和`notFoundHandler`
+      2. 在app.js中添加console.log追踪请求流
+      3. 检查PM2日志中是否有未显示的错误
+      4. 直接修改生产服务器代码添加debug日志
+
 ### ⚠️ 核忄经验教训
 
 #### 1. Prisma Schema字段一致性
@@ -557,7 +577,7 @@ ssh root@ieclub.online "cd /root/IEclub_dev/ieclub-backend && npm install prisma
 
 ---
 
-## 📋 项目概述
+## 项目概述
 
 **项目名称**: IEclub 社区平台  
 **技术栈**: 
@@ -565,6 +585,12 @@ ssh root@ieclub.online "cd /root/IEclub_dev/ieclub-backend && npm install prisma
 - 后端: Node.js + Express + Prisma + MySQL
 - 部署: 生产环境 ieclub.online
 
+**当前状态** (2025-11-24更新): 
+- **Web前端**：功能完整，认证系统正常
+- **后端API**：认证功能已修复，密码登录/重置正常
+- **小程序界面**：登录页面已优化，底部按钮显示正常
+- **小程序认证**：密码显示/隐藏功能已实现
+- **个人中心**：所有功能已全部完成（10/10功能，完成度100%）
 **当前状态** (2025-11-23更新): 
 - ✅ **Web前端**：功能完整，认证系统正常
 - ✅ **后端API**：认证功能已修复，密码登录/重置正常
