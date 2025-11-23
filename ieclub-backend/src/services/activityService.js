@@ -26,7 +26,7 @@ class ActivityService {
       startTime,
       endTime,
       maxParticipants,
-      categoryId,
+      category,
       tags,
       images
     } = data;
@@ -51,7 +51,7 @@ class ActivityService {
         startTime: start,
         endTime: end,
         maxParticipants: maxParticipants || 0,
-        categoryId,
+        category,
         tags: tags ? JSON.stringify(tags) : null,
         images: images ? JSON.stringify(images) : null,
         organizerId: userId,
@@ -162,12 +162,7 @@ class ActivityService {
               avatar: true
             }
           },
-          category: {
-            select: {
-              id: true,
-              name: true
-            }
-          }
+          category: true
         }
       }),
       prisma.activity.count({ where })
@@ -212,6 +207,7 @@ class ActivityService {
         endTime: true,
         maxParticipants: true,
         participantsCount: true,
+        category: true,
         tags: true,
         images: true,
         status: true,
@@ -223,12 +219,6 @@ class ActivityService {
             nickname: true,
             avatar: true,
             bio: true
-          }
-        },
-        category: {
-          select: {
-            id: true,
-            name: true
           }
         }
       }
@@ -296,7 +286,7 @@ class ActivityService {
       startTime,
       endTime,
       maxParticipants,
-      categoryId,
+      category,
       tags,
       images,
       status
@@ -321,8 +311,8 @@ class ActivityService {
         ...(startTime && { startTime: new Date(startTime) }),
         ...(endTime && { endTime: new Date(endTime) }),
         ...(maxParticipants !== undefined && { maxParticipants }),
-        ...(categoryId && { categoryId }),
-        ...(tags && { tags: JSON.stringify(tags) }),
+        ...(category && { category }),
+        ...(tags && { tags: JSON.stringify(tags) }), 
         ...(images && { images: JSON.stringify(images) }),
         ...(status && { status }),
         updatedAt: new Date()
@@ -816,10 +806,7 @@ class ActivityService {
         avatar: activity.organizer.avatar,
         bio: activity.organizer.bio
       } : null,
-      category: activity.category ? {
-        id: activity.category.id,
-        name: activity.category.name
-      } : null,
+      category: activity.category,
       status: activity.status,
       createdAt: activity.createdAt.toISOString(),
       updatedAt: activity.updatedAt.toISOString()
