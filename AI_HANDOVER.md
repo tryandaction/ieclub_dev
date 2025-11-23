@@ -1,9 +1,10 @@
 # 🤖 AI开发助手提示词 - IEclub项目
 
-> **交接时间**: 2025-11-23 19:10  
-> **当前版本**: V2.2 - 用户主页展示完成 🎨  
-> **代码状态**: ✅ 已开发完成，准备提交  
-> **Git分支**: main (生产) | develop (开发)
+> **交接时间**: 2025-11-23 22:36  
+> **当前版本**: V2.3 - 生产环境修复 🔧  
+> **代码状态**: ⚠️ 服务器稳定，但存在500错误需修复  
+> **Git分支**: main (生产) | develop (开发)  
+> **紧急状态**: 🚨 服务器重启中 - npm install导致资源耗尽
 
 ---
 
@@ -15,6 +16,103 @@
 3. **优化重构**旧的或不完善的代码为高质量代码
 4. **保持高质量**代码标准和用户体验
 5. **三端同步**确保后端、小程序、网页功能一致
+
+---
+
+## 🚨 生产环境操作铁律（2025-11-23 新增 - 血的教训！）
+
+### ❌ 绝对禁止在生产服务器直接执行的操作
+
+**这些操作会导致服务器崩溃或SSH无响应：**
+
+1. **`npm install`** ⛔
+   - 占用大量CPU/内存
+   - 导致SSH连接超时
+   - 可能需要重启服务器恢复
+
+2. **`npm update`** ⛔
+   - 同上，资源占用极高
+
+3. **`npx prisma generate`** ⛔
+   - 可能卡住很长时间
+   - 占用大量内存
+
+4. **任何大型编译/构建任务** ⛔
+   - 资源耗尽导致服务不可用
+
+### ✅ 正确的生产环境操作方式
+
+**方案A：使用自动化部署脚本（强烈推荐）**
+```powershell
+cd scripts\deployment
+.\Deploy-Production.ps1 -Target backend -Message "更新说明" -MinimalHealthCheck
+```
+
+**方案B：维护窗口期操作**
+```bash
+# 1. 先停止服务
+ssh root@ieclub.online "pm2 stop ieclub-backend"
+
+# 2. 执行高负载操作
+ssh root@ieclub.online "cd /root/IEclub_dev/ieclub-backend && npm install"
+
+# 3. 重启服务
+ssh root@ieclub.online "pm2 start ieclub-backend"
+```
+
+**方案C：本地构建后上传（最安全）**
+```powershell
+# 本地执行
+npm install
+npx prisma generate
+
+# 打包上传
+tar -czf build.tar.gz node_modules/ prisma/
+scp build.tar.gz root@ieclub.online:/tmp/
+
+# 服务器解压
+ssh root@ieclub.online "cd /root/IEclub_dev/ieclub-backend && tar -xzf /tmp/build.tar.gz && pm2 restart ieclub-backend"
+```
+
+### 📋 生产环境操作检查清单
+
+**每次操作前必须确认：**
+- [ ] 操作是否会占用大量资源？
+- [ ] 是否可以在本地完成？
+- [ ] 是否需要先停止PM2进程？
+- [ ] 是否有备份和回滚方案？
+- [ ] 是否使用了自动化部署脚本？
+
+### 🚑 服务器无响应紧急恢复
+
+**症状**：
+- SSH连接超时
+- API无响应
+- Ping通但22端口不可达
+
+**恢复步骤**：
+1. 等待10分钟（npm可能还在后台运行）
+2. 登录云控制台（阿里云/腾讯云）
+3. 重启服务器实例
+4. 等待重启完成后验证服务
+
+### 📝 经验教训 - 2025-11-23事件
+
+**错误操作**：
+```bash
+ssh root@ieclub.online "cd /root/IEclub_dev/ieclub-backend && npm install prisma@5.22.0"
+```
+
+**后果**：
+- SSH连接完全超时
+- API无响应
+- 服务器资源耗尽
+- 需要云控制台重启
+
+**教训**：
+> **永远不要在生产服务器上直接执行高负载操作！**  
+> **永远优先使用自动化部署脚本！**  
+> **永远先在本地验证再部署！**
 
 ---
 
