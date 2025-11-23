@@ -8,6 +8,7 @@ const { checkEmailAllowed } = require('../utils/emailDomainChecker');
 
 /**
  * 发送验证码验证
+ * 支持的验证码类型：register(注册), reset(重置密码), reset_password(重置密码-兼容), login(登录)
  */
 const sendVerifyCodeValidation = [
   body('email')
@@ -25,11 +26,11 @@ const sendVerifyCodeValidation = [
   
   body('type')
     .optional()
-    .isIn(['register', 'reset', 'login']).withMessage('验证码类型无效')
+    .isIn(['register', 'reset', 'reset_password', 'login']).withMessage('验证码类型无效，仅支持: register, reset, reset_password, login')
 ];
 
 /**
- * 注册验证
+ * 注册验证 (宽松版本 - 最小6位密码)
  */
 const registerValidation = [
   body('email')
@@ -45,9 +46,7 @@ const registerValidation = [
     }),
   
   body('password')
-    .isLength({ min: 8, max: 32 }).withMessage('密码长度必须在8-32个字符之间')
-    .matches(/[a-zA-Z]/).withMessage('密码必须包含字母')
-    .matches(/\d/).withMessage('密码必须包含数字'),
+    .isLength({ min: 6, max: 32 }).withMessage('密码长度必须在6-32个字符之间'),
   
   body('nickname')
     .optional()

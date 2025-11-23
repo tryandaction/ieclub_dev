@@ -23,7 +23,12 @@ class AuthController {
   // 发送邮箱验证码
   static async sendVerifyCode(req, res, next) {
     try {
-      const { email, type = 'register' } = req.body || {}; // type: register, reset, login
+      let { email, type = 'register' } = req.body || {}; // type: register, reset, reset_password, login
+      
+      // 标准化验证码类型：reset_password -> reset
+      if (type === 'reset_password') {
+        type = 'reset';
+      }
 
       // 验证必填字段
       if (!email) {
@@ -104,7 +109,7 @@ class AuthController {
       }
 
       // 重置密码或登录时检查邮箱是否存在
-      if (type === 'reset' || type === 'login') {
+      if (type === 'reset' || type === 'reset_password' || type === 'login') {
         try {
           const user = await prisma.user.findUnique({
             where: { email }
@@ -1075,6 +1080,15 @@ class AuthController {
         code = String(code).trim().replace(/\D/g, '');
       }
 
+      // 记录重置密码请求参数（不显示密码）
+      logger.info('重置密码请求:', { 
+        email, 
+        hasToken: !!token, 
+        hasCode: !!code, 
+        codeLength: code ? code.length : 0,
+        hasNewPassword: !!newPassword 
+      });
+
       // 参数验证
       if (!newPassword) {
         return res.status(400).json({
@@ -1095,6 +1109,8 @@ class AuthController {
 
       // 方式1: 使用验证码重置（前端使用）
       if (email && code) {
+        logger.info('使用验证码重置密码:', { email, codeLength: code.length });
+        
         // 验证邮箱格式与域名限制
         const emailCheck = checkEmailAllowed(email, 'reset');
         if (!emailCheck.valid) {
@@ -1117,10 +1133,19 @@ class AuthController {
           }
         });
 
-        if (!stored || stored.expiresAt < new Date()) {
+        if (!stored) {
+          logger.warn('验证码不存在:', { email, code });
           return res.status(400).json({
             success: false,
-            message: '验证码错误或已过期'
+            message: '验证码错误或不存在'
+          });
+        }
+        
+        if (stored.expiresAt < new Date()) {
+          logger.warn('验证码已过期:', { email, code, expiresAt: stored.expiresAt });
+          return res.status(400).json({
+            success: false,
+            message: '验证码已过期'
           });
         }
 
@@ -1137,7 +1162,7 @@ class AuthController {
         }
 
         userId = user.id;
-
+        
         // 标记验证码为已使用
         await prisma.verificationCode.update({
           where: { id: stored.id },
@@ -1146,45 +1171,20 @@ class AuthController {
             usedAt: new Date()
           }
         });
-      } 
-      // 方式2: 使用token重置（邮件链接方式）
-      else if (token) {
-        // 验证token
-        const decoded = jwt.verify(token, config.jwt.secret);
-        if (decoded.type !== 'password_reset') {
-          return res.status(400).json({
-            success: false,
-            message: '无效的重置链接'
-          });
-        }
-
-        // 查找用户
-        const user = await prisma.user.findUnique({
-          where: { id: decoded.userId }
-        });
-
-        if (!user) {
-          return res.status(404).json({
-            success: false,
-            message: '用户不存在'
-          });
-        }
-
-        userId = user.id;
+        logger.info('验证码已标记为已使用:', { email, code });
       } else {
+        logger.warn('重置密码参数不足:', { hasEmail: !!email, hasCode: !!code, hasToken: !!token });
         return res.status(400).json({
           success: false,
-          message: '缺少必要参数'
+          message: '缺少必要参数：需要邮箱+验证码 或 重置令牌'
         });
       }
 
-      // 验证新密码强度
-      const passwordValidation = validatePassword(newPassword);
-      if (!passwordValidation.valid) {
+      // 验证新密码强度（宽松版本 - 只检查长度）
+      if (newPassword.length < 6 || newPassword.length > 32) {
         return res.status(400).json({
           success: false,
-          message: passwordValidation.message,
-          strength: passwordValidation.strength
+          message: '密码长度必须在6-32个字符之间'
         });
       }
 
