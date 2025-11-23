@@ -31,12 +31,20 @@ router.get('/captcha/generate', rateLimiters.api, CaptchaController.generate);
 router.post('/captcha/verify', rateLimiters.api, CaptchaController.verify);
 
 // ==================== Auth Routes ====================
+// 发送验证码（多个别名支持）
 router.post('/auth/send-code', rateLimiters.auth, AuthController.sendVerifyCode);
+router.post('/auth/send-verify-code', rateLimiters.auth, AuthController.sendVerifyCode);
+// 登录相关
 router.post('/auth/login', rateLimiters.auth, AuthController.login);
+router.post('/auth/login-with-code', rateLimiters.auth, AuthController.loginWithCode);
+router.post('/auth/verify-code', rateLimiters.auth, AuthController.loginWithCode); // 别名
+// 注册和资料
 router.post('/auth/register', rateLimiters.auth, AuthController.register);
 router.get('/auth/profile', authenticate, AuthController.getProfile);
 router.put('/auth/profile', authenticate, AuthController.updateProfile);
 router.post('/auth/logout', authenticate, AuthController.logout);
+// 微信登录
+router.post('/auth/wechat-login', rateLimiters.auth, AuthController.wechatLogin);
 // refreshToken方法不存在，已注释
 
 // ==================== Topics Routes ====================
