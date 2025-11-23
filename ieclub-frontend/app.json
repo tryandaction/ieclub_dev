@@ -18,6 +18,7 @@
     "pages/feedback/index",
     "pages/settings/index",
     "pages/edit-profile/index",
+    "pages/user-profile/index",
     "pages/settings/set-password/index",
     "pages/settings/change-password/index",
     "pages/settings/account-binding/index"

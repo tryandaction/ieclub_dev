@@ -81,7 +81,26 @@
 .user-header {
   display: flex;
   align-items: center;
-  gap: 32rpx;
+  gap: 24rpx;
+  position: relative;
+}
+
+.edit-profile-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10rpx);
+  border-radius: 50%;
+}
+
+.edit-icon {
+  font-size: 28rpx;
 }
 
 .avatar-wrapper {

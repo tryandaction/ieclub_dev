@@ -1,0 +1,237 @@
+<!--pages/user-profile/index.wxml-->
+<view class="user-profile-page">
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading-state">
+    <text class="loading-icon">⏳</text>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <view wx:else>
+    <!-- 封面和头像 -->
+    <view class="cover-section">
+      <image 
+        wx:if="{{profile.coverImage}}"
+        class="cover-image" 
+        src="{{profile.coverImage}}" 
+        mode="aspectFill"
+      />
+      <view wx:else class="cover-placeholder"></view>
+      
+      <!-- 编辑按钮（仅本人可见） -->
+      <view wx:if="{{isOwner}}" class="edit-btn" bindtap="goToEditProfile">
+        <text class="edit-icon">✏️</text>
+        <text class="edit-text">编辑资料</text>
+      </view>
+    </view>
+
+    <!-- 用户信息卡片 -->
+    <view class="info-card">
+      <view class="avatar-wrapper">
+        <image 
+          wx:if="{{profile.avatar}}"
+          class="avatar" 
+          src="{{profile.avatar}}" 
+          mode="aspectFill"
+        />
+        <text wx:else class="avatar-placeholder">👤</text>
+      </view>
+
+      <view class="user-info">
+        <view class="name-row">
+          <text class="nickname">{{profile.nickname}}</text>
+          <text wx:if="{{profile.isCertified}}" class="cert-badge">✓ 已认证</text>
+          <text class="level-badge">Lv.{{profile.level || 1}}</text>
+        </view>
+
+        <text wx:if="{{profile.motto}}" class="motto">"{{profile.motto}}"</text>
+        <text wx:if="{{profile.bio}}" class="bio">{{profile.bio}}</text>
+
+        <!-- 学校信息 -->
+        <view wx:if="{{profile.school || profile.major || profile.grade}}" class="school-info">
+          <text wx:if="{{profile.school}}" class="info-item">🏫 {{profile.school}}</text>
+          <text wx:if="{{profile.major}}" class="info-item">📚 {{profile.major}}</text>
+          <text wx:if="{{profile.grade}}" class="info-item">🎓 {{profile.grade}}</text>
+        </view>
+      </view>
+
+      <!-- 统计数据 -->
+      <view class="stats-row">
+        <view class="stat-item">
+          <text class="stat-value">{{profile.topicsCount || 0}}</text>
+          <text class="stat-label">发布</text>
+        </view>
+        <view class="stat-item" bindtap="goToFollowing">
+          <text class="stat-value">{{profile.followsCount || 0}}</text>
+          <text class="stat-label">关注</text>
+        </view>
+        <view class="stat-item" bindtap="goToFollowers">
+          <text class="stat-value">{{profile.fansCount || 0}}</text>
+          <text class="stat-label">粉丝</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{profile.likesCount || 0}}</text>
+          <text class="stat-label">获赞</text>
+        </view>
+      </view>
+
+      <!-- 操作按钮（非本人） -->
+      <view wx:if="{{!isOwner}}" class="action-btns">
+        <button class="follow-btn {{isFollowing ? 'following' : ''}}" bindtap="toggleFollow">
+          <text wx:if="{{isFollowing}}">已关注</text>
+          <text wx:else>+ 关注</text>
+        </button>
+        <button class="message-btn" bindtap="sendMessage">
+          <text class="btn-icon">💬</text>
+          <text>私信</text>
+        </button>
+      </view>
+    </view>
+
+    <!-- 社交链接 -->
+    <view wx:if="{{profile.website || profile.github || profile.bilibili || profile.wechat}}" class="social-section">
+      <view class="section-title">社交链接</view>
+      <view class="social-links">
+        <view wx:if="{{profile.website}}" class="social-item" bindtap="copyText" data-text="{{profile.website}}" data-name="网站链接">
+          <text class="social-icon">🌐</text>
+          <text class="social-text">个人网站</text>
+        </view>
+        <view wx:if="{{profile.github}}" class="social-item" bindtap="copyText" data-text="{{profile.github}}" data-name="GitHub">
+          <text class="social-icon">💻</text>
+          <text class="social-text">GitHub</text>
+        </view>
+        <view wx:if="{{profile.bilibili}}" class="social-item" bindtap="copyText" data-text="{{profile.bilibili}}" data-name="B站">
+          <text class="social-icon">📺</text>
+          <text class="social-text">Bilibili</text>
+        </view>
+        <view wx:if="{{profile.wechat}}" class="social-item" bindtap="copyText" data-text="{{profile.wechat}}" data-name="微信号">
+          <text class="social-icon">💬</text>
+          <text class="social-text">微信</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 技能和兴趣 -->
+    <view wx:if="{{(profile.skills && profile.skills.length > 0) || (profile.interests && profile.interests.length > 0)}}" class="tags-section">
+      <view wx:if="{{profile.skills && profile.skills.length > 0}}" class="tag-group">
+        <view class="section-title">✨ 技能</view>
+        <view class="tags-container">
+          <text 
+            wx:for="{{profile.skills}}" 
+            wx:key="*this"
+            class="tag skill-tag"
+          >{{item}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{profile.interests && profile.interests.length > 0}}" class="tag-group">
+        <view class="section-title">❤️ 兴趣</view>
+        <view class="tags-container">
+          <text 
+            wx:for="{{profile.interests}}" 
+            wx:key="*this"
+            class="tag interest-tag"
+          >{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Tab导航 -->
+    <view class="tabs-section">
+      <view class="tab-header">
+        <view 
+          class="tab-item {{activeTab === 'posts' ? 'active' : ''}}"
+          bindtap="switchTab"
+          data-tab="posts"
+        >
+          <text class="tab-text">发布内容</text>
+          <text class="tab-count">({{posts.length}})</text>
+        </view>
+        <view 
+          class="tab-item {{activeTab === 'about' ? 'active' : ''}}"
+          bindtap="switchTab"
+          data-tab="about"
+        >
+          <text class="tab-text">关于我</text>
+        </view>
+        <view 
+          class="tab-item {{activeTab === 'achievements' ? 'active' : ''}}"
+          bindtap="switchTab"
+          data-tab="achievements"
+        >
+          <text class="tab-text">成就</text>
+        </view>
+      </view>
+
+      <!-- Tab内容 -->
+      <view class="tab-content">
+        <!-- 发布内容 -->
+        <view wx:if="{{activeTab === 'posts'}}" class="posts-container">
+          <view wx:if="{{posts.length > 0}}" class="posts-list">
+            <view 
+              wx:for="{{posts}}" 
+              wx:key="id"
+              class="post-item"
+              bindtap="goToTopic"
+              data-id="{{item.id}}"
+            >
+              <view class="post-title">{{item.title}}</view>
+              <view class="post-meta">
+                <text class="post-time">{{item.createdAt}}</text>
+                <text class="post-stats">👁️ {{item.viewsCount}} · 👍 {{item.likesCount}} · 💬 {{item.commentsCount}}</text>
+              </view>
+            </view>
+          </view>
+          <view wx:else class="empty-state">
+            <text class="empty-icon">📝</text>
+            <text class="empty-text">还没有发布任何内容</text>
+          </view>
+        </view>
+
+        <!-- 关于我 -->
+        <view wx:if="{{activeTab === 'about'}}" class="about-container">
+          <view wx:if="{{profile.introduction}}" class="introduction">
+            <text class="intro-text">{{profile.introduction}}</text>
+          </view>
+          <view wx:else class="empty-state">
+            <text class="empty-icon">📄</text>
+            <text class="empty-text">这个人很懒，什么都没写</text>
+          </view>
+        </view>
+
+        <!-- 成就 -->
+        <view wx:if="{{activeTab === 'achievements'}}" class="achievements-container">
+          <!-- 勋章 -->
+          <view wx:if="{{profile.badges && profile.badges.length > 0}}" class="badges-grid">
+            <view 
+              wx:for="{{profile.badges}}" 
+              wx:key="index"
+              class="badge-item"
+            >
+              <text class="badge-icon">{{item.icon || '🏆'}}</text>
+              <text class="badge-name">{{item.name}}</text>
+              <text class="badge-date">{{item.awardedAt}}</text>
+            </view>
+          </view>
+
+          <!-- 个人成就 -->
+          <view wx:if="{{profile.achievements && profile.achievements.length > 0}}" class="achievements-list">
+            <view class="section-title">🎯 个人成就</view>
+            <view 
+              wx:for="{{profile.achievements}}" 
+              wx:key="index"
+              class="achievement-item"
+            >
+              <text class="achievement-title">{{item.title}}</text>
+              <text wx:if="{{item.description}}" class="achievement-desc">{{item.description}}</text>
+            </view>
+          </view>
+
+          <view wx:if="{{(!profile.badges || profile.badges.length === 0) && (!profile.achievements || profile.achievements.length === 0)}}" class="empty-state">
+            <text class="empty-icon">🏅</text>
+            <text class="empty-text">还没有获得任何成就</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

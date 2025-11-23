@@ -23,6 +23,9 @@
           <text class="user-email">{{user.email}}</text>
           <text class="user-detail">{{user.major || '未设置专业'}} {{user.grade ? '· ' + user.grade : ''}}</text>
         </view>
+        <view class="edit-profile-btn" bindtap="goToEditProfile">
+          <text class="edit-icon">✏️</text>
+        </view>
       </view>
       
       <!-- 等级和积分 -->
