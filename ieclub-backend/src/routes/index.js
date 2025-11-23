@@ -34,6 +34,7 @@ router.post('/captcha/verify', rateLimiters.api, CaptchaController.verify);
 // 发送验证码（多个别名支持）
 router.post('/auth/send-code', rateLimiters.auth, AuthController.sendVerifyCode);
 router.post('/auth/send-verify-code', rateLimiters.auth, AuthController.sendVerifyCode);
+// sendPhoneCode方法未实现，暂不支持手机验证码
 // 登录相关
 router.post('/auth/login', rateLimiters.auth, AuthController.login);
 router.post('/auth/login-with-code', rateLimiters.auth, AuthController.loginWithCode);
