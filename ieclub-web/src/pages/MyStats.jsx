@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Award, Activity, Target, BarChart3, Zap } from 'lucide-react';
-import { request } from '../utils/request';
+import request from '../utils/request';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function MyStats() {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, MapPin, Users, CheckCircle, Clock, RefreshCw } from 'lucide-react';
-import { request } from '../utils/request';
+import request from '../utils/request';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function MyActivities() {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Users, UserCheck, RefreshCw, Search } from 'lucide-react';
-import { request } from '../utils/request';
+import request from '../utils/request';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function MyFollowing() {

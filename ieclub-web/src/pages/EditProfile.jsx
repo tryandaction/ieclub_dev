@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Image as ImageIcon, Globe, Github, Camera, X, Plus } from 'lucide-react';
-import { request } from '../utils/request';
+import request from '../utils/request';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function EditProfile() {
