@@ -25,7 +25,7 @@ router.get('/me/activities', authenticate, activityController.getMyActivities);
  * 获取活动详情
  * GET /api/activities/:id
  */
-router.get('/:id', optionalAuth, activityController.getActivityDetail);
+router.get('/:id', optionalAuth, activityController.getActivityById);
 
 /**
  * 创建活动
