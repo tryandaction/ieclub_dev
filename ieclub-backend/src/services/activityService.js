@@ -28,8 +28,7 @@ class ActivityService {
       maxParticipants,
       categoryId,
       tags,
-      images,
-      requirements
+      images
     } = data;
 
     // 验证时间
@@ -55,7 +54,6 @@ class ActivityService {
         categoryId,
         tags: tags ? JSON.stringify(tags) : null,
         images: images ? JSON.stringify(images) : null,
-        requirements: requirements ? JSON.stringify(requirements) : null,
         organizerId: userId,
         status: 'published'
       },
@@ -154,7 +152,6 @@ class ActivityService {
           participantsCount: true,
           tags: true,
           images: true,
-          requirements: true,
           status: true,
           createdAt: true,
           updatedAt: true,
@@ -217,7 +214,6 @@ class ActivityService {
         participantsCount: true,
         tags: true,
         images: true,
-        requirements: true,
         status: true,
         createdAt: true,
         updatedAt: true,
@@ -303,7 +299,6 @@ class ActivityService {
       categoryId,
       tags,
       images,
-      requirements,
       status
     } = data;
 
@@ -329,7 +324,6 @@ class ActivityService {
         ...(categoryId && { categoryId }),
         ...(tags && { tags: JSON.stringify(tags) }),
         ...(images && { images: JSON.stringify(images) }),
-        ...(requirements && { requirements: JSON.stringify(requirements) }),
         ...(status && { status }),
         updatedAt: new Date()
       },
@@ -816,7 +810,6 @@ class ActivityService {
       participantsCount: activity.participantsCount || (activity._count ? activity._count.participants : 0),
       tags: activity.tags ? JSON.parse(activity.tags) : [],
       images: activity.images ? JSON.parse(activity.images) : [],
-      requirements: activity.requirements ? JSON.parse(activity.requirements) : [],
       organizer: activity.organizer ? {
         id: activity.organizer.id,
         nickname: activity.organizer.nickname,
