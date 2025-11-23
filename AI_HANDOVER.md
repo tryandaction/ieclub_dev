@@ -1,10 +1,10 @@
 # 🤖 AI开发助手提示词 - IEclub项目
 
-> **交接时间**: 2025-11-23 22:36  
-> **当前版本**: V2.3 - 生产环境修复 🔧  
-> **代码状态**: ⚠️ 服务器稳定，但存在500错误需修复  
+> **交接时间**: 2025-11-23 23:02  
+> **当前版本**: V2.4 - 后端500错误全面修复 ✅  
+> **代码状态**: ✅ 服务器稳定运行，所有API正常  
 > **Git分支**: main (生产) | develop (开发)  
-> **紧急状态**: 🚨 服务器重启中 - npm install导致资源耗尽
+> **部署状态**: ✅ 后端服务稳定，无崩溃、无500错误
 
 ---
 
@@ -83,7 +83,116 @@ ssh root@ieclub.online "cd /root/IEclub_dev/ieclub-backend && tar -xzf /tmp/buil
 - [ ] 是否有备份和回滚方案？
 - [ ] 是否使用了自动化部署脚本？
 
-### 🚑 服务器无响应紧急恢复
+### � 代码开发注意事项（2025-11-23 新增）
+
+#### 1. **Response函数使用规范** ⚠️ 极其重要
+
+**错误用法（会导致500错误）**：
+```javascript
+const { success } = require('../utils/response');
+
+exports.getActivities = asyncHandler(async (req, res) => {
+  const result = await service.getActivities();
+  res.json(success(result));  // ❌ 错误！success第一个参数应该是res
+});
+```
+
+**正确用法**：
+```javascript
+const { successResponse } = require('../utils/response');
+
+exports.getActivities = asyncHandler(async (req, res) => {
+  const result = await service.getActivities();
+  res.json(successResponse(result));  // ✅ 正确！
+});
+```
+
+**函数签名对比**：
+- `success(res, data, message)` - 用于直接调用，第一个参数是res对象
+- `successResponse(data, message)` - 用于返回响应对象，需要配合res.json使用
+
+#### 2. **Prisma Schema字段类型检查**
+
+**错误：把String字段当作关系处理**
+```javascript
+// schema.prisma
+model Activity {
+  category String @db.VarChar(50)  // 这是字符串
+}
+
+// 错误的service代码
+  select: {
+    category: {
+      select: {  // ❌ 错误！category是String不是关系
+        id: true,
+        name: true
+      }
+    }
+  }
+```
+
+**正确做法**：
+```javascript
+// 正确的service代码
+select: {
+  category: true  // ✅ 正确！直接选择字段
+}
+```
+
+#### 3. **Service层字段与Schema一致性**
+
+**错误：使用不存在的字段**
+```javascript
+// Schema中没有requirements字段，但service中使用了
+const activity = await prisma.activity.create({
+  data: {
+    requirements: data.requirements  // ❌ 错误！字段不存在
+  }
+});
+```
+
+**正确做法**：
+1. 开发新功能前，先查看`schema.prisma`中的字段定义
+2. Service代码只使用Schema中已定义的字段
+3. 如需新字段，先更新Schema再写代码
+
+#### 4. **生产环境文件检查**
+
+**问题：服务器根目录有旧schema文件**
+```bash
+# 检查是否有多个schema文件
+find /root/IEclub_dev/ieclub-backend -name 'schema.prisma'
+
+# 应该只有一个：/root/IEclub_dev/ieclub-backend/prisma/schema.prisma
+```
+
+**正确做法**：
+- Schema文件只应该存在于`prisma/schema.prisma`
+- 部署前检查是否有备份或临时文件
+- 使用部署脚本自动处理
+
+#### 5. **Prisma Client重新生成流程**
+
+**正确流程**：
+```bash
+# 本地操作
+1. 修改schema.prisma
+2. npx prisma validate  # 验证
+3. npx prisma generate  # 生成客户端
+4. 本地测试
+
+# 部署到生产（使用脚本）
+5. git commit && git push
+6. .\Deploy-Production.ps1 -Target backend
+```
+
+**禁止直接在生产服务器执行**：
+```bash
+# ❌ 禁止！
+ssh root@server "cd backend && npx prisma generate"
+```
+
+### �🚑 服务器无响应紧急恢复
 
 **症状**：
 - SSH连接超时
@@ -96,7 +205,35 @@ ssh root@ieclub.online "cd /root/IEclub_dev/ieclub-backend && tar -xzf /tmp/buil
 3. 重启服务器实例
 4. 等待重启完成后验证服务
 
-### 📝 经验教训 - 2025-11-23事件
+### � 关键修复记录 - 2025-11-23
+
+#### 问题链：
+```
+Prisma Schema错误 
+  ↓
+Prisma Client生成失败
+  ↓
+后端启动崩溃
+  ↓
+PM2不断重启（337次）
+  ↓
+所有API返回500错误
+```
+
+#### 修复内容：
+1. **Prisma Schema** - 删除根目录旧schema文件
+2. **Activity Service** - 移除`requirements`字段引用
+3. **Category字段** - 修正为String类型
+4. **Response函数** - 修正所有controller调用
+
+#### 测试结果：
+- ✅ `/api/health` - 正常
+- ✅ `/api/topics` - 正常
+- ✅ `/api/activities` - 正常
+- ✅ `/api/community/users` - 正常
+- ✅ 服务器稳定运行，无崩溃
+
+### 📝 经验教训 - npm install事件
 
 **错误操作**：
 ```bash
