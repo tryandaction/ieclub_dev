@@ -458,6 +458,18 @@ router.post('/users/:id/heart',
   UserController.heartUser
 );
 
+// 获取用户发布的话题列表（API限制）
+router.get('/users/:id/topics', 
+  rateLimiters.api, 
+  UserController.getUserTopics
+);
+
+// 获取用户评论列表（API限制）
+router.get('/users/:id/comments', 
+  rateLimiters.api, 
+  UserController.getUserComments
+);
+
 // ==================== Search Routes ====================
 const searchControllerV2 = require('../controllers/searchControllerV2');
 

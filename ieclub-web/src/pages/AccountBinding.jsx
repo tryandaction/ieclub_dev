@@ -38,8 +38,14 @@ export default function AccountBinding() {
       setError('请输入正确的手机号');
       return;
     }
-    // TODO: 实现发送验证码
-    setCountdown(60);
+    
+    try {
+      await sendPhoneCode(phone, 'bind_phone');
+      setCountdown(60);
+      setError('');
+    } catch (err) {
+      setError(err.message || '发送验证码失败');
+    }
   };
 
   const handleBindPhone = async (e) => {
