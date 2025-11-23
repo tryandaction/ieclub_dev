@@ -156,21 +156,19 @@ router.post('/auth/reset-password',
 );
 
 // 获取个人信息（API限制）
-// TODO: 实现 AuthController.getProfile 方法
-// router.get('/auth/profile', 
-//   authenticate, 
-//   rateLimiters.api, 
-//   AuthController.getProfile
-// );
+router.get('/auth/profile', 
+  authenticate, 
+  rateLimiters.api, 
+  AuthController.getProfile
+);
 
 // 更新个人信息（API限制）
-// TODO: 实现 AuthController.updateProfile 方法
-// router.put('/auth/profile', 
-//   authenticate, 
-//   rateLimiters.api, 
-//   csrf, 
-//   AuthController.updateProfile
-// );
+router.put('/auth/profile', 
+  authenticate, 
+  rateLimiters.api, 
+  csrf, 
+  AuthController.updateProfile
+);
 
 // 首次设置密码（API限制）
 router.post('/auth/set-password', 

@@ -2131,6 +2131,97 @@ class AuthController {
       next(error);
     }
   }
+
+  // 获取个人信息
+  static async getProfile(req, res, next) {
+    try {
+      const userId = req.user.id;
+
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          nickname: true,
+          avatar: true,
+          gender: true,
+          bio: true,
+          phone: true,
+          school: true,
+          major: true,
+          grade: true,
+          level: true,
+          exp: true,
+          credits: true,
+          isCertified: true,
+          hasPassword: true,
+          createdAt: true
+        }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: '用户不存在'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: '获取个人信息成功',
+        data: user
+      });
+    } catch (error) {
+      logger.error('获取个人信息失败:', error);
+      next(error);
+    }
+  }
+
+  // 更新个人信息
+  static async updateProfile(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const { nickname, avatar, gender, bio, school, major, grade } = req.body;
+
+      const updateData = {};
+      if (nickname !== undefined) updateData.nickname = nickname;
+      if (avatar !== undefined) updateData.avatar = avatar;
+      if (gender !== undefined) updateData.gender = gender;
+      if (bio !== undefined) updateData.bio = bio;
+      if (school !== undefined) updateData.school = school;
+      if (major !== undefined) updateData.major = major;
+      if (grade !== undefined) updateData.grade = grade;
+
+      const user = await prisma.user.update({
+        where: { id: userId },
+        data: updateData,
+        select: {
+          id: true,
+          email: true,
+          nickname: true,
+          avatar: true,
+          gender: true,
+          bio: true,
+          school: true,
+          major: true,
+          grade: true,
+          level: true,
+          exp: true,
+          credits: true,
+          isCertified: true
+        }
+      });
+
+      res.json({
+        success: true,
+        message: '更新个人信息成功',
+        data: user
+      });
+    } catch (error) {
+      logger.error('更新个人信息失败:', error);
+      next(error);
+    }
+  }
 }
 
 module.exports = AuthController;

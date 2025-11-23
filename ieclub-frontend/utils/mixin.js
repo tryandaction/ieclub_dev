@@ -64,9 +64,22 @@ function mergeLifecycle(target, source, lifecycleName) {
 function mergeMethods(target, source) {
   const result = { ...target }
   
+  // 处理嵌套的methods对象（用于mixin）
+  if (source.methods) {
+    for (const key in source.methods) {
+      if (source.methods.hasOwnProperty(key)) {
+        // 页面方法优先级更高
+        if (!result[key]) {
+          result[key] = source.methods[key]
+        }
+      }
+    }
+  }
+  
+  // 处理直接定义的方法
   for (const key in source) {
     if (source.hasOwnProperty(key)) {
-      if (typeof source[key] === 'function' && key !== 'data') {
+      if (typeof source[key] === 'function' && key !== 'data' && key !== 'methods') {
         // 页面方法优先级更高
         if (!result[key]) {
           result[key] = source[key]
