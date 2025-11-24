@@ -1,10 +1,11 @@
 # 🤖 AI开发助手提示词 - IEclub项目
 
-> **交接时间**: 2025-11-24 09:00  
-> **当前版本**: V2.7 - 个人中心全面升级完成 🎉  
-> **代码状态**: ✅ 网页、小程序、后端三端个人中心功能全部对接  
-> **Git分支**: main (生产) | develop (开发)  
-> **部署状态**: ✅ 准备部署个人中心功能
+> **交接时间**: 2025-11-24 21:55  
+> **当前版本**: V2.8 - 用户体验全面优化完成 🚀  
+> **代码状态**: ✅ 移除所有alert弹窗，修复保存功能，优化登录体验  
+> **Git分支**: main (生产)  
+> **部署状态**: ✅ 已完整部署 - 网页+后端正常运行  
+> **最新提交**: 180d5051
 
 ---
 
@@ -15,7 +16,75 @@
 2. **阅读并理解**现有代码结构和设计模式
 3. **优化重构**旧的或不完善的代码为高质量代码
 4. **保持高质量**代码标准和用户体验
-5. **三端同步**确保后端、小程序、网页功能一致
+5. **三端同步**确保后端、原生小程序(ieclub-frontend)、网页(ieclub-web)功能一致
+
+## 📁 项目结构说明
+
+- **ieclub-web**: React网站前端
+- **ieclub-frontend**: 微信原生小程序
+- **ieclub-backend**: Node.js后端服务
+- **admin-web**: 管理后台（开发中）
+- ~~ieclub-taro~~: 已废弃，已从服务器删除
+
+---
+
+## 🎉 最新完成 (2025-11-24)
+
+### ✅ 用户体验全面优化
+
+**1. 移除所有浏览器alert()弹窗**
+- ✅ 替换为优雅的Toast提示组件（showToast）
+- ✅ 涉及文件：MyStats.jsx, MyFollowing.jsx, MyFollowers.jsx, AccountBinding.jsx, About.jsx, ImageUploader.jsx, EditProfile.jsx
+- ✅ 用户无需点击"确定"，自动消失
+
+**2. 修复个人资料保存功能**
+- ✅ 后端GET /api/profile/:userId 添加wechat和projectsData字段
+- ✅ 前端EditProfile添加projects字段支持
+- ✅ 确保GET和PUT使用相同数据结构
+- ✅ 保存后正确更新localStorage
+
+**3. 修复图片上传功能**
+- ✅ 头像上传：点击按钮→选择图片→自动上传
+- ✅ 封面上传：点击区域→选择图片→自动上传
+- ✅ 上传进度提示和结果Toast
+
+**4. 修复Nginx配置错误**
+- ✅ 修正：root /root/IEclub_dev/ieclub-taro/dist → /root/IEclub_dev/ieclub-web/dist
+- ✅ 删除旧的Taro项目文件夹
+- ✅ 网站正常访问最新代码
+
+**5. 清理临时文件**
+- ✅ 本地：test-app-load.js, test-server.js, test-endpoint.js
+- ✅ 服务器：test-endpoint.js, ieclub-taro整个目录
+
+**6. 后端服务稳定性修复**
+- ✅ 修复app.js的errorHandler导入错误
+- ✅ 服务正常运行（PID: 114717）
+- ✅ Health检查响应时间：4ms
+
+### 📦 当前部署状态
+
+```
+服务器环境：
+- Backend: ✅ PM2运行正常 (PID: 114717)
+- Frontend: ✅ index-DjSGYQK8.js (468KB)
+- Nginx: ✅ 指向正确的Web目录
+- Health: ✅ http://localhost:3000/api/health (4ms)
+
+代码仓库：
+- Commit: 180d5051
+- Branch: main
+- 状态：所有修复已合并并部署
+```
+
+### ⚠️ 用户需知
+
+**登录慢的解决方案**：
+1. 清除浏览器缓存（Ctrl + Shift + Delete）
+2. 清除localStorage：`localStorage.clear()`
+3. 重新登录获取新Token
+
+**原因**：旧Token可能已过期，导致/auth/profile超时
 
 ---
 
