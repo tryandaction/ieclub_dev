@@ -72,6 +72,7 @@ cd c:\universe\GitHub_try\IEclub_dev\scripts\deployment
 .\Deploy-Production.ps1 -Target web -Message "更新说明" -MinimalHealthCheck
 
 # 完全跳过健康检查（最快，适合紧急修复）
+cd c:\universe\GitHub_try\IEclub_dev\scripts\deployment
 .\Deploy-Production.ps1 -Target all -Message "更新说明" -SkipHealthCheck
 ```
 
