@@ -1,4 +1,5 @@
 import { Rocket, BookOpen, Sparkles, BarChart3, Users2, Mail, Globe, Github, Heart } from 'lucide-react';
+import { showToast } from '../components/Toast';
 
 export default function About() {
   const appInfo = {
@@ -59,9 +60,9 @@ export default function About() {
   // 复制文本
   const copyText = (text) => {
     navigator.clipboard.writeText(text).then(() => {
-      alert('已复制到剪贴板');
+      showToast('已复制到剪贴板', 'success');
     }).catch(() => {
-      alert('复制失败，请手动复制');
+      showToast('复制失败，请手动复制', 'error');
     });
   };
 

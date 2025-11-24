@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Award, Activity, Target, BarChart3, Zap } from 'lucide-react';
 import request from '../utils/request';
 import { useAuth } from '../contexts/AuthContext';
+import { showToast } from '../components/Toast';
 
 export default function MyStats() {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ export default function MyStats() {
       setStats(statsRes.data || statsRes);
     } catch (error) {
       console.error('加载数据失败:', error);
-      alert(error.message || '加载失败');
+      showToast(error.message || '加载失败', 'error');
     } finally {
       setLoading(false);
     }

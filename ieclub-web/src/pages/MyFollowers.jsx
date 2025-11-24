@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Heart, UserPlus, UserCheck, RefreshCw, Search } from 'lucide-react';
 import { getUserFollowers, getUserFollowing } from '../api/profile';
 import { useAuth } from '../contexts/AuthContext';
+import { showToast } from '../components/Toast';
 
 export default function MyFollowers() {
   const navigate = useNavigate();
@@ -91,7 +92,7 @@ export default function MyFollowers() {
       ));
     } catch (error) {
       console.error('操作失败:', error);
-      alert(error.message || '操作失败');
+      showToast(error.message || '操作失败', 'error');
     }
   };
 

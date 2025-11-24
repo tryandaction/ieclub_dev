@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { InlineLoading } from './Loading'
+import { showToast } from './Toast' // <--- Add this line
 
 /**
  * 图片上传组件
@@ -37,7 +38,7 @@ export default function ImageUploader({
     
     // 检查数量限制
     if (previewImages.length + files.length > maxCount) {
-      alert(`最多只能上传 ${maxCount} 张图片`)
+      showToast(`最多只能上传 ${maxCount} 张图片`, 'warning')
       return
     }
 
@@ -45,7 +46,7 @@ export default function ImageUploader({
     for (const file of files) {
       const error = validateFile(file)
       if (error) {
-        alert(error)
+        showToast(error, 'error')
         return
       }
     }
@@ -203,13 +204,13 @@ export function SingleImageUploader({
 
     // 验证文件
     if (!file.type.startsWith('image/')) {
-      alert('请选择图片文件')
+      showToast('请选择图片文件', 'error')
       return
     }
 
     const sizeMB = file.size / 1024 / 1024
     if (sizeMB > maxSize) {
-      alert(`图片大小不能超过 ${maxSize}MB`)
+      showToast(`图片大小不能超过 ${maxSize}MB`, 'error')
       return
     }
 
@@ -226,7 +227,7 @@ export function SingleImageUploader({
       reader.readAsDataURL(file)
     } catch (error) {
       console.error('上传失败:', error)
-      alert('图片上传失败，请重试')
+      showToast('图片上传失败，请重试', 'error')
     } finally {
       setUploading(false)
       if (fileInputRef.current) {

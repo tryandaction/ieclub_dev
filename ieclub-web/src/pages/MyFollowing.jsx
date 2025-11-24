@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Users, UserCheck, RefreshCw, Search } from 'lucide-react';
 import { getUserFollowing } from '../api/profile';
 import { useAuth } from '../contexts/AuthContext';
+import { showToast } from '../components/Toast';
 
 export default function MyFollowing() {
   const navigate = useNavigate();
@@ -62,7 +63,7 @@ export default function MyFollowing() {
       setTotal(total - 1);
     } catch (error) {
       console.error('取消关注失败:', error);
-      alert(error.message || '操作失败');
+      showToast(error.message || '操作失败', 'error');
     }
   };
 

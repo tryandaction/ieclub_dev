@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link2, Phone, Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { bindPhone, getUserInfo, sendPhoneCode } from '../api/auth';
+import { showToast } from '../components/Toast';
 
 /**
  * 账号绑定页面
@@ -65,7 +66,7 @@ export default function AccountBinding() {
     setLoading(true);
     try {
       await bindPhone({ phone, code });
-      alert('绑定成功！');
+      showToast('绑定成功！', 'success');
       loadUserInfo();
       setPhone('');
       setCode('');
