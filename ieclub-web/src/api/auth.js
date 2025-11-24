@@ -91,7 +91,8 @@ export const changePassword = (oldPassword, newPassword, confirmPassword) => {
 export const getCurrentUser = () => {
   return request.get('/auth/profile', {
     loading: false,  // 不显示全局loading
-    timeout: 5000    // 5秒超时
+    timeout: 30000,  // 30秒超时（增加到30秒，避免数据库慢查询超时）
+    retry: 1         // 减少重试次数，快速失败
   })
 }
 
