@@ -109,7 +109,8 @@ router.put('/profile', authenticate, async (req, res, next) => {
 router.use('/profile', require('./profile'));
 
 // ==================== Upload Routes ====================
-router.use('/upload', require('./upload'));
+router.delete('/upload/file', authenticate, rateLimiters.api, uploadController.deleteFile);
+// uploadImage方法不存在，需要检查
 
 // ==================== Error Report Routes ====================
 router.post('/errors/report', rateLimiters.api, errorReportController.reportError);
