@@ -212,7 +212,7 @@ try {
 // 404 处理
 app.use(notFoundHandler);
 
-// 统一错误处理（使用新的错误处理器）
-app.use(errorMiddleware());
+// 统一错误处理
+app.use(errorHandler);
 
 module.exports = app;
