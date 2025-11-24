@@ -113,25 +113,60 @@ exports.getUserPosts = async (req, res, next) => {
 
     const where = {
       authorId: userId,
-      status: 'published'
+      status: 'collecting' // Topic使用collecting状态
     }
 
     if (type) {
-      where.category = type
+      where.contentType = type // 使用contentType字段
     }
 
     const skip = (page - 1) * pageSize
     const take = parseInt(pageSize)
 
-    // 简化查询，暂时只返回基本数据
-    const total = await prisma.topic.count({ where }).catch(() => 0)
-    const posts = []
+    const [topics, total] = await Promise.all([
+      prisma.topic.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          contentType: true,
+          category: true,
+          tags: true,
+          viewsCount: true,
+          likesCount: true,
+          commentsCount: true,
+          bookmarksCount: true,
+          createdAt: true,
+          updatedAt: true,
+          author: {
+            select: {
+              id: true,
+              nickname: true,
+              avatar: true,
+              level: true,
+              isCertified: true
+            }
+          }
+        }
+      }),
+      prisma.topic.count({ where })
+    ]).catch(() => [[], 0])
+
+    // 解析JSON字段
+    const formattedPosts = topics.map(topic => ({
+      ...topic,
+      tags: topic.tags ? JSON.parse(topic.tags) : []
+    }))
 
     res.json({
       success: true,
       message: '获取用户发布内容成功',
       data: {
-        posts,
+        posts: formattedPosts,
         total,
         page: parseInt(page),
         pageSize: take,
@@ -268,21 +303,57 @@ exports.getUserStats = async (req, res, next) => {
       })
     }
 
-    // 简化查询，避免复杂聚合
+    // 获取发布总数
     const totalPosts = await prisma.topic.count({
       where: {
         authorId: userId,
-        status: 'published'
+        status: 'collecting' // Topic使用collecting状态而不是published
       }
     }).catch(() => 0)
 
+    // 获取总浏览量、点赞数、评论数
+    const aggregates = await prisma.topic.aggregate({
+      where: {
+        authorId: userId,
+        status: 'collecting'
+      },
+      _sum: {
+        viewsCount: true,
+        likesCount: true,
+        commentsCount: true
+      }
+    }).catch(() => ({ _sum: { viewsCount: 0, likesCount: 0, commentsCount: 0 } }))
+
+    // 获取最近活跃时间
+    const recentTopic = await prisma.topic.findFirst({
+      where: {
+        authorId: userId,
+        status: 'collecting'
+      },
+      orderBy: { createdAt: 'desc' },
+      select: { lastActiveAt: true }
+    }).catch(() => null)
+
+    // 按类型统计（contentType字段）
+    const postsByType = await prisma.topic.groupBy({
+      by: ['contentType'],
+      where: {
+        authorId: userId,
+        status: 'collecting'
+      },
+      _count: { _all: true }
+    }).catch(() => [])
+
     const stats = {
-      postsByType: {},
+      postsByType: postsByType.reduce((acc, item) => {
+        acc[item.contentType] = item._count._all
+        return acc
+      }, {}),
       totalPosts,
-      totalViews: 0,
-      totalLikes: 0,
-      totalComments: 0,
-      lastActiveAt: null
+      totalViews: aggregates._sum.viewsCount || 0,
+      totalLikes: aggregates._sum.likesCount || 0,
+      totalComments: aggregates._sum.commentsCount || 0,
+      lastActiveAt: recentTopic?.lastActiveAt || null
     }
 
     res.json({
