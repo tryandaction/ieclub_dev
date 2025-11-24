@@ -26,6 +26,15 @@ router.get('/health', (req, res) => {
   });
 });
 
+// 🔍 测试路由 - 验证PUT是否工作
+router.put('/test-put', (req, res) => {
+  res.json({
+    success: true,
+    message: 'PUT route works!',
+    body: req.body
+  });
+});
+
 // ==================== Captcha Routes ====================
 router.get('/captcha/generate', rateLimiters.api, CaptchaController.generate);
 router.post('/captcha/verify', rateLimiters.api, CaptchaController.verify);
