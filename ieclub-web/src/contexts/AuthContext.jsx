@@ -25,13 +25,16 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      // 尝试获取用户信息
+      // 尝试获取用户信息（禁用loading，避免卡住页面）
       const userData = await getCurrentUser()
       setUser(userData)
       setIsAuthenticated(true)
+      console.log('✅ 用户认证成功:', userData)
     } catch (error) {
+      console.warn('⚠️ Token验证失败，清除登录状态:', error.message)
       // Token 无效，清除本地数据
       localStorage.removeItem('token')
+      localStorage.removeItem('refreshToken')
       localStorage.removeItem('user')
       setUser(null)
       setIsAuthenticated(false)

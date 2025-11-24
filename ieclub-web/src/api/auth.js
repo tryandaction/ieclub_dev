@@ -89,7 +89,10 @@ export const changePassword = (oldPassword, newPassword, confirmPassword) => {
  * @returns {Promise<object>}
  */
 export const getCurrentUser = () => {
-  return request.get('/auth/profile')
+  return request.get('/auth/profile', {
+    loading: false,  // 不显示全局loading
+    timeout: 5000    // 5秒超时
+  })
 }
 
 /**

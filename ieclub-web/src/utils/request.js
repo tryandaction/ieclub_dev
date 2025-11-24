@@ -80,15 +80,15 @@ const getApiBaseUrl = () => {
 // 🚀 创建 axios 实例（全面优化版）
 const request = axios.create({
   baseURL: getApiBaseUrl(),
-  timeout: 30000, // 增加超时时间到30秒
+  timeout: 10000, // 降低超时时间到10秒，快速失败
   headers: {
     'Content-Type': 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
     'Accept': 'application/json'
   },
-  // 请求重试配置
-  retry: 3,
-  retryDelay: 1000,
+  // 请求重试配置（减少重试次数）
+  retry: 2,           // 从3次降到2次
+  retryDelay: 800,    // 从1000ms降到800ms
   // 允许跨域携带凭证
   withCredentials: false,
   // 最大内容长度
@@ -146,14 +146,14 @@ const showLoading = () => {
     clearTimeout(loadingTimeoutId)
   }
   
-  // 超时保护：15秒后强制关闭loading
+  // 超时保护：8秒后强制关闭loading（快速失败）
   loadingTimeoutId = setTimeout(() => {
     if (store.requestCount > 0) {
       console.warn('⚠️ Loading超时，强制重置')
       store.reset()
     }
     loadingTimeoutId = null
-  }, 15000)
+  }, 8000)
 }
 
 // 隐藏 Loading
@@ -416,7 +416,17 @@ request.interceptors.response.use(
         if (isAuthEndpoint) {
           errorMessage = data?.message || '邮箱或密码错误'
           console.warn(`🔒 [401] ${error.config.url}:`, errorMessage)
-        } else {
+        } 
+        // 如果是/auth/profile（检查认证状态），快速失败不刷新token
+        else if (requestUrl.includes('/auth/profile')) {
+          console.warn(`🔒 [401] ${error.config.url}: Token无效，快速失败`)
+          errorMessage = '登录已过期'
+          localStorage.removeItem('token')
+          localStorage.removeItem('refreshToken')
+          localStorage.removeItem('user')
+          // 不跳转，让AuthContext处理
+        }
+        else {
           // 其他接口的 401 错误，尝试刷新 token
           const refreshToken = localStorage.getItem('refreshToken')
           
