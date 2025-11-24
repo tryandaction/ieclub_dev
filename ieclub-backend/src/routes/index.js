@@ -66,13 +66,44 @@ router.post('/comments/:id/like', authenticate, commentController.likeComment);
 // ⚠️ 重要：直接注册profile路由，避免子路由匹配问题
 const profileController = require('../controllers/profileController');
 
+// 🧪 测试端点 - 验证PUT请求是否能工作
+router.put('/test-simple-put', (req, res) => {
+  try {
+    console.log('✅ TEST: Simple PUT works!');
+    console.log('Body:', req.body);
+    
+    // 立即返回成功，不做任何处理
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Simple PUT works!', 
+      body: req.body,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ TEST ERROR:', error);
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+router.put('/test-auth-put', authenticate, (req, res) => {
+  console.log('✅ TEST: Auth PUT works! User:', req.user?.id);
+  res.json({ success: true, message: 'Auth PUT works!', user: req.user?.id, body: req.body });
+});
+
 // 编辑个人主页（PUT必须在GET之前，避免被/:userId匹配）
-router.put('/profile', authenticate, (req, res, next) => {
-  console.log('🔥 [/profile] Route handler called');
-  console.log('🔥 [/profile] User:', req.user?.id);
-  console.log('🔥 [/profile] Body:', JSON.stringify(req.body));
-  next();
-}, profileController.updateProfile);
+router.put('/profile', authenticate, async (req, res, next) => {
+  try {
+    console.log('🔥 [/profile] Route handler called');
+    console.log('🔥 [/profile] User:', req.user?.id);
+    console.log('🔥 [/profile] Body:', JSON.stringify(req.body));
+    
+    // 直接调用controller
+    await profileController.updateProfile(req, res, next);
+  } catch (error) {
+    console.error('🔥 [/profile] Wrapper Error:', error);
+    next(error);
+  }
+});
 
 // 使用子路由处理其他profile相关请求
 router.use('/profile', require('./profile'));
