@@ -83,7 +83,7 @@ export default function Profile() {
     <div className="min-h-screen bg-gray-50">
       {/* 封面图 */}
       <div 
-        className="h-64 bg-gradient-to-r from-purple-500 to-pink-500 relative"
+        className="h-48 bg-gradient-to-r from-purple-500 to-pink-500 relative"
         style={{
           backgroundImage: profile.coverImage ? `url(${profile.coverImage})` : undefined,
           backgroundSize: 'cover',
@@ -93,7 +93,7 @@ export default function Profile() {
         {profile.isOwner && (
           <Link
             to={`/profile/${userId}/edit`}
-            className="absolute top-4 right-4 px-4 py-2 bg-white/90 backdrop-blur rounded-lg text-sm font-medium hover:bg-white transition"
+            className="absolute top-4 right-4 px-4 py-2 bg-white/90 backdrop-blur rounded-lg text-sm font-medium hover:bg-white transition z-10"
           >
             ✏️ 编辑主页
           </Link>
@@ -101,7 +101,7 @@ export default function Profile() {
       </div>
 
       {/* 主要内容 */}
-      <div className="max-w-5xl mx-auto px-4 -mt-20">
+      <div className="max-w-5xl mx-auto px-4 -mt-16 relative z-10">
       {/* 用户信息卡片 */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">

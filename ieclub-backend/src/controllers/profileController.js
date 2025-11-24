@@ -294,14 +294,12 @@ exports.getUserStats = async (req, res, next) => {
       throw new AppError('用户ID无效', 400)
     }
 
-    // 获取各类型发布数量
-    const postStats = await prisma.topic.groupBy({
-      by: ['category'],
+    // 获取发布总数（简化查询）
+    const totalPosts = await prisma.topic.count({
       where: {
         authorId: userId,
         status: 'published'
-      },
-      _count: true
+      }
     })
 
     // 获取总浏览量、总点赞数
@@ -328,11 +326,8 @@ exports.getUserStats = async (req, res, next) => {
     })
 
     const stats = {
-      postsByType: postStats.reduce((acc, item) => {
-        acc[item.category || 'other'] = item._count
-        return acc
-      }, {}),
-      totalPosts: postStats.reduce((sum, item) => sum + item._count, 0),
+      postsByType: {}, // 暂时简化
+      totalPosts,
       totalViews: postAggregates._sum.viewCount || 0,
       totalLikes: postAggregates._sum.likeCount || 0,
       totalComments: postAggregates._sum.commentCount || 0,
