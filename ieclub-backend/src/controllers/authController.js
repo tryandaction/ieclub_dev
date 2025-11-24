@@ -2135,8 +2135,16 @@ class AuthController {
   // 获取个人信息
   static async getProfile(req, res) {
     try {
+      // 兼容req.user和req.userId
+      const userId = req.user?.id || req.userId;
+      
+      if (!userId) {
+        logger.error('获取个人信息失败: userId未定义', { user: req.user, userId: req.userId });
+        return response.unauthorized(res, '用户未登录');
+      }
+
       const user = await prisma.user.findUnique({
-        where: { id: req.userId },
+        where: { id: userId },
         select: {
           id: true,
           openid: true,
