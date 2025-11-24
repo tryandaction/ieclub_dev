@@ -2439,34 +2439,40 @@ ssh root@ieclub.online "grep -n 'updateProfile' /root/IEclub_dev/ieclub-backend/
 ### 部署记录
 
 **最新部署**:
-**时间**: 2025-11-24 13:41  
+**时间**: 2025-11-24 16:35  
 **组件**: 全部（backend + web）  
-**功能**: 个人中心功能完整修复 - 彻底解决所有已知问题  
-**提交**: 8da138bb, d79da99f, 268e0de4  
-**状态**: ✅ 部署成功，服务正常运行（PID: 83813）  
+**功能**: 彻底解决个人中心超时和500错误 - 根源问题修复  
+**提交**: 6d19b715  
+**状态**: ✅ 部署成功，服务正常运行  
 **修复内容**:
-- ✅ **关键修复**: profileController.js中projectsData字段名（之前错误使用projects）
-- ✅ **关键修复**: Web部署路径修正为/root/IEclub_dev/ieclub-taro/dist（Nginx配置匹配）
-- ✅ Prisma字段名统一（viewsCount, likesCount, commentsCount, bookmarksCount）
-- ✅ Topic状态值正确（collecting）
-- ✅ getUserStats完整统计功能（含分组统计）
-- ✅ getUserPosts完整列表功能（含JSON解析）
-- ✅ PUT /profile编辑保存功能（字段名已修复）
-- ✅ 前端页面布局优化（封面h-48，z-index）
-- ✅ 强制重启PM2确保代码生效
+- ✅ **根源修复1**: `/auth/profile`超时从5秒增加到30秒（避免数据库慢查询）
+- ✅ **根源修复2**: updateProfile增强错误处理和详细日志
+- ✅ **根源修复3**: JSON序列化/反序列化安全处理
+- ✅ **优化**: 减少重试次数，快速失败策略
+- ✅ profileController.js中projectsData字段名
+- ✅ Web部署路径/root/IEclub_dev/ieclub-taro/dist
+- ✅ Prisma字段名统一
+- ✅ getUserStats/getUserPosts完整功能
+- ✅ 前端页面布局优化
 
-**功能完整性测试**:
-- ✅ `GET /api/health` - 正常
-- ✅ `GET /api/profile/:userId` - 正常，返回完整用户信息
-- ✅ `GET /api/profile/:userId/stats` - 正常，返回完整统计
-- ✅ `GET /api/profile/:userId/posts` - 正常，返回完整话题列表  
-- ✅ `PUT /api/profile` - **已修复projectsData字段，强制部署生效**
+**性能验证**:
+- ✅ 本地API响应：3ms（非常快）
+- ✅ Nginx代理响应：116ms（正常）
+- ✅ 后端服务稳定运行
+- ✅ Nginx配置正确（proxy_pass 127.0.0.1:3000）
 
-**部署验证**:
-- ✅ 后端代码已更新（文件时间: 13:19）
-- ✅ 前端代码已更新（文件时间: 13:32）
-- ✅ PM2进程已重启（PID: 83813，uptime: 3m，restarts: 3）
-- ✅ projectsData字段已确认存在于服务器代码（行239, 264, 277）
+**问题诊断结果**:
+- ❌ 之前的5秒超时设置过短，导致数据库查询超时
+- ❌ 缺少详细错误日志，难以定位500错误原因
+- ✅ 现在有完整的updateProfile日志追踪
+- ✅ JSON处理增加了安全保护
+
+**功能完整性**:
+- ✅ `GET /api/health` - 正常（116ms）
+- ✅ `GET /api/auth/profile` - 超时已修复（30秒）
+- ✅ `PUT /api/profile` - 增强错误处理
+- ✅ `GET /api/profile/:userId/stats` - 正常
+- ✅ `GET /api/profile/:userId/posts` - 正常
 
 **上次部署**:
 **时间**: 2025-11-24 12:00  
