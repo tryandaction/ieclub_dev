@@ -236,7 +236,7 @@ exports.updateProfile = async (req, res, next) => {
       updateData.achievements = JSON.stringify(achievements)
     }
     if (projects !== undefined) {
-      updateData.projects = JSON.stringify(projects)
+      updateData.projectsData = JSON.stringify(projects)
     }
 
     const user = await prisma.user.update({
