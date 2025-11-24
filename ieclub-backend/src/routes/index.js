@@ -63,7 +63,13 @@ router.delete('/comments/:id', authenticate, commentController.deleteComment);
 router.post('/comments/:id/like', authenticate, commentController.likeComment);
 
 // ==================== Users/Profile Routes ====================
-// 使用完整的profile路由和controller
+// ⚠️ 重要：直接注册profile路由，避免子路由匹配问题
+const profileController = require('../controllers/profileController');
+
+// 编辑个人主页（PUT必须在GET之前，避免被/:userId匹配）
+router.put('/profile', authenticate, profileController.updateProfile);
+
+// 使用子路由处理其他profile相关请求
 router.use('/profile', require('./profile'));
 
 // ==================== Upload Routes ====================
