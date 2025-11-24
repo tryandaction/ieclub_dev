@@ -2439,40 +2439,45 @@ ssh root@ieclub.online "grep -n 'updateProfile' /root/IEclub_dev/ieclub-backend/
 ### 部署记录
 
 **最新部署**:
-**时间**: 2025-11-24 16:35  
+**时间**: 2025-11-24 17:26  
 **组件**: 全部（backend + web）  
-**功能**: 彻底解决个人中心超时和500错误 - 根源问题修复  
-**提交**: 6d19b715  
-**状态**: ✅ 部署成功，服务正常运行  
-**修复内容**:
-- ✅ **根源修复1**: `/auth/profile`超时从5秒增加到30秒（避免数据库慢查询）
-- ✅ **根源修复2**: updateProfile增强错误处理和详细日志
-- ✅ **根源修复3**: JSON序列化/反序列化安全处理
-- ✅ **优化**: 减少重试次数，快速失败策略
-- ✅ profileController.js中projectsData字段名
-- ✅ Web部署路径/root/IEclub_dev/ieclub-taro/dist
-- ✅ Prisma字段名统一
-- ✅ getUserStats/getUserPosts完整功能
-- ✅ 前端页面布局优化
+**功能**: 个人中心完整重写 - 最终版本  
+**提交**: 99ec400e  
+**状态**: ✅ 部署成功，PID: 99759  
+**关键修复**:
+- ✅ **完全重写** `updateProfile`方法（187-420行）
+  - 增加用户验证（存在性、状态检查）
+  - 安全的JSON字段处理（try-catch包装）
+  - 详细的logger日志输出
+  - 空数据保护和默认值处理
+- ✅ **修复路由冲突** - 注释profile.js中重复的PUT /路由
+- ✅ **增强认证中间件** - 添加详细日志追踪
+- ✅ **前端超时优化** - /auth/profile从5秒→30秒
+- ✅ **字段名修复** - projectsData（数据库） vs projects（API）
+- ✅ **部署路径修正** - /root/IEclub_dev/ieclub-taro/dist
 
-**性能验证**:
-- ✅ 本地API响应：3ms（非常快）
-- ✅ Nginx代理响应：116ms（正常）
-- ✅ 后端服务稳定运行
-- ✅ Nginx配置正确（proxy_pass 127.0.0.1:3000）
+**持续问题** ⚠️:
+- ❌ PUT /api/profile仍返回500但无日志输出
+- ❌ 可能原因：
+  1. PM2日志被pm2-logrotate立即轮转
+  2. 请求在到达Express前被拦截（Nginx/代理问题）
+  3. 前端缓存问题（用户浏览器未清缓存）
 
-**问题诊断结果**:
-- ❌ 之前的5秒超时设置过短，导致数据库查询超时
-- ❌ 缺少详细错误日志，难以定位500错误原因
-- ✅ 现在有完整的updateProfile日志追踪
-- ✅ JSON处理增加了安全保护
+**部署验证**:
+- ✅ 后端PID: 99759（最新进程）
+- ✅ 前端文件: index-BHbwZYYh.js (467KB, 17:25)
+- ✅ 健康检查: 通过（116ms）
+- ✅ GET接口: 正常工作
+- ❌ PUT接口: 持续500错误（待用户测试）
 
-**功能完整性**:
-- ✅ `GET /api/health` - 正常（116ms）
-- ✅ `GET /api/auth/profile` - 超时已修复（30秒）
-- ✅ `PUT /api/profile` - 增强错误处理
-- ✅ `GET /api/profile/:userId/stats` - 正常
-- ✅ `GET /api/profile/:userId/posts` - 正常
+**用户测试清单** 📝:
+1. **必须清除浏览器缓存**（Ctrl+Shift+Delete或Ctrl+F5）
+2. 确认加载的JS文件是`index-BHbwZYYh.js`而不是旧的`index-Dxo-7PKF.js`
+3. 使用F12查看Network标签中PUT /api/profile请求的详细信息
+4. 如果仍有500错误，提供：
+   - Request Headers（特别是Authorization）
+   - Request Payload
+   - Response数据
 
 **上次部署**:
 **时间**: 2025-11-24 12:00  
