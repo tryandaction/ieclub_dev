@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Image as ImageIcon, Globe, Github, Camera, X, Plus } from 'lucide-react';
+import { User, Image as ImageIcon, Globe, Github, Camera, X, Plus, Upload } from 'lucide-react';
 import request from '../utils/request';
 import { useAuth } from '../contexts/AuthContext';
+import { showToast } from '../components/Toast';
+import { uploadImages } from '../api/upload';
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -26,8 +28,13 @@ export default function EditProfile() {
     major: '',
     grade: '',
     skills: [],
-    interests: []
+    interests: [],
+    projects: []
   });
+  
+  const [uploading, setUploading] = useState(false);
+  const avatarInputRef = useRef(null);
+  const coverInputRef = useRef(null);
 
   const [skillInput, setSkillInput] = useState('');
   const [interestInput, setInterestInput] = useState('');
@@ -63,11 +70,12 @@ export default function EditProfile() {
         major: profile.major || '',
         grade: profile.grade || '',
         skills: profile.skills || [],
-        interests: profile.interests || []
+        interests: profile.interests || [],
+        projects: profile.projects || []
       });
     } catch (error) {
       console.error('加载用户信息失败:', error);
-      alert(error.message || '加载失败');
+      showToast(error.message || '加载失败', 'error');
     } finally {
       setLoading(false);
     }
@@ -79,12 +87,9 @@ export default function EditProfile() {
 
   const addSkill = () => {
     const skill = skillInput.trim();
-    if (!skill) {
-      alert('请输入技能');
-      return;
-    }
+    if (!skill) return;
     if (form.skills.includes(skill)) {
-      alert('技能已存在');
+      showToast('技能已存在', 'warning');
       return;
     }
     setForm(prev => ({ ...prev, skills: [...prev.skills, skill] }));
@@ -100,16 +105,41 @@ export default function EditProfile() {
 
   const addInterest = () => {
     const interest = interestInput.trim();
-    if (!interest) {
-      alert('请输入兴趣');
-      return;
-    }
+    if (!interest) return;
     if (form.interests.includes(interest)) {
-      alert('兴趣已存在');
+      showToast('兴趣已存在', 'warning');
       return;
     }
     setForm(prev => ({ ...prev, interests: [...prev.interests, interest] }));
     setInterestInput('');
+  };
+  
+  // 图片上传处理
+  const handleImageUpload = async (file, type) => {
+    if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('图片大小不能超过5MB', 'error');
+      return;
+    }
+    
+    setUploading(true);
+    try {
+      const res = await uploadImages([file]);
+      const imageUrl = res.data?.uploads?.[0] || res.uploads?.[0];
+      
+      if (imageUrl) {
+        setForm(prev => ({ ...prev, [type]: imageUrl }));
+        showToast('图片上传成功', 'success');
+      } else {
+        showToast('图片上传失败', 'error');
+      }
+    } catch (error) {
+      console.error('上传失败:', error);
+      showToast(error.message || '上传失败', 'error');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const deleteInterest = (index) => {
@@ -123,7 +153,7 @@ export default function EditProfile() {
     e.preventDefault();
     
     if (!form.nickname || form.nickname.trim().length < 2) {
-      alert('昵称至少2个字符');
+      showToast('昵称至少2个字符', 'warning');
       return;
     }
 
@@ -145,23 +175,27 @@ export default function EditProfile() {
         major: form.major.trim(),
         grade: form.grade.trim(),
         skills: form.skills,
-        interests: form.interests
+        interests: form.interests,
+        projects: form.projects
       });
 
       // 更新用户信息
-      if (user) {
+      if (user && res.data) {
         updateUser({
           ...user,
-          nickname: form.nickname,
-          avatar: form.avatar
+          nickname: res.data.nickname || form.nickname,
+          avatar: res.data.avatar || form.avatar
         });
       }
 
-      alert('保存成功！');
-      navigate(`/profile/${user.id}`);
+      showToast('保存成功！', 'success');
+      // 延迟跳转，让用户看到成功提示
+      setTimeout(() => {
+        navigate(`/profile/${user.id}`);
+      }, 800);
     } catch (error) {
       console.error('保存失败:', error);
-      alert(error.message || '保存失败');
+      showToast(error.message || '保存失败，请重试', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -205,12 +239,21 @@ export default function EditProfile() {
                         <Camera className="w-8 h-8 text-gray-400" />
                       )}
                     </div>
+                    <input
+                      ref={avatarInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => e.target.files[0] && handleImageUpload(e.target.files[0], 'avatar')}
+                      className="hidden"
+                    />
                     <button
                       type="button"
-                      onClick={() => alert('请使用图片上传功能')}
-                      className="px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition"
+                      onClick={() => avatarInputRef.current?.click()}
+                      disabled={uploading}
+                      className="px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
-                      更换头像
+                      <Upload className="w-4 h-4" />
+                      {uploading ? '上传中...' : '更换头像'}
                     </button>
                   </div>
                 </div>
@@ -218,20 +261,38 @@ export default function EditProfile() {
                 {/* 封面图 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">主页封面</label>
-                  <div className="w-full h-40 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                  <div className="relative w-full h-40 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center group cursor-pointer"
+                       onClick={() => coverInputRef.current?.click()}>
                     {form.coverImage ? (
-                      <img src={form.coverImage} alt="封面" className="w-full h-full object-cover" />
+                      <>
+                        <img src={form.coverImage} alt="封面" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition flex items-center justify-center">
+                          <Upload className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition" />
+                        </div>
+                      </>
                     ) : (
-                      <ImageIcon className="w-12 h-12 text-gray-400" />
+                      <div className="flex flex-col items-center">
+                        <ImageIcon className="w-12 h-12 text-gray-400" />
+                        <span className="text-sm text-gray-500 mt-2">点击上传封面</span>
+                      </div>
                     )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => alert('请使用图片上传功能')}
-                    className="mt-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition text-sm"
-                  >
-                    更换封面
-                  </button>
+                  <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => e.target.files[0] && handleImageUpload(e.target.files[0], 'coverImage')}
+                    className="hidden"
+                  />
+                  {form.coverImage && (
+                    <button
+                      type="button"
+                      onClick={() => setForm(prev => ({ ...prev, coverImage: '' }))}
+                      className="mt-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition text-sm"
+                    >
+                      移除封面
+                    </button>
+                  )}
                 </div>
 
                 {/* 昵称 */}

@@ -29,6 +29,7 @@ exports.getUserProfile = async (req, res, next) => {
         website: true,
         github: true,
         bilibili: true,
+        wechat: true,
         school: true,
         major: true,
         grade: true,
@@ -38,6 +39,7 @@ exports.getUserProfile = async (req, res, next) => {
         skills: true,
         interests: true,
         achievements: true,
+        projectsData: true,
         createdAt: true,
         _count: {
           select: {
@@ -64,11 +66,15 @@ exports.getUserProfile = async (req, res, next) => {
       skills: user.skills ? JSON.parse(user.skills) : [],
       interests: user.interests ? JSON.parse(user.interests) : [],
       achievements: user.achievements ? JSON.parse(user.achievements) : [],
+      projects: user.projectsData ? JSON.parse(user.projectsData) : [],
       topicsCount: user._count.topics,
       followerCount: user._count.followers,
       followingCount: user._count.follows,
       isOwner: currentUserId === userId
     }
+    
+    // 移除原始projectsData字段
+    delete profile.projectsData
 
     // 移除_count字段
     delete profile._count
