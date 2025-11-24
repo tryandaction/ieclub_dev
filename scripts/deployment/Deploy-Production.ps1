@@ -304,11 +304,11 @@ function Deploy-Web-Production {
     # 部署到Nginx实际读取的目录
     Write-Info "部署到生产目录..."
     $webDeployCmd = @"
-rm -rf /root/IEclub_dev/ieclub-web/dist && 
-mkdir -p /root/IEclub_dev/ieclub-web && 
-unzip -oq /tmp/web-production.zip -d /root/IEclub_dev/ieclub-web/dist/ && 
+rm -rf /root/IEclub_dev/ieclub-taro/dist && 
+mkdir -p /root/IEclub_dev/ieclub-taro && 
+unzip -oq /tmp/web-production.zip -d /root/IEclub_dev/ieclub-taro/dist/ && 
 rm -f /tmp/web-production.zip && 
-chmod -R 755 /root/IEclub_dev/ieclub-web/dist && 
+chmod -R 755 /root/IEclub_dev/ieclub-taro/dist && 
 echo '用户前端部署完成'
 "@
     ssh -p $ServerPort "${ServerUser}@${ServerHost}" $webDeployCmd
