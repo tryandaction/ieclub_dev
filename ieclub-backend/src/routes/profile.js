@@ -6,6 +6,11 @@ const router = express.Router()
 const profileController = require('../controllers/profileController')
 const { authenticate, optionalAuth } = require('../middleware/auth')
 
+// ⚠️ 重要：将无参数路由放在带参数路由之前，避免被 /:userId 匹配
+
+// 编辑个人主页（需要登录）- 必须放在 /:userId 之前
+router.put('/', authenticate, profileController.updateProfile)
+
 // 获取用户公开主页（可选登录）
 router.get('/:userId', optionalAuth, profileController.getUserProfile)
 
@@ -26,9 +31,6 @@ router.get('/:userId/favorites', authenticate, profileController.getUserFavorite
 
 // 获取用户参与的活动
 router.get('/:userId/activities', authenticate, profileController.getUserActivities)
-
-// 编辑个人主页（需要登录）
-router.put('/', authenticate, profileController.updateProfile)
 
 module.exports = router
 
