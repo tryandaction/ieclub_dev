@@ -41,15 +41,39 @@ git push origin develop
 ### 2️⃣ 部署到生产环境
 
 **⭐ 推荐方式 - 一键自动化部署**
+
+⚠️ **重要**：部署前必须先切换到部署脚本目录！
+
 ```powershell
-cd scripts\deployment
+# 【第一步】从项目根目录切换到部署脚本目录
+cd c:\universe\GitHub_try\IEclub_dev\scripts\deployment
+
+# 【第二步】执行部署（推荐 - 轻量级健康检查）
 .\Deploy-Production.ps1 -Target all -Message "更新说明" -MinimalHealthCheck
+
+# 或者：快速部署（跳过健康检查）
+.\Deploy-Production.ps1 -Target all -Message "更新说明" -SkipHealthCheck
 ```
+
 ✅ **为什么加 -MinimalHealthCheck**:
 - 避免部署脚本参数歧义bug
 - 使用轻量级健康检查（不触发网络安全策略）
 - 部署速度更快
 - 已验证稳定可靠
+
+**其他部署选项**
+```powershell
+# ⚠️ 所有命令都需要先执行：cd c:\universe\GitHub_try\IEclub_dev\scripts\deployment
+
+# 仅部署后端
+.\Deploy-Production.ps1 -Target backend -Message "更新说明" -MinimalHealthCheck
+
+# 仅部署前端
+.\Deploy-Production.ps1 -Target web -Message "更新说明" -MinimalHealthCheck
+
+# 完全跳过健康检查（最快，适合紧急修复）
+.\Deploy-Production.ps1 -Target all -Message "更新说明" -SkipHealthCheck
+```
 
 **手动部署方式（快速重启）**
 ```powershell
@@ -62,14 +86,6 @@ ssh root@ieclub.online "pm2 restart ieclub-backend && pm2 save"
 # 3. 检查状态
 ssh root@ieclub.online "pm2 status && pm2 logs ieclub-backend --lines 20"
 ```
-
-**其他部署选项**
-```powershell
-# 仅部署后端
-.\Deploy-Production.ps1 -Target backend -Message "更新说明" -MinimalHealthCheck
-
-# 完全跳过健康检查（最快，适合紧急修复）
-.\Deploy-Production.ps1 -Target all -Message "更新说明" -SkipHealthCheck
 
 
 ### 3️⃣ 调试500错误
