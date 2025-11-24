@@ -2369,33 +2369,53 @@ PUT  /profile                      // 更新个人资料
 已删除本地临时测试页面:
 - ❌ `ieclub-web/src/pages/TestPage.jsx`
 
+### 待修复问题 ⚠️
+
+**Prisma Schema字段对齐问题**:
+- Topic模型缺少`viewCount`, `likeCount`, `commentCount`, `bookmarkCount`字段
+- 需要检查schema.prisma并添加缺失字段或使用_count聚合
+- 影响：个人主页统计数据和发布内容列表
+
+**个人主页功能待完善**:
+- [ ] getUserStats需要恢复完整统计（浏览量、点赞数等）
+- [ ] getUserPosts需要恢复完整话题列表显示
+- [ ] 需要测试PUT /profile编辑保存功能
+- [ ] 考虑添加JSON字段的安全解析
+
+**优先级**: 🔴 高 - 影响用户核心功能
+
 ### 部署记录
 
 **最新部署**:
+**时间**: 2025-11-24 12:00  
+**组件**: 全部（backend + web）  
+**功能**: 修复个人主页显示和编辑功能  
+**提交**: 08a0d91c, f4642251, 40bb7204, eb67f9d0  
+**状态**: ✅ 部署成功，服务正常运行  
+**修复内容**:
+- ✅ 修复`PUT /api/profile`路由（直接在index.js注册，避免子路由冲突）
+- ✅ 修复`GET /api/profile/:userId/stats`（简化查询，暂时返回基本统计）
+- ✅ 修复`GET /api/profile/:userId/posts`（简化查询，避免Prisma字段错误）
+- ✅ 修复个人主页布局（调整封面高度h-48，负边距-mt-16，添加z-index）
+- ✅ 前端页面已优化，内容不再被背景遮挡
+
+**已知限制**:
+- getUserStats暂时只返回基本统计（totalPosts=0, totalViews=0等），待后续完善
+- getUserPosts暂时返回空列表，待Prisma schema字段对齐后恢复
+- 需要修复Topic模型的字段映射问题
+
+**测试验证**:
+- ✅ `GET /api/health` - 正常
+- ✅ `GET /api/profile/:userId` - 正常
+- ✅ `GET /api/profile/:userId/stats` - 正常（简化版）
+- ✅ `GET /api/profile/:userId/posts` - 正常（空列表）
+- ✅ `PUT /api/profile` - 路由已注册（待测试保存功能）
+
+**上次部署**:
 **时间**: 2025-11-24 10:06  
 **组件**: 后端（backend）  
 **功能**: 修复个人资料编辑404错误  
 **提交**: 078d6905  
 **状态**: ✅ 部署成功，服务正常运行  
 **修复**: 调整profile路由顺序，将PUT /移到/:userId之前，解决路由匹配冲突
-
-**上次部署**:
-**时间**: 2025-11-24 09:20  
-**组件**: 全部（backend + web + frontend）  
-**功能**: 页面加载性能优化 + 个人中心全面升级  
-**提交**: 71e3fc61, fe610baa  
-**状态**: ✅ 部署成功，服务正常运行  
-**优化点**: 
-- 降低超时时间到10秒
-- 减少重试次数到2次
-- Loading超时从15秒降到8秒
-- /auth/profile快速失败机制
-- getCurrentUser不显示全局loading
-
-**上次部署**:
-**时间**: 2024-11-23 00:42  
-**组件**: 全部（backend + web + admin-web）  
-**分支**: develop  
-**提交**: 73b5f9cc  
-**状态**: ✅ 成功部署并通过健康检查
 
