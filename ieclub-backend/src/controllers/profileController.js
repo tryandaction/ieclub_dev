@@ -182,78 +182,116 @@ exports.getUserPosts = async (req, res, next) => {
 /**
  * 编辑个人主页
  * PUT /api/profile
+ * 完全重写版本 - 增强健壮性
  */
 exports.updateProfile = async (req, res, next) => {
+  const startTime = Date.now()
+  console.log('\n========== PUT /api/profile 开始 ==========')
+  console.log('时间:', new Date().toISOString())
+  console.log('用户ID:', req.user?.id)
+  console.log('请求体:', JSON.stringify(req.body, null, 2))
+  
   try {
-    const userId = req.user.id
-    console.log('📝 [updateProfile] 开始更新，userId:', userId)
-    console.log('📝 [updateProfile] 请求体:', JSON.stringify(req.body, null, 2))
-    
-    const {
-      nickname,
-      avatar,
-      gender,
-      bio,
-      coverImage,
-      motto,
-      introduction,
-      website,
-      github,
-      bilibili,
-      wechat,
-      school,
-      major,
-      grade,
-      skills,
-      interests,
-      achievements,
-      projects
-    } = req.body
-
-    // 构建更新数据
-    const updateData = {}
-    
-    if (nickname !== undefined) updateData.nickname = nickname
-    if (avatar !== undefined) updateData.avatar = avatar
-    if (gender !== undefined) updateData.gender = gender
-    if (bio !== undefined) updateData.bio = bio
-    if (coverImage !== undefined) updateData.coverImage = coverImage
-    if (motto !== undefined) updateData.motto = motto
-    if (introduction !== undefined) updateData.introduction = introduction
-    if (website !== undefined) updateData.website = website
-    if (github !== undefined) updateData.github = github
-    if (bilibili !== undefined) updateData.bilibili = bilibili
-    if (wechat !== undefined) updateData.wechat = wechat
-    if (school !== undefined) updateData.school = school
-    if (major !== undefined) updateData.major = major
-    if (grade !== undefined) updateData.grade = grade
-    
-    // JSON 字段 - 安全序列化
-    try {
-      if (skills !== undefined) {
-        updateData.skills = Array.isArray(skills) ? JSON.stringify(skills) : '[]'
-      }
-      if (interests !== undefined) {
-        updateData.interests = Array.isArray(interests) ? JSON.stringify(interests) : '[]'
-      }
-      if (achievements !== undefined) {
-        updateData.achievements = Array.isArray(achievements) ? JSON.stringify(achievements) : '[]'
-      }
-      if (projects !== undefined) {
-        updateData.projectsData = Array.isArray(projects) ? JSON.stringify(projects) : '[]'
-      }
-    } catch (jsonError) {
-      console.error('❌ [updateProfile] JSON序列化失败:', jsonError)
-      return res.status(400).json({
+    // 1. 验证用户
+    if (!req.user || !req.user.id) {
+      console.error('❌ 用户验证失败: req.user未定义')
+      return res.status(401).json({
         success: false,
-        message: 'JSON数据格式错误',
-        error: { code: 'INVALID_JSON', message: jsonError.message }
+        error: { code: 'UNAUTHORIZED', message: '用户未登录' }
       })
     }
 
-    console.log('📝 [updateProfile] 更新数据:', JSON.stringify(updateData, null, 2))
+    const userId = req.user.id
+    const requestBody = req.body || {}
 
-    const user = await prisma.user.update({
+    // 2. 验证用户是否存在
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, status: true }
+    })
+
+    if (!existingUser) {
+      console.error('❌ 用户不存在:', userId)
+      return res.status(404).json({
+        success: false,
+        error: { code: 'USER_NOT_FOUND', message: '用户不存在' }
+      })
+    }
+
+    if (existingUser.status !== 'active') {
+      console.error('❌ 用户状态异常:', existingUser.status)
+      return res.status(403).json({
+        success: false,
+        error: { code: 'USER_BANNED', message: '用户已被禁用' }
+      })
+    }
+
+    // 3. 构建更新数据 - 只更新提供的字段
+    const updateData = {}
+    
+    // 基础字符串字段
+    const stringFields = ['nickname', 'avatar', 'bio', 'coverImage', 'motto', 
+      'introduction', 'website', 'github', 'bilibili', 'wechat', 'school', 'major', 'grade']
+    
+    stringFields.forEach(field => {
+      if (requestBody[field] !== undefined) {
+        updateData[field] = requestBody[field] === null ? null : String(requestBody[field])
+      }
+    })
+
+    // gender字段特殊处理
+    if (requestBody.gender !== undefined) {
+      const gender = parseInt(requestBody.gender)
+      if ([0, 1, 2].includes(gender)) {
+        updateData.gender = gender
+      }
+    }
+    
+    // 4. JSON字段处理 - 完全安全
+    const jsonFields = [
+      { input: 'skills', output: 'skills' },
+      { input: 'interests', output: 'interests' },
+      { input: 'achievements', output: 'achievements' },
+      { input: 'projects', output: 'projectsData' }  // 注意：前端用projects，数据库用projectsData
+    ]
+
+    for (const { input, output } of jsonFields) {
+      if (requestBody[input] !== undefined) {
+        try {
+          const value = requestBody[input]
+          if (value === null) {
+            updateData[output] = null
+          } else if (Array.isArray(value)) {
+            updateData[output] = JSON.stringify(value)
+          } else if (typeof value === 'string') {
+            // 如果已经是字符串，先解析验证，再序列化
+            const parsed = JSON.parse(value)
+            updateData[output] = JSON.stringify(Array.isArray(parsed) ? parsed : [])
+          } else {
+            updateData[output] = '[]'
+          }
+        } catch (jsonError) {
+          console.warn(`⚠️ ${input}字段JSON处理失败，使用空数组:`, jsonError.message)
+          updateData[output] = '[]'
+        }
+      }
+    }
+
+    console.log('✅ 更新数据构建完成:', JSON.stringify(updateData, null, 2))
+
+    // 5. 如果没有要更新的数据
+    if (Object.keys(updateData).length === 0) {
+      console.log('⚠️ 没有要更新的数据')
+      return res.json({
+        success: true,
+        message: '没有要更新的数据',
+        data: await getUserProfile(userId)
+      })
+    }
+
+    // 6. 执行数据库更新
+    console.log('📝 开始数据库更新...')
+    const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: updateData,
       select: {
@@ -282,36 +320,101 @@ exports.updateProfile = async (req, res, next) => {
       }
     })
 
-    console.log('✅ [updateProfile] 数据库更新成功')
+    console.log('✅ 数据库更新成功')
 
-    // 解析 JSON 字段 - 安全解析
-    const parseJSON = (str, defaultValue = []) => {
+    // 7. 安全解析JSON字段返回给前端
+    const safeParseJSON = (str, defaultValue = []) => {
+      if (!str) return defaultValue
       try {
-        return str ? JSON.parse(str) : defaultValue
+        const parsed = JSON.parse(str)
+        return Array.isArray(parsed) ? parsed : defaultValue
       } catch {
         return defaultValue
       }
     }
 
-    const profile = {
-      ...user,
-      skills: parseJSON(user.skills),
-      interests: parseJSON(user.interests),
-      achievements: parseJSON(user.achievements),
-      projects: parseJSON(user.projectsData)
+    const responseData = {
+      ...updatedUser,
+      skills: safeParseJSON(updatedUser.skills),
+      interests: safeParseJSON(updatedUser.interests),
+      achievements: safeParseJSON(updatedUser.achievements),
+      projects: safeParseJSON(updatedUser.projectsData),
+      projectsData: undefined  // 不返回原始字段
     }
 
-    console.log('✅ [updateProfile] 返回成功响应')
+    const duration = Date.now() - startTime
+    console.log(`✅ 请求成功完成 (耗时: ${duration}ms)`)
+    console.log('========== PUT /api/profile 结束 ==========\n')
 
-    res.json({
+    return res.json({
       success: true,
       message: '个人主页更新成功',
-      data: profile
+      data: responseData
     })
+
   } catch (error) {
-    console.error('❌ [updateProfile] 错误:', error)
-    console.error('❌ [updateProfile] 错误堆栈:', error.stack)
+    const duration = Date.now() - startTime
+    console.error('\n========== ❌ PUT /api/profile 错误 ==========')
+    console.error('耗时:', duration + 'ms')
+    console.error('错误类型:', error.constructor.name)
+    console.error('错误信息:', error.message)
+    console.error('错误堆栈:', error.stack)
+    console.error('用户ID:', req.user?.id)
+    console.error('请求体:', JSON.stringify(req.body, null, 2))
+    console.error('==========================================\n')
+    
+    // 传递给全局错误处理器
     next(error)
+  }
+}
+
+/**
+ * 辅助函数：获取用户完整Profile
+ */
+async function getUserProfile(userId) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      nickname: true,
+      avatar: true,
+      gender: true,
+      bio: true,
+      coverImage: true,
+      motto: true,
+      introduction: true,
+      website: true,
+      github: true,
+      bilibili: true,
+      wechat: true,
+      school: true,
+      major: true,
+      grade: true,
+      skills: true,
+      interests: true,
+      achievements: true,
+      projectsData: true,
+      level: true,
+      credits: true,
+      isCertified: true
+    }
+  })
+
+  const safeParseJSON = (str, defaultValue = []) => {
+    if (!str) return defaultValue
+    try {
+      return JSON.parse(str)
+    } catch {
+      return defaultValue
+    }
+  }
+
+  return {
+    ...user,
+    skills: safeParseJSON(user.skills),
+    interests: safeParseJSON(user.interests),
+    achievements: safeParseJSON(user.achievements),
+    projects: safeParseJSON(user.projectsData)
   }
 }
 
