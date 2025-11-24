@@ -186,6 +186,9 @@ exports.getUserPosts = async (req, res, next) => {
 exports.updateProfile = async (req, res, next) => {
   try {
     const userId = req.user.id
+    console.log('📝 [updateProfile] 开始更新，userId:', userId)
+    console.log('📝 [updateProfile] 请求体:', JSON.stringify(req.body, null, 2))
+    
     const {
       nickname,
       avatar,
@@ -225,19 +228,30 @@ exports.updateProfile = async (req, res, next) => {
     if (major !== undefined) updateData.major = major
     if (grade !== undefined) updateData.grade = grade
     
-    // JSON 字段
-    if (skills !== undefined) {
-      updateData.skills = JSON.stringify(skills)
+    // JSON 字段 - 安全序列化
+    try {
+      if (skills !== undefined) {
+        updateData.skills = Array.isArray(skills) ? JSON.stringify(skills) : '[]'
+      }
+      if (interests !== undefined) {
+        updateData.interests = Array.isArray(interests) ? JSON.stringify(interests) : '[]'
+      }
+      if (achievements !== undefined) {
+        updateData.achievements = Array.isArray(achievements) ? JSON.stringify(achievements) : '[]'
+      }
+      if (projects !== undefined) {
+        updateData.projectsData = Array.isArray(projects) ? JSON.stringify(projects) : '[]'
+      }
+    } catch (jsonError) {
+      console.error('❌ [updateProfile] JSON序列化失败:', jsonError)
+      return res.status(400).json({
+        success: false,
+        message: 'JSON数据格式错误',
+        error: { code: 'INVALID_JSON', message: jsonError.message }
+      })
     }
-    if (interests !== undefined) {
-      updateData.interests = JSON.stringify(interests)
-    }
-    if (achievements !== undefined) {
-      updateData.achievements = JSON.stringify(achievements)
-    }
-    if (projects !== undefined) {
-      updateData.projectsData = JSON.stringify(projects)
-    }
+
+    console.log('📝 [updateProfile] 更新数据:', JSON.stringify(updateData, null, 2))
 
     const user = await prisma.user.update({
       where: { id: userId },
@@ -268,14 +282,26 @@ exports.updateProfile = async (req, res, next) => {
       }
     })
 
-    // 解析 JSON 字段
+    console.log('✅ [updateProfile] 数据库更新成功')
+
+    // 解析 JSON 字段 - 安全解析
+    const parseJSON = (str, defaultValue = []) => {
+      try {
+        return str ? JSON.parse(str) : defaultValue
+      } catch {
+        return defaultValue
+      }
+    }
+
     const profile = {
       ...user,
-      skills: user.skills ? JSON.parse(user.skills) : [],
-      interests: user.interests ? JSON.parse(user.interests) : [],
-      achievements: user.achievements ? JSON.parse(user.achievements) : [],
-      projects: user.projectsData ? JSON.parse(user.projectsData) : []
+      skills: parseJSON(user.skills),
+      interests: parseJSON(user.interests),
+      achievements: parseJSON(user.achievements),
+      projects: parseJSON(user.projectsData)
     }
+
+    console.log('✅ [updateProfile] 返回成功响应')
 
     res.json({
       success: true,
@@ -283,6 +309,8 @@ exports.updateProfile = async (req, res, next) => {
       data: profile
     })
   } catch (error) {
+    console.error('❌ [updateProfile] 错误:', error)
+    console.error('❌ [updateProfile] 错误堆栈:', error.stack)
     next(error)
   }
 }
