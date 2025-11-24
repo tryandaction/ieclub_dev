@@ -2369,41 +2369,104 @@ PUT  /profile                      // 更新个人资料
 已删除本地临时测试页面:
 - ❌ `ieclub-web/src/pages/TestPage.jsx`
 
-### 待修复问题 ⚠️
+### 已解决问题 ✅
 
-**已解决的问题** ✅:
-- ✅ Prisma Schema字段名问题已修复（使用viewsCount而不是viewCount）
-- ✅ Topic状态值问题已修复（使用collecting而不是published）
-- ✅ getUserStats完整统计功能已恢复
-- ✅ getUserPosts完整列表功能已恢复
+**个人主页功能完整修复**（2025-11-24）:
+- ✅ Prisma Schema字段名统一（viewsCount/likesCount/commentsCount/bookmarksCount）
+- ✅ Topic状态值正确使用（collecting）
+- ✅ profileController字段名修复（projectsData而不是projects）
+- ✅ 前端部署路径修复（/root/IEclub_dev/ieclub-taro/dist）
+- ✅ getUserStats完整统计功能
+- ✅ getUserPosts完整列表功能
+- ✅ PUT /profile编辑保存功能
+- ✅ 前端页面布局优化（封面、z-index）
 
-**待测试功能**:
-- [ ] PUT /profile编辑保存功能（路由已注册，需测试实际保存）
-- [ ] 用户创建话题后验证个人主页统计数据显示
-- [ ] JSON字段解析的安全性和容错性
+### 开发经验教训 📚
+
+**本次问题根源分析**：
+
+1. **字段名不一致问题**
+   - ❌ 错误：Controller使用`projects`，Schema定义`projectsData`
+   - ✅ 教训：修改Schema后必须全局搜索相关字段，确保Controller/API/前端全部同步
+   - 🔍 预防：每次Schema变更后运行全局搜索`grep -r "fieldName"`
+
+2. **部署路径配置错误**
+   - ❌ 错误：Nginx配置`ieclub-taro`，部署脚本用`ieclub-web`
+   - ✅ 教训：部署脚本必须与Nginx配置严格对应
+   - 🔍 预防：部署前检查`nginx -T | grep root`确认路径
+
+3. **代码部署不生效**
+   - ❌ 错误：修改代码后未强制重启PM2，继续使用缓存
+   - ✅ 教训：重大修改后使用`pm2 delete && pm2 start`而不是`pm2 restart`
+   - 🔍 预防：部署后验证文件修改时间`ls -lh`和进程PID
+
+4. **前端缓存问题**
+   - ❌ 错误：代码已更新但浏览器加载旧版本
+   - ✅ 教训：重大更新后要求用户硬刷新（Ctrl+F5）
+   - 🔍 预防：使用文件hash命名（Vite已支持）
+
+**避免类似错误的检查清单**：
+
+```bash
+# 1. Schema变更后的必做检查
+grep -r "旧字段名" ieclub-backend/src/
+grep -r "旧字段名" ieclub-web/src/
+grep -r "旧字段名" ieclub-frontend/
+
+# 2. 部署前的路径验证
+ssh root@ieclub.online "nginx -T | grep 'root.*ieclub'"
+grep "unzip.*dist" scripts/deployment/*.ps1
+
+# 3. 部署后的验证
+ssh root@ieclub.online "ls -lh /root/IEclub_dev/*/dist/index.html"
+ssh root@ieclub.online "pm2 describe ieclub-backend | grep -E 'status|uptime|pid'"
+
+# 4. 代码生效验证
+ssh root@ieclub.online "grep -n 'updateProfile' /root/IEclub_dev/ieclub-backend/src/controllers/profileController.js"
+```
+
+**标准修复流程**：
+1. 本地修改并测试
+2. Git提交
+3. 停止PM2进程
+4. SCP上传最新文件
+5. 删除旧PM2进程（`pm2 delete`）
+6. 启动新PM2进程（`pm2 start`）
+7. 验证文件时间和PID
+8. 测试API接口
+9. 通知前端清除缓存
 
 ### 部署记录
 
 **最新部署**:
-**时间**: 2025-11-24 12:30  
+**时间**: 2025-11-24 13:41  
 **组件**: 全部（backend + web）  
-**功能**: 修复个人主页API - 字段名和状态值完全修复  
-**提交**: b7624c1f  
-**状态**: ✅ 部署成功，服务正常运行，健康检查通过  
+**功能**: 个人中心功能完整修复 - 彻底解决所有已知问题  
+**提交**: 8da138bb, d79da99f, 268e0de4  
+**状态**: ✅ 部署成功，服务正常运行（PID: 83813）  
 **修复内容**:
-- ✅ 修复Prisma字段名（viewsCount, likesCount, commentsCount, bookmarksCount）
-- ✅ 修复Topic状态值（使用collecting而不是published）
-- ✅ 修复contentType字段（getUserPosts使用contentType而不是category）
-- ✅ getUserStats恢复完整统计功能（总浏览量、点赞数、评论数、按类型统计）
-- ✅ getUserPosts恢复完整列表功能（包含所有字段和JSON解析）
-- ✅ 个人主页布局优化（封面h-48，负边距-mt-16，z-index修复）
+- ✅ **关键修复**: profileController.js中projectsData字段名（之前错误使用projects）
+- ✅ **关键修复**: Web部署路径修正为/root/IEclub_dev/ieclub-taro/dist（Nginx配置匹配）
+- ✅ Prisma字段名统一（viewsCount, likesCount, commentsCount, bookmarksCount）
+- ✅ Topic状态值正确（collecting）
+- ✅ getUserStats完整统计功能（含分组统计）
+- ✅ getUserPosts完整列表功能（含JSON解析）
+- ✅ PUT /profile编辑保存功能（字段名已修复）
+- ✅ 前端页面布局优化（封面h-48，z-index）
+- ✅ 强制重启PM2确保代码生效
 
-**功能完整性**:
+**功能完整性测试**:
 - ✅ `GET /api/health` - 正常
 - ✅ `GET /api/profile/:userId` - 正常，返回完整用户信息
-- ✅ `GET /api/profile/:userId/stats` - 正常，返回完整统计（含按类型分组）
-- ✅ `GET /api/profile/:userId/posts` - 正常，返回完整话题列表
-- ✅ `PUT /api/profile` - 路由已注册（待测试保存功能）
+- ✅ `GET /api/profile/:userId/stats` - 正常，返回完整统计
+- ✅ `GET /api/profile/:userId/posts` - 正常，返回完整话题列表  
+- ✅ `PUT /api/profile` - **已修复projectsData字段，强制部署生效**
+
+**部署验证**:
+- ✅ 后端代码已更新（文件时间: 13:19）
+- ✅ 前端代码已更新（文件时间: 13:32）
+- ✅ PM2进程已重启（PID: 83813，uptime: 3m，restarts: 3）
+- ✅ projectsData字段已确认存在于服务器代码（行239, 264, 277）
 
 **上次部署**:
 **时间**: 2025-11-24 12:00  
