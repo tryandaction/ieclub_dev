@@ -67,7 +67,12 @@ router.post('/comments/:id/like', authenticate, commentController.likeComment);
 const profileController = require('../controllers/profileController');
 
 // 编辑个人主页（PUT必须在GET之前，避免被/:userId匹配）
-router.put('/profile', authenticate, profileController.updateProfile);
+router.put('/profile', authenticate, (req, res, next) => {
+  console.log('🔥 [/profile] Route handler called');
+  console.log('🔥 [/profile] User:', req.user?.id);
+  console.log('🔥 [/profile] Body:', JSON.stringify(req.body));
+  next();
+}, profileController.updateProfile);
 
 // 使用子路由处理其他profile相关请求
 router.use('/profile', require('./profile'));

@@ -21,21 +21,27 @@ try {
  * 验证 JWT Token
  */
 exports.authenticate = async (req, res, next) => {
+  console.log(' [authenticate] 开始认证', req.method, req.path);
   try {
     // 从 Header 中获取 token
     const authHeader = req.headers.authorization;
+    console.log(' [authenticate] authHeader:', authHeader ? 'EXISTS' : 'MISSING');
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log(' [authenticate] Token missing or invalid format');
       throw new AppError('AUTH_TOKEN_MISSING');
     }
 
     const token = authHeader.substring(7); // 移除 'Bearer ' 前缀
+    console.log(' [authenticate] Token length:', token.length);
 
     // 验证 token
     let decoded;
     try {
       decoded = jwt.verify(token, config.jwt.secret);
+      console.log(' [authenticate] Token verified, userId:', decoded.userId);
     } catch (error) {
+      console.log(' [authenticate] Token verification failed:', error.name);
       if (error.name === 'TokenExpiredError') {
         throw new AppError('AUTH_TOKEN_EXPIRED');
       }
@@ -43,6 +49,7 @@ exports.authenticate = async (req, res, next) => {
     }
 
     // 查询用户信息
+    console.log(' [authenticate] Querying user...');
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: {
@@ -60,10 +67,12 @@ exports.authenticate = async (req, res, next) => {
     });
 
     if (!user) {
+      console.log(' [authenticate] User not found');
       throw new AppError('AUTH_USER_NOT_FOUND');
     }
 
     if (user.status !== 'active') {
+      console.log(' [authenticate] User banned');
       throw new AppError('AUTH_USER_BANNED');
     }
 
@@ -71,8 +80,10 @@ exports.authenticate = async (req, res, next) => {
     req.user = user;
     req.userId = user.id;
 
+    console.log(' [authenticate] Authentication successful');
     next();
   } catch (error) {
+    console.log(' [authenticate] Error:', error.message);
     next(error);
   }
 };

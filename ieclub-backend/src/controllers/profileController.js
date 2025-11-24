@@ -3,6 +3,7 @@
 
 const prisma = require('../config/database')
 const { AppError } = require('../middleware/errorHandler')
+const logger = require('../utils/logger')
 
 /**
  * 获取用户公开主页
@@ -186,15 +187,27 @@ exports.getUserPosts = async (req, res, next) => {
  */
 exports.updateProfile = async (req, res, next) => {
   const startTime = Date.now()
-  console.log('\n========== PUT /api/profile 开始 ==========')
-  console.log('时间:', new Date().toISOString())
-  console.log('用户ID:', req.user?.id)
-  console.log('请求体:', JSON.stringify(req.body, null, 2))
+  
+  // 🔥 立即返回调试信息，确认方法被调用
+  if (req.query.debug === 'true') {
+    return res.json({
+      success: true,
+      message: 'updateProfile方法已被调用',
+      timestamp: new Date().toISOString(),
+      userId: req.user?.id,
+      bodyKeys: Object.keys(req.body || {})
+    })
+  }
+  
+  logger.info('\n========== PUT /api/profile 开始 ==========')
+  logger.info('时间:', new Date().toISOString())
+  logger.info('用户ID:', req.user?.id)
+  logger.info('请求体:', JSON.stringify(req.body, null, 2))
   
   try {
     // 1. 验证用户
     if (!req.user || !req.user.id) {
-      console.error('❌ 用户验证失败: req.user未定义')
+      logger.error('❌ 用户验证失败: req.user未定义')
       return res.status(401).json({
         success: false,
         error: { code: 'UNAUTHORIZED', message: '用户未登录' }
@@ -211,7 +224,7 @@ exports.updateProfile = async (req, res, next) => {
     })
 
     if (!existingUser) {
-      console.error('❌ 用户不存在:', userId)
+      logger.error('❌ 用户不存在:', userId)
       return res.status(404).json({
         success: false,
         error: { code: 'USER_NOT_FOUND', message: '用户不存在' }
@@ -219,7 +232,7 @@ exports.updateProfile = async (req, res, next) => {
     }
 
     if (existingUser.status !== 'active') {
-      console.error('❌ 用户状态异常:', existingUser.status)
+      logger.error('❌ 用户状态异常:', existingUser.status)
       return res.status(403).json({
         success: false,
         error: { code: 'USER_BANNED', message: '用户已被禁用' }
@@ -271,17 +284,17 @@ exports.updateProfile = async (req, res, next) => {
             updateData[output] = '[]'
           }
         } catch (jsonError) {
-          console.warn(`⚠️ ${input}字段JSON处理失败，使用空数组:`, jsonError.message)
+          logger.warn(`⚠️ ${input}字段JSON处理失败，使用空数组:`, jsonError.message)
           updateData[output] = '[]'
         }
       }
     }
 
-    console.log('✅ 更新数据构建完成:', JSON.stringify(updateData, null, 2))
+    logger.info('✅ 更新数据构建完成:', JSON.stringify(updateData, null, 2))
 
     // 5. 如果没有要更新的数据
     if (Object.keys(updateData).length === 0) {
-      console.log('⚠️ 没有要更新的数据')
+      logger.warn('⚠️ 没有要更新的数据')
       return res.json({
         success: true,
         message: '没有要更新的数据',
@@ -290,7 +303,7 @@ exports.updateProfile = async (req, res, next) => {
     }
 
     // 6. 执行数据库更新
-    console.log('📝 开始数据库更新...')
+    logger.info('📝 开始数据库更新...')
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: updateData,
@@ -320,7 +333,7 @@ exports.updateProfile = async (req, res, next) => {
       }
     })
 
-    console.log('✅ 数据库更新成功')
+    logger.info('✅ 数据库更新成功')
 
     // 7. 安全解析JSON字段返回给前端
     const safeParseJSON = (str, defaultValue = []) => {
@@ -343,8 +356,8 @@ exports.updateProfile = async (req, res, next) => {
     }
 
     const duration = Date.now() - startTime
-    console.log(`✅ 请求成功完成 (耗时: ${duration}ms)`)
-    console.log('========== PUT /api/profile 结束 ==========\n')
+    logger.info(`✅ 请求成功完成 (耗时: ${duration}ms)`)
+    logger.info('========== PUT /api/profile 结束 ==========\n')
 
     return res.json({
       success: true,
@@ -354,14 +367,14 @@ exports.updateProfile = async (req, res, next) => {
 
   } catch (error) {
     const duration = Date.now() - startTime
-    console.error('\n========== ❌ PUT /api/profile 错误 ==========')
-    console.error('耗时:', duration + 'ms')
-    console.error('错误类型:', error.constructor.name)
-    console.error('错误信息:', error.message)
-    console.error('错误堆栈:', error.stack)
-    console.error('用户ID:', req.user?.id)
-    console.error('请求体:', JSON.stringify(req.body, null, 2))
-    console.error('==========================================\n')
+    logger.error('\n========== ❌ PUT /api/profile 错误 ==========')
+    logger.error('耗时:', duration + 'ms')
+    logger.error('错误类型:', error.constructor.name)
+    logger.error('错误信息:', error.message)
+    logger.error('错误堆栈:', error.stack)
+    logger.error('用户ID:', req.user?.id)
+    logger.error('请求体:', JSON.stringify(req.body, null, 2))
+    logger.error('==========================================\n')
     
     // 传递给全局错误处理器
     next(error)
