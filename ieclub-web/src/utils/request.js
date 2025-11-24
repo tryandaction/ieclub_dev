@@ -133,14 +133,39 @@ const NO_AUTH_URLS = [
   '/auth/refresh'               // 刷新token
 ]
 
+// Loading超时定时器
+let loadingTimeoutId = null
+
 // 显示 Loading
 const showLoading = () => {
-  useLoadingStore.getState().incrementRequest()
+  const store = useLoadingStore.getState()
+  store.incrementRequest()
+  
+  // 清除旧的超时定时器
+  if (loadingTimeoutId) {
+    clearTimeout(loadingTimeoutId)
+  }
+  
+  // 超时保护：15秒后强制关闭loading
+  loadingTimeoutId = setTimeout(() => {
+    if (store.requestCount > 0) {
+      console.warn('⚠️ Loading超时，强制重置')
+      store.reset()
+    }
+    loadingTimeoutId = null
+  }, 15000)
 }
 
 // 隐藏 Loading
 const hideLoading = () => {
-  useLoadingStore.getState().decrementRequest()
+  const store = useLoadingStore.getState()
+  store.decrementRequest()
+  
+  // 如果所有请求都完成了，清除超时定时器
+  if (store.requestCount === 0 && loadingTimeoutId) {
+    clearTimeout(loadingTimeoutId)
+    loadingTimeoutId = null
+  }
 }
 
 // 🔐 请求拦截器（增强版）

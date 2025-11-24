@@ -11,16 +11,40 @@ const { AppError } = require('../middleware/errorHandler')
 exports.getUserProfile = async (req, res, next) => {
   try {
     const { userId } = req.params
+    const currentUserId = req.user?.id
     
-    // 最简单查询
+    // 查询用户详细信息
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
         nickname: true,
         avatar: true,
+        gender: true,
         bio: true,
-        createdAt: true
+        coverImage: true,
+        motto: true,
+        introduction: true,
+        website: true,
+        github: true,
+        bilibili: true,
+        school: true,
+        major: true,
+        grade: true,
+        level: true,
+        credits: true,
+        isCertified: true,
+        skills: true,
+        interests: true,
+        achievements: true,
+        createdAt: true,
+        _count: {
+          select: {
+            topics: { where: { status: 'published' } },
+            followers: true,
+            follows: true
+          }
+        }
       }
     })
 
@@ -33,11 +57,26 @@ exports.getUserProfile = async (req, res, next) => {
       })
     }
 
+    // 解析JSON字段
+    const profile = {
+      ...user,
+      skills: user.skills ? JSON.parse(user.skills) : [],
+      interests: user.interests ? JSON.parse(user.interests) : [],
+      achievements: user.achievements ? JSON.parse(user.achievements) : [],
+      topicsCount: user._count.topics,
+      followerCount: user._count.followers,
+      followingCount: user._count.follows,
+      isOwner: currentUserId === userId
+    }
+
+    // 移除_count字段
+    delete profile._count
+
     res.json({
       success: true,
       code: 200,
       message: '获取用户主页成功',
-      data: user,
+      data: profile,
       timestamp: Date.now()
     })
   } catch (error) {
@@ -304,6 +343,226 @@ exports.getUserStats = async (req, res, next) => {
       success: true,
       message: '获取用户统计数据成功',
       data: stats
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+/**
+ * 获取用户关注列表
+ * GET /api/profile/:userId/following
+ */
+exports.getUserFollowing = async (req, res, next) => {
+  try {
+    const { userId } = req.params
+    const { page = 1, pageSize = 20 } = req.query
+
+    const skip = (page - 1) * pageSize
+    const take = parseInt(pageSize)
+
+    const [following, total] = await Promise.all([
+      prisma.follow.findMany({
+        where: { followerId: userId },
+        skip,
+        take,
+        include: {
+          following: {
+            select: {
+              id: true,
+              nickname: true,
+              avatar: true,
+              bio: true,
+              level: true,
+              isCertified: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.follow.count({ where: { followerId: userId } })
+    ])
+
+    const users = following.map(f => f.following)
+
+    res.json({
+      success: true,
+      message: '获取关注列表成功',
+      data: {
+        users,
+        total,
+        page: parseInt(page),
+        pageSize: take,
+        totalPages: Math.ceil(total / take)
+      }
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+/**
+ * 获取用户粉丝列表
+ * GET /api/profile/:userId/followers
+ */
+exports.getUserFollowers = async (req, res, next) => {
+  try {
+    const { userId } = req.params
+    const { page = 1, pageSize = 20 } = req.query
+
+    const skip = (page - 1) * pageSize
+    const take = parseInt(pageSize)
+
+    const [followers, total] = await Promise.all([
+      prisma.follow.findMany({
+        where: { followingId: userId },
+        skip,
+        take,
+        include: {
+          follower: {
+            select: {
+              id: true,
+              nickname: true,
+              avatar: true,
+              bio: true,
+              level: true,
+              isCertified: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.follow.count({ where: { followingId: userId } })
+    ])
+
+    const users = followers.map(f => f.follower)
+
+    res.json({
+      success: true,
+      message: '获取粉丝列表成功',
+      data: {
+        users,
+        total,
+        page: parseInt(page),
+        pageSize: take,
+        totalPages: Math.ceil(total / take)
+      }
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+/**
+ * 获取用户收藏列表
+ * GET /api/profile/:userId/favorites
+ */
+exports.getUserFavorites = async (req, res, next) => {
+  try {
+    const { userId } = req.params
+    const { page = 1, pageSize = 20 } = req.query
+
+    // 只有本人可以查看自己的收藏
+    if (req.user.id !== userId) {
+      throw new AppError('无权查看他人的收藏', 403)
+    }
+
+    const skip = (page - 1) * pageSize
+    const take = parseInt(pageSize)
+
+    const [favorites, total] = await Promise.all([
+      prisma.favorite.findMany({
+        where: { userId },
+        skip,
+        take,
+        include: {
+          topic: {
+            include: {
+              author: {
+                select: {
+                  id: true,
+                  nickname: true,
+                  avatar: true,
+                  level: true
+                }
+              }
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.favorite.count({ where: { userId } })
+    ])
+
+    const topics = favorites.map(f => f.topic)
+
+    res.json({
+      success: true,
+      message: '获取收藏列表成功',
+      data: {
+        topics,
+        total,
+        page: parseInt(page),
+        pageSize: take,
+        totalPages: Math.ceil(total / take)
+      }
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+/**
+ * 获取用户参与的活动
+ * GET /api/profile/:userId/activities
+ */
+exports.getUserActivities = async (req, res, next) => {
+  try {
+    const { userId } = req.params
+    const { page = 1, pageSize = 20 } = req.query
+
+    const skip = (page - 1) * pageSize
+    const take = parseInt(pageSize)
+
+    const [activities, total] = await Promise.all([
+      prisma.activityParticipant.findMany({
+        where: { userId },
+        skip,
+        take,
+        include: {
+          activity: {
+            include: {
+              organizer: {
+                select: {
+                  id: true,
+                  nickname: true,
+                  avatar: true
+                }
+              }
+            }
+          }
+        },
+        orderBy: { joinedAt: 'desc' }
+      }),
+      prisma.activityParticipant.count({ where: { userId } })
+    ])
+
+    const activityList = activities.map(a => ({
+      ...a.activity,
+      joinedAt: a.joinedAt,
+      status: a.status
+    }))
+
+    res.json({
+      success: true,
+      message: '获取活动列表成功',
+      data: {
+        activities: activityList,
+        total,
+        page: parseInt(page),
+        pageSize: take,
+        totalPages: Math.ceil(total / take)
+      }
     })
   } catch (error) {
     next(error)

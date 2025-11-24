@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Heart, UserPlus, UserCheck, RefreshCw, Search } from 'lucide-react';
-import request from '../utils/request';
+import { getUserFollowers, getUserFollowing } from '../api/profile';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function MyFollowers() {
@@ -34,11 +34,12 @@ export default function MyFollowers() {
 
     try {
       const currentPage = isRefresh ? 1 : page;
-      const res = await request.get(`/users/${targetUserId}/followers`, {
-        params: { page: currentPage, limit }
+      const res = await getUserFollowers(targetUserId, { 
+        page: currentPage, 
+        pageSize: limit 
       });
 
-      const { followers = [], pagination = {} } = res.data || res;
+      const { users: followers = [], total: totalCount = 0 } = res.data || res;
 
       // 如果是查看自己的粉丝，需要检查是否已回关
       if (isMyProfile && user?.id) {
@@ -48,7 +49,7 @@ export default function MyFollowers() {
         setUsers(isRefresh ? followers : [...users, ...followers]);
       }
 
-      setTotal(pagination.total || 0);
+      setTotal(totalCount);
       setPage(currentPage + 1);
       setHasMore(followers.length >= limit);
     } catch (error) {
@@ -62,11 +63,12 @@ export default function MyFollowers() {
   const checkFollowStatus = async (followers) => {
     try {
       // 获取当前用户的关注列表
-      const res = await request.get(`/users/${user.id}/following`, {
-        params: { page: 1, limit: 1000 }
+      const res = await getUserFollowing(user.id, { 
+        page: 1, 
+        pageSize: 1000 
       });
 
-      const followingIds = (res.data?.following || []).map(u => u.id);
+      const followingIds = (res.data?.users || []).map(u => u.id);
 
       return followers.map(follower => ({
         ...follower,

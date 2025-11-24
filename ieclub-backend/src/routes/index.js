@@ -63,31 +63,8 @@ router.delete('/comments/:id', authenticate, commentController.deleteComment);
 router.post('/comments/:id/like', authenticate, commentController.likeComment);
 
 // ==================== Users/Profile Routes ====================
-// Profile主页 - 简化版本
-router.get('/profile/:userId', (req, res) => {
-  const prisma = require('../config/database');
-  prisma.user.findUnique({
-    where: { id: req.params.userId },
-    select: { id: true, nickname: true, avatar: true, bio: true, major: true, grade: true, createdAt: true }
-  }).then(user => {
-    if (!user) {
-      return res.status(404).json({ success: false, message: '用户不存在' });
-    }
-    res.json({ success: true, data: user });
-  }).catch(err => {
-    res.status(500).json({ success: false, message: err.message });
-  });
-});
-
-// Posts列表
-router.get('/profile/:userId/posts', (req, res) => {
-  res.json({ success: true, data: { posts: [], total: 0 } });
-});
-
-// Stats统计
-router.get('/profile/:userId/stats', (req, res) => {
-  res.json({ success: true, data: { topicCount: 0, followerCount: 0, followingCount: 0, likeCount: 0 } });
-});
+// 使用完整的profile路由和controller
+router.use('/profile', require('./profile'));
 
 // ==================== Upload Routes ====================
 router.delete('/upload/file', authenticate, rateLimiters.api, uploadController.deleteFile);

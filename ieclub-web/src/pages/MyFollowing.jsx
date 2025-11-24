@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Users, UserCheck, RefreshCw, Search } from 'lucide-react';
-import request from '../utils/request';
+import { getUserFollowing } from '../api/profile';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function MyFollowing() {
@@ -34,14 +34,15 @@ export default function MyFollowing() {
 
     try {
       const currentPage = isRefresh ? 1 : page;
-      const res = await request.get(`/users/${targetUserId}/following`, {
-        params: { page: currentPage, limit }
+      const res = await getUserFollowing(targetUserId, { 
+        page: currentPage, 
+        pageSize: limit 
       });
 
-      const { following = [], pagination = {} } = res.data || res;
+      const { users: following = [], total: totalCount = 0 } = res.data || res;
 
       setUsers(isRefresh ? following : [...users, ...following]);
-      setTotal(pagination.total || 0);
+      setTotal(totalCount);
       setPage(currentPage + 1);
       setHasMore(following.length >= limit);
     } catch (error) {

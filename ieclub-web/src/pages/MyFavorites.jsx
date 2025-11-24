@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, Heart, MessageCircle, Eye, RefreshCw, X } from 'lucide-react';
-import request from '../utils/request';
+import { getUserFavorites } from '../api/profile';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function MyFavorites() {
@@ -21,17 +21,18 @@ export default function MyFavorites() {
 
   // 加载收藏列表
   const loadFavorites = async (isRefresh = false) => {
-    if (loading) return;
+    if (loading || !user?.id) return;
 
     setLoading(true);
 
     try {
       const currentPage = isRefresh ? 1 : page;
-      const res = await request.get('/me/bookmarks', {
-        params: { page: currentPage, limit }
+      const res = await getUserFavorites(user.id, {
+        page: currentPage, 
+        pageSize: limit
       });
 
-      const { data: newTopics = [], pagination = {} } = res.data || res;
+      const { topics: newTopics = [] } = res.data || res;
 
       setTopics(isRefresh ? newTopics : [...topics, ...newTopics]);
       setPage(currentPage + 1);

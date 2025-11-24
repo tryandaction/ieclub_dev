@@ -10,7 +10,7 @@ const navItems = [
   { path: '/community', label: '社区', icon: '👥' },
   { path: '/publish', label: '发布', icon: '+', isPublish: true },
   { path: '/activities', label: '活动', icon: '🎉' },
-  { path: '/profile', label: '我的', icon: '👤', requiresAuth: true },
+  { path: '/personal-center', label: '我的', icon: '👤', requiresAuth: true },
 ]
 
 export default function Layout() {
@@ -20,13 +20,18 @@ export default function Layout() {
   
   // 获取导航路径，对于需要用户ID的路径进行处理
   const getNavPath = (item) => {
-    if (item.path === '/profile') {
-      if (!isAuthenticated || !user?.id) {
-        return '/login'
-      }
-      return `/profile/${user.id}`
+    if (item.path === '/personal-center' && !isAuthenticated) {
+      return '/login'
     }
     return item.path
+  }
+
+  // 处理需要登录的按钮点击
+  const handleProtectedClick = (e, item) => {
+    if (item.requiresAuth && !isAuthenticated) {
+      e.preventDefault()
+      navigate('/login')
+    }
   }
 
   const handleSearch = (e) => {

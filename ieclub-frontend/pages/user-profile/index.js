@@ -1,6 +1,6 @@
 // pages/user-profile/index.js
 // 用户主页页面（从社区点击用户进入）
-import { request } from '../../utils/request'
+import { getProfile, getUserPosts, getUserStats } from '../../api/profile'
 
 Page({
   data: {
@@ -38,10 +38,7 @@ Page({
     this.setData({ loading: true })
 
     try {
-      const res = await request({
-        url: `/profile/${this.data.userId}`,
-        method: 'GET'
-      })
+      const res = await getProfile(this.data.userId)
 
       const profile = res.data || res
       const currentUser = wx.getStorageSync('userInfo')
@@ -70,13 +67,9 @@ Page({
   // 加载用户发布
   async loadPosts() {
     try {
-      const res = await request({
-        url: `/profile/${this.data.userId}/posts`,
-        method: 'GET',
-        data: {
-          page: 1,
-          pageSize: 20
-        }
+      const res = await getUserPosts(this.data.userId, {
+        page: 1,
+        pageSize: 20
       })
 
       const data = res.data || res
@@ -91,14 +84,10 @@ Page({
   // 加载统计数据
   async loadStats() {
     try {
-      const res = await request({
-        url: `/profile/${this.data.userId}/stats`,
-        method: 'GET'
-      })
+      const res = await getUserStats(this.data.userId)
 
-      this.setData({
-        stats: res.data || res
-      })
+      const stats = res.data || res
+      this.setData({ stats })
     } catch (error) {
       console.error('加载统计数据失败:', error)
     }

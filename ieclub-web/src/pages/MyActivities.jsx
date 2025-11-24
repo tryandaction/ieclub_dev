@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, MapPin, Users, CheckCircle, Clock, RefreshCw } from 'lucide-react';
-import request from '../utils/request';
+import { getUserActivities } from '../api/profile';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function MyActivities() {
@@ -25,20 +25,19 @@ export default function MyActivities() {
 
   // 加载活动列表
   const loadActivities = async (isRefresh = false) => {
-    if (loading) return;
-    if (!user?.id) return;
+    if (loading || !user?.id) return;
 
     setLoading(true);
 
     try {
       const currentPage = isRefresh ? 1 : page;
-      const type = currentTab === 0 ? 'joined' : 'organized';
       
-      const res = await request.get('/activities/me/activities', {
-        params: { type, page: currentPage, pageSize }
+      const res = await getUserActivities(user.id, {
+        page: currentPage, 
+        pageSize
       });
 
-      const { activities: newActivities = [], total: newTotal = 0, hasMore: more = false } = res.data || res;
+      const { activities: newActivities = [], total: newTotal = 0 } = res.data || res;
 
       // 格式化活动数据
       const formattedActivities = newActivities.map(formatActivity);
@@ -46,7 +45,7 @@ export default function MyActivities() {
       setActivities(isRefresh ? formattedActivities : [...activities, ...formattedActivities]);
       setTotal(newTotal);
       setPage(currentPage + 1);
-      setHasMore(more);
+      setHasMore(newActivities.length >= pageSize);
     } catch (error) {
       console.error('加载活动失败:', error);
     } finally {

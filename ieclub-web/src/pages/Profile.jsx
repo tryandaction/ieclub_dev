@@ -21,9 +21,12 @@ export default function Profile() {
 
   const loadProfile = async () => {
     try {
+      setLoading(true)
       const data = await getProfile(userId)
+      console.log('✅ Profile数据加载成功:', data)
       setProfile(data)
     } catch (error) {
+      console.error('❌ 加载个人主页失败:', error)
       showToast(error.message || '加载个人主页失败', 'error')
     } finally {
       setLoading(false)
@@ -33,18 +36,22 @@ export default function Profile() {
   const loadPosts = async () => {
     try {
       const data = await getUserPosts(userId)
-      setPosts(data.posts)
+      console.log('✅ Posts数据加载成功:', data)
+      setPosts(data.posts || data || [])
     } catch (error) {
-      console.error('加载发布内容失败:', error)
+      console.error('❌ 加载发布内容失败:', error)
+      setPosts([])
     }
   }
 
   const loadStats = async () => {
     try {
       const data = await getUserStats(userId)
+      console.log('✅ Stats数据加载成功:', data)
       setStats(data)
     } catch (error) {
-      console.error('加载统计数据失败:', error)
+      console.error('❌ 加载统计数据失败:', error)
+      setStats(null)
     }
   }
 
@@ -114,9 +121,11 @@ export default function Profile() {
                     ✓ 已认证
                   </span>
                 )}
-                <span className="px-2 py-1 bg-purple-100 text-purple-600 text-xs rounded-full">
-                  Lv.{profile.level}
-                </span>
+                {profile.level && (
+                  <span className="px-2 py-1 bg-purple-100 text-purple-600 text-xs rounded-full">
+                    Lv.{profile.level}
+                  </span>
+                )}
               </div>
 
               {profile.motto && (
@@ -188,29 +197,37 @@ export default function Profile() {
                   className="text-center cursor-pointer hover:opacity-80 transition"
                   onClick={() => navigate('/my-topics')}
                 >
-                  <div className="text-xl font-bold text-purple-600">{profile.topicsCount || 0}</div>
+                  <div className="text-xl font-bold text-purple-600">
+                    {stats?.totalPosts || profile.topicsCount || profile._count?.topics || 0}
+                  </div>
                   <div className="text-gray-500">发布</div>
                 </div>
                 <div 
                   className="text-center cursor-pointer hover:opacity-80 transition"
                   onClick={() => navigate(`/my-following/${userId}`)}
                 >
-                  <div className="text-xl font-bold text-purple-600">{profile.followsCount || profile.followingCount || 0}</div>
+                  <div className="text-xl font-bold text-purple-600">
+                    {profile.followsCount || profile.followingCount || profile._count?.follows || 0}
+                  </div>
                   <div className="text-gray-500">关注</div>
                 </div>
                 <div 
                   className="text-center cursor-pointer hover:opacity-80 transition"
                   onClick={() => navigate(`/my-followers/${userId}`)}
                 >
-                  <div className="text-xl font-bold text-purple-600">{profile.fansCount || profile.followerCount || 0}</div>
+                  <div className="text-xl font-bold text-purple-600">
+                    {profile.fansCount || profile.followerCount || profile._count?.followers || 0}
+                  </div>
                   <div className="text-gray-500">粉丝</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xl font-bold text-purple-600">{profile.likesCount || 0}</div>
+                  <div className="text-xl font-bold text-purple-600">
+                    {stats?.totalLikes || profile.likesCount || 0}
+                  </div>
                   <div className="text-gray-500">获赞</div>
                 </div>
               </div>
-      </div>
+            </div>
 
             {/* 操作按钮 */}
             {!profile.isOwner && (
@@ -245,8 +262,8 @@ export default function Profile() {
                       {skill}
                     </span>
                   ))}
-        </div>
-          </div>
+                </div>
+              </div>
             )}
 
             {profile.interests && profile.interests.length > 0 && (
@@ -261,11 +278,11 @@ export default function Profile() {
                       {interest}
                     </span>
                   ))}
-        </div>
-          </div>
+                </div>
+              </div>
             )}
+          </div>
         </div>
-      </div>
 
         {/* Tab导航 */}
         <div className="bg-white rounded-2xl shadow-lg mb-6">
@@ -280,7 +297,7 @@ export default function Profile() {
             >
               发布内容 ({posts.length})
             </button>
-          <button
+            <button
               onClick={() => setActiveTab('about')}
               className={`flex-1 py-4 font-medium transition ${
                 activeTab === 'about'
@@ -289,8 +306,8 @@ export default function Profile() {
               }`}
             >
               关于我
-          </button>
-        <button
+            </button>
+            <button
               onClick={() => setActiveTab('achievements')}
               className={`flex-1 py-4 font-medium transition ${
                 activeTab === 'achievements'
@@ -299,7 +316,7 @@ export default function Profile() {
               }`}
             >
               成就勋章
-        </button>
+            </button>
           </div>
 
           <div className="p-6">

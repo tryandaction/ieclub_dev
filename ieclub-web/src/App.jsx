@@ -31,6 +31,7 @@ import MyActivities from './pages/MyActivities'
 import MyStats from './pages/MyStats'
 import About from './pages/About'
 import EditProfile from './pages/EditProfile'
+import PersonalCenter from './pages/PersonalCenter'
 import useLoadingStore from './stores/loadingStore'
 
 function App() {
@@ -79,6 +80,7 @@ function App() {
             <Route path="about" element={<About />} />
             <Route path="profile/:userId/edit" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
             <Route path="my-stats" element={<ProtectedRoute><MyStats /></ProtectedRoute>} />
+            <Route path="personal-center" element={<ProtectedRoute><PersonalCenter /></ProtectedRoute>} />
           </Route>
         </Routes>
       </ErrorBoundary>

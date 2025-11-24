@@ -1,17 +1,17 @@
 # 🤖 AI开发助手提示词 - IEclub项目
 
-> **交接时间**: 2025-11-23 23:33  
-> **当前版本**: V2.6 - 前后端全面修复完成 🎉  
-> **代码状态**: ✅ 网页、小程序、后端全部正常  
+> **交接时间**: 2025-11-24 09:00  
+> **当前版本**: V2.7 - 个人中心全面升级完成 🎉  
+> **代码状态**: ✅ 网页、小程序、后端三端个人中心功能全部对接  
 > **Git分支**: main (生产) | develop (开发)  
-> **部署状态**: ✅ 所有服务稳定运行，认证系统完整可用
+> **部署状态**: ✅ 准备部署个人中心功能
 
 ---
 
 ## 🎯 你的核心任务
 
 你是IEclub社区平台的开发AI助手，负责：
-1. **继续完成**个人中心及其他功能的开发
+1. **持续优化**个人中心及其他核心功能
 2. **阅读并理解**现有代码结构和设计模式
 3. **优化重构**旧的或不完善的代码为高质量代码
 4. **保持高质量**代码标准和用户体验
@@ -2294,6 +2294,71 @@ const NO_AUTH_URLS = [
 4. **性能优化**: 监控认证API响应时间
 5. **安全审计**: 定期审查认证相关代码
 
+---
+
+## 📦 最新更新 (2025-11-24)
+
+### ✨ 个人中心功能全面升级
+
+#### 后端API完整实现 ✅
+
+**新增路由** (`ieclub-backend/src/routes/profile.js`):
+```javascript
+GET  /profile/:userId              // 获取用户详细主页
+GET  /profile/:userId/posts        // 用户发布内容
+GET  /profile/:userId/stats        // 用户统计数据
+GET  /profile/:userId/following    // 关注列表
+GET  /profile/:userId/followers    // 粉丝列表
+GET  /profile/:userId/favorites    // 收藏列表（仅本人）
+GET  /profile/:userId/activities   // 参与活动（仅本人）
+PUT  /profile                      // 更新个人资料
+```
+
+**Controller优化**:
+- ✅ 完整数据查询和关联（Prisma _count、include）
+- ✅ JSON字段正确解析（skills、interests、achievements）
+- ✅ 权限控制（收藏和活动仅本人可见）
+- ✅ 统计数据聚合（发布量、点赞数、浏览量等）
+
+#### 网页端集成 ✅
+
+**API封装** (`ieclub-web/src/api/profile.js`):
+- ✅ 8个完整的profile API方法
+- ✅ 与后端API保持一致
+
+**新增个人中心主页** (`PersonalCenter.jsx`):
+- ✅ 美观的卡片式布局
+- ✅ 11个功能模块（主页、编辑、话题、收藏、活动、统计、关注、粉丝、设置、反馈、关于）
+- ✅ 每个模块独立颜色主题
+- ✅ 路由: `/personal-center`
+
+**页面优化**:
+- ✅ `Profile.jsx` - 数据兼容多种API格式
+- ✅ `MyFollowing.jsx` - 使用新API
+- ✅ `MyFollowers.jsx` - 使用新API
+- ✅ `MyFavorites.jsx` - 使用新API
+- ✅ `MyActivities.jsx` - 使用新API
+
+**Loading优化**:
+- ✅ 15秒超时自动重置
+- ✅ 防止页面永久卡死
+- ✅ 智能请求计数管理
+
+#### 小程序端适配 ✅
+
+**API封装** (`ieclub-frontend/api/profile.js`):
+- ✅ 完整的profile API方法集
+- ✅ 与网页端保持一致
+
+**页面更新**:
+- ✅ `pages/user-profile/index.js` - 使用新API
+
+#### 导航优化 ✅
+
+**Layout更新** (`ieclub-web/src/components/Layout.jsx`):
+- ✅ "我的"按钮跳转到 `/personal-center`
+- ✅ 未登录自动跳转登录页
+
 ### 临时文件清理 ✅
 
 已删除服务器上的临时诊断脚本:
@@ -2301,8 +2366,18 @@ const NO_AUTH_URLS = [
 - ❌ `/root/IEclub_dev/ieclub-backend/diagnose.js`
 - ❌ `/root/IEclub_dev/ieclub-backend/diagnose-user.js`
 
+已删除本地临时测试页面:
+- ❌ `ieclub-web/src/pages/TestPage.jsx`
+
 ### 部署记录
 
+**最新部署**:
+**时间**: 2025-11-24 09:00  
+**组件**: 全部（backend + web + frontend）  
+**功能**: 个人中心全面升级  
+**状态**: 🚀 准备部署
+
+**上次部署**:
 **时间**: 2024-11-23 00:42  
 **组件**: 全部（backend + web + admin-web）  
 **分支**: develop  
