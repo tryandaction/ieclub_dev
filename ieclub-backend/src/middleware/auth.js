@@ -68,12 +68,12 @@ exports.authenticate = async (req, res, next) => {
 
     if (!user) {
       console.log(' [authenticate] User not found');
-      throw new AppError('AUTH_USER_NOT_FOUND', 404, 'User not found');
+      throw AppError.UserNotFound();
     }
 
     if (user.status !== 'active') {
       console.log(' [authenticate] User banned');
-      throw new AppError('AUTH_USER_BANNED', 403, 'User banned');
+      throw AppError.UserBanned();
     }
 
     // 将用户信息挂载到 req 对象
