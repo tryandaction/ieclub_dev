@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const config = require('../config');
 const logger = require('../utils/logger');
+const response = require('../utils/response');
 const emailService = require('../services/emailService');
 const smsService = require('../services/smsService');
 const wechatService = require('../services/wechatService');
