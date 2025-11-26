@@ -160,6 +160,10 @@ export default function EditProfile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // 🔥 强制弹窗测试 - 确认按钮是否触发
+    window.alert('保存按钮被点击了！版本:20251127-v2');
+    
     console.log('🔥🔥🔥 handleSubmit被调用！');
     console.log('📋 表单数据:', JSON.stringify(form, null, 2));
     

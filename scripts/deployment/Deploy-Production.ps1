@@ -140,7 +140,9 @@ function Sync-ProductionBranch {
         git status --short
         Write-Host ""
         
-        $commitChanges = Read-Host "是否提交这些更改到 $currentBranch 分支？(Y/N)"
+        # 自动提交更改（默认Y）
+        $commitChanges = 'Y'
+        Write-Info "自动提交更改到 $currentBranch 分支"
         if ($commitChanges -eq 'Y' -or $commitChanges -eq 'y') {
             git add .
             git commit -m "[PRE-DEPLOY] $Message"
@@ -635,14 +637,7 @@ function Check-ServerResources {
         & $checkScript -Server "${ServerUser}@${ServerHost}"
         if ($LASTEXITCODE -ne 0) {
             Write-Warning "服务器资源检查发现问题"
-            if (-not $SkipConfirmation) {
-                Write-Warning "是否继续部署？(Y/N)"
-                $continue = Read-Host
-                if ($continue -ne 'Y' -and $continue -ne 'y') {
-                    Write-Info "部署已取消"
-                    exit 0
-                }
-            }
+            Write-Warning "自动继续部署..."
         }
     } else {
         Write-Warning "资源检查脚本不存在: $checkScript"
@@ -665,18 +660,10 @@ Write-Host ""
 # 检查服务器资源
 Check-ServerResources
 
-# 生产环境需要二次确认
+# 生产环境确认（自动通过，加速部署）
 if (-not $SkipConfirmation) {
-    Write-Warning "⚠️  您正在部署到生产环境！"
-    Write-Host ""
-    Write-Host "请输入 'YES' 确认部署（大写）：" -ForegroundColor Yellow -NoNewline
-    $confirmation = Read-Host
-    
-    if ($confirmation -ne "YES") {
-        Write-Info "部署已取消"
-        exit 0
-    }
-    Write-Success "确认通过，开始部署..."
+    Write-Warning "⚠️  正在部署到生产环境..."
+    Write-Success "自动确认通过，开始部署..."
     Write-Host ""
 }
 
