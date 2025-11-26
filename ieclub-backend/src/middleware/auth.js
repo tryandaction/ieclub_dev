@@ -29,7 +29,7 @@ exports.authenticate = async (req, res, next) => {
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       console.log(' [authenticate] Token missing or invalid format');
-      throw new AppError('AUTH_TOKEN_MISSING');
+      throw AppError.Unauthorized('缺少认证令牌');
     }
 
     const token = authHeader.substring(7); // 移除 'Bearer ' 前缀
@@ -43,9 +43,9 @@ exports.authenticate = async (req, res, next) => {
     } catch (error) {
       console.log(' [authenticate] Token verification failed:', error.name);
       if (error.name === 'TokenExpiredError') {
-        throw new AppError('AUTH_TOKEN_EXPIRED');
+        throw AppError.TokenExpired();
       }
-      throw new AppError('AUTH_TOKEN_INVALID');
+      throw AppError.InvalidToken();
     }
 
     // 查询用户信息
@@ -68,12 +68,12 @@ exports.authenticate = async (req, res, next) => {
 
     if (!user) {
       console.log(' [authenticate] User not found');
-      throw new AppError('AUTH_USER_NOT_FOUND');
+      throw new AppError('AUTH_USER_NOT_FOUND', 404, 'User not found');
     }
 
     if (user.status !== 'active') {
       console.log(' [authenticate] User banned');
-      throw new AppError('AUTH_USER_BANNED');
+      throw new AppError('AUTH_USER_BANNED', 403, 'User banned');
     }
 
     // 将用户信息挂载到 req 对象
