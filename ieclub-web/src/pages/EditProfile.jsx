@@ -179,13 +179,20 @@ export default function EditProfile() {
         projects: form.projects
       });
 
-      // 更新用户信息
-      if (user && res.data) {
-        updateUser({
+      // 更新用户信息 - res已经是data对象（响应拦截器处理过）
+      console.log('📦 保存响应:', res);
+      if (user && res) {
+        const updatedUserData = {
           ...user,
-          nickname: res.data.nickname || form.nickname,
-          avatar: res.data.avatar || form.avatar
-        });
+          nickname: res.nickname || form.nickname,
+          avatar: res.avatar || form.avatar,
+          bio: res.bio || form.bio,
+          school: res.school || form.school,
+          major: res.major || form.major,
+          grade: res.grade || form.grade
+        };
+        console.log('📝 更新用户数据:', updatedUserData);
+        updateUser(updatedUserData);
       }
 
       showToast('保存成功！', 'success');
