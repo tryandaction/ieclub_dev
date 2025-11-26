@@ -4,7 +4,7 @@ import { User, Image as ImageIcon, Globe, Github, Camera, X, Plus, Upload } from
 import request from '../utils/request';
 import { useAuth } from '../contexts/AuthContext';
 import { showToast } from '../components/Toast';
-import { uploadImages } from '../api/upload';
+import { uploadAvatar, uploadCover } from '../api/upload';
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -118,15 +118,24 @@ export default function EditProfile() {
   const handleImageUpload = async (file, type) => {
     if (!file) return;
     
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('图片大小不能超过5MB', 'error');
+    const maxSize = type === 'avatar' ? 2 * 1024 * 1024 : 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showToast(`图片大小不能超过${type === 'avatar' ? '2' : '5'}MB`, 'error');
       return;
     }
     
     setUploading(true);
     try {
-      const res = await uploadImages([file]);
-      const imageUrl = res.data?.uploads?.[0] || res.uploads?.[0];
+      let res;
+      if (type === 'avatar') {
+        res = await uploadAvatar(file);
+      } else if (type === 'coverImage') {
+        res = await uploadCover(file);
+      }
+      
+      // 响应拦截器已处理，res直接是data对象
+      const imageUrl = res?.url;
+      console.log('📷 上传响应:', res);
       
       if (imageUrl) {
         setForm(prev => ({ ...prev, [type]: imageUrl }));

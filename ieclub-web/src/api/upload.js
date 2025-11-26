@@ -2,24 +2,36 @@ import request from '../utils/request'
 
 /**
  * 上传头像
- * @param {File} file - 图片文件
- * @returns {Promise<{avatarUrl: string}>}
+ * @param {File} file - 图片文件（限制2MB）
+ * @returns {Promise<{url: string}>}
  */
 export async function uploadAvatar(file) {
   const formData = new FormData()
   formData.append('avatar', file)
 
   return request.post('/upload/avatar', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+}
+
+/**
+ * 上传封面图
+ * @param {File} file - 图片文件（限制5MB）
+ * @returns {Promise<{url: string}>}
+ */
+export async function uploadCover(file) {
+  const formData = new FormData()
+  formData.append('cover', file)
+
+  return request.post('/upload/cover', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
   })
 }
 
 /**
  * 上传多张图片
- * @param {File[]} files - 图片文件数组
- * @returns {Promise<{uploads: Array}>}
+ * @param {File[]} files - 图片文件数组（每张限制5MB，最多9张）
+ * @returns {Promise<{uploads: Array, thumbnails: Array}>}
  */
 export async function uploadImages(files) {
   const formData = new FormData()
@@ -28,9 +40,7 @@ export async function uploadImages(files) {
   })
 
   return request.post('/upload/images-v2', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
+    headers: { 'Content-Type': 'multipart/form-data' },
   })
 }
 
