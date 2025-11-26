@@ -160,6 +160,8 @@ export default function EditProfile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('🔥🔥🔥 handleSubmit被调用！');
+    console.log('📋 表单数据:', JSON.stringify(form, null, 2));
     
     if (!form.nickname || form.nickname.trim().length < 2) {
       showToast('昵称至少2个字符', 'warning');
