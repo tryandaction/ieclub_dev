@@ -353,7 +353,7 @@ export default function TopicDetail() {
           <div className="flex items-center space-x-4 text-sm text-white/80">
             <span>👀 {topic.viewsCount || topic.stats?.views || 0} 浏览</span>
             <span>•</span>
-            <span>{topic.createdAt}</span>
+            <span>{topic.createdAt ? new Date(topic.createdAt).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}</span>
           </div>
         </div>
 
@@ -361,7 +361,17 @@ export default function TopicDetail() {
         <div className="p-6 border-b">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="text-4xl">{topic.author?.avatar || '👤'}</div>
+              {topic.author?.avatar ? (
+                <img 
+                  src={topic.author.avatar.startsWith('http') ? topic.author.avatar : `https://ieclub.online${topic.author.avatar}`}
+                  alt={topic.author?.nickname || '用户'}
+                  className="w-12 h-12 rounded-full object-cover"
+                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                />
+              ) : null}
+              <div className={`w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center text-white text-xl ${topic.author?.avatar ? 'hidden' : ''}`}>
+                {(topic.author?.nickname || '用')[0]}
+              </div>
               <div>
                 <div className="flex items-center space-x-2">
                   <span className="font-bold text-gray-900">{topic.author?.nickname || topic.author?.name || '用户'}</span>
