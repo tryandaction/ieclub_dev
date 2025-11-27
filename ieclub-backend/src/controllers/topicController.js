@@ -13,6 +13,7 @@ const config = require('../config');
 const prisma = require('../config/database');
 const { withCache, buildKey } = require('../utils/cacheHelper');
 const { canOperate } = require('../utils/permissionHelper');
+const { CacheManager, cacheManager } = require('../utils/redis');
 
 class TopicController {
   /**
@@ -385,7 +386,7 @@ class TopicController {
       });
 
       // 清除相关缓存（非关键操作）
-      CacheManager.delPattern(`ieclub:topics:*`).catch(err => {
+      cacheManager.delPattern(`ieclub:topics:*`).catch(err => {
         logger.warn('清除缓存失败:', err.message);
       });
 
@@ -458,7 +459,7 @@ class TopicController {
       });
 
       // 清除缓存
-      await CacheManager.del(CacheManager.makeKey('topic', id));
+      await cacheManager.del(CacheManager.makeKey('topic', id));
 
       return response.success(res, updatedTopic, '更新成功');
     } catch (error) {
@@ -500,7 +501,7 @@ class TopicController {
       });
 
       // 清除缓存
-      await CacheManager.delPattern(`ieclub:topics:*`);
+      await cacheManager.delPattern(`ieclub:topics:*`);
 
       return response.success(res, null, '删除成功');
     } catch (error) {
