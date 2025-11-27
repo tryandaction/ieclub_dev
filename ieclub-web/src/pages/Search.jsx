@@ -15,7 +15,10 @@ const typeConfig = {
   offer: { label: '我来讲', bg: 'bg-gradient-to-r from-purple-500 to-purple-600', icon: '🎤' },
   project: { label: '项目', bg: 'bg-gradient-to-r from-emerald-500 to-emerald-600', icon: '🚀' },
   share: { label: '分享', bg: 'bg-gradient-to-r from-orange-500 to-orange-600', icon: '💡' },
+  discussion: { label: '讨论', bg: 'bg-gradient-to-r from-gray-500 to-gray-600', icon: '💬' },
 }
+
+const getTypeConfig = (type) => typeConfig[type] || typeConfig.discussion
 
 const tabs = [
   { id: 'all', label: '全部', icon: '🔍' },
@@ -271,7 +274,7 @@ export default function Search() {
                   >
                     <div className="flex items-start space-x-4">
                       {/* 封面/图标 */}
-                      <div className={`${typeConfig[topic.type]?.bg || 'bg-gray-200'} w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0`}>
+                      <div className={`${getTypeConfig(topic.topicType || topic.type).bg} w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0`}>
                         <span className="text-3xl">{topic.cover || '📝'}</span>
                       </div>
 
@@ -280,7 +283,7 @@ export default function Search() {
                         {/* 类型标签 */}
                         <div className="flex items-center space-x-2 mb-2">
                           <span className="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded-full">
-                            {typeConfig[topic.type]?.icon} {typeConfig[topic.type]?.label}
+                            {getTypeConfig(topic.topicType || topic.type).icon} {getTypeConfig(topic.topicType || topic.type).label}
                           </span>
                         </div>
 

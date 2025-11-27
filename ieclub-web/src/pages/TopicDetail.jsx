@@ -10,7 +10,11 @@ const typeConfig = {
   demand: { label: '我想听', bg: 'bg-gradient-to-r from-blue-500 to-blue-600', icon: '👂' },
   project: { label: '项目招募', bg: 'bg-gradient-to-r from-emerald-500 to-emerald-600', icon: '🚀' },
   share: { label: '分享', bg: 'bg-gradient-to-r from-orange-500 to-orange-600', icon: '💡' },
+  discussion: { label: '讨论', bg: 'bg-gradient-to-r from-gray-500 to-gray-600', icon: '💬' },
 }
+
+// 获取类型配置，带默认值
+const getTypeConfig = (type) => typeConfig[type] || typeConfig.discussion
 
 // Mock数据
 const mockTopic = {
@@ -330,7 +334,7 @@ export default function TopicDetail() {
     return <TopicDetailSkeleton />
   }
 
-  const config = typeConfig[topic.type]
+  const config = getTypeConfig(topic.topicType || topic.type)
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
