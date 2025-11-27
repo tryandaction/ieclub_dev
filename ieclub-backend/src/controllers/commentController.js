@@ -7,7 +7,7 @@ const { successResponse } = require('../utils/response');
 class CommentController {
   // 获取评论列表
   static async getComments(req, res) {
-    return asyncHandler(async (req, res) => {
+    try {
       // 支持从 params 或 query 中获取 topicId
       const topicId = req.params.topicId || req.query.topicId;
       const { page = 1, pageSize = 20, sortBy } = req.query;
@@ -19,12 +19,15 @@ class CommentController {
       });
 
       res.json(successResponse(result));
-    })(req, res);
+    } catch (error) {
+      console.error('获取评论失败:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
   }
 
   // 创建评论
   static async createComment(req, res) {
-    return asyncHandler(async (req, res) => {
+    try {
       const userId = req.user.id;
       // 支持从 params 或 body 中获取 topicId
       const topicId = req.params.topicId || req.body.topicId;
@@ -42,7 +45,7 @@ class CommentController {
         relatedType: 'comment',
         relatedId: comment.id,
         metadata: { topicId },
-      });
+      }).catch(() => {});
 
       // 检查是否是第一条评论，授予勋章
       const { PrismaClient } = require('@prisma/client');
@@ -57,24 +60,30 @@ class CommentController {
       }
 
       res.status(201).json(successResponse(comment, '评论成功'));
-    })(req, res);
+    } catch (error) {
+      console.error('创建评论失败:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
   }
 
   // 点赞评论
   static async likeComment(req, res) {
-    return asyncHandler(async (req, res) => {
+    try {
       const { id } = req.params;
       const userId = req.user.id;
 
       const result = await commentService.toggleLikeComment(id, userId);
 
       res.json(successResponse(result, result.isLiked ? '点赞成功' : '已取消点赞'));
-    })(req, res);
+    } catch (error) {
+      console.error('点赞评论失败:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
   }
 
   // 删除评论
   static async deleteComment(req, res) {
-    return asyncHandler(async (req, res) => {
+    try {
       const { id } = req.params;
       const userId = req.user.id;
       const isAdmin = req.user.role === 'admin';
@@ -82,12 +91,15 @@ class CommentController {
       await commentService.deleteComment(id, userId, isAdmin);
 
       res.json(successResponse(null, '删除成功'));
-    })(req, res);
+    } catch (error) {
+      console.error('删除评论失败:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
   }
 
   // 获取评论的回复列表
   static async getReplies(req, res) {
-    return asyncHandler(async (req, res) => {
+    try {
       const { commentId } = req.params;
       const { page = 1, pageSize = 20 } = req.query;
 
@@ -97,7 +109,10 @@ class CommentController {
       });
 
       res.json(successResponse(result));
-    })(req, res);
+    } catch (error) {
+      console.error('获取回复失败:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
   }
 }
 

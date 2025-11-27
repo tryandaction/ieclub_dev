@@ -55,12 +55,12 @@ class CommentService {
         content,
         images: images ? JSON.stringify(images) : null,
         topicId,
-        userId,
+        authorId: userId,
         parentId,
         rootId
       },
       include: {
-        user: {
+        author: {
           select: {
             id: true,
             nickname: true,
@@ -71,7 +71,7 @@ class CommentService {
         parent: {
           select: {
             id: true,
-            user: {
+            author: {
               select: {
                 id: true,
                 nickname: true
@@ -100,11 +100,11 @@ class CommentService {
       // 回复评论通知
       const parentComment = await prisma.comment.findUnique({
         where: { id: parentId },
-        select: { userId: true }
+        select: { authorId: true }
       });
-      if (parentComment && parentComment.userId !== userId) {
+      if (parentComment && parentComment.authorId !== userId) {
         const notification = await notificationService.createReplyNotification(
-          parentComment.userId,
+          parentComment.authorId,
           userId,
           comment.id,
           topicId,
@@ -116,7 +116,7 @@ class CommentService {
         
         // WebSocket 实时推送
         if (notification) {
-          websocketService.sendNotification(parentComment.userId, notification);
+          websocketService.sendNotification(parentComment.authorId, notification);
         }
       }
     } else {
@@ -190,7 +190,7 @@ class CommentService {
         take,
         orderBy,
         include: {
-          user: {
+          author: {
             select: {
               id: true,
               nickname: true,
@@ -201,7 +201,7 @@ class CommentService {
           parent: {
             select: {
               id: true,
-              user: {
+              author: {
                 select: {
                   id: true,
                   nickname: true
@@ -214,7 +214,7 @@ class CommentService {
             take: 3,
             orderBy: [{ createdAt: 'desc' }],
             include: {
-              user: {
+              author: {
                 select: {
                   id: true,
                   nickname: true,
@@ -225,7 +225,7 @@ class CommentService {
               parent: {
                 select: {
                   id: true,
-                  user: {
+                  author: {
                     select: {
                       id: true,
                       nickname: true
@@ -268,7 +268,7 @@ class CommentService {
         take,
         orderBy: [{ createdAt: 'asc' }], // 回复按时间正序
         include: {
-          user: {
+          author: {
             select: {
               id: true,
               nickname: true,
@@ -279,7 +279,7 @@ class CommentService {
           parent: {
             select: {
               id: true,
-              user: {
+              author: {
                 select: {
                   id: true,
                   nickname: true
@@ -318,7 +318,7 @@ class CommentService {
     }
 
     // 权限检查：评论作者、帖子作者或管理员可删除
-    const canDelete = comment.userId === userId || 
+    const canDelete = comment.authorId === userId || 
                       comment.topic.authorId === userId || 
                       isAdmin;
 
@@ -356,7 +356,7 @@ class CommentService {
       }),
       // 更新用户评论数
       prisma.user.update({
-        where: { id: comment.userId },
+        where: { id: comment.authorId },
         data: { commentsCount: { decrement: 1 } }
       })
     ]);
@@ -440,17 +440,17 @@ class CommentService {
       id: comment.id,
       content: comment.content,
       images: comment.images ? JSON.parse(comment.images) : [],
-      user: comment.user ? {
-        id: comment.user.id,
-        nickname: comment.user.nickname,
-        avatar: comment.user.avatar,
-        level: comment.user.level
+      author: comment.author ? {
+        id: comment.author.id,
+        nickname: comment.author.nickname,
+        avatar: comment.author.avatar,
+        level: comment.author.level
       } : null,
       parentId: comment.parentId,
       rootId: comment.rootId,
-      replyTo: comment.parent && comment.parent.user ? {
-        id: comment.parent.user.id,
-        nickname: comment.parent.user.nickname
+      replyTo: comment.parent && comment.parent.author ? {
+        id: comment.parent.author.id,
+        nickname: comment.parent.author.nickname
       } : null,
       likesCount: comment.likesCount || 0,
       repliesCount: comment.repliesCount || 0,
