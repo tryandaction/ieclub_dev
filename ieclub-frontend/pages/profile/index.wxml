@@ -15,8 +15,15 @@
     <!-- 用户信息卡片 -->
     <view class="user-card">
       <view class="user-header">
-        <view class="avatar-wrapper">
-          <text class="avatar">{{user.avatar || '👤'}}</text>
+        <view class="avatar-wrapper" bindtap="goToEditProfile">
+          <block wx:if="{{user.avatar && user.avatar.length > 2}}">
+            <image 
+              class="avatar-img" 
+              src="{{user.avatar.indexOf('http') === 0 ? user.avatar : 'https://ieclub.online' + user.avatar}}" 
+              mode="aspectFill"
+            />
+          </block>
+          <text wx:else class="avatar-placeholder">👤</text>
         </view>
         <view class="user-info">
           <text class="user-name">{{user.nickname || user.name || '未设置昵称'}}</text>
@@ -60,6 +67,45 @@
 
     <!-- 功能菜单 -->
     <view class="menu-section">
+      <!-- 消息通知 -->
+      <view class="menu-group">
+        <view class="menu-item notification-item" bindtap="goToNotifications" hover-class="menu-item-hover">
+          <view class="menu-left">
+            <text class="menu-icon">🔔</text>
+            <text class="menu-label">消息通知</text>
+          </view>
+          <view class="menu-right">
+            <view class="unread-badge" wx:if="{{unreadCount > 0}}">{{unreadCount > 99 ? '99+' : unreadCount}}</view>
+            <text class="menu-arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 个人主页和编辑资料 -->
+      <view class="menu-group">
+        <view class="menu-item" bindtap="goToMyProfile" hover-class="menu-item-hover">
+          <view class="menu-left">
+            <text class="menu-icon">👤</text>
+            <text class="menu-label">个人主页</text>
+          </view>
+          <view class="menu-right">
+            <text class="menu-desc">查看我的主页</text>
+            <text class="menu-arrow">›</text>
+          </view>
+        </view>
+        <view class="menu-item" bindtap="goToEditProfile" hover-class="menu-item-hover">
+          <view class="menu-left">
+            <text class="menu-icon">✏️</text>
+            <text class="menu-label">编辑资料</text>
+          </view>
+          <view class="menu-right">
+            <text class="menu-desc">修改个人信息</text>
+            <text class="menu-arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 内容管理 -->
       <view class="menu-group">
         <view class="menu-item" bindtap="goToMyTopics" hover-class="menu-item-hover">
           <view class="menu-left">
@@ -70,7 +116,7 @@
         </view>
         <view class="menu-item" bindtap="goToFavorites" hover-class="menu-item-hover">
           <view class="menu-left">
-            <text class="menu-icon">⭐</text>
+            <text class="menu-icon">❤️</text>
             <text class="menu-label">我的收藏</text>
           </view>
           <text class="menu-arrow">›</text>
@@ -78,33 +124,40 @@
         <view class="menu-item" bindtap="goToParticipated" hover-class="menu-item-hover">
           <view class="menu-left">
             <text class="menu-icon">🎉</text>
-            <text class="menu-label">参与的活动</text>
+            <text class="menu-label">我的活动</text>
           </view>
           <text class="menu-arrow">›</text>
         </view>
         <view class="menu-item" bindtap="goToMyStats" hover-class="menu-item-hover">
           <view class="menu-left">
-            <text class="menu-icon">📊</text>
-            <text class="menu-label">我的数据</text>
+            <text class="menu-icon">📈</text>
+            <text class="menu-label">数据统计</text>
           </view>
           <text class="menu-arrow">›</text>
         </view>
       </view>
 
+      <!-- 社交 -->
       <view class="menu-group">
-        <view class="menu-item" bindtap="goToAccountSecurity" hover-class="menu-item-hover">
+        <view class="menu-item" bindtap="goToFollowing" hover-class="menu-item-hover">
           <view class="menu-left">
-            <text class="menu-icon">🔐</text>
-            <text class="menu-label">账号与安全</text>
+            <text class="menu-icon">👥</text>
+            <text class="menu-label">关注列表</text>
           </view>
-          <text class="menu-arrow">›</text>
+          <view class="menu-right">
+            <text class="menu-badge">{{stats.following || 0}}</text>
+            <text class="menu-arrow">›</text>
+          </view>
         </view>
-        <view class="menu-item" bindtap="goToStats" hover-class="menu-item-hover">
+        <view class="menu-item" bindtap="goToFollowers" hover-class="menu-item-hover">
           <view class="menu-left">
-            <text class="menu-icon">📊</text>
-            <text class="menu-label">数据统计</text>
+            <text class="menu-icon">💖</text>
+            <text class="menu-label">粉丝列表</text>
           </view>
-          <text class="menu-arrow">›</text>
+          <view class="menu-right">
+            <text class="menu-badge">{{stats.followers || 0}}</text>
+            <text class="menu-arrow">›</text>
+          </view>
         </view>
         <view class="menu-item" bindtap="goToSettings" hover-class="menu-item-hover">
           <view class="menu-left">

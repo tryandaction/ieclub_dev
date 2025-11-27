@@ -90,10 +90,17 @@
           
           <!-- 作者信息 -->
           <view class="topic-author">
-            <text class="author-emoji">{{item.author.avatar || '👤'}}</text>
-            <text class="author-name">{{item.author.name || '匿名用户'}}</text>
+            <block wx:if="{{item.author.avatar && item.author.avatar.length > 2}}">
+              <image 
+                class="author-avatar" 
+                src="{{item.author.avatar.indexOf('http') === 0 ? item.author.avatar : 'https://ieclub.online' + item.author.avatar}}" 
+                mode="aspectFill"
+              />
+            </block>
+            <text wx:else class="author-emoji">👤</text>
+            <text class="author-name">{{item.author.nickname || item.author.name || '匿名用户'}}</text>
             <view class="author-level">
-              <text class="level-text">LV{{item.author.level || 0}}</text>
+              <text class="level-text">LV{{item.author.level || 1}}</text>
             </view>
           </view>
 

@@ -1,110 +1,114 @@
 // pages/profile/index.js
-import { getCurrentUser, logout } from '../../api/auth'
-import { mixinPage } from '../../utils/mixin'
-import dataLoadMixin from '../../mixins/dataLoadMixin'
+import { logout } from '../../api/auth'
+import { getProfile } from '../../api/profile'
+import request from '../../utils/request'
 
-mixinPage({
-  mixins: [dataLoadMixin],
-  
+Page({
   data: {
     isLogin: false,
+    loading: false,
+    user: null,
     stats: {
       topics: 0,
       followers: 0,
       following: 0
-    }
+    },
+    unreadCount: 0
   },
 
   onLoad() {
     console.log('✅ 个人中心页加载')
-    this.checkLoginAndLoadUser()
+    this.loadUserProfile()
   },
 
   onShow() {
     console.log('✅ 个人中心页显示')
-    this.checkLoginAndLoadUser()
+    // 每次显示时刷新数据，确保与网站同步
+    this.loadUserProfile()
+    this.loadUnreadCount()
   },
 
   /**
-   * 检查登录并加载用户信息
+   * 加载用户完整资料（使用与网站相同的API）
    */
-  async checkLoginAndLoadUser() {
+  async loadUserProfile() {
     const token = wx.getStorageSync('token')
-    const app = getApp()
     
-    if (!token && !app.globalData.isLogin) {
-      this.setData({ isLogin: false })
+    if (!token) {
+      this.setData({ isLogin: false, user: null })
       return
     }
     
-    this.setData({ isLogin: true })
+    this.setData({ isLogin: true, loading: true })
     
-    // 使用数据加载混入
-    if (!this.dataLoadInitialized) {
-      this.initDataLoad({
-        dataKey: 'user',
-        autoLoad: true
+    try {
+      // 第一步：获取当前用户ID
+      const authRes = await request('/auth/profile', { method: 'GET', loading: false })
+      const userId = authRes?.id
+      
+      if (!userId) {
+        throw new Error('无法获取用户ID')
+      }
+      
+      // 第二步：使用完整的 profile API 获取数据（与网站一致）
+      const profile = await getProfile(userId)
+      
+      console.log('📥 获取到完整用户数据:', profile)
+      
+      // 格式化数据
+      const user = {
+        ...profile,
+        nickname: profile.nickname || '未设置昵称',
+        major: profile.major || '未设置专业',
+        grade: profile.grade || '',
+        level: profile.level || 1,
+        credits: profile.credits || 0
+      }
+      
+      // 统计数据
+      const stats = {
+        topics: profile.topicsCount || 0,
+        followers: profile.followerCount || 0,
+        following: profile.followingCount || 0
+      }
+      
+      this.setData({ 
+        user,
+        stats,
+        loading: false 
       })
-      this.dataLoadInitialized = true
-    } else {
-      this.loadData()
+      
+      // 更新本地存储
+      wx.setStorageSync('user', user)
+      
+      // 更新全局状态
+      const app = getApp()
+      app.globalData.userInfo = user
+      
+      console.log('✅ 用户资料加载成功，数据已与网站同步')
+      
+    } catch (error) {
+      console.error('❌ 加载用户资料失败:', error)
+      this.setData({ loading: false })
+      
+      if (error.code === 401 || error.statusCode === 401) {
+        wx.removeStorageSync('token')
+        wx.removeStorageSync('user')
+        this.setData({ isLogin: false, user: null })
+      }
     }
   },
 
-  /**
-   * 获取数据（供混入调用）
-   */
-  async fetchData() {
-    return await getCurrentUser()
-  },
-
-  /**
-   * 格式化数据（供混入调用）
-   */
-  formatData(user) {
-    return {
-      ...user,
-      nickname: user.nickname || user.name || '未设置昵称',
-      avatar: user.avatar || '👤',
-      major: user.major || '未设置专业',
-      grade: user.grade || '',
-      level: user.level || 1,
-      score: user.score || 0
+  // 跳转到个人主页（查看自己的公开主页）
+  goToMyProfile() {
+    const userId = this.data.user?.id
+    if (!userId) {
+      wx.showToast({ title: '请先登录', icon: 'none' })
+      return
     }
-  },
-
-  /**
-   * 数据加载成功回调
-   */
-  onDataLoaded(user) {
-    // 格式化统计数据
-    const stats = {
-      topics: user.topicCount || 0,
-      followers: user.followerCount || 0,
-      following: user.followingCount || 0
-    }
-
-    this.setData({ stats })
-
-    // 更新全局状态
-    const app = getApp()
-    app.globalData.userInfo = this.data.user
-
-    console.log('✅ 加载用户信息成功')
-  },
-
-  /**
-   * 数据加载失败回调
-   */
-  onDataLoadError(error) {
-    console.error('❌ 加载用户信息失败:', error)
-    
-    // 如果是 401 错误，清除登录状态
-    if (error.code === 401 || error.statusCode === 401) {
-      wx.removeStorageSync('token')
-      wx.removeStorageSync('user')
-      this.setData({ isLogin: false, user: null })
-    }
+    wx.navigateTo({
+      url: `/pages/user-profile/index?userId=${userId}`
+    })
   },
 
   // 跳转到我的话题
@@ -271,5 +275,27 @@ mixinPage({
     wx.reLaunch({
       url: '/pages/auth/index'
     })
+  },
+
+  /**
+   * 去通知页面
+   */
+  goToNotifications() {
+    wx.navigateTo({
+      url: '/pages/notifications/index'
+    })
+  },
+
+  /**
+   * 加载未读通知数
+   */
+  async loadUnreadCount() {
+    try {
+      const res = await request('/notifications/unread-count', { method: 'GET', loading: false })
+      const count = res?.count || res?.data?.count || 0
+      this.setData({ unreadCount: count })
+    } catch (error) {
+      console.error('加载未读数失败:', error)
+    }
   }
 })

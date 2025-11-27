@@ -50,17 +50,25 @@ router.post('/auth/wechat-login', rateLimiters.auth, AuthController.wechatLogin)
 
 // ==================== Topics Routes ====================
 router.get('/topics', optionalAuth, topicController.getTopics);
-// getTopic方法不存在，使用/community子路由
+router.get('/topics/:id', optionalAuth, topicController.getTopicDetail);
 router.post('/topics', authenticate, topicController.createTopic);
 router.put('/topics/:id', authenticate, topicController.updateTopic);
 router.delete('/topics/:id', authenticate, topicController.deleteTopic);
-// likeTopic方法不存在，使用/community子路由
+router.post('/topics/:id/like', authenticate, topicController.toggleLike);
+router.post('/topics/:id/bookmark', authenticate, topicController.toggleBookmark);
 
 // ==================== Comments Routes ====================
+// 通用评论路由（支持query参数传topicId）
 router.get('/comments', commentController.getComments);
 router.post('/comments', authenticate, commentController.createComment);
 router.delete('/comments/:id', authenticate, commentController.deleteComment);
 router.post('/comments/:id/like', authenticate, commentController.likeComment);
+
+// 话题评论路由（RESTful风格，topicId在path中）
+router.get('/topics/:topicId/comments', commentController.getComments);
+router.post('/topics/:topicId/comments', authenticate, commentController.createComment);
+router.delete('/topics/:topicId/comments/:id', authenticate, commentController.deleteComment);
+router.post('/topics/:topicId/comments/:id/like', authenticate, commentController.likeComment);
 
 // ==================== Users/Profile Routes ====================
 // ⚠️ 重要：直接注册profile路由，避免子路由匹配问题
@@ -92,15 +100,22 @@ router.put('/test-auth-put', authenticate, (req, res) => {
 
 // 编辑个人主页（PUT必须在GET之前，避免被/:userId匹配）
 router.put('/profile', authenticate, async (req, res, next) => {
+  const fs = require('fs');
+  const logData = `\n[${new Date().toISOString()}] PUT /profile - User: ${req.user?.id} - Body: ${JSON.stringify(req.body)}\n`;
+  fs.appendFileSync('/tmp/profile-update.log', logData);
+  
   try {
-    console.log('🔥 [/profile] Route handler called');
+    console.log('🔥🔥🔥 [/profile] Route handler called');
     console.log('🔥 [/profile] User:', req.user?.id);
     console.log('🔥 [/profile] Body:', JSON.stringify(req.body));
     
     // 直接调用controller
     await profileController.updateProfile(req, res, next);
+    
+    fs.appendFileSync('/tmp/profile-update.log', `[${new Date().toISOString()}] Controller执行完成\n`);
   } catch (error) {
     console.error('🔥 [/profile] Wrapper Error:', error);
+    fs.appendFileSync('/tmp/profile-update.log', `[${new Date().toISOString()}] Error: ${error.message}\n`);
     next(error);
   }
 });
@@ -119,5 +134,6 @@ router.post('/errors/report', rateLimiters.api, errorReportController.reportErro
 router.use('/community', require('./community'));
 router.use('/activities', require('./activities'));
 router.use('/notifications', require('./notificationRoutes'));
+router.use('/messages', require('./message'));
 
 module.exports = router;

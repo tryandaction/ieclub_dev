@@ -59,10 +59,7 @@ Page({
       }
 
       // 获取完整的用户信息（包含level、exp等）
-      const res = await request({
-        url: `/profile/${userInfo.id}`,
-        method: 'GET'
-      })
+      const res = await request(`/profile/${userInfo.id}`, { method: 'GET' })
 
       const profile = res.data || res
       
@@ -89,10 +86,7 @@ Page({
       const userInfo = wx.getStorageSync('userInfo')
       if (!userInfo || !userInfo.id) return
 
-      const res = await request({
-        url: `/profile/${userInfo.id}/stats`,
-        method: 'GET'
-      })
+      const res = await request(`/profile/${userInfo.id}/stats`, { method: 'GET' })
 
       const stats = res.data || res
       

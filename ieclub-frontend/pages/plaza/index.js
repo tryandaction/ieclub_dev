@@ -11,9 +11,10 @@ mixinPage({
     isLogin: false,
     tabs: [
       { id: 'all', label: '推荐', icon: '✨' },
+      { id: 'demand', label: '我想听', icon: '👂' },
       { id: 'offer', label: '我来讲', icon: '🎤' },
-      { id: 'demand', label: '想听', icon: '👂' },
-      { id: 'project', label: '项目', icon: '🚀' }
+      { id: 'project', label: '项目', icon: '🚀' },
+      { id: 'share', label: '分享', icon: '💡' }
     ]
   },
 

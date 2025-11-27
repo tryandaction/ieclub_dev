@@ -94,6 +94,10 @@
   height: 100%;
 }
 
+.avatar-img {
+  border-radius: 50%;
+}
+
 .preview-placeholder {
   display: flex;
   flex-direction: column;

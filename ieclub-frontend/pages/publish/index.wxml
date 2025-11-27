@@ -1,12 +1,28 @@
 <!--pages/publish/index.wxml-->
 <view class="publish-page">
-  <view class="header">
-    <text class="title">发布内容</text>
+  <!-- 顶部标题 -->
+  <view class="header" style="background: {{typeConfig[publishType].color}}">
+    <text class="header-icon">{{typeConfig[publishType].icon}}</text>
+    <view class="header-text">
+      <text class="header-title">{{typeConfig[publishType].label}}</text>
+      <text class="header-desc">{{typeConfig[publishType].description}}</text>
+    </view>
   </view>
 
+  <!-- 类型选择器 -->
   <view class="type-selector">
     <view 
-      class="type-item {{publishType === 'offer' ? 'active offer' : ''}}"
+      class="type-item {{publishType === 'demand' ? 'active' : ''}}"
+      style="{{publishType === 'demand' ? 'background: #06b6d4; color: #fff;' : ''}}"
+      data-type="demand"
+      bindtap="switchType"
+    >
+      <text class="type-icon">👂</text>
+      <text class="type-label">我想听</text>
+    </view>
+    <view 
+      class="type-item {{publishType === 'offer' ? 'active' : ''}}"
+      style="{{publishType === 'offer' ? 'background: #8b5cf6; color: #fff;' : ''}}"
       data-type="offer"
       bindtap="switchType"
     >
@@ -14,45 +30,274 @@
       <text class="type-label">我来讲</text>
     </view>
     <view 
-      class="type-item {{publishType === 'demand' ? 'active demand' : ''}}"
-      data-type="demand"
-      bindtap="switchType"
-    >
-      <text class="type-icon">👂</text>
-      <text class="type-label">想听</text>
-    </view>
-    <view 
-      class="type-item {{publishType === 'project' ? 'active project' : ''}}"
+      class="type-item {{publishType === 'project' ? 'active' : ''}}"
+      style="{{publishType === 'project' ? 'background: #10b981; color: #fff;' : ''}}"
       data-type="project"
       bindtap="switchType"
     >
       <text class="type-icon">🚀</text>
       <text class="type-label">项目</text>
     </view>
+    <view 
+      class="type-item {{publishType === 'share' ? 'active' : ''}}"
+      style="{{publishType === 'share' ? 'background: #f59e0b; color: #fff;' : ''}}"
+      data-type="share"
+      bindtap="switchType"
+    >
+      <text class="type-icon">💡</text>
+      <text class="type-label">分享</text>
+    </view>
   </view>
 
+  <!-- 表单区域 -->
   <view class="form">
-    <view class="form-item">
-      <text class="form-label">标题</text>
-      <input 
-        class="form-input" 
-        placeholder="请输入标题"
-        value="{{title}}"
-        bindinput="onTitleInput"
-      />
+    <!-- 通用字段：标题 -->
+    <view class="form-section">
+      <view class="form-item">
+        <text class="form-label">标题 <text class="required">*</text></text>
+        <input 
+          class="form-input" 
+          placeholder="{{typeConfig[publishType].placeholder.title}}"
+          value="{{title}}"
+          bindinput="onTitleInput"
+          maxlength="50"
+        />
+        <text class="form-count">{{title.length}}/50</text>
+      </view>
     </view>
 
-    <view class="form-item">
-      <text class="form-label">详细描述</text>
-      <textarea 
-        class="form-textarea" 
-        placeholder="详细说明你的内容..."
-        value="{{description}}"
-        bindinput="onDescInput"
-      />
+    <!-- 通用字段：内容 -->
+    <view class="form-section">
+      <view class="form-item">
+        <text class="form-label">详细描述 <text class="required">*</text></text>
+        <textarea 
+          class="form-textarea" 
+          placeholder="{{typeConfig[publishType].placeholder.content}}"
+          value="{{content}}"
+          bindinput="onContentInput"
+          maxlength="2000"
+        />
+        <text class="form-count">{{content.length}}/2000</text>
+      </view>
     </view>
 
-    <button class="publish-btn" bindtap="publish">发布</button>
+    <!-- 我想听/我来讲 专属字段 -->
+    <block wx:if="{{publishType === 'demand' || publishType === 'offer'}}">
+      <view class="form-section">
+        <text class="section-title">📅 时间安排</text>
+        
+        <view class="form-item">
+          <text class="form-label">期望时长</text>
+          <picker mode="selector" range="{{durationOptions}}" bindchange="onDurationChange">
+            <view class="picker-value">
+              <text>{{duration || '请选择'}}</text>
+              <text class="picker-arrow">›</text>
+            </view>
+          </picker>
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">目标听众</text>
+          <input 
+            class="form-input" 
+            placeholder="例如：有Python基础的同学"
+            value="{{targetAudience}}"
+            bindinput="onTargetAudienceInput"
+          />
+        </view>
+        
+        <!-- 我来讲特有：成团阈值 -->
+        <view wx:if="{{publishType === 'offer'}}" class="form-item threshold-item">
+          <text class="form-label">成团人数</text>
+          <view class="threshold-input-group">
+            <input 
+              class="threshold-input" 
+              type="number"
+              value="{{threshold}}"
+              bindinput="onThresholdInput"
+            />
+            <text class="threshold-hint">人想听后开讲</text>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 项目专属字段 -->
+    <block wx:if="{{publishType === 'project'}}">
+      <view class="form-section">
+        <text class="section-title">🚀 项目信息</text>
+        
+        <view class="form-item">
+          <text class="form-label">项目阶段 <text class="required">*</text></text>
+          <picker mode="selector" range="{{projectStages}}" bindchange="onProjectStageChange">
+            <view class="picker-value">
+              <text>{{projectStage || '请选择'}}</text>
+              <text class="picker-arrow">›</text>
+            </view>
+          </picker>
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">团队规模</text>
+          <input 
+            class="form-input" 
+            type="number"
+            placeholder="目前团队人数"
+            value="{{teamSize}}"
+            bindinput="onTeamSizeInput"
+          />
+        </view>
+      </view>
+      
+      <view class="form-section">
+        <text class="section-title">👥 招募需求</text>
+        
+        <view class="form-item">
+          <text class="form-label">招募角色</text>
+          <view class="tag-input-group">
+            <input 
+              class="tag-input" 
+              placeholder="如：前端工程师"
+              value="{{roleInput}}"
+              bindinput="onRoleInput"
+              bindconfirm="addRole"
+            />
+            <button class="tag-add-btn" bindtap="addRole">添加</button>
+          </view>
+          <view class="tags-list" wx:if="{{lookingForRoles.length > 0}}">
+            <view class="tag-item" wx:for="{{lookingForRoles}}" wx:key="*this">
+              <text>{{item}}</text>
+              <text class="tag-remove" data-index="{{index}}" bindtap="removeRole">×</text>
+            </view>
+          </view>
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">所需技能</text>
+          <view class="tag-input-group">
+            <input 
+              class="tag-input" 
+              placeholder="如：React、Node.js"
+              value="{{skillInput}}"
+              bindinput="onSkillInput"
+              bindconfirm="addSkill"
+            />
+            <button class="tag-add-btn" bindtap="addSkill">添加</button>
+          </view>
+          <view class="tags-list" wx:if="{{skillsNeeded.length > 0}}">
+            <view class="tag-item skill" wx:for="{{skillsNeeded}}" wx:key="*this">
+              <text>{{item}}</text>
+              <text class="tag-remove" data-index="{{index}}" bindtap="removeSkill">×</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <view class="form-section">
+        <text class="section-title">🔗 联系方式</text>
+        
+        <view class="form-item">
+          <text class="form-label">项目网站</text>
+          <input 
+            class="form-input" 
+            placeholder="https://..."
+            value="{{website}}"
+            bindinput="onWebsiteInput"
+          />
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">GitHub</text>
+          <input 
+            class="form-input" 
+            placeholder="https://github.com/..."
+            value="{{github}}"
+            bindinput="onGithubInput"
+          />
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">联系方式</text>
+          <input 
+            class="form-input" 
+            placeholder="微信/邮箱/手机号"
+            value="{{contactInfo}}"
+            bindinput="onContactInput"
+          />
+        </view>
+      </view>
+    </block>
+
+    <!-- 标签选择 -->
+    <view class="form-section">
+      <text class="section-title">🏷️ 标签</text>
+      
+      <!-- 预设标签 -->
+      <view class="preset-tags">
+        <view 
+          class="preset-tag {{tags.includes(item) ? 'selected' : ''}}" 
+          wx:for="{{presetTags}}" 
+          wx:key="*this"
+          data-tag="{{item}}"
+          bindtap="addPresetTag"
+        >
+          {{item}}
+        </view>
+      </view>
+      
+      <!-- 自定义标签输入 -->
+      <view class="form-item">
+        <view class="tag-input-group">
+          <input 
+            class="tag-input" 
+            placeholder="自定义标签"
+            value="{{tagInput}}"
+            bindinput="onTagInput"
+            bindconfirm="addTag"
+          />
+          <button class="tag-add-btn" bindtap="addTag">添加</button>
+        </view>
+      </view>
+      
+      <!-- 已选标签 -->
+      <view class="selected-tags" wx:if="{{tags.length > 0}}">
+        <view class="selected-tag" wx:for="{{tags}}" wx:key="*this">
+          <text>#{{item}}</text>
+          <text class="tag-remove" data-index="{{index}}" bindtap="removeTag">×</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 图片上传 -->
+    <view class="form-section">
+      <text class="section-title">📷 图片（最多9张）</text>
+      
+      <view class="image-upload-area">
+        <view class="image-list">
+          <view class="image-item" wx:for="{{images}}" wx:key="*this">
+            <image src="{{item}}" mode="aspectFill" data-url="{{item}}" bindtap="previewImage" />
+            <view class="image-remove" data-index="{{index}}" bindtap="removeImage">×</view>
+          </view>
+          <view class="image-add" wx:if="{{images.length < 9}}" bindtap="chooseImage">
+            <text class="add-icon">+</text>
+            <text class="add-text">添加</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-buttons">
+      <button class="draft-btn" bindtap="saveDraft">保存草稿</button>
+      <button 
+        class="publish-btn" 
+        bindtap="publish"
+        disabled="{{submitting}}"
+        loading="{{submitting}}"
+      >
+        {{submitting ? '发布中...' : '发布'}}
+      </button>
+    </view>
   </view>
 </view>
 

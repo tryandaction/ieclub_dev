@@ -79,6 +79,11 @@ exports.getUserProfile = async (req, res, next) => {
     // 移除_count字段
     delete profile._count
 
+    // 禁用缓存，确保获取最新数据
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate, private, max-age=0');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+
     res.json({
       success: true,
       code: 200,

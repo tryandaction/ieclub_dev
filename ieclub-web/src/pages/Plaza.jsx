@@ -8,9 +8,10 @@ import Avatar from '../components/Avatar'
 
 const tabs = [
   { id: 'all', label: '推荐', icon: '✨' },
+  { id: 'demand', label: '我想听', icon: '👂' },
   { id: 'offer', label: '我来讲', icon: '🎤' },
-  { id: 'demand', label: '想听', icon: '👂' },
   { id: 'project', label: '项目', icon: '🚀' },
+  { id: 'share', label: '分享', icon: '💡' },
 ]
 
 const mockTopics = [
@@ -47,9 +48,10 @@ const mockTopics = [
 ]
 
 const typeConfig = {
-  offer: { label: '我来讲', bg: 'bg-gradient-offer', icon: '🎤' },
-  demand: { label: '想听', bg: 'bg-gradient-demand', icon: '👂' },
-  project: { label: '项目', bg: 'bg-gradient-project', icon: '🚀' },
+  demand: { label: '我想听', bg: 'bg-gradient-to-r from-blue-500 to-blue-600', icon: '👂' },
+  offer: { label: '我来讲', bg: 'bg-gradient-to-r from-purple-500 to-purple-600', icon: '🎤' },
+  project: { label: '项目', bg: 'bg-gradient-to-r from-emerald-500 to-emerald-600', icon: '🚀' },
+  share: { label: '分享', bg: 'bg-gradient-to-r from-orange-500 to-orange-600', icon: '💡' },
 }
 
 export default function Plaza() {

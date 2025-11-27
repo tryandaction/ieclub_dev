@@ -72,8 +72,7 @@ Page({
 
     try {
       const currentPage = isRefresh ? 1 : page
-      const res = await request({
-        url: `/users/${userId}/followers`,
+      const res = await request(`/users/${userId}/followers`, {
         method: 'GET',
         data: { page: currentPage, limit }
       })
@@ -119,8 +118,7 @@ Page({
     if (currentUserId === userId) {
       try {
         // 获取当前用户的关注列表
-        const res = await request({
-          url: `/users/${currentUserId}/following`,
+        const res = await request(`/users/${currentUserId}/following`, {
           method: 'GET',
           data: { page: 1, limit: 1000 } // 获取所有关注
         })
@@ -154,10 +152,7 @@ Page({
     const { id, index, following } = e.currentTarget.dataset
     
     try {
-      await request({
-        url: `/users/${id}/follow`,
-        method: 'POST'
-      })
+      await request(`/users/${id}/follow`, { method: 'POST' })
 
       // 更新列表中的关注状态
       const users = [...this.data.users]

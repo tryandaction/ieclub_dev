@@ -15,7 +15,9 @@
       <view class="image-item">
         <view class="image-label">头像</view>
         <view class="image-preview" bindtap="chooseAvatar">
-          <image wx:if="{{form.avatar}}" class="preview-img" src="{{form.avatar}}" mode="aspectFill" />
+          <block wx:if="{{form.avatar && form.avatar.length > 0}}">
+            <image class="preview-img avatar-img" src="{{form.avatar.indexOf('http') === 0 || form.avatar.indexOf('wxfile') === 0 ? form.avatar : 'https://ieclub.online' + form.avatar}}" mode="aspectFill" />
+          </block>
           <view wx:else class="preview-placeholder">
             <text class="placeholder-icon">📷</text>
             <text class="placeholder-text">点击上传头像</text>
@@ -27,7 +29,9 @@
       <view class="image-item">
         <view class="image-label">主页封面</view>
         <view class="cover-preview" bindtap="chooseCover">
-          <image wx:if="{{form.coverImage}}" class="preview-img" src="{{form.coverImage}}" mode="aspectFill" />
+          <block wx:if="{{form.coverImage && form.coverImage.length > 0}}">
+            <image class="preview-img" src="{{form.coverImage.indexOf('http') === 0 || form.coverImage.indexOf('wxfile') === 0 || form.coverImage.indexOf('linear') === 0 ? form.coverImage : 'https://ieclub.online' + form.coverImage}}" mode="aspectFill" />
+          </block>
           <view wx:else class="preview-placeholder">
             <text class="placeholder-icon">🖼️</text>
             <text class="placeholder-text">点击上传封面图</text>

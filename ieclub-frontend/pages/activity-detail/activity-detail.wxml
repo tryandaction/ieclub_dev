@@ -67,12 +67,16 @@
       <view wx:if="{{activity.organizer}}" class="organizer">
         <view class="section-title">组织者</view>
         <view class="organizer-info">
-          <image 
-            src="{{activity.organizer.avatar || '/images/default-avatar.png'}}" 
-            class="organizer-avatar"
-          />
+          <block wx:if="{{activity.organizer.avatar && activity.organizer.avatar.length > 2}}">
+            <image 
+              src="{{activity.organizer.avatar.indexOf('http') === 0 ? activity.organizer.avatar : 'https://ieclub.online' + activity.organizer.avatar}}" 
+              class="organizer-avatar"
+              mode="aspectFill"
+            />
+          </block>
+          <view wx:else class="organizer-avatar-placeholder">👤</view>
           <view class="organizer-details">
-            <text class="organizer-name">{{activity.organizer.nickname}}</text>
+            <text class="organizer-name">{{activity.organizer.nickname || '未知用户'}}</text>
             <text wx:if="{{activity.organizer.bio}}" class="organizer-bio">{{activity.organizer.bio}}</text>
           </view>
         </view>

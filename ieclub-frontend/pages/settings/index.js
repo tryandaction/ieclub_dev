@@ -70,10 +70,7 @@ Page({
     
     // 从服务器加载通知设置
     try {
-      const res = await request({
-        url: '/notifications/settings',
-        method: 'GET'
-      })
+      const res = await request('/notifications/settings', { method: 'GET' })
       
       if (res.data?.settings) {
         this.setData({
@@ -109,11 +106,7 @@ Page({
     
     // 更新到服务器
     try {
-      await request({
-        url: '/notifications/settings',
-        method: 'PUT',
-        data: this.data.notifications
-      })
+      await request('/notifications/settings', { method: 'PUT', data: this.data.notifications })
     } catch (error) {
       console.error('更新通知设置失败:', error)
       // 回滚

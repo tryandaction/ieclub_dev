@@ -36,31 +36,61 @@ export default function Notifications() {
       icon: '❤️',
       color: 'text-red-600',
       bgColor: 'bg-red-50',
+      label: '点赞',
     },
     comment: {
       icon: '💬',
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
+      label: '评论',
     },
     reply: {
       icon: '↩️',
       color: 'text-green-600',
       bgColor: 'bg-green-50',
+      label: '回复',
     },
     follow: {
       icon: '👤',
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
+      label: '关注',
     },
     match: {
       icon: '✨',
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-50',
+      label: '匹配',
+    },
+    want_hear: {
+      icon: '👂',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      label: '想听',
+    },
+    can_tell: {
+      icon: '🎤',
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      label: '我能讲',
+    },
+    topic_threshold_reached: {
+      icon: '🎉',
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      label: '成团',
+    },
+    project_interest: {
+      icon: '🚀',
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50',
+      label: '项目感兴趣',
     },
     system: {
       icon: '🔔',
       color: 'text-gray-600',
       bgColor: 'bg-gray-50',
+      label: '系统',
     },
   }
 

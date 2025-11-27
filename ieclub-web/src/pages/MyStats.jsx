@@ -67,10 +67,13 @@ export default function MyStats() {
     if (!stats?.postsByType) return [];
     
     const typeMap = {
-      topic: { name: '话题讨论', icon: '💬', color: '#8b5cf6' },
-      question: { name: '提问求助', icon: '❓', color: '#3b82f6' },
-      share: { name: '经验分享', icon: '📚', color: '#10b981' },
-      activity: { name: '活动发布', icon: '🎉', color: '#f59e0b' }
+      demand: { name: '我想听', icon: '👂', color: '#3b82f6' },
+      offer: { name: '我来讲', icon: '🎤', color: '#8b5cf6' },
+      project: { name: '项目', icon: '🚀', color: '#10b981' },
+      share: { name: '分享', icon: '💡', color: '#f59e0b' },
+      topic: { name: '讨论', icon: '💬', color: '#6b7280' },
+      question: { name: '提问', icon: '❓', color: '#06b6d4' },
+      activity: { name: '活动', icon: '🎉', color: '#ec4899' }
     };
 
     const types = [];

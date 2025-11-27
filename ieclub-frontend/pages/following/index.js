@@ -70,8 +70,7 @@ Page({
 
     try {
       const currentPage = isRefresh ? 1 : page
-      const res = await request({
-        url: `/users/${userId}/following`,
+      const res = await request(`/users/${userId}/following`, {
         method: 'GET',
         data: { page: currentPage, limit }
       })
@@ -125,10 +124,7 @@ Page({
       success: async (res) => {
         if (res.confirm) {
           try {
-            await request({
-              url: `/users/${id}/follow`,
-              method: 'POST'
-            })
+            await request(`/users/${id}/follow`, { method: 'POST' })
 
             // 从列表中移除
             const users = [...this.data.users]

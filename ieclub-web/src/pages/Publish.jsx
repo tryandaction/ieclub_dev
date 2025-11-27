@@ -1,23 +1,149 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { createTopic } from '../api/topic'
 import { showToast } from '../components/Toast'
 import ImageUpload from '../components/ImageUpload'
 
-const typeOptions = [
-  { id: 'offer', label: '我来讲', icon: '🎤', bg: 'bg-gradient-offer' },
-  { id: 'demand', label: '想听', icon: '👂', bg: 'bg-gradient-demand' },
-  { id: 'project', label: '项目', icon: '🚀', bg: 'bg-gradient-project' },
-]
+// 板块类型配置
+const typeConfig = {
+  demand: {
+    id: 'demand',
+    label: '我想听',
+    icon: '👂',
+    color: 'from-cyan-500 to-cyan-600',
+    bg: 'bg-gradient-to-r from-cyan-500 to-cyan-600',
+    description: '发布你想学习的话题，找到能教你的人',
+    placeholder: {
+      title: '例如：想学Python数据分析',
+      content: '详细描述你想学习的内容、你的基础水平、期望达到的效果...'
+    }
+  },
+  offer: {
+    id: 'offer',
+    label: '我来讲',
+    icon: '🎤',
+    color: 'from-purple-500 to-purple-600',
+    bg: 'bg-gradient-to-r from-purple-500 to-purple-600',
+    description: '分享你的知识，满15人可开讲',
+    placeholder: {
+      title: '例如：Python数据分析入门',
+      content: '课程大纲、你的专业背景、适合什么基础的同学...'
+    }
+  },
+  project: {
+    id: 'project',
+    label: '项目',
+    icon: '🚀',
+    color: 'from-emerald-500 to-emerald-600',
+    bg: 'bg-gradient-to-r from-emerald-500 to-emerald-600',
+    description: '招募项目队友，一起创造',
+    placeholder: {
+      title: '例如：校园二手交易小程序',
+      content: '项目介绍、目标、当前进展、需要什么样的队友...'
+    }
+  },
+  share: {
+    id: 'share',
+    label: '分享',
+    icon: '💡',
+    color: 'from-amber-500 to-amber-600',
+    bg: 'bg-gradient-to-r from-amber-500 to-amber-600',
+    description: '分享知识、经验、资源',
+    placeholder: {
+      title: '例如：期末复习资料分享',
+      content: '分享的内容、适合谁、如何获取...'
+    }
+  }
+}
+
+// 预设标签
+const presetTags = {
+  demand: ['编程', '设计', '考研', '语言', '数学', '物理', '经济', '法律'],
+  offer: ['Python', 'Java', 'UI设计', '摄影', '视频剪辑', '写作', '演讲'],
+  project: ['小程序', 'APP', '网站', '比赛', '创业', '公益', '调研'],
+  share: ['学习资料', '求职经验', '考试攻略', '工具推荐', '读书笔记']
+}
+
+// 项目阶段选项
+const projectStages = ['创意阶段', '开发中', '已上线', '招募中']
+
+// 时长选项  
+const durationOptions = ['30分钟', '1小时', '2小时', '半天', '一天', '多天']
 
 export default function Publish() {
   const navigate = useNavigate()
-  const [publishType, setPublishType] = useState('offer')
+  const [searchParams] = useSearchParams()
+  
+  // 基础状态
+  const [publishType, setPublishType] = useState('demand')
   const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [tags, setTags] = useState('')
+  const [content, setContent] = useState('')
+  const [tags, setTags] = useState([])
+  const [tagInput, setTagInput] = useState('')
   const [images, setImages] = useState([])
   const [loading, setLoading] = useState(false)
+  
+  // 我想听/我来讲 特有
+  const [duration, setDuration] = useState('')
+  const [targetAudience, setTargetAudience] = useState('')
+  const [threshold, setThreshold] = useState(15)
+  
+  // 项目特有
+  const [projectStage, setProjectStage] = useState('')
+  const [teamSize, setTeamSize] = useState('')
+  const [lookingForRoles, setLookingForRoles] = useState([])
+  const [roleInput, setRoleInput] = useState('')
+  const [skillsNeeded, setSkillsNeeded] = useState([])
+  const [skillInput, setSkillInput] = useState('')
+  const [website, setWebsite] = useState('')
+  const [github, setGithub] = useState('')
+  const [contactInfo, setContactInfo] = useState('')
+
+  // 初始化类型
+  useEffect(() => {
+    const type = searchParams.get('type')
+    if (type && typeConfig[type]) {
+      setPublishType(type)
+    }
+  }, [searchParams])
+
+  // 添加标签
+  const addTag = (tag) => {
+    if (!tag.trim()) return
+    if (tags.includes(tag.trim())) {
+      showToast('标签已存在', 'warning')
+      return
+    }
+    if (tags.length >= 5) {
+      showToast('最多5个标签', 'warning')
+      return
+    }
+    setTags([...tags, tag.trim()])
+    setTagInput('')
+  }
+
+  // 移除标签
+  const removeTag = (index) => {
+    setTags(tags.filter((_, i) => i !== index))
+  }
+
+  // 添加角色
+  const addRole = () => {
+    if (!roleInput.trim()) return
+    if (!lookingForRoles.includes(roleInput.trim())) {
+      setLookingForRoles([...lookingForRoles, roleInput.trim()])
+    }
+    setRoleInput('')
+  }
+
+  // 添加技能
+  const addSkill = () => {
+    if (!skillInput.trim()) return
+    if (!skillsNeeded.includes(skillInput.trim())) {
+      setSkillsNeeded([...skillsNeeded, skillInput.trim()])
+    }
+    setSkillInput('')
+  }
 
   const handlePublish = async () => {
     // 验证
@@ -25,8 +151,20 @@ export default function Publish() {
       showToast('请输入标题', 'warning')
       return
     }
-    if (!description.trim()) {
+    if (title.length < 5) {
+      showToast('标题至少5个字', 'warning')
+      return
+    }
+    if (!content.trim()) {
       showToast('请输入描述', 'warning')
+      return
+    }
+    if (content.length < 10) {
+      showToast('内容至少10个字', 'warning')
+      return
+    }
+    if (publishType === 'project' && !projectStage) {
+      showToast('请选择项目阶段', 'warning')
       return
     }
 
@@ -41,29 +179,38 @@ export default function Publish() {
     try {
       setLoading(true)
       
-      // 处理标签
-      const tagArray = tags
-        .split(/[,，\s]+/)
-        .filter(tag => tag.trim())
-        .map(tag => tag.trim())
-
-      // 调用API
-      await createTopic({
-        topicType: publishType, // 后端期望 topicType
+      // 构建请求数据
+      const postData = {
         title: title.trim(),
-        content: description.trim(), // 后端期望 content 而不是 description
-        category: publishType, // 后端需要 category 字段
-        tags: tagArray,
-        images: images.map(img => img.url), // 传递图片URL数组
-      })
+        content: content.trim(),
+        category: publishType,
+        topicType: publishType,
+        tags,
+        images: images.map(img => img.url),
+      }
+      
+      // 根据类型添加特定字段
+      if (publishType === 'demand' || publishType === 'offer') {
+        if (duration) postData.duration = duration
+        if (targetAudience) postData.targetAudience = targetAudience
+        if (publishType === 'offer') {
+          postData.threshold = threshold
+        }
+      }
+      
+      if (publishType === 'project') {
+        if (projectStage) postData.projectStage = projectStage
+        if (teamSize) postData.teamSize = parseInt(teamSize) || null
+        if (lookingForRoles.length) postData.lookingForRoles = lookingForRoles
+        if (skillsNeeded.length) postData.skillsNeeded = skillsNeeded
+        if (website) postData.website = website
+        if (github) postData.github = github
+        if (contactInfo) postData.contactInfo = contactInfo
+      }
+
+      await createTopic(postData)
 
       showToast('发布成功！🎉', 'success')
-      
-      // 清空表单
-      setTitle('')
-      setDescription('')
-      setTags('')
-      setImages([])
       
       // 跳转到广场
       setTimeout(() => navigate('/plaza'), 1000)
@@ -75,30 +222,37 @@ export default function Publish() {
     }
   }
 
+  const currentType = typeConfig[publishType]
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* 页面标题 */}
-      <div className="bg-gradient-primary text-white rounded-2xl p-8 shadow-lg">
-        <h1 className="text-3xl font-bold mb-2">发布内容</h1>
-        <p className="text-white/90">分享你的知识与想法</p>
+      {/* 页面标题 - 动态显示当前类型 */}
+      <div className={`${currentType.bg} text-white rounded-2xl p-8 shadow-lg`}>
+        <div className="flex items-center gap-4">
+          <span className="text-5xl">{currentType.icon}</span>
+          <div>
+            <h1 className="text-3xl font-bold mb-1">{currentType.label}</h1>
+            <p className="text-white/90">{currentType.description}</p>
+          </div>
+        </div>
       </div>
 
       {/* 类型选择 */}
       <div className="card">
         <h2 className="text-lg font-bold text-gray-900 mb-4">选择类型</h2>
-        <div className="grid grid-cols-3 gap-4">
-          {typeOptions.map((type) => (
+        <div className="grid grid-cols-4 gap-4">
+          {Object.values(typeConfig).map((type) => (
             <button
               key={type.id}
               onClick={() => setPublishType(type.id)}
-              className={`p-6 rounded-xl border-2 transition-all ${
+              className={`p-4 rounded-xl border-2 transition-all ${
                 publishType === type.id
                   ? `${type.bg} text-white border-transparent shadow-lg scale-105`
                   : 'bg-white text-gray-600 border-gray-200 hover:border-purple-300'
               }`}
             >
-              <div className="text-4xl mb-2">{type.icon}</div>
-              <div className="font-bold">{type.label}</div>
+              <div className="text-3xl mb-2">{type.icon}</div>
+              <div className="font-bold text-sm">{type.label}</div>
             </button>
           ))}
         </div>
@@ -106,52 +260,280 @@ export default function Publish() {
 
       {/* 表单 */}
       <div className="card space-y-6">
+        {/* 标题 */}
         <div>
           <label className="block text-sm font-bold text-gray-900 mb-2">
-            标题
+            标题 <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="请输入标题"
+            placeholder={currentType.placeholder.title}
+            maxLength={50}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
+          <div className="text-right text-xs text-gray-400 mt-1">{title.length}/50</div>
         </div>
 
+        {/* 内容 */}
         <div>
           <label className="block text-sm font-bold text-gray-900 mb-2">
-            详细描述
+            详细描述 <span className="text-red-500">*</span>
           </label>
           <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="详细说明你的内容..."
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder={currentType.placeholder.content}
             rows={8}
+            maxLength={2000}
             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
           />
+          <div className="text-right text-xs text-gray-400 mt-1">{content.length}/2000</div>
         </div>
 
-        <div>
-          <label className="block text-sm font-bold text-gray-900 mb-2">
-            标签
-            <span className="ml-2 text-xs text-gray-500 font-normal">（用逗号或空格分隔，选填）</span>
-          </label>
-          <input
-            type="text"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            placeholder="例如：Python, 机器学习, 期末复习"
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
-          {tags && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {tags.split(/[,，\s]+/).filter(tag => tag.trim()).map((tag, index) => (
+        {/* 我想听/我来讲 专属字段 */}
+        {(publishType === 'demand' || publishType === 'offer') && (
+          <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+            <h3 className="font-bold text-gray-900 flex items-center gap-2">
+              📅 时间安排
+            </h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">期望时长</label>
+                <select
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">请选择</option>
+                  {durationOptions.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">目标听众</label>
+                <input
+                  type="text"
+                  value={targetAudience}
+                  onChange={(e) => setTargetAudience(e.target.value)}
+                  placeholder="例如：有Python基础的同学"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+            </div>
+            
+            {publishType === 'offer' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">成团人数</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    value={threshold}
+                    onChange={(e) => setThreshold(Math.max(5, Math.min(100, parseInt(e.target.value) || 15)))}
+                    min={5}
+                    max={100}
+                    className="w-24 px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-center font-bold text-purple-600"
+                  />
+                  <span className="text-gray-600">人想听后开讲</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 项目专属字段 */}
+        {publishType === 'project' && (
+          <>
+            <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                🚀 项目信息
+              </h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    项目阶段 <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={projectStage}
+                    onChange={(e) => setProjectStage(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="">请选择</option>
+                    {projectStages.map(stage => (
+                      <option key={stage} value={stage}>{stage}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">团队规模</label>
+                  <input
+                    type="number"
+                    value={teamSize}
+                    onChange={(e) => setTeamSize(e.target.value)}
+                    placeholder="目前团队人数"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                👥 招募需求
+              </h3>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">招募角色</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={roleInput}
+                    onChange={(e) => setRoleInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && addRole()}
+                    placeholder="如：前端工程师"
+                    className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <button onClick={addRole} className="px-4 py-2 bg-purple-500 text-white rounded-xl hover:bg-purple-600">
+                    添加
+                  </button>
+                </div>
+                {lookingForRoles.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {lookingForRoles.map((role, i) => (
+                      <span key={i} className="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm flex items-center gap-1">
+                        {role}
+                        <button onClick={() => setLookingForRoles(lookingForRoles.filter((_, idx) => idx !== i))} className="hover:text-purple-800">×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">所需技能</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={skillInput}
+                    onChange={(e) => setSkillInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && addSkill()}
+                    placeholder="如：React、Node.js"
+                    className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <button onClick={addSkill} className="px-4 py-2 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600">
+                    添加
+                  </button>
+                </div>
+                {skillsNeeded.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {skillsNeeded.map((skill, i) => (
+                      <span key={i} className="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-sm flex items-center gap-1">
+                        {skill}
+                        <button onClick={() => setSkillsNeeded(skillsNeeded.filter((_, idx) => idx !== i))} className="hover:text-emerald-800">×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                🔗 联系方式
+              </h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">项目网站</label>
+                  <input
+                    type="url"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">GitHub</label>
+                  <input
+                    type="url"
+                    value={github}
+                    onChange={(e) => setGithub(e.target.value)}
+                    placeholder="https://github.com/..."
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">联系方式</label>
+                <input
+                  type="text"
+                  value={contactInfo}
+                  onChange={(e) => setContactInfo(e.target.value)}
+                  placeholder="微信/邮箱/手机号"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* 标签选择 */}
+        <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+          <h3 className="font-bold text-gray-900 flex items-center gap-2">
+            🏷️ 标签
+          </h3>
+          
+          {/* 预设标签 */}
+          <div className="flex flex-wrap gap-2">
+            {presetTags[publishType].map(tag => (
+              <button
+                key={tag}
+                onClick={() => addTag(tag)}
+                className={`px-3 py-1 rounded-full text-sm transition-all ${
+                  tags.includes(tag)
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+          
+          {/* 自定义标签 */}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && addTag(tagInput)}
+              placeholder="自定义标签"
+              className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            <button onClick={() => addTag(tagInput)} className="px-4 py-2 bg-purple-500 text-white rounded-xl hover:bg-purple-600">
+              添加
+            </button>
+          </div>
+          
+          {/* 已选标签 */}
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="text-xs bg-purple-100 text-purple-600 px-3 py-1 rounded-full"
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-1"
                 >
-                  {tag.trim()}
+                  #{tag}
+                  <button onClick={() => removeTag(index)} className="hover:text-purple-200">×</button>
                 </span>
               ))}
             </div>
@@ -172,16 +554,17 @@ export default function Publish() {
           />
         </div>
 
+        {/* 发布按钮 */}
         <button
           onClick={handlePublish}
           disabled={loading}
-          className={`w-full bg-gradient-primary text-white py-4 rounded-xl font-bold text-lg transition-all ${
+          className={`w-full ${currentType.bg} text-white py-4 rounded-xl font-bold text-lg transition-all ${
             loading 
               ? 'opacity-50 cursor-not-allowed' 
-              : 'hover:shadow-lg hover:scale-105'
+              : 'hover:shadow-lg hover:scale-[1.02]'
           }`}
         >
-          {loading ? '发布中...' : '发布'}
+          {loading ? '发布中...' : `发布${currentType.label}`}
         </button>
       </div>
     </div>

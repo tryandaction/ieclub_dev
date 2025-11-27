@@ -6,9 +6,10 @@ import { showToast } from '../components/Toast'
 import { TopicDetailSkeleton, CommentListSkeleton } from '../components/Skeleton'
 
 const typeConfig = {
-  offer: { label: '我来讲', bg: 'bg-gradient-offer', icon: '🎤' },
-  demand: { label: '想听', bg: 'bg-gradient-demand', icon: '👂' },
-  project: { label: '项目', bg: 'bg-gradient-project', icon: '🚀' },
+  offer: { label: '我来讲', bg: 'bg-gradient-to-r from-purple-500 to-purple-600', icon: '🎤' },
+  demand: { label: '我想听', bg: 'bg-gradient-to-r from-blue-500 to-blue-600', icon: '👂' },
+  project: { label: '项目招募', bg: 'bg-gradient-to-r from-emerald-500 to-emerald-600', icon: '🚀' },
+  share: { label: '分享', bg: 'bg-gradient-to-r from-orange-500 to-orange-600', icon: '💡' },
 }
 
 // Mock数据
@@ -161,6 +162,57 @@ export default function TopicDetail() {
     } catch (error) {
       console.error('操作失败:', error)
       showToast(error.response?.data?.message || '操作失败，请稍后重试', 'error')
+    }
+  }
+
+  // 快速操作（想听/我能讲/感兴趣）
+  const handleQuickAction = async (actionType) => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      showToast('请先登录后再操作', 'warning')
+      return
+    }
+
+    try {
+      const res = await fetch(`https://ieclub.online/api/v1/topics/${id}/quick-action`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ actionType })
+      })
+      
+      const data = await res.json()
+      
+      if (data.success) {
+        // 更新本地状态
+        const updates = {}
+        if (actionType === 'want_hear') {
+          updates.userWantHear = data.data.userAction
+          updates.wantToHearCount = data.data.count
+        } else if (actionType === 'can_tell') {
+          updates.userCanTell = data.data.userAction
+          updates.canTellCount = data.data.count
+        } else if (actionType === 'interested') {
+          updates.userInterested = data.data.userAction
+          updates.interestedCount = data.data.count
+        }
+        
+        setTopic({ ...topic, ...updates })
+        
+        const messages = {
+          want_hear: data.data.userAction ? '已标记想听 👂' : '已取消',
+          can_tell: data.data.userAction ? '已标记我能讲 🎤' : '已取消',
+          interested: data.data.userAction ? '已标记感兴趣 🚀' : '已取消'
+        }
+        showToast(messages[actionType], 'success')
+      } else {
+        showToast(data.message || '操作失败', 'error')
+      }
+    } catch (error) {
+      console.error('快速操作失败:', error)
+      showToast('操作失败，请稍后重试', 'error')
     }
   }
 
@@ -335,21 +387,200 @@ export default function TopicDetail() {
         {/* 内容 */}
         <div className="p-6 border-b">
           <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-            {topic.description}
+            {topic.description || topic.content}
           </p>
 
           {/* 标签 */}
-          <div className="flex flex-wrap gap-2 mt-6">
-            {topic.tags.map((tag) => (
-              <span
-                key={tag}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition-colors cursor-pointer"
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
+          {topic.tags && topic.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-6">
+              {(Array.isArray(topic.tags) ? topic.tags : JSON.parse(topic.tags || '[]')).map((tag) => (
+                <span
+                  key={tag}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition-colors cursor-pointer"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
+
+        {/* 我想听/我来讲 专属信息 */}
+        {(topic.topicType === 'demand' || topic.topicType === 'offer' || topic.type === 'demand' || topic.type === 'offer') && (topic.duration || topic.targetAudience || topic.threshold) && (
+          <div className="p-6 border-b bg-gray-50">
+            <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">📅 详细信息</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {topic.duration && (
+                <div className="bg-white p-4 rounded-xl">
+                  <div className="text-sm text-gray-500">预计时长</div>
+                  <div className="font-bold text-gray-900">{topic.duration}</div>
+                </div>
+              )}
+              {topic.targetAudience && (
+                <div className="bg-white p-4 rounded-xl">
+                  <div className="text-sm text-gray-500">目标听众</div>
+                  <div className="font-bold text-gray-900">{topic.targetAudience}</div>
+                </div>
+              )}
+              {topic.threshold && (
+                <div className="bg-white p-4 rounded-xl">
+                  <div className="text-sm text-gray-500">成团人数</div>
+                  <div className="font-bold text-purple-600">{topic.threshold} 人</div>
+                </div>
+              )}
+              {topic.wantToHearCount !== undefined && (
+                <div className="bg-white p-4 rounded-xl">
+                  <div className="text-sm text-gray-500">想听人数</div>
+                  <div className="font-bold text-blue-600">{topic.wantToHearCount} 人</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 项目专属信息 */}
+        {(topic.topicType === 'project' || topic.type === 'project') && (
+          <div className="p-6 border-b bg-gray-50 space-y-4">
+            <h3 className="font-bold text-gray-900 flex items-center gap-2">🚀 项目信息</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {topic.projectStage && (
+                <div className="bg-white p-4 rounded-xl">
+                  <div className="text-sm text-gray-500">项目阶段</div>
+                  <div className="font-bold text-emerald-600">{topic.projectStage}</div>
+                </div>
+              )}
+              {topic.teamSize && (
+                <div className="bg-white p-4 rounded-xl">
+                  <div className="text-sm text-gray-500">团队规模</div>
+                  <div className="font-bold text-gray-900">{topic.teamSize} 人</div>
+                </div>
+              )}
+              {topic.interestedCount !== undefined && (
+                <div className="bg-white p-4 rounded-xl">
+                  <div className="text-sm text-gray-500">感兴趣人数</div>
+                  <div className="font-bold text-emerald-600">{topic.interestedCount} 人</div>
+                </div>
+              )}
+            </div>
+            
+            {/* 招募角色 */}
+            {topic.lookingForRoles && (
+              <div>
+                <div className="text-sm text-gray-500 mb-2">招募角色</div>
+                <div className="flex flex-wrap gap-2">
+                  {(Array.isArray(topic.lookingForRoles) ? topic.lookingForRoles : JSON.parse(topic.lookingForRoles || '[]')).map((role, i) => (
+                    <span key={i} className="px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-sm">{role}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* 所需技能 */}
+            {topic.skillsNeeded && (
+              <div>
+                <div className="text-sm text-gray-500 mb-2">所需技能</div>
+                <div className="flex flex-wrap gap-2">
+                  {(Array.isArray(topic.skillsNeeded) ? topic.skillsNeeded : JSON.parse(topic.skillsNeeded || '[]')).map((skill, i) => (
+                    <span key={i} className="px-3 py-1 bg-emerald-100 text-emerald-600 rounded-full text-sm">{skill}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* 链接 */}
+            {(topic.website || topic.github || topic.contactInfo) && (
+              <div className="pt-4 border-t flex flex-wrap gap-4">
+                {topic.website && (
+                  <a href={topic.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-600 hover:underline">
+                    🌐 项目网站
+                  </a>
+                )}
+                {topic.github && (
+                  <a href={topic.github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-gray-800 hover:underline">
+                    💻 GitHub
+                  </a>
+                )}
+                {topic.contactInfo && (
+                  <span className="flex items-center gap-2 text-gray-600">
+                    📧 {topic.contactInfo}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 供需匹配互动区 - 我想听/我来讲 */}
+        {(topic.topicType === 'demand' || topic.topicType === 'offer' || topic.type === 'demand' || topic.type === 'offer') && (
+          <div className="p-6 border-b bg-gradient-to-r from-purple-50 to-blue-50">
+            <div className="flex items-center justify-center gap-6">
+              <button
+                onClick={() => handleQuickAction('want_hear')}
+                className={`flex-1 max-w-xs flex items-center justify-center gap-3 py-4 px-6 rounded-2xl font-bold text-lg transition-all ${
+                  topic.userWantHear
+                    ? 'bg-blue-500 text-white shadow-lg scale-105'
+                    : 'bg-white text-blue-600 border-2 border-blue-200 hover:border-blue-400 hover:shadow-md'
+                }`}
+              >
+                <span className="text-2xl">👂</span>
+                <span>我想听</span>
+                <span className="bg-white/20 px-2 py-1 rounded-full text-sm">{topic.wantToHearCount || 0}</span>
+              </button>
+              
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-600">{topic.wantToHearCount || 0}/{topic.threshold || 15}</div>
+                <div className="text-sm text-gray-500">成团进度</div>
+                <div className="w-24 h-2 bg-gray-200 rounded-full mt-2 overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all"
+                    style={{ width: `${Math.min(100, ((topic.wantToHearCount || 0) / (topic.threshold || 15)) * 100)}%` }}
+                  />
+                </div>
+              </div>
+              
+              <button
+                onClick={() => handleQuickAction('can_tell')}
+                className={`flex-1 max-w-xs flex items-center justify-center gap-3 py-4 px-6 rounded-2xl font-bold text-lg transition-all ${
+                  topic.userCanTell
+                    ? 'bg-purple-500 text-white shadow-lg scale-105'
+                    : 'bg-white text-purple-600 border-2 border-purple-200 hover:border-purple-400 hover:shadow-md'
+                }`}
+              >
+                <span className="text-2xl">🎤</span>
+                <span>我能讲</span>
+                <span className="bg-white/20 px-2 py-1 rounded-full text-sm">{topic.canTellCount || 0}</span>
+              </button>
+            </div>
+            
+            {topic.status === 'scheduled' && (
+              <div className="mt-4 text-center">
+                <span className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full font-medium">
+                  🎉 已达成团！等待开讲安排
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 项目感兴趣按钮 */}
+        {(topic.topicType === 'project' || topic.type === 'project') && (
+          <div className="p-6 border-b bg-gradient-to-r from-emerald-50 to-teal-50">
+            <div className="flex items-center justify-center">
+              <button
+                onClick={() => handleQuickAction('interested')}
+                className={`flex items-center justify-center gap-3 py-4 px-8 rounded-2xl font-bold text-lg transition-all ${
+                  topic.userInterested
+                    ? 'bg-emerald-500 text-white shadow-lg scale-105'
+                    : 'bg-white text-emerald-600 border-2 border-emerald-200 hover:border-emerald-400 hover:shadow-md'
+                }`}
+              >
+                <span className="text-2xl">🚀</span>
+                <span>{topic.userInterested ? '已感兴趣' : '感兴趣，想加入'}</span>
+                <span className="bg-white/20 px-2 py-1 rounded-full text-sm">{topic.interestedCount || 0}</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* 操作栏 */}
         <div className="p-6 flex items-center justify-between">
@@ -361,11 +592,11 @@ export default function TopicDetail() {
               }`}
             >
               <span className="text-xl">{topic.isLiked ? '❤️' : '🤍'}</span>
-              <span className="font-medium">{topic.stats.likes}</span>
+              <span className="font-medium">{topic.stats?.likes || topic.likesCount || 0}</span>
             </button>
             <button className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors">
               <span className="text-xl">💬</span>
-              <span className="font-medium">{topic.stats.comments}</span>
+              <span className="font-medium">{topic.stats?.comments || topic.commentsCount || 0}</span>
             </button>
             <button
               onClick={handleBookmark}
@@ -374,7 +605,7 @@ export default function TopicDetail() {
               }`}
             >
               <span className="text-xl">{topic.isBookmarked ? '⭐' : '☆'}</span>
-              <span className="font-medium">{topic.stats.bookmarks}</span>
+              <span className="font-medium">{topic.stats?.bookmarks || topic.bookmarksCount || 0}</span>
             </button>
           </div>
           <button className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors">

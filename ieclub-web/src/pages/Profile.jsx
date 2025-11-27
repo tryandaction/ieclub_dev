@@ -1,8 +1,21 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { getProfile, getUserPosts, getUserStats } from '../api/profile'
+import { followUser, unfollowUser } from '../api/user'
 import { showToast } from '../components/Toast'
 import PostCard from '../components/PostCard'
+
+// 获取完整图片URL（图片走静态文件服务，不走/api）
+const getFullImageUrl = (url) => {
+  if (!url) return null;
+  // 渐变背景直接返回
+  if (url.startsWith('linear-gradient')) return url;
+  // 已经是完整URL
+  if (url.startsWith('http')) return url;
+  // 相对路径，添加网站根地址（不是API地址）
+  const siteUrl = 'https://ieclub.online';
+  return `${siteUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+};
 
 export default function Profile() {
   const { userId } = useParams()
@@ -12,6 +25,8 @@ export default function Profile() {
   const [posts, setPosts] = useState([])
   const [stats, setStats] = useState(null)
   const [activeTab, setActiveTab] = useState('posts') // posts, about, achievements
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [followLoading, setFollowLoading] = useState(false)
 
   useEffect(() => {
     loadProfile()
@@ -25,6 +40,7 @@ export default function Profile() {
       const data = await getProfile(userId)
       console.log('✅ Profile数据加载成功:', data)
       setProfile(data)
+      setIsFollowing(data.isFollowing || false)
     } catch (error) {
       console.error('❌ 加载个人主页失败:', error)
       showToast(error.message || '加载个人主页失败', 'error')
@@ -52,6 +68,42 @@ export default function Profile() {
     } catch (error) {
       console.error('❌ 加载统计数据失败:', error)
       setStats(null)
+    }
+  }
+
+  // 处理关注/取消关注
+  const handleFollow = async () => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      showToast('请先登录', 'warning')
+      navigate('/login')
+      return
+    }
+
+    try {
+      setFollowLoading(true)
+      if (isFollowing) {
+        await unfollowUser(userId)
+        setIsFollowing(false)
+        setProfile(prev => ({
+          ...prev,
+          fansCount: Math.max(0, (prev.fansCount || 0) - 1)
+        }))
+        showToast('已取消关注', 'success')
+      } else {
+        await followUser(userId)
+        setIsFollowing(true)
+        setProfile(prev => ({
+          ...prev,
+          fansCount: (prev.fansCount || 0) + 1
+        }))
+        showToast('关注成功 ✓', 'success')
+      }
+    } catch (error) {
+      console.error('关注操作失败:', error)
+      showToast(error.response?.data?.message || '操作失败', 'error')
+    } finally {
+      setFollowLoading(false)
     }
   }
 
@@ -84,11 +136,15 @@ export default function Profile() {
       {/* 封面图 */}
       <div 
         className="h-48 bg-gradient-to-r from-purple-500 to-pink-500 relative"
-        style={{
-          backgroundImage: profile.coverImage ? `url(${profile.coverImage})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
+        style={profile.coverImage ? (
+          profile.coverImage.startsWith('linear-gradient') 
+            ? { background: profile.coverImage }
+            : {
+                backgroundImage: `url(${getFullImageUrl(profile.coverImage)})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }
+        ) : undefined}
       >
         {profile.isOwner && (
           <Link
@@ -107,9 +163,9 @@ export default function Profile() {
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             {/* 头像 */}
             <img
-              src={profile.avatar || '/default-avatar.png'}
+              src={getFullImageUrl(profile.avatar) || '/default-avatar.png'}
               alt={profile.nickname}
-              className="w-32 h-32 rounded-full border-4 border-white shadow-lg"
+              className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
             />
 
             {/* 信息区 */}
@@ -233,13 +289,38 @@ export default function Profile() {
             {!profile.isOwner && (
               <div className="flex gap-2">
                 <button
-                  onClick={() => showToast('关注功能开发中', 'info')}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:shadow-lg transition"
+                  onClick={handleFollow}
+                  disabled={followLoading}
+                  className={`px-6 py-2 rounded-lg font-medium transition disabled:opacity-50 ${
+                    isFollowing
+                      ? 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600'
+                      : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg'
+                  }`}
                 >
-                  {profile.isFollowing ? '已关注' : '+ 关注'}
+                  {followLoading ? '...' : isFollowing ? '✓ 已关注' : '+ 关注'}
                 </button>
                 <button
-                  onClick={() => showToast('私信功能开发中', 'info')}
+                  onClick={() => {
+                    const token = localStorage.getItem('token')
+                    if (!token) {
+                      showToast('请先登录', 'warning')
+                      navigate('/login')
+                      return
+                    }
+                    // 获取或创建会话，然后跳转
+                    fetch(`https://ieclub.online/api/v1/messages/conversation/${userId}`, {
+                      headers: { 'Authorization': `Bearer ${token}` }
+                    })
+                      .then(res => res.json())
+                      .then(data => {
+                        if (data.success) {
+                          navigate(`/messages/${data.data.conversationId}`)
+                        } else {
+                          showToast('无法发起对话', 'error')
+                        }
+                      })
+                      .catch(() => showToast('网络错误', 'error'))
+                  }}
                   className="px-6 py-2 bg-gray-100 rounded-lg font-medium hover:bg-gray-200 transition"
                 >
                   💬 私信

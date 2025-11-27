@@ -71,8 +71,7 @@ Page({
 
     try {
       const currentPage = isRefresh ? 1 : page
-      const res = await request({
-        url: '/activities/me/activities',
+      const res = await request('/activities/me/activities', {
         method: 'GET',
         data: { type, page: currentPage, pageSize }
       })

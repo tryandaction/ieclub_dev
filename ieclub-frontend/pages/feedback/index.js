@@ -169,8 +169,7 @@ Page({
       // TODO: 如果有图片，需要先上传图片获取URL
       const imageUrls = form.images // 暂时直接使用本地路径，实际需要上传
       
-      await request({
-        url: '/feedback',
+      await request('/feedback', {
         method: 'POST',
         data: {
           type: form.type,
@@ -225,10 +224,7 @@ Page({
     this.setData({ loading: true })
     
     try {
-      const res = await request({
-        url: '/feedback/my',
-        method: 'GET'
-      })
+      const res = await request('/feedback/my', { method: 'GET' })
       
       const feedbacks = (res.data?.feedbacks || res.feedbacks || []).map(item => ({
         ...item,
@@ -321,10 +317,7 @@ Page({
       success: async (res) => {
         if (res.confirm) {
           try {
-            await request({
-              url: `/feedback/${id}`,
-              method: 'DELETE'
-            })
+            await request(`/feedback/${id}`, { method: 'DELETE' })
             
             const feedbacks = [...this.data.myFeedbacks]
             feedbacks.splice(index, 1)

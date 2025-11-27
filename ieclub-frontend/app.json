@@ -20,9 +20,11 @@
     "pages/edit-profile/index",
     "pages/user-profile/index",
     "pages/my-stats/index",
+    "pages/topic-detail/topic-detail",
     "pages/settings/set-password/index",
     "pages/settings/change-password/index",
-    "pages/settings/account-binding/index"
+    "pages/settings/account-binding/index",
+    "pages/notifications/index"
   ],
   "window": {
     "backgroundTextStyle": "light",

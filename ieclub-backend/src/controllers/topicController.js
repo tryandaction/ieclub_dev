@@ -771,24 +771,71 @@ class TopicController {
 
         // 通知作者
         if (topic.authorId !== userId) {
-          const actionLabels = {
-            interested: '对你的话题感兴趣',
-            can_help: '可以帮助你',
-            want_collab: '想和你合作',
+          const actionConfig = {
+            want_hear: { 
+              type: 'want_hear', 
+              title: '👂 有人想听你的话题！', 
+              content: `有用户对「${topic.title}」表示想听` 
+            },
+            can_tell: { 
+              type: 'can_tell', 
+              title: '🎤 有人能讲这个话题！', 
+              content: `有用户表示可以讲「${topic.title}」` 
+            },
+            interested: { 
+              type: 'project_interest', 
+              title: '🚀 有人对你的项目感兴趣！', 
+              content: `有用户对项目「${topic.title}」感兴趣` 
+            },
+          };
+
+          const config = actionConfig[actionType] || { 
+            type: 'match', 
+            title: '收到新互动', 
+            content: '有人互动了你的话题' 
           };
 
           await prisma.notification.create({
             data: {
               userId: topic.authorId,
-              type: 'match',
-              title: '收到新互动',
-              content: `有人${actionLabels[actionType] || '互动了'}`,
+              type: config.type,
+              title: config.title,
+              content: config.content,
               actorId: userId,
               targetType: 'topic',
               targetId: id,
-              link: `/pages/topic-detail/index?id=${id}`,
+              link: `/topic/${id}`,
             },
           }).catch(() => {});
+
+          // 检查成团阈值
+          if (actionType === 'want_hear') {
+            const wantHearCount = await prisma.topicQuickAction.count({
+              where: { topicId: id, actionType: 'want_hear' }
+            });
+            
+            const threshold = topic.threshold || 15;
+            if (wantHearCount >= threshold && topic.status !== 'scheduled') {
+              // 更新状态为已成团
+              await prisma.topic.update({
+                where: { id },
+                data: { status: 'scheduled' }
+              });
+              
+              // 通知作者成团
+              await prisma.notification.create({
+                data: {
+                  userId: topic.authorId,
+                  type: 'topic_threshold_reached',
+                  title: '🎉 话题成团啦！',
+                  content: `你的话题「${topic.title}」已达到${threshold}人想听，快安排开讲吧！`,
+                  targetType: 'topic',
+                  targetId: id,
+                  link: `/topic/${id}`,
+                },
+              }).catch(() => {});
+            }
+          }
         }
       }
 

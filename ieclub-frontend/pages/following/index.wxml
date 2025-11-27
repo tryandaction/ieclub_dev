@@ -41,11 +41,14 @@
         hover-class="user-card-hover"
       >
         <!-- 用户头像 -->
-        <image 
-          class="user-avatar" 
-          src="{{item.avatar || '/images/default-avatar.png'}}"
-          mode="aspectFill"
-        />
+        <block wx:if="{{item.avatar && item.avatar.length > 2}}">
+          <image 
+            class="user-avatar" 
+            src="{{item.avatar.indexOf('http') === 0 ? item.avatar : 'https://ieclub.online' + item.avatar}}"
+            mode="aspectFill"
+          />
+        </block>
+        <view wx:else class="user-avatar-placeholder">👤</view>
         
         <!-- 用户信息 -->
         <view class="user-info">

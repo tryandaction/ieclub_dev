@@ -347,6 +347,13 @@
   gap: 12rpx;
 }
 
+.author-avatar {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 .author-emoji {
   font-size: 40rpx;
   line-height: 1;

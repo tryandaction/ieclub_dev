@@ -11,15 +11,30 @@ import { TopicListSkeleton } from '../components/Skeleton'
 import { useDebounce } from '../hooks/useDebounce'
 
 const typeConfig = {
-  offer: { label: '我来讲', bg: 'bg-gradient-offer', icon: '🎤' },
-  demand: { label: '想听', bg: 'bg-gradient-demand', icon: '👂' },
-  project: { label: '项目', bg: 'bg-gradient-project', icon: '🚀' },
+  demand: { label: '我想听', bg: 'bg-gradient-to-r from-blue-500 to-blue-600', icon: '👂' },
+  offer: { label: '我来讲', bg: 'bg-gradient-to-r from-purple-500 to-purple-600', icon: '🎤' },
+  project: { label: '项目', bg: 'bg-gradient-to-r from-emerald-500 to-emerald-600', icon: '🚀' },
+  share: { label: '分享', bg: 'bg-gradient-to-r from-orange-500 to-orange-600', icon: '💡' },
 }
 
 const tabs = [
   { id: 'all', label: '全部', icon: '🔍' },
   { id: 'topic', label: '话题', icon: '💬' },
   { id: 'user', label: '用户', icon: '👤' },
+]
+
+const typeFilters = [
+  { id: 'all', label: '全部类型' },
+  { id: 'demand', label: '👂 我想听' },
+  { id: 'offer', label: '🎤 我来讲' },
+  { id: 'project', label: '🚀 项目' },
+  { id: 'share', label: '💡 分享' },
+]
+
+const sortOptions = [
+  { id: 'new', label: '最新发布' },
+  { id: 'hot', label: '最热门' },
+  { id: 'trending', label: '趋势上升' },
 ]
 
 export default function Search() {
@@ -29,6 +44,9 @@ export default function Search() {
   
   const [query, setQuery] = useState(queryFromUrl)
   const [activeTab, setActiveTab] = useState('all')
+  const [typeFilter, setTypeFilter] = useState('all')
+  const [sortBy, setSortBy] = useState('new')
+  const [showFilters, setShowFilters] = useState(false)
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
@@ -53,7 +71,9 @@ export default function Search() {
       // 调用API搜索
       const data = await searchTopics({ 
         keyword: searchQuery,
-        type: activeTab === 'all' ? undefined : activeTab 
+        type: activeTab === 'all' ? undefined : activeTab,
+        topicType: typeFilter === 'all' ? undefined : typeFilter,
+        sortBy: sortBy
       })
       
       // 处理返回数据
@@ -130,23 +150,100 @@ export default function Search() {
           </div>
 
           {/* Tab切换 */}
-          <div className="flex items-center space-x-2">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-xl transition-all ${
-                  activeTab === tab.id
-                    ? 'bg-gradient-primary text-white shadow-md'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <span className="mr-1">{tab.icon}</span>
-                {tab.label}
-              </button>
-            ))}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-4 py-2 rounded-xl transition-all ${
+                    activeTab === tab.id
+                      ? 'bg-gradient-primary text-white shadow-md'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <span className="mr-1">{tab.icon}</span>
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            
+            {/* 筛选按钮 */}
+            <button
+              type="button"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                showFilters || typeFilter !== 'all' || sortBy !== 'new'
+                  ? 'bg-purple-100 text-purple-600'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <span>⚙️</span>
+              <span>筛选</span>
+              {(typeFilter !== 'all' || sortBy !== 'new') && (
+                <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+              )}
+            </button>
           </div>
+
+          {/* 筛选面板 */}
+          {showFilters && (
+            <div className="mt-4 p-4 bg-gray-50 rounded-xl space-y-4">
+              {/* 类型筛选 */}
+              <div>
+                <div className="text-sm text-gray-500 mb-2">话题类型</div>
+                <div className="flex flex-wrap gap-2">
+                  {typeFilters.map((filter) => (
+                    <button
+                      key={filter.id}
+                      type="button"
+                      onClick={() => setTypeFilter(filter.id)}
+                      className={`px-3 py-1.5 rounded-lg text-sm transition-all ${
+                        typeFilter === filter.id
+                          ? 'bg-purple-500 text-white'
+                          : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300'
+                      }`}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* 排序方式 */}
+              <div>
+                <div className="text-sm text-gray-500 mb-2">排序方式</div>
+                <div className="flex flex-wrap gap-2">
+                  {sortOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setSortBy(option.id)}
+                      className={`px-3 py-1.5 rounded-lg text-sm transition-all ${
+                        sortBy === option.id
+                          ? 'bg-purple-500 text-white'
+                          : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* 重置筛选 */}
+              {(typeFilter !== 'all' || sortBy !== 'new') && (
+                <button
+                  type="button"
+                  onClick={() => { setTypeFilter('all'); setSortBy('new'); }}
+                  className="text-sm text-purple-600 hover:text-purple-800"
+                >
+                  重置筛选
+                </button>
+              )}
+            </div>
+          )}
         </form>
       </div>
 

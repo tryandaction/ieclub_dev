@@ -70,8 +70,7 @@ Page({
 
     try {
       const currentPage = isRefresh ? 1 : page
-      const res = await request({
-        url: `/users/${userInfo.id}/topics`,
+      const res = await request(`/users/${userInfo.id}/topics`, {
         method: 'GET',
         data: { page: currentPage, limit }
       })

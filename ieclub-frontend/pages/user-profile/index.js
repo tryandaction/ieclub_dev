@@ -1,6 +1,7 @@
 // pages/user-profile/index.js
 // 用户主页页面（从社区点击用户进入）
 import { getProfile, getUserPosts, getUserStats } from '../../api/profile'
+import request from '../../utils/request'
 
 Page({
   data: {
@@ -104,14 +105,13 @@ Page({
     const { isFollowing, profile } = this.data
 
     try {
-      await request({
-        url: `/users/${profile.id}/${isFollowing ? 'unfollow' : 'follow'}`,
+      await request(`/users/${profile.id}/${isFollowing ? 'unfollow' : 'follow'}`, {
         method: 'POST'
       })
 
       this.setData({
         isFollowing: !isFollowing,
-        'profile.fansCount': profile.fansCount + (isFollowing ? -1 : 1)
+        'profile.followerCount': (profile.followerCount || 0) + (isFollowing ? -1 : 1)
       })
 
       wx.showToast({

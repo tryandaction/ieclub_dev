@@ -32,6 +32,7 @@ import MyStats from './pages/MyStats'
 import About from './pages/About'
 import EditProfile from './pages/EditProfile'
 import PersonalCenter from './pages/PersonalCenter'
+import Messages from './pages/Messages'
 import useLoadingStore from './stores/loadingStore'
 
 function App() {
@@ -81,6 +82,8 @@ function App() {
             <Route path="profile/:userId/edit" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
             <Route path="my-stats" element={<ProtectedRoute><MyStats /></ProtectedRoute>} />
             <Route path="personal-center" element={<ProtectedRoute><PersonalCenter /></ProtectedRoute>} />
+            <Route path="messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+            <Route path="messages/:conversationId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
           </Route>
         </Routes>
       </ErrorBoundary>

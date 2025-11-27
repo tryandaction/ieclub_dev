@@ -1,0 +1,80 @@
+<!--pages/notifications/index.wxml-->
+<view class="notifications-page">
+  <!-- 顶部筛选 -->
+  <view class="filter-bar">
+    <view class="filter-tabs">
+      <view 
+        class="tab-item {{filter === 'all' ? 'active' : ''}}"
+        bindtap="changeFilter"
+        data-filter="all"
+      >
+        <text>全部</text>
+      </view>
+      <view 
+        class="tab-item {{filter === 'unread' ? 'active' : ''}}"
+        bindtap="changeFilter"
+        data-filter="unread"
+      >
+        <text>未读</text>
+      </view>
+    </view>
+    <view class="mark-all-btn" bindtap="markAllAsRead">
+      <text>全部已读</text>
+    </view>
+  </view>
+
+  <!-- 通知列表 -->
+  <view class="notification-list" wx:if="{{notifications.length > 0}}">
+    <view 
+      class="notification-item {{item.isRead ? 'read' : ''}}"
+      wx:for="{{notifications}}"
+      wx:key="id"
+      bindtap="handleNotificationTap"
+      data-id="{{item.id}}"
+      data-link="{{item.link}}"
+      data-is-read="{{item.isRead}}"
+    >
+      <!-- 未读标记 -->
+      <view class="unread-dot" wx:if="{{!item.isRead}}"></view>
+      
+      <!-- 图标 -->
+      <view class="icon-wrapper" style="background: {{typeConfig[item.type].color || '#6b7280'}}20">
+        <text class="icon">{{typeConfig[item.type].icon || '🔔'}}</text>
+      </view>
+      
+      <!-- 内容 -->
+      <view class="content-wrapper">
+        <view class="title">{{item.title}}</view>
+        <view class="content">{{item.content}}</view>
+        <view class="time">{{item.createdAt}}</view>
+      </view>
+      
+      <!-- 箭头 -->
+      <view class="arrow" wx:if="{{item.link}}">
+        <text>›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && notifications.length === 0}}">
+    <view class="empty-icon">🔔</view>
+    <view class="empty-text">暂无{{filter === 'unread' ? '未读' : ''}}通知</view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text>加载中...</text>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{!loading && hasMore && notifications.length > 0}}">
+    <text>上拉加载更多</text>
+  </view>
+
+  <!-- 没有更多 -->
+  <view class="no-more" wx:if="{{!loading && !hasMore && notifications.length > 0}}">
+    <text>没有更多了</text>
+  </view>
+</view>

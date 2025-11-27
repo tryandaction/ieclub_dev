@@ -9,12 +9,20 @@
   <view wx:else>
     <!-- 封面和头像 -->
     <view class="cover-section">
-      <image 
-        wx:if="{{profile.coverImage}}"
-        class="cover-image" 
-        src="{{profile.coverImage}}" 
-        mode="aspectFill"
-      />
+      <block wx:if="{{profile.coverImage && profile.coverImage.length > 0}}">
+        <image 
+          wx:if="{{profile.coverImage.indexOf('linear') === 0}}"
+          class="cover-image" 
+          style="background: {{profile.coverImage}}"
+          mode="aspectFill"
+        />
+        <image 
+          wx:else
+          class="cover-image" 
+          src="{{profile.coverImage.indexOf('http') === 0 ? profile.coverImage : 'https://ieclub.online' + profile.coverImage}}" 
+          mode="aspectFill"
+        />
+      </block>
       <view wx:else class="cover-placeholder"></view>
       
       <!-- 编辑按钮（仅本人可见） -->
@@ -27,12 +35,13 @@
     <!-- 用户信息卡片 -->
     <view class="info-card">
       <view class="avatar-wrapper">
-        <image 
-          wx:if="{{profile.avatar}}"
-          class="avatar" 
-          src="{{profile.avatar}}" 
-          mode="aspectFill"
-        />
+        <block wx:if="{{profile.avatar && profile.avatar.length > 2}}">
+          <image 
+            class="avatar" 
+            src="{{profile.avatar.indexOf('http') === 0 ? profile.avatar : 'https://ieclub.online' + profile.avatar}}" 
+            mode="aspectFill"
+          />
+        </block>
         <text wx:else class="avatar-placeholder">👤</text>
       </view>
 
@@ -61,15 +70,15 @@
           <text class="stat-label">发布</text>
         </view>
         <view class="stat-item" bindtap="goToFollowing">
-          <text class="stat-value">{{profile.followsCount || 0}}</text>
+          <text class="stat-value">{{profile.followingCount || 0}}</text>
           <text class="stat-label">关注</text>
         </view>
         <view class="stat-item" bindtap="goToFollowers">
-          <text class="stat-value">{{profile.fansCount || 0}}</text>
+          <text class="stat-value">{{profile.followerCount || 0}}</text>
           <text class="stat-label">粉丝</text>
         </view>
         <view class="stat-item">
-          <text class="stat-value">{{profile.likesCount || 0}}</text>
+          <text class="stat-value">{{stats.totalLikes || 0}}</text>
           <text class="stat-label">获赞</text>
         </view>
       </view>

@@ -360,5 +360,7 @@ const request = (url, options = {}) => {
   })
 }
 
+// 支持两种导入方式
+export { request }
 export default request
 

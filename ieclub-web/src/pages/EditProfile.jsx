@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Image as ImageIcon, Globe, Github, Camera, X, Plus, Upload } from 'lucide-react';
+import { User, Globe, X, Plus } from 'lucide-react';
 import request from '../utils/request';
 import { useAuth } from '../contexts/AuthContext';
 import { showToast } from '../components/Toast';
-import { uploadAvatar, uploadCover } from '../api/upload';
+import AvatarUpload from '../components/AvatarUpload';
+import CoverUpload from '../components/CoverUpload';
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -32,10 +33,6 @@ export default function EditProfile() {
     projects: []
   });
   
-  const [uploading, setUploading] = useState(false);
-  const avatarInputRef = useRef(null);
-  const coverInputRef = useRef(null);
-
   const [skillInput, setSkillInput] = useState('');
   const [interestInput, setInterestInput] = useState('');
 
@@ -114,43 +111,6 @@ export default function EditProfile() {
     setInterestInput('');
   };
   
-  // 图片上传处理
-  const handleImageUpload = async (file, type) => {
-    if (!file) return;
-    
-    const maxSize = type === 'avatar' ? 2 * 1024 * 1024 : 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      showToast(`图片大小不能超过${type === 'avatar' ? '2' : '5'}MB`, 'error');
-      return;
-    }
-    
-    setUploading(true);
-    try {
-      let res;
-      if (type === 'avatar') {
-        res = await uploadAvatar(file);
-      } else if (type === 'coverImage') {
-        res = await uploadCover(file);
-      }
-      
-      // 响应拦截器已处理，res直接是data对象
-      const imageUrl = res?.url;
-      console.log('📷 上传响应:', res);
-      
-      if (imageUrl) {
-        setForm(prev => ({ ...prev, [type]: imageUrl }));
-        showToast('图片上传成功', 'success');
-      } else {
-        showToast('图片上传失败', 'error');
-      }
-    } catch (error) {
-      console.error('上传失败:', error);
-      showToast(error.message || '上传失败', 'error');
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const deleteInterest = (index) => {
     setForm(prev => ({
       ...prev,
@@ -160,21 +120,22 @@ export default function EditProfile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // 🔥 强制弹窗测试 - 确认按钮是否触发
-    window.alert('保存按钮被点击了！版本:20251127-v2');
-    
-    console.log('🔥🔥🔥 handleSubmit被调用！');
-    console.log('📋 表单数据:', JSON.stringify(form, null, 2));
+    console.log('🔥🔥🔥 [保存] handleSubmit被触发！时间:', new Date().toISOString());
+    console.log('🔥 [保存] Token存在:', !!localStorage.getItem('token'));
+    console.log('🔥 [保存] User ID:', user?.id);
+    console.log('🔥 [保存] 当前昵称:', form.nickname);
     
     if (!form.nickname || form.nickname.trim().length < 2) {
+      console.error('❌ [保存] 昵称验证失败:', form.nickname);
       showToast('昵称至少2个字符', 'warning');
       return;
     }
+    
+    console.log('✅ [保存] 昵称验证通过，准备提交...');
 
     setSubmitting(true);
     try {
-      const res = await request.put('/profile', {
+      const submitData = {
         nickname: form.nickname.trim(),
         avatar: form.avatar,
         gender: form.gender,
@@ -192,27 +153,36 @@ export default function EditProfile() {
         skills: form.skills,
         interests: form.interests,
         projects: form.projects
-      });
+      };
+      
+      console.log('� [保存] 提交数据:', submitData);
+      console.log('📤 [保存] 正在发送PUT /profile请求...');
+      
+      const res = await request.put('/profile', submitData);
+      
+      console.log('� [保存] 收到响应:', res);
+      console.log('📥 [保存] 响应类型:', typeof res, '是否为对象:', typeof res === 'object');
 
       // 更新用户信息 - res已经是data对象（响应拦截器处理过）
-      console.log('📦 保存响应:', res);
       if (user && res) {
         const updatedUserData = {
           ...user,
-          nickname: res.nickname || form.nickname,
-          avatar: res.avatar || form.avatar,
-          bio: res.bio || form.bio,
-          school: res.school || form.school,
-          major: res.major || form.major,
-          grade: res.grade || form.grade
+          // 完整更新所有返回的字段
+          ...res
         };
-        console.log('📝 更新用户数据:', updatedUserData);
+        console.log('💾 [保存] 更新本地用户数据:', updatedUserData);
         updateUser(updatedUserData);
+        console.log('✅ [保存] 本地状态已更新，字段数:', Object.keys(updatedUserData).length);
+      } else {
+        console.warn('⚠️ [保存] 未更新本地状态 - user:', !!user, 'res:', !!res);
       }
 
       showToast('保存成功！', 'success');
+      console.log('🎉 [保存] 显示成功提示，准备跳转...');
+      
       // 延迟跳转，让用户看到成功提示
       setTimeout(() => {
+        console.log('🔄 [保存] 跳转到个人主页:', `/profile/${user.id}`);
         navigate(`/profile/${user.id}`);
       }, 800);
     } catch (error) {
@@ -249,72 +219,27 @@ export default function EditProfile() {
                 基本信息
               </h2>
 
-              <div className="space-y-4">
-                {/* 头像 */}
+              <div className="space-y-6">
+                {/* 头像上传 - 支持裁剪 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">头像</label>
-                  <div className="flex items-center gap-4">
-                    <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
-                      {form.avatar ? (
-                        <img src={form.avatar} alt="头像" className="w-full h-full object-cover" />
-                      ) : (
-                        <Camera className="w-8 h-8 text-gray-400" />
-                      )}
-                    </div>
-                    <input
-                      ref={avatarInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => e.target.files[0] && handleImageUpload(e.target.files[0], 'avatar')}
-                      className="hidden"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => avatarInputRef.current?.click()}
-                      disabled={uploading}
-                      className="px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                      <Upload className="w-4 h-4" />
-                      {uploading ? '上传中...' : '更换头像'}
-                    </button>
-                  </div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">头像</label>
+                  <AvatarUpload
+                    currentAvatar={form.avatar}
+                    onAvatarChange={(url) => setForm(prev => ({ ...prev, avatar: url }))}
+                    size={96}
+                    disabled={submitting}
+                  />
                 </div>
 
-                {/* 封面图 */}
+                {/* 封面图上传 - 支持裁剪和渐变 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">主页封面</label>
-                  <div className="relative w-full h-40 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center group cursor-pointer"
-                       onClick={() => coverInputRef.current?.click()}>
-                    {form.coverImage ? (
-                      <>
-                        <img src={form.coverImage} alt="封面" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition flex items-center justify-center">
-                          <Upload className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition" />
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex flex-col items-center">
-                        <ImageIcon className="w-12 h-12 text-gray-400" />
-                        <span className="text-sm text-gray-500 mt-2">点击上传封面</span>
-                      </div>
-                    )}
-                  </div>
-                  <input
-                    ref={coverInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => e.target.files[0] && handleImageUpload(e.target.files[0], 'coverImage')}
-                    className="hidden"
+                  <label className="block text-sm font-medium text-gray-700 mb-3">主页封面</label>
+                  <CoverUpload
+                    currentCover={form.coverImage}
+                    onCoverChange={(url) => setForm(prev => ({ ...prev, coverImage: url }))}
+                    aspectRatio={3}
+                    disabled={submitting}
                   />
-                  {form.coverImage && (
-                    <button
-                      type="button"
-                      onClick={() => setForm(prev => ({ ...prev, coverImage: '' }))}
-                      className="mt-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition text-sm"
-                    >
-                      移除封面
-                    </button>
-                  )}
                 </div>
 
                 {/* 昵称 */}

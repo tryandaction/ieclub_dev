@@ -1,5 +1,6 @@
 // pages/edit-profile/index.js
-import { request } from '../../utils/request'
+import request from '../../utils/request'
+import { uploadAvatar, uploadCover, getFullImageUrl } from '../../api/upload'
 
 Page({
   data: {
@@ -46,24 +47,50 @@ Page({
     this.setData({ loading: true })
     
     try {
+      // 尝试从多个来源获取用户ID
+      let userId = null
       const userInfo = wx.getStorageSync('userInfo')
-      if (!userInfo || !userInfo.id) {
+      const user = wx.getStorageSync('user')
+      
+      if (userInfo && userInfo.id) {
+        userId = userInfo.id
+      } else if (user && user.id) {
+        userId = user.id
+      }
+      
+      if (!userId) {
+        // 尝试从 /auth/profile 获取用户信息
+        const authRes = await request('/auth/profile', { method: 'GET' })
+        const authUser = authRes.data || authRes
+        if (authUser && authUser.id) {
+          userId = authUser.id
+          // 保存到本地
+          wx.setStorageSync('user', authUser)
+        }
+      }
+      
+      if (!userId) {
         wx.showToast({
           title: '请先登录',
           icon: 'none'
         })
+        setTimeout(() => {
+          wx.navigateBack()
+        }, 1500)
         return
       }
       
-      const res = await request({
-        url: `/profile/${userInfo.id}`,
-        method: 'GET'
-      })
+      const res = await request(`/profile/${userId}`, { method: 'GET' })
       
       const profile = res.data || res
       
       // 找到性别索引
-      const genderIndex = this.data.genderMap.indexOf(profile.gender || '')
+      let genderIndex = 0
+      if (profile.gender === 'male' || profile.gender === 1) {
+        genderIndex = 1
+      } else if (profile.gender === 'female' || profile.gender === 2) {
+        genderIndex = 2
+      }
       
       this.setData({
         form: {
@@ -84,11 +111,13 @@ Page({
           skills: profile.skills || [],
           interests: profile.interests || []
         },
-        genderIndex: genderIndex === -1 ? 0 : genderIndex,
+        genderIndex: genderIndex,
         loading: false
       })
+      
+      console.log('✅ 加载用户资料成功:', profile)
     } catch (error) {
-      console.error('加载用户信息失败:', error)
+      console.error('❌ 加载用户信息失败:', error)
       this.setData({ loading: false })
       wx.showToast({
         title: error.message || '加载失败',
@@ -180,40 +209,88 @@ Page({
 
   // 选择头像
   chooseAvatar() {
-    wx.chooseImage({
+    wx.chooseMedia({
       count: 1,
-      sizeType: ['compressed'],
+      mediaType: ['image'],
       sourceType: ['album', 'camera'],
-      success: (res) => {
-        // TODO: 上传图片到服务器
-        const tempPath = res.tempFilePaths[0]
-        this.setData({
-          'form.avatar': tempPath
-        })
-        wx.showToast({
-          title: '头像已选择',
-          icon: 'success'
-        })
+      sizeType: ['compressed'],
+      success: async (res) => {
+        const tempPath = res.tempFiles[0].tempFilePath
+        
+        wx.showLoading({ title: '上传中...' })
+        
+        try {
+          const uploadRes = await uploadAvatar(tempPath)
+          
+          wx.hideLoading()
+          
+          if (uploadRes && uploadRes.url) {
+            this.setData({
+              'form.avatar': uploadRes.url
+            })
+            wx.showToast({
+              title: '头像上传成功',
+              icon: 'success'
+            })
+            console.log('✅ 头像上传成功:', uploadRes.url)
+          } else {
+            wx.showToast({
+              title: '上传失败',
+              icon: 'none'
+            })
+          }
+        } catch (error) {
+          wx.hideLoading()
+          console.error('❌ 头像上传失败:', error)
+          wx.showToast({
+            title: error.message || '上传失败',
+            icon: 'none'
+          })
+        }
       }
     })
   },
 
   // 选择封面图
   chooseCover() {
-    wx.chooseImage({
+    wx.chooseMedia({
       count: 1,
-      sizeType: ['compressed'],
+      mediaType: ['image'],
       sourceType: ['album', 'camera'],
-      success: (res) => {
-        // TODO: 上传图片到服务器
-        const tempPath = res.tempFilePaths[0]
-        this.setData({
-          'form.coverImage': tempPath
-        })
-        wx.showToast({
-          title: '封面已选择',
-          icon: 'success'
-        })
+      sizeType: ['compressed'],
+      success: async (res) => {
+        const tempPath = res.tempFiles[0].tempFilePath
+        
+        wx.showLoading({ title: '上传中...' })
+        
+        try {
+          const uploadRes = await uploadCover(tempPath)
+          
+          wx.hideLoading()
+          
+          if (uploadRes && uploadRes.url) {
+            this.setData({
+              'form.coverImage': uploadRes.url
+            })
+            wx.showToast({
+              title: '封面上传成功',
+              icon: 'success'
+            })
+            console.log('✅ 封面上传成功:', uploadRes.url)
+          } else {
+            wx.showToast({
+              title: '上传失败',
+              icon: 'none'
+            })
+          }
+        } catch (error) {
+          wx.hideLoading()
+          console.error('❌ 封面上传失败:', error)
+          wx.showToast({
+            title: error.message || '上传失败',
+            icon: 'none'
+          })
+        }
       }
     })
   },
@@ -320,8 +397,10 @@ Page({
     this.setData({ submitting: true })
     
     try {
-      await request({
-        url: '/profile',
+      console.log('📤 保存资料中...')
+      
+      // 发送保存请求（与网站使用相同的API）
+      const res = await request('/profile', {
         method: 'PUT',
         data: {
           nickname: form.nickname.trim(),
@@ -343,26 +422,41 @@ Page({
         }
       })
       
-      // 更新本地存储的用户信息
-      const userInfo = wx.getStorageSync('userInfo')
-      if (userInfo) {
-        userInfo.nickname = form.nickname
-        userInfo.avatar = form.avatar
-        wx.setStorageSync('userInfo', userInfo)
+      console.log('✅ 保存成功，后端返回:', res)
+      
+      // 使用后端返回的完整数据更新本地存储
+      if (res) {
+        // 更新 user 存储
+        const currentUser = wx.getStorageSync('user') || {}
+        const updatedUser = { ...currentUser, ...res }
+        wx.setStorageSync('user', updatedUser)
+        
+        // 同时更新 userInfo 存储（兼容旧版本）
+        wx.setStorageSync('userInfo', updatedUser)
+        
+        // 更新全局状态
+        const app = getApp()
+        if (app.globalData) {
+          app.globalData.userInfo = updatedUser
+        }
+        
+        console.log('💾 本地数据已同步更新')
       }
+      
+      this.setData({ submitting: false })
       
       wx.showToast({
         title: '保存成功',
         icon: 'success'
       })
       
-      // 延迟返回
+      // 延迟返回，让个人中心页面重新加载数据
       setTimeout(() => {
         wx.navigateBack()
       }, 1500)
       
     } catch (error) {
-      console.error('保存失败:', error)
+      console.error('❌ 保存失败:', error)
       this.setData({ submitting: false })
       
       wx.showToast({

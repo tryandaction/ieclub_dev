@@ -8,7 +8,8 @@ class CommentController {
   // 获取评论列表
   static async getComments(req, res) {
     return asyncHandler(async (req, res) => {
-      const { topicId } = req.params;
+      // 支持从 params 或 query 中获取 topicId
+      const topicId = req.params.topicId || req.query.topicId;
       const { page = 1, pageSize = 20, sortBy } = req.query;
 
       const result = await commentService.getComments(topicId, {
@@ -25,7 +26,9 @@ class CommentController {
   static async createComment(req, res) {
     return asyncHandler(async (req, res) => {
       const userId = req.user.id;
-      const { topicId, content, parentId, images } = req.body;
+      // 支持从 params 或 body 中获取 topicId
+      const topicId = req.params.topicId || req.body.topicId;
+      const { content, parentId, images } = req.body;
 
       const comment = await commentService.createComment(userId, {
         topicId,
@@ -53,7 +56,7 @@ class CommentController {
         await creditService.awardBadge(userId, 'first_comment');
       }
 
-      res.status(201).json(success(comment, '评论成功'));
+      res.status(201).json(successResponse(comment, '评论成功'));
     })(req, res);
   }
 
@@ -65,7 +68,7 @@ class CommentController {
 
       const result = await commentService.toggleLikeComment(id, userId);
 
-      res.json(success(result, result.isLiked ? '点赞成功' : '已取消点赞'));
+      res.json(successResponse(result, result.isLiked ? '点赞成功' : '已取消点赞'));
     })(req, res);
   }
 
@@ -78,7 +81,7 @@ class CommentController {
 
       await commentService.deleteComment(id, userId, isAdmin);
 
-      res.json(success(null, '删除成功'));
+      res.json(successResponse(null, '删除成功'));
     })(req, res);
   }
 

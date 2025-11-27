@@ -51,8 +51,7 @@ Page({
 
     try {
       const currentPage = isRefresh ? 1 : page
-      const res = await request({
-        url: '/me/bookmarks',
+      const res = await request('/me/bookmarks', {
         method: 'GET',
         data: { page: currentPage, limit }
       })
@@ -105,10 +104,7 @@ Page({
       success: async (res) => {
         if (res.confirm) {
           try {
-            await request({
-              url: `/topics/${id}/bookmark`,
-              method: 'POST'
-            })
+            await request(`/topics/${id}/bookmark`, { method: 'POST' })
 
             // 从列表中移除
             const topics = [...this.data.topics]

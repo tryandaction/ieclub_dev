@@ -47,15 +47,22 @@
       >
         <!-- 头像 -->
         <view class="avatar-wrapper">
-          <text class="avatar">{{item.avatar}}</text>
+          <block wx:if="{{item.avatar && item.avatar.length > 2}}">
+            <image 
+              class="avatar-img" 
+              src="{{item.avatar.indexOf('http') === 0 ? item.avatar : 'https://ieclub.online' + item.avatar}}" 
+              mode="aspectFill"
+            />
+          </block>
+          <text wx:else class="avatar">👤</text>
           <!-- 在线状态指示器 -->
           <view wx:if="{{item.online}}" class="online-dot"></view>
         </view>
 
         <!-- 用户信息 -->
         <view class="user-info">
-          <text class="name">{{item.name}}</text>
-          <text class="major">{{item.major}} · {{item.grade || '未设置年级'}}</text>
+          <text class="name">{{item.nickname || item.name || '未设置昵称'}}</text>
+          <text class="major">{{item.major || '未设置专业'}} · {{item.grade || '未设置年级'}}</text>
         </view>
 
         <!-- 等级和积分 -->

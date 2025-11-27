@@ -1,0 +1,267 @@
+<!--pages/topic-detail/topic-detail.wxml-->
+<view class="topic-detail-page">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="skeleton-header"></view>
+    <view class="skeleton-title"></view>
+    <view class="skeleton-content"></view>
+    <view class="skeleton-content short"></view>
+  </view>
+
+  <!-- 话题内容 -->
+  <view wx:elif="{{topic}}" class="topic-container">
+    <!-- 话题头部 -->
+    <view class="topic-header" style="background: {{topic.typeColor || '#8b5cf6'}}">
+      <view class="type-badge">
+        <text class="type-icon">{{topic.typeIcon}}</text>
+        <text class="type-label">{{topic.typeLabel}}</text>
+      </view>
+      <text class="topic-title">{{topic.title}}</text>
+      <view class="topic-meta">
+        <text class="views">👀 {{topic.viewsCount || 0}}</text>
+        <text class="time">{{topic.formattedTime}}</text>
+      </view>
+    </view>
+
+    <!-- 作者信息 -->
+    <view class="author-card" bindtap="goToAuthor">
+      <view class="author-left">
+        <block wx:if="{{topic.author.avatar && topic.author.avatar.length > 2}}">
+          <image class="author-avatar" src="{{topic.author.avatar}}" mode="aspectFill" />
+        </block>
+        <view wx:else class="author-avatar-placeholder">👤</view>
+        <view class="author-info">
+          <view class="author-name-row">
+            <text class="author-name">{{topic.author.nickname || '匿名用户'}}</text>
+            <view wx:if="{{topic.author.level}}" class="author-level">LV{{topic.author.level}}</view>
+          </view>
+          <text class="author-bio">{{topic.author.bio || '这个人很懒，什么都没写~'}}</text>
+        </view>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+
+    <!-- 话题内容 -->
+    <view class="topic-content">
+      <text class="content-text">{{topic.content || topic.description}}</text>
+    </view>
+
+    <!-- 我想听/我来讲 专属信息 -->
+    <view wx:if="{{(topic.topicType === 'demand' || topic.topicType === 'offer') && (topic.duration || topic.targetAudience || topic.threshold)}}" class="extra-info-section">
+      <view class="section-header">
+        <text class="section-title">📅 详细信息</text>
+      </view>
+      <view class="info-grid">
+        <view wx:if="{{topic.duration}}" class="info-item">
+          <text class="info-label">预计时长</text>
+          <text class="info-value">{{topic.duration}}</text>
+        </view>
+        <view wx:if="{{topic.targetAudience}}" class="info-item">
+          <text class="info-label">目标听众</text>
+          <text class="info-value">{{topic.targetAudience}}</text>
+        </view>
+        <view wx:if="{{topic.threshold}}" class="info-item">
+          <text class="info-label">成团人数</text>
+          <text class="info-value highlight">{{topic.threshold}} 人</text>
+        </view>
+        <view wx:if="{{topic.wantToHearCount !== undefined}}" class="info-item">
+          <text class="info-label">想听人数</text>
+          <text class="info-value highlight-blue">{{topic.wantToHearCount}} 人</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 项目专属信息 -->
+    <view wx:if="{{topic.topicType === 'project'}}" class="extra-info-section">
+      <view class="section-header">
+        <text class="section-title">🚀 项目信息</text>
+      </view>
+      <view class="info-grid">
+        <view wx:if="{{topic.projectStage}}" class="info-item">
+          <text class="info-label">项目阶段</text>
+          <text class="info-value highlight-green">{{topic.projectStage}}</text>
+        </view>
+        <view wx:if="{{topic.teamSize}}" class="info-item">
+          <text class="info-label">团队规模</text>
+          <text class="info-value">{{topic.teamSize}} 人</text>
+        </view>
+      </view>
+      
+      <!-- 招募角色 -->
+      <view wx:if="{{topic.lookingForRoles && topic.lookingForRoles.length > 0}}" class="roles-section">
+        <text class="sub-label">招募角色</text>
+        <view class="roles-list">
+          <text class="role-tag" wx:for="{{topic.lookingForRoles}}" wx:key="*this">{{item}}</text>
+        </view>
+      </view>
+      
+      <!-- 所需技能 -->
+      <view wx:if="{{topic.skillsNeeded && topic.skillsNeeded.length > 0}}" class="skills-section">
+        <text class="sub-label">所需技能</text>
+        <view class="skills-list">
+          <text class="skill-tag" wx:for="{{topic.skillsNeeded}}" wx:key="*this">{{item}}</text>
+        </view>
+      </view>
+      
+      <!-- 链接 -->
+      <view wx:if="{{topic.website || topic.github || topic.contactInfo}}" class="links-section">
+        <view wx:if="{{topic.website}}" class="link-item" bindtap="copyLink" data-link="{{topic.website}}">
+          <text class="link-icon">🌐</text>
+          <text class="link-text">项目网站</text>
+        </view>
+        <view wx:if="{{topic.github}}" class="link-item" bindtap="copyLink" data-link="{{topic.github}}">
+          <text class="link-icon">💻</text>
+          <text class="link-text">GitHub</text>
+        </view>
+        <view wx:if="{{topic.contactInfo}}" class="link-item" bindtap="copyLink" data-link="{{topic.contactInfo}}">
+          <text class="link-icon">📧</text>
+          <text class="link-text">{{topic.contactInfo}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 标签 -->
+    <view wx:if="{{topic.tags && topic.tags.length > 0}}" class="tags-container">
+      <view class="tag-item" wx:for="{{topic.tags}}" wx:key="*this">
+        <text class="tag-text">#{{item}}</text>
+      </view>
+    </view>
+
+    <!-- 供需匹配互动区 -->
+    <view wx:if="{{topic.topicType === 'demand' || topic.topicType === 'offer'}}" class="interaction-section">
+      <view class="interaction-buttons">
+        <view class="interaction-btn {{topic.userWantHear ? 'active blue' : ''}}" bindtap="handleWantHear">
+          <text class="btn-icon">👂</text>
+          <text class="btn-label">我想听</text>
+          <text class="btn-count">{{topic.wantToHearCount || 0}}</text>
+        </view>
+        
+        <view class="progress-circle">
+          <view class="progress-num">{{topic.wantToHearCount || 0}}/{{topic.threshold || 15}}</view>
+          <view class="progress-label">成团进度</view>
+          <view class="progress-bar">
+            <view class="progress-fill" style="width: {{(topic.wantToHearCount || 0) / (topic.threshold || 15) * 100}}%"></view>
+          </view>
+        </view>
+        
+        <view class="interaction-btn {{topic.userCanTell ? 'active purple' : ''}}" bindtap="handleCanTell">
+          <text class="btn-icon">🎤</text>
+          <text class="btn-label">我能讲</text>
+          <text class="btn-count">{{topic.canTellCount || 0}}</text>
+        </view>
+      </view>
+      
+      <view wx:if="{{topic.status === 'scheduled'}}" class="status-badge success">
+        <text>🎉 已成团！等待开讲安排</text>
+      </view>
+    </view>
+
+    <!-- 项目感兴趣按钮 -->
+    <view wx:if="{{topic.topicType === 'project'}}" class="interaction-section project">
+      <view class="project-interest-btn {{topic.userInterested ? 'active' : ''}}" bindtap="handleInterested">
+        <text class="btn-icon">🚀</text>
+        <text class="btn-label">{{topic.userInterested ? '已感兴趣' : '感兴趣，想加入'}}</text>
+        <text class="btn-count">{{topic.interestedCount || 0}}</text>
+      </view>
+    </view>
+
+    <!-- 操作栏 -->
+    <view class="action-bar">
+      <view class="action-item {{topic.isLiked ? 'active' : ''}}" bindtap="handleLike">
+        <text class="action-icon">{{topic.isLiked ? '❤️' : '🤍'}}</text>
+        <text class="action-text">{{topic.likesCount || 0}}</text>
+      </view>
+      <view class="action-item" bindtap="handleBookmark">
+        <text class="action-icon">{{topic.isBookmarked ? '⭐' : '☆'}}</text>
+        <text class="action-text">{{topic.isBookmarked ? '已收藏' : '收藏'}}</text>
+      </view>
+      <view class="action-item">
+        <text class="action-icon">💬</text>
+        <text class="action-text">{{topic.commentsCount || 0}}</text>
+      </view>
+      <button class="action-item share-btn" open-type="share">
+        <text class="action-icon">🔗</text>
+        <text class="action-text">分享</text>
+      </button>
+    </view>
+
+    <!-- 评论区 -->
+    <view class="comments-section">
+      <view class="section-header">
+        <text class="section-title">评论 ({{topic.commentsCount || 0}})</text>
+      </view>
+
+      <!-- 评论列表 -->
+      <view wx:if="{{comments.length > 0}}" class="comment-list">
+        <view class="comment-item" wx:for="{{comments}}" wx:key="id">
+          <view class="comment-header">
+            <view class="comment-author" bindtap="goToAuthor" data-id="{{item.author.id}}">
+              <block wx:if="{{item.author.avatar && item.author.avatar.length > 2}}">
+                <image class="comment-avatar" src="{{item.author.avatar}}" mode="aspectFill" />
+              </block>
+              <view wx:else class="comment-avatar-placeholder">👤</view>
+              <view class="comment-author-info">
+                <text class="comment-author-name">{{item.author.nickname || '匿名'}}</text>
+                <text class="comment-time">{{item.formattedTime}}</text>
+              </view>
+            </view>
+            <view wx:if="{{item.author.id === currentUserId}}" class="comment-delete" catchtap="deleteComment" data-id="{{item.id}}" data-index="{{index}}">
+              <text class="delete-icon">🗑️</text>
+            </view>
+          </view>
+          <text class="comment-content">{{item.content}}</text>
+          <view class="comment-actions">
+            <view class="comment-action {{item.isLiked ? 'liked' : ''}}" catchtap="likeComment" data-id="{{item.id}}" data-index="{{index}}">
+              <text class="action-icon">{{item.isLiked ? '❤️' : '🤍'}}</text>
+              <text class="action-count">{{item.likesCount || 0}}</text>
+            </view>
+            <view class="comment-action" catchtap="replyComment" data-comment="{{item}}">
+              <text class="action-icon">💬</text>
+              <text class="action-count">回复</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空评论状态 -->
+      <view wx:elif="{{!commentLoading}}" class="empty-comments">
+        <text class="empty-icon">💬</text>
+        <text class="empty-text">暂无评论，快来抢沙发~</text>
+      </view>
+
+      <!-- 加载更多 -->
+      <view wx:if="{{commentLoading}}" class="loading-more">
+        <text>加载中...</text>
+      </view>
+      <view wx:elif="{{!hasMore && comments.length > 0}}" class="no-more">
+        <text>没有更多评论了</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 评论输入框 -->
+  <view class="comment-input-bar">
+    <view wx:if="{{replyTo}}" class="reply-hint">
+      <text>回复 @{{replyTo.author.nickname}}</text>
+      <text class="cancel-reply" bindtap="cancelReply">取消</text>
+    </view>
+    <view class="input-row">
+      <input 
+        class="comment-input" 
+        placeholder="{{isLogin ? '写评论...' : '登录后评论'}}"
+        value="{{commentContent}}"
+        bindinput="onCommentInput"
+        disabled="{{!isLogin}}"
+        confirm-type="send"
+        bindconfirm="submitComment"
+      />
+      <button 
+        class="send-btn {{commentContent.trim() ? 'active' : ''}}" 
+        bindtap="submitComment"
+        disabled="{{submitting || !commentContent.trim()}}"
+      >
+        {{submitting ? '发送中' : '发送'}}
+      </button>
+    </view>
+  </view>
+</view>
