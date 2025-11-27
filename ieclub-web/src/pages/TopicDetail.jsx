@@ -129,13 +129,11 @@ export default function TopicDetail() {
     try {
       await toggleLike(id)
       const newIsLiked = !topic.isLiked
+      const currentLikes = topic.likesCount || topic.stats?.likes || 0
       setTopic({
         ...topic,
         isLiked: newIsLiked,
-        stats: {
-          ...topic.stats,
-          likes: topic.isLiked ? topic.stats.likes - 1 : topic.stats.likes + 1
-        }
+        likesCount: topic.isLiked ? currentLikes - 1 : currentLikes + 1
       })
       showToast(newIsLiked ? '点赞成功 ❤️' : '已取消点赞', 'success')
     } catch (error) {
@@ -154,13 +152,11 @@ export default function TopicDetail() {
     try {
       await toggleBookmark(id)
       const newIsBookmarked = !topic.isBookmarked
+      const currentBookmarks = topic.bookmarksCount || topic.stats?.bookmarks || 0
       setTopic({
         ...topic,
         isBookmarked: newIsBookmarked,
-        stats: {
-          ...topic.stats,
-          bookmarks: topic.isBookmarked ? topic.stats.bookmarks - 1 : topic.stats.bookmarks + 1
-        }
+        bookmarksCount: topic.isBookmarked ? currentBookmarks - 1 : currentBookmarks + 1
       })
       showToast(newIsBookmarked ? '收藏成功 ⭐' : '已取消收藏', 'success')
     } catch (error) {
@@ -249,12 +245,10 @@ export default function TopicDetail() {
       setReplyTo(null)
       
       // 更新评论数
+      const currentComments = topic.commentsCount || topic.stats?.comments || 0
       setTopic({
         ...topic,
-        stats: {
-          ...topic.stats,
-          comments: topic.stats.comments + 1
-        }
+        commentsCount: currentComments + 1
       })
       
       showToast('评论发表成功 💬', 'success')
@@ -273,12 +267,10 @@ export default function TopicDetail() {
       await loadComments()
       
       // 更新评论数
+      const currentComments = topic.commentsCount || topic.stats?.comments || 0
       setTopic({
         ...topic,
-        stats: {
-          ...topic.stats,
-          comments: topic.stats.comments - 1
-        }
+        commentsCount: Math.max(0, currentComments - 1)
       })
       
       showToast('评论已删除', 'success')
@@ -359,7 +351,7 @@ export default function TopicDetail() {
           </div>
           <h1 className="text-2xl font-bold mb-2">{topic.title}</h1>
           <div className="flex items-center space-x-4 text-sm text-white/80">
-            <span>👀 {topic.stats.views} 浏览</span>
+            <span>👀 {topic.viewsCount || topic.stats?.views || 0} 浏览</span>
             <span>•</span>
             <span>{topic.createdAt}</span>
           </div>
@@ -369,16 +361,16 @@ export default function TopicDetail() {
         <div className="p-6 border-b">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="text-4xl">{topic.author.avatar}</div>
+              <div className="text-4xl">{topic.author?.avatar || '👤'}</div>
               <div>
                 <div className="flex items-center space-x-2">
-                  <span className="font-bold text-gray-900">{topic.author.name}</span>
+                  <span className="font-bold text-gray-900">{topic.author?.nickname || topic.author?.name || '用户'}</span>
                   <span className="text-xs bg-gradient-primary text-white px-2 py-1 rounded-full">
-                    LV{topic.author.level}
+                    LV{topic.author?.level || 1}
                   </span>
                 </div>
                 <p className="text-sm text-gray-500">
-                  {topic.author.major} · {topic.author.grade}
+                  {topic.author?.major || ''} {topic.author?.grade ? `· ${topic.author.grade}` : ''}
                 </p>
               </div>
             </div>
@@ -622,7 +614,7 @@ export default function TopicDetail() {
       {/* 评论区 */}
       <div className="bg-white rounded-2xl shadow-lg p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-6">
-          💬 评论 ({topic.stats.comments})
+          💬 评论 ({topic.commentsCount || topic.stats?.comments || 0})
         </h2>
 
         {/* 发表评论 */}
