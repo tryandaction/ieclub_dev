@@ -169,5 +169,49 @@ cd scripts\deployment
 
 ---
 
-**最后更新**: 2025-11-27 19:20  
-**当前状态**: 生产环境稳定运行，小程序功能对齐完成，个人中心100%完成
+## 📋 下一步开发任务
+
+### 待完善功能
+1. **发布功能优化** - 各板块（我来讲/想听/项目/分享）的表单模板和字段
+2. **活动管理** - 发布活动、报名、签到完整流程
+3. **管理后台** - 内容审核、用户管理、数据统计
+
+### 已完成功能 ✅
+- 私信系统（网页端 + 小程序）
+- 消息通知系统
+- 供需匹配互动（想听/我能讲/感兴趣）
+- 用户关注功能
+
+---
+
+## 🔧 快速修复部署
+
+**当遇到前端更新不生效时**（浏览器缓存问题）：
+```powershell
+# 1. 重新构建前端
+cd ieclub-web
+npm run build
+
+# 2. 直接上传到服务器（绕过部署脚本）
+scp -r dist/* root@ieclub.online:/root/IEclub_dev/ieclub-web/dist/
+
+# 3. 重载 Nginx
+ssh root@ieclub.online "nginx -s reload"
+```
+
+**当遇到后端500错误时**：
+```powershell
+# 1. 上传修复的文件
+scp src/controllers/xxx.js root@ieclub.online:/root/IEclub_dev/ieclub-backend/src/controllers/
+
+# 2. 重启后端
+ssh root@ieclub.online "pm2 restart ieclub-backend"
+
+# 3. 查看日志确认
+ssh root@ieclub.online "pm2 logs ieclub-backend --lines 20 --nostream"
+```
+
+---
+
+**最后更新**: 2025-11-27 22:30  
+**当前状态**: 生产环境稳定运行，私信系统已完成，发布功能已修复
