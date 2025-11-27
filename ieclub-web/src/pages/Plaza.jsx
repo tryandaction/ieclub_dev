@@ -52,7 +52,11 @@ const typeConfig = {
   offer: { label: '我来讲', bg: 'bg-gradient-to-r from-purple-500 to-purple-600', icon: '🎤' },
   project: { label: '项目', bg: 'bg-gradient-to-r from-emerald-500 to-emerald-600', icon: '🚀' },
   share: { label: '分享', bg: 'bg-gradient-to-r from-orange-500 to-orange-600', icon: '💡' },
+  discussion: { label: '讨论', bg: 'bg-gradient-to-r from-gray-500 to-gray-600', icon: '💬' },
 }
+
+// 获取话题类型配置，带默认值
+const getTypeConfig = (type) => typeConfig[type] || typeConfig.discussion
 
 export default function Plaza() {
   const navigate = useNavigate()
@@ -89,7 +93,7 @@ export default function Plaza() {
 
   const displayTopics = activeTab === 'all' 
     ? topics 
-    : topics.filter(t => t.type === activeTab)
+    : topics.filter(t => (t.topicType || t.type) === activeTab)
 
   const handleLike = async (e, topicId) => {
     e.stopPropagation() // 阻止事件冒泡，避免跳转到详情页
@@ -188,12 +192,12 @@ export default function Plaza() {
             className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer hover:scale-105"
           >
             {/* 封面 */}
-            <div className={`${typeConfig[topic.type].bg} h-40 flex items-center justify-center relative`}>
-              <span className="text-6xl">{topic.cover}</span>
+            <div className={`${getTypeConfig(topic.topicType || topic.type).bg} h-40 flex items-center justify-center relative`}>
+              <span className="text-6xl">{topic.cover || '📝'}</span>
               {/* 类型标识 */}
               <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center space-x-1">
-                <span>{typeConfig[topic.type].icon}</span>
-                <span className="text-sm font-medium">{typeConfig[topic.type].label}</span>
+                <span>{getTypeConfig(topic.topicType || topic.type).icon}</span>
+                <span className="text-sm font-medium">{getTypeConfig(topic.topicType || topic.type).label}</span>
               </div>
             </div>
 
@@ -204,21 +208,21 @@ export default function Plaza() {
               {/* 作者信息 */}
               <div className="flex items-center space-x-2">
                 <Avatar 
-                  src={topic.author.avatar} 
-                  name={topic.author.name} 
+                  src={topic.author?.avatar} 
+                  name={topic.author?.nickname || topic.author?.name || '用户'} 
                   size={32}
                 />
-                <span className="text-sm text-gray-600 flex-1">{topic.author.name}</span>
+                <span className="text-sm text-gray-600 flex-1">{topic.author?.nickname || topic.author?.name || '用户'}</span>
                 <span className="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded-lg font-bold">
-                  LV{topic.author.level}
+                  LV{topic.author?.level || 1}
                 </span>
               </div>
 
               {/* 标签 */}
               <div className="flex flex-wrap gap-2">
-                {topic.tags.map((tag) => (
+                {(Array.isArray(topic.tags) ? topic.tags : (topic.tags ? JSON.parse(topic.tags) : [])).slice(0, 3).map((tag, idx) => (
                   <span
-                    key={tag}
+                    key={idx}
                     className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full"
                   >
                     {tag}
@@ -229,8 +233,8 @@ export default function Plaza() {
               {/* 统计信息 */}
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center space-x-4 text-gray-500">
-                  <span>💬 {topic.stats.comments}</span>
-                  <span>👀 {topic.stats.views}</span>
+                  <span>💬 {topic.commentsCount || topic.stats?.comments || 0}</span>
+                  <span>👀 {topic.viewsCount || topic.stats?.views || 0}</span>
                 </div>
                 <button
                   onClick={(e) => handleLike(e, topic.id)}
@@ -241,15 +245,15 @@ export default function Plaza() {
                   }`}
                 >
                   <span className="text-base">{topic.isLiked ? '❤️' : '🤍'}</span>
-                  <span className="font-medium">{topic.stats.likes}</span>
+                  <span className="font-medium">{topic.likesCount || topic.stats?.likes || 0}</span>
                 </button>
               </div>
 
               {/* 想听进度条 */}
-              {topic.stats.wantCount && (
+              {(topic.wantCount || topic.stats?.wantCount) && (
                 <div className="bg-gradient-to-r from-pink-100 to-purple-100 p-3 rounded-xl">
                   <p className="text-sm text-pink-600 font-bold text-center">
-                    {topic.stats.wantCount}/15人想听
+                    {topic.wantCount || topic.stats?.wantCount}/15人想听
                   </p>
                 </div>
               )}
