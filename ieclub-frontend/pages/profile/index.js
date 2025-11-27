@@ -13,7 +13,8 @@ Page({
       followers: 0,
       following: 0
     },
-    unreadCount: 0
+    unreadCount: 0,
+    messageUnread: 0
   },
 
   onLoad() {
@@ -26,6 +27,7 @@ Page({
     // 每次显示时刷新数据，确保与网站同步
     this.loadUserProfile()
     this.loadUnreadCount()
+    this.loadMessageUnread()
   },
 
   /**
@@ -297,5 +299,27 @@ Page({
     } catch (error) {
       console.error('加载未读数失败:', error)
     }
+  },
+
+  /**
+   * 加载私信未读数
+   */
+  async loadMessageUnread() {
+    try {
+      const res = await request('/messages/unread-count', { method: 'GET', loading: false })
+      const count = res?.count || res?.data?.count || 0
+      this.setData({ messageUnread: count })
+    } catch (error) {
+      console.error('加载私信未读数失败:', error)
+    }
+  },
+
+  /**
+   * 去私信页面
+   */
+  goToMessages() {
+    wx.navigateTo({
+      url: '/pages/messages/index'
+    })
   }
 })

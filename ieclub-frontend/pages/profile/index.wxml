@@ -67,7 +67,7 @@
 
     <!-- 功能菜单 -->
     <view class="menu-section">
-      <!-- 消息通知 -->
+      <!-- 消息通知和私信 -->
       <view class="menu-group">
         <view class="menu-item notification-item" bindtap="goToNotifications" hover-class="menu-item-hover">
           <view class="menu-left">
@@ -76,6 +76,16 @@
           </view>
           <view class="menu-right">
             <view class="unread-badge" wx:if="{{unreadCount > 0}}">{{unreadCount > 99 ? '99+' : unreadCount}}</view>
+            <text class="menu-arrow">›</text>
+          </view>
+        </view>
+        <view class="menu-item" bindtap="goToMessages" hover-class="menu-item-hover">
+          <view class="menu-left">
+            <text class="menu-icon">💬</text>
+            <text class="menu-label">私信</text>
+          </view>
+          <view class="menu-right">
+            <view class="unread-badge" wx:if="{{messageUnread > 0}}">{{messageUnread > 99 ? '99+' : messageUnread}}</view>
             <text class="menu-arrow">›</text>
           </view>
         </view>

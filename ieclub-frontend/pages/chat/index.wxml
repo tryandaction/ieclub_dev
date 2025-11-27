@@ -1,0 +1,77 @@
+<!-- pages/chat/index.wxml -->
+<view class="container">
+  <!-- 聊天头部 -->
+  <view class="header" bindtap="goToProfile">
+    <image 
+      class="avatar" 
+      src="{{avatar || '/images/default-avatar.png'}}" 
+      mode="aspectFill"
+    />
+    <text class="nickname">{{nickname}}</text>
+  </view>
+
+  <!-- 消息列表 -->
+  <scroll-view 
+    class="message-list" 
+    scroll-y 
+    scroll-into-view="{{scrollToMessage}}"
+    scroll-with-animation
+  >
+    <!-- 加载中 -->
+    <view wx:if="{{loading}}" class="loading">
+      <view class="loading-spinner"></view>
+    </view>
+
+    <!-- 消息 -->
+    <view 
+      wx:for="{{messages}}" 
+      wx:key="id" 
+      id="msg-{{index}}"
+      class="message-item {{item.senderId === currentUserId ? 'mine' : 'other'}}"
+    >
+      <image 
+        wx:if="{{item.senderId !== currentUserId}}"
+        class="msg-avatar" 
+        src="{{item.sender.avatar || '/images/default-avatar.png'}}" 
+        mode="aspectFill"
+      />
+      
+      <view class="msg-content">
+        <view class="bubble">{{item.content}}</view>
+        <text class="msg-time">{{formatTime(item.createdAt)}}</text>
+      </view>
+      
+      <image 
+        wx:if="{{item.senderId === currentUserId}}"
+        class="msg-avatar" 
+        src="{{item.sender.avatar || '/images/default-avatar.png'}}" 
+        mode="aspectFill"
+      />
+    </view>
+
+    <!-- 空消息 -->
+    <view wx:if="{{!loading && messages.length === 0}}" class="empty">
+      <text class="empty-text">暂无消息，开始聊天吧</text>
+    </view>
+  </scroll-view>
+
+  <!-- 输入区域 -->
+  <view class="input-area">
+    <input 
+      class="input" 
+      type="text" 
+      placeholder="输入消息..." 
+      value="{{inputValue}}"
+      bindinput="onInput"
+      bindconfirm="sendMessage"
+      confirm-type="send"
+    />
+    <button 
+      class="send-btn {{inputValue ? 'active' : ''}}" 
+      bindtap="sendMessage"
+      disabled="{{!inputValue || sending}}"
+    >
+      {{sending ? '...' : '发送'}}
+    </button>
+  </view>
+</view>

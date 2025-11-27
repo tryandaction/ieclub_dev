@@ -24,7 +24,9 @@
     "pages/settings/set-password/index",
     "pages/settings/change-password/index",
     "pages/settings/account-binding/index",
-    "pages/notifications/index"
+    "pages/notifications/index",
+    "pages/messages/index",
+    "pages/chat/index"
   ],
   "window": {
     "backgroundTextStyle": "light",

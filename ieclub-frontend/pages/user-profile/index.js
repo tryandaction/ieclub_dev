@@ -171,10 +171,28 @@ Page({
   },
 
   // 发送私信
-  sendMessage() {
-    wx.showToast({
-      title: '私信功能开发中',
-      icon: 'none'
-    })
+  async sendMessage() {
+    const token = wx.getStorageSync('token')
+    if (!token) {
+      wx.showToast({ title: '请先登录', icon: 'none' })
+      return
+    }
+
+    try {
+      // 获取或创建会话
+      const res = await request(`/messages/conversation/${this.data.userId}`, {
+        method: 'GET'
+      })
+      
+      const data = res.data || res
+      const { profile } = this.data
+      
+      wx.navigateTo({
+        url: `/pages/chat/index?conversationId=${data.conversationId}&userId=${this.data.userId}&nickname=${encodeURIComponent(profile.nickname || '')}&avatar=${encodeURIComponent(profile.avatar || '')}`
+      })
+    } catch (error) {
+      console.error('获取会话失败:', error)
+      wx.showToast({ title: '无法发起对话', icon: 'none' })
+    }
   }
 })

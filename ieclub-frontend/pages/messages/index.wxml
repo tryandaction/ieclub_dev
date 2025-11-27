@@ -1,0 +1,55 @@
+<!-- pages/messages/index.wxml -->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="header">
+    <text class="title">私信</text>
+  </view>
+
+  <!-- 加载中 -->
+  <view wx:if="{{loading && conversations.length === 0}}" class="loading">
+    <view class="loading-spinner"></view>
+    <text>加载中...</text>
+  </view>
+
+  <!-- 会话列表 -->
+  <view wx:elif="{{conversations.length > 0}}" class="conversation-list">
+    <view 
+      wx:for="{{conversations}}" 
+      wx:key="id" 
+      class="conversation-item"
+      bindtap="goToChat"
+      data-id="{{item.id}}"
+      data-user="{{item.otherUser}}"
+    >
+      <view class="avatar-wrapper">
+        <image 
+          class="avatar" 
+          src="{{item.otherUser.avatar || '/images/default-avatar.png'}}" 
+          mode="aspectFill"
+        />
+        <view wx:if="{{item.unreadCount > 0}}" class="badge">
+          {{item.unreadCount > 99 ? '99+' : item.unreadCount}}
+        </view>
+      </view>
+      
+      <view class="content">
+        <view class="top-row">
+          <text class="nickname">{{item.otherUser.nickname}}</text>
+          <text class="time">{{formatTime(item.lastMessageAt)}}</text>
+        </view>
+        <view class="bottom-row">
+          <text class="last-message {{item.unreadCount > 0 ? 'unread' : ''}}">
+            {{item.lastMessage || '暂无消息'}}
+          </text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:else class="empty">
+    <text class="empty-icon">💬</text>
+    <text class="empty-text">暂无私信</text>
+    <text class="empty-tip">去关注感兴趣的用户开始聊天吧</text>
+  </view>
+</view>

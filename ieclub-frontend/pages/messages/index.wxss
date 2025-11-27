@@ -1,0 +1,151 @@
+/* pages/messages/index.wxss */
+.container {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.header {
+  padding: 40rpx 30rpx 20rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.title {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #fff;
+}
+
+/* 加载中 */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+  color: #999;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #e5e5e5;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 20rpx;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 会话列表 */
+.conversation-list {
+  background: #fff;
+}
+
+.conversation-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.conversation-item:active {
+  background: #f5f5f5;
+}
+
+.avatar-wrapper {
+  position: relative;
+  margin-right: 24rpx;
+}
+
+.avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: #f0f0f0;
+}
+
+.badge {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+  min-width: 36rpx;
+  height: 36rpx;
+  padding: 0 8rpx;
+  background: #f56c6c;
+  color: #fff;
+  font-size: 22rpx;
+  border-radius: 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.nickname {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.bottom-row {
+  display: flex;
+  align-items: center;
+}
+
+.last-message {
+  font-size: 26rpx;
+  color: #999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 450rpx;
+}
+
+.last-message.unread {
+  color: #333;
+  font-weight: 500;
+}
+
+/* 空状态 */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 200rpx 0;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 30rpx;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  color: #666;
+  margin-bottom: 16rpx;
+}
+
+.empty-tip {
+  font-size: 26rpx;
+  color: #999;
+}
