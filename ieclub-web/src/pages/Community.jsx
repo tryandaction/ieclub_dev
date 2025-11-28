@@ -87,26 +87,26 @@ export default function Community() {
             <div className="flex justify-center">
               <Avatar 
                 src={user.avatar} 
-                name={user.name} 
+                name={user.nickname || user.name || '用户'} 
                 size={80}
               />
             </div>
 
             {/* 用户信息 */}
             <div>
-              <h3 className="text-xl font-bold text-gray-900">{user.name}</h3>
-              <p className="text-sm text-gray-500 mt-1">
-                {user.major} · {user.grade}
-              </p>
+              <h3 className="text-xl font-bold text-gray-900">{user.nickname || user.name || '用户'}</h3>
+              {user.bio && (
+                <p className="text-sm text-gray-500 mt-1 line-clamp-2">{user.bio}</p>
+              )}
             </div>
 
-            {/* 等级和积分 */}
-            <div className="flex items-center justify-center space-x-3">
-              <span className="bg-purple-100 text-purple-600 px-3 py-1 rounded-lg text-sm font-bold">
-                LV{user.level}
+            {/* 统计数据 */}
+            <div className="flex items-center justify-center space-x-3 text-sm">
+              <span className="text-gray-600">
+                📝 {user.topicsCount || 0} 话题
               </span>
-              <span className="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-lg text-sm font-bold">
-                ⭐ {user.score}
+              <span className="text-gray-600">
+                ❤️ {user.likesCount || 0} 获赞
               </span>
             </div>
 
