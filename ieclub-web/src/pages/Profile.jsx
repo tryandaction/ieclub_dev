@@ -308,7 +308,7 @@ export default function Profile() {
                       return
                     }
                     // 获取或创建会话，然后跳转
-                    fetch(`https://ieclub.online/api/v1/messages/conversation/${userId}`, {
+                    fetch(`https://ieclub.online/api/messages/conversation/${userId}`, {
                       headers: { 'Authorization': `Bearer ${token}` }
                     })
                       .then(res => res.json())
