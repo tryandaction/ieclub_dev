@@ -112,6 +112,17 @@ model User {
   conversationsAsP2     Conversation[]  @relation("ConversationParticipant2")
   sentMessages          Message[]       @relation("MessageSender")
   receivedMessages      Message[]       @relation("MessageReceiver")
+  
+  // 小组系统
+  createdGroups         Group[]           @relation("GroupCreator")
+  groupMemberships      GroupMember[]
+  groupTopics           GroupTopic[]
+  groupTopicComments    GroupTopicComment[]
+  groupTopicLikes       GroupTopicLike[]
+  organizedGroupActivities  GroupActivity[]
+  groupActivityParticipants GroupActivityParticipant[]
+  groupJoinRequests     GroupJoinRequest[]
+  handledJoinRequests   GroupJoinRequest[] @relation("JoinRequestHandler")
 
   @@map("users")
 }
@@ -1497,4 +1508,289 @@ model Message {
   @@index([receiverId])
   @@index([createdAt])
   @@map("messages")
+}
+
+// ==================== 小组/圈子系统 ====================
+
+// 小组表
+model Group {
+  id String @id @default(cuid())
+  
+  // 基本信息
+  name        String  @db.VarChar(50)  // 小组名称
+  description String? @db.Text         // 小组描述
+  avatar      String? @db.Text         // 小组头像
+  cover       String? @db.Text         // 小组封面
+  
+  // 分类和标签
+  category String  @default("general") @db.VarChar(30) // 分类：学习、技术、兴趣、生活
+  tags     String? @db.Text                            // 标签数组 JSON
+  
+  // 小组设置
+  isPublic      Boolean @default(true)   // 是否公开（公开小组可搜索和加入）
+  needApproval  Boolean @default(false)  // 加入是否需要审批
+  maxMembers    Int     @default(200)    // 最大成员数
+  
+  // 创建者信息
+  creatorId String
+  creator   User   @relation("GroupCreator", fields: [creatorId], references: [id])
+  
+  // 统计数据
+  membersCount   Int @default(1)  // 成员数
+  topicsCount    Int @default(0)  // 话题数
+  activitiesCount Int @default(0) // 活动数
+  
+  // 状态
+  status String @default("active") @db.VarChar(20) // active, closed, banned
+  
+  // 时间戳
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // 关联
+  members      GroupMember[]
+  topics       GroupTopic[]
+  activities   GroupActivity[]
+  joinRequests GroupJoinRequest[]
+  
+  @@index([creatorId])
+  @@index([category])
+  @@index([status])
+  @@index([membersCount])
+  @@index([createdAt])
+  @@map("groups")
+}
+
+// 小组成员表
+model GroupMember {
+  id String @id @default(cuid())
+  
+  // 关联
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // 角色：owner(创建者), admin(管理员), member(成员)
+  role String @default("member") @db.VarChar(20)
+  
+  // 成员昵称（小组内昵称，可选）
+  nickname String? @db.VarChar(50)
+  
+  // 状态
+  status String @default("active") @db.VarChar(20) // active, muted, banned
+  
+  // 加入信息
+  joinReason String?   @db.Text     // 加入申请理由
+  joinedAt   DateTime  @default(now())
+  
+  // 时间戳
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+  @@index([role])
+  @@map("group_members")
+}
+
+// 小组话题表
+model GroupTopic {
+  id String @id @default(cuid())
+  
+  // 关联小组
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  
+  // 作者
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+  
+  // 内容
+  title   String  @db.VarChar(200)
+  content String  @db.Text
+  images  String? @db.Text  // 图片数组 JSON
+  
+  // 类型
+  type String @default("discussion") @db.VarChar(30) // discussion, question, announcement, resource
+  
+  // 统计
+  viewsCount    Int @default(0)
+  likesCount    Int @default(0)
+  commentsCount Int @default(0)
+  
+  // 状态
+  isPinned  Boolean @default(false) // 是否置顶
+  isLocked  Boolean @default(false) // 是否锁定评论
+  status    String  @default("published") @db.VarChar(20)
+  
+  // 时间戳
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime?
+  
+  // 关联
+  comments GroupTopicComment[]
+  likes    GroupTopicLike[]
+  
+  @@index([groupId])
+  @@index([authorId])
+  @@index([type])
+  @@index([isPinned])
+  @@index([createdAt])
+  @@map("group_topics")
+}
+
+// 小组话题评论
+model GroupTopicComment {
+  id String @id @default(cuid())
+  
+  // 关联
+  topicId String
+  topic   GroupTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  authorId String
+  author   User @relation(fields: [authorId], references: [id])
+  
+  // 回复
+  parentId String?
+  parent   GroupTopicComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies  GroupTopicComment[] @relation("CommentReplies")
+  
+  // 内容
+  content String @db.Text
+  
+  // 统计
+  likesCount Int @default(0)
+  
+  // 状态
+  status String @default("active") @db.VarChar(20)
+  
+  // 时间戳
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([topicId])
+  @@index([authorId])
+  @@index([parentId])
+  @@map("group_topic_comments")
+}
+
+// 小组话题点赞
+model GroupTopicLike {
+  id String @id @default(cuid())
+  
+  topicId String
+  topic   GroupTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([topicId, userId])
+  @@index([topicId])
+  @@index([userId])
+  @@map("group_topic_likes")
+}
+
+// 小组活动表
+model GroupActivity {
+  id String @id @default(cuid())
+  
+  // 关联小组
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  
+  // 组织者
+  organizerId String
+  organizer   User   @relation(fields: [organizerId], references: [id])
+  
+  // 基本信息
+  title       String  @db.VarChar(200)
+  description String  @db.Text
+  cover       String? @db.Text
+  
+  // 时间地点
+  startTime DateTime
+  endTime   DateTime
+  location  String   @db.VarChar(200)
+  isOnline  Boolean  @default(false)
+  onlineUrl String?  @db.Text
+  
+  // 报名设置
+  maxParticipants Int     @default(0)  // 0表示不限制
+  needApproval    Boolean @default(false)
+  registrationDeadline DateTime?
+  
+  // 统计
+  participantsCount Int @default(0)
+  
+  // 状态
+  status String @default("upcoming") @db.VarChar(20) // upcoming, ongoing, ended, cancelled
+  
+  // 时间戳
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // 关联
+  participants GroupActivityParticipant[]
+  
+  @@index([groupId])
+  @@index([organizerId])
+  @@index([startTime])
+  @@index([status])
+  @@map("group_activities")
+}
+
+// 小组活动参与者
+model GroupActivityParticipant {
+  id String @id @default(cuid())
+  
+  activityId String
+  activity   GroupActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // 状态
+  status     String   @default("registered") @db.VarChar(20) // registered, approved, rejected, checked_in, cancelled
+  checkedInAt DateTime?
+  
+  // 时间戳
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([activityId, userId])
+  @@index([activityId])
+  @@index([userId])
+  @@index([status])
+  @@map("group_activity_participants")
+}
+
+// 小组加入申请表
+model GroupJoinRequest {
+  id String @id @default(cuid())
+  
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // 申请信息
+  reason String? @db.Text
+  
+  // 处理信息
+  status      String   @default("pending") @db.VarChar(20) // pending, approved, rejected
+  handlerId   String?
+  handler     User?    @relation("JoinRequestHandler", fields: [handlerId], references: [id])
+  handleNote  String?  @db.Text
+  handledAt   DateTime?
+  
+  // 时间戳
+  createdAt DateTime @default(now())
+  
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+  @@index([status])
+  @@map("group_join_requests")
 }

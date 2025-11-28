@@ -1,0 +1,169 @@
+<view class="container">
+  <!-- 头部 -->
+  <view class="header">
+    <view class="header-content">
+      <view class="header-title">小组圈子</view>
+      <view class="header-desc">发现志同道合的伙伴</view>
+    </view>
+    <view class="create-btn" bindtap="goToCreate">
+      <text>➕</text>
+      <text>创建</text>
+    </view>
+  </view>
+
+  <!-- Tab切换 -->
+  <view class="tabs">
+    <view 
+      class="tab {{activeTab === 'discover' ? 'active' : ''}}" 
+      data-tab="discover"
+      bindtap="switchTab"
+    >
+      🔍 发现
+    </view>
+    <view 
+      class="tab {{activeTab === 'my' ? 'active' : ''}}" 
+      data-tab="my"
+      bindtap="switchTab"
+    >
+      👥 我的
+    </view>
+  </view>
+
+  <!-- 发现小组 -->
+  <view wx:if="{{activeTab === 'discover'}}">
+    <!-- 搜索框 -->
+    <view class="search-box">
+      <input 
+        class="search-input" 
+        placeholder="搜索小组" 
+        value="{{keyword}}"
+        bindinput="onSearchInput"
+        bindconfirm="onSearch"
+      />
+      <view class="search-btn" bindtap="onSearch">搜索</view>
+    </view>
+
+    <!-- 分类筛选 -->
+    <scroll-view class="categories" scroll-x>
+      <view 
+        wx:for="{{categories}}" 
+        wx:key="value"
+        class="category-item {{category === item.value ? 'active' : ''}}"
+        data-category="{{item.value}}"
+        bindtap="selectCategory"
+      >
+        {{item.icon}} {{item.label}}
+      </view>
+    </scroll-view>
+
+    <!-- 热门小组 -->
+    <view class="hot-section" wx:if="{{hotGroups.length > 0}}">
+      <view class="section-title">🔥 热门小组</view>
+      <scroll-view class="hot-list" scroll-x>
+        <view 
+          wx:for="{{hotGroups}}" 
+          wx:key="id" 
+          class="hot-item"
+          data-id="{{item.id}}"
+          bindtap="goToDetail"
+        >
+          <view class="hot-avatar">
+            <image wx:if="{{item.avatar}}" src="{{item.avatar}}" mode="aspectFill" />
+            <text wx:else>{{item.category === 'study' ? '📚' : item.category === 'tech' ? '💻' : '💬'}}</text>
+          </view>
+          <view class="hot-name">{{item.name}}</view>
+          <view class="hot-count">{{item.membersCount}}人</view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 小组列表 -->
+    <view class="group-list">
+      <view wx:if="{{loading && groups.length === 0}}" class="loading">
+        <view class="loading-item" wx:for="{{[1,2,3]}}" wx:key="*this"></view>
+      </view>
+
+      <view wx:elif="{{groups.length === 0}}" class="empty">
+        <text class="empty-icon">🔍</text>
+        <text class="empty-text">暂无小组</text>
+      </view>
+
+      <view wx:else>
+        <view 
+          wx:for="{{groups}}" 
+          wx:key="id" 
+          class="group-card"
+          data-id="{{item.id}}"
+          bindtap="goToDetail"
+        >
+          <view class="group-avatar">
+            <image wx:if="{{item.avatar}}" src="{{item.avatar}}" mode="aspectFill" />
+            <text wx:else class="avatar-icon">{{item.category === 'study' ? '📚' : item.category === 'tech' ? '💻' : item.category === 'interest' ? '🎨' : '💬'}}</text>
+          </view>
+          <view class="group-info">
+            <view class="group-name">{{item.name}}</view>
+            <view class="group-desc">{{item.description || '暂无简介'}}</view>
+            <view class="group-stats">
+              <text>👥 {{item.membersCount}}</text>
+              <text>📝 {{item.topicsCount}}</text>
+            </view>
+          </view>
+          <view wx:if="{{item.isJoined}}" class="joined-tag">已加入</view>
+          <view 
+            wx:else 
+            class="join-btn"
+            data-id="{{item.id}}"
+            data-need-approval="{{item.needApproval}}"
+            catchtap="joinGroup"
+          >
+            {{item.needApproval ? '申请' : '加入'}}
+          </view>
+        </view>
+
+        <view wx:if="{{loading}}" class="loading-more">加载中...</view>
+        <view wx:elif="{{!hasMore}}" class="no-more">没有更多了</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 我的小组 -->
+  <view wx:else class="my-groups">
+    <view wx:if="{{loading}}" class="loading">
+      <view class="loading-item" wx:for="{{[1,2,3]}}" wx:key="*this"></view>
+    </view>
+
+    <view wx:elif="{{myGroups.length === 0}}" class="empty">
+      <text class="empty-icon">👥</text>
+      <text class="empty-text">还没有加入任何小组</text>
+      <view class="empty-btn" bindtap="switchTab" data-tab="discover">去发现</view>
+    </view>
+
+    <view wx:else class="my-group-list">
+      <view 
+        wx:for="{{myGroups}}" 
+        wx:key="id" 
+        class="my-group-card"
+        data-id="{{item.id}}"
+        bindtap="goToDetail"
+      >
+        <view class="my-group-cover" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          <image wx:if="{{item.cover}}" src="{{item.cover}}" mode="aspectFill" />
+          <view class="role-tag {{item.myRole}}">
+            {{item.myRole === 'owner' ? '创建者' : item.myRole === 'admin' ? '管理员' : '成员'}}
+          </view>
+        </view>
+        <view class="my-group-avatar">
+          <image wx:if="{{item.avatar}}" src="{{item.avatar}}" mode="aspectFill" />
+          <text wx:else>{{item.category === 'study' ? '📚' : item.category === 'tech' ? '💻' : '💬'}}</text>
+        </view>
+        <view class="my-group-info">
+          <view class="my-group-name">{{item.name}}</view>
+          <view class="my-group-stats">
+            <text>👥 {{item.membersCount}}</text>
+            <text>📝 {{item.topicsCount}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

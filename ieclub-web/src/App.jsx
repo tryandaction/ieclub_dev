@@ -34,6 +34,8 @@ import About from './pages/About'
 import EditProfile from './pages/EditProfile'
 import PersonalCenter from './pages/PersonalCenter'
 import Messages from './pages/Messages'
+import Groups from './pages/Groups'
+import GroupDetail from './pages/GroupDetail'
 import useLoadingStore from './stores/loadingStore'
 
 function App() {
@@ -61,6 +63,8 @@ function App() {
             <Route path="community" element={<Community />} />
             <Route path="activities" element={<Activities />} />
             <Route path="activities/:id" element={<ActivityDetail />} />
+            <Route path="groups" element={<Groups />} />
+            <Route path="groups/:id" element={<GroupDetail />} />
             
             {/* 需要登录的页面 */}
             <Route path="publish" element={<ProtectedRoute><Publish /></ProtectedRoute>} />

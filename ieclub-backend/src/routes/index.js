@@ -135,5 +135,6 @@ router.use('/community', require('./community'));
 router.use('/activities', require('./activities'));
 router.use('/notifications', require('./notificationRoutes'));
 router.use('/messages', require('./message'));
+router.use('/groups', require('./groups'));
 
 module.exports = router;
