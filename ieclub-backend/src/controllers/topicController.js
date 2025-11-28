@@ -37,7 +37,9 @@ class TopicController {
       const take = parseInt(limit);
 
       // 构建查询条件（只使用数据库中最基本的字段）
-      const where = {};
+      const where = {
+        publishedAt: { not: null }, // 只查询已发布的话题（排除已删除的）
+      };
 
       if (category) {
         where.category = category;
