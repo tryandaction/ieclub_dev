@@ -676,12 +676,24 @@ export default function TopicDetail() {
             <div key={comment.id} className="space-y-4">
               {/* 主评论 */}
               <div className="flex space-x-3">
-                <div className="text-3xl flex-shrink-0">{comment.author.avatar}</div>
+                <div className="flex-shrink-0">
+                  {comment.author?.avatar?.startsWith('/') || comment.author?.avatar?.startsWith('http') ? (
+                    <img 
+                      src={comment.author.avatar.startsWith('http') ? comment.author.avatar : `https://ieclub.online${comment.author.avatar}`}
+                      alt=""
+                      className="w-10 h-10 rounded-full object-cover"
+                      onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                    />
+                  ) : null}
+                  <div className={`w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-white text-lg ${comment.author?.avatar?.startsWith('/') || comment.author?.avatar?.startsWith('http') ? 'hidden' : ''}`}>
+                    {(comment.author?.nickname || comment.author?.name || '用')[0]}
+                  </div>
+                </div>
                 <div className="flex-1">
                   <div className="bg-gray-50 rounded-2xl p-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
-                        <span className="font-bold text-gray-900">{comment.author.name}</span>
+                        <span className="font-bold text-gray-900">{comment.author?.nickname || comment.author?.name || '用户'}</span>
                         <span className="text-xs bg-gradient-primary text-white px-2 py-1 rounded-full">
                           LV{comment.author.level}
                         </span>
@@ -722,12 +734,24 @@ export default function TopicDetail() {
                     <div className="mt-4 space-y-3 pl-4 border-l-2 border-gray-200">
                       {comment.replies.map((reply) => (
                         <div key={reply.id} className="flex space-x-3">
-                          <div className="text-2xl flex-shrink-0">{reply.author.avatar}</div>
+                          <div className="flex-shrink-0">
+                            {reply.author?.avatar?.startsWith('/') || reply.author?.avatar?.startsWith('http') ? (
+                              <img 
+                                src={reply.author.avatar.startsWith('http') ? reply.author.avatar : `https://ieclub.online${reply.author.avatar}`}
+                                alt=""
+                                className="w-8 h-8 rounded-full object-cover"
+                                onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                              />
+                            ) : null}
+                            <div className={`w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center text-white text-sm ${reply.author?.avatar?.startsWith('/') || reply.author?.avatar?.startsWith('http') ? 'hidden' : ''}`}>
+                              {(reply.author?.nickname || reply.author?.name || '用')[0]}
+                            </div>
+                          </div>
                           <div className="flex-1">
                             <div className="bg-white rounded-xl p-3 border border-gray-200">
                               <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center space-x-2 text-sm">
-                                  <span className="font-bold text-gray-900">{reply.author.name}</span>
+                                  <span className="font-bold text-gray-900">{reply.author?.nickname || reply.author?.name || '用户'}</span>
                                   {reply.replyTo && (
                                     <>
                                       <span className="text-gray-400">回复</span>
