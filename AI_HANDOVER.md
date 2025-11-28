@@ -1,11 +1,11 @@
 # 🤖 AI开发助手提示词 - IEclub项目
 
-> **交接时间**: 2025-01-28 19:00  
-> **当前版本**: V3.6 - 审计日志完善 🚀  
-> **代码状态**: ✅ 管理后台全部功能完成  
+> **交接时间**: 2025-11-28 21:00  
+> **当前版本**: V4.0 - 小组圈子功能 🚀  
+> **代码状态**: ✅ 小组功能开发完成  
 > **Git分支**: main (生产)  
-> **部署状态**: ✅ 生产环境稳定运行  
-> **最新工作**: 审计日志完善 - 日志列表、详情、统计、导出
+> **部署状态**: ✅ 生产环境已部署  
+> **最新工作**: 小组圈子 - 创建/加入小组、话题发布、成员管理
 
 ---
 
@@ -28,7 +28,53 @@
 
 ---
 
-## 🎉 最新完成 (2025-01-28 19:00)
+## 🎉 最新完成 (2025-11-28 21:00)
+
+### ✅ V4.0 小组圈子功能
+
+**1. 数据模型（新增）**
+- ✅ `Group` - 小组表（名称、描述、分类、设置）
+- ✅ `GroupMember` - 小组成员表（角色：owner/admin/member）
+- ✅ `GroupTopic` - 小组话题表
+- ✅ `GroupTopicComment` - 小组话题评论
+- ✅ `GroupTopicLike` - 小组话题点赞
+- ✅ `GroupActivity` - 小组活动表
+- ✅ `GroupActivityParticipant` - 小组活动参与者
+- ✅ `GroupJoinRequest` - 加入申请表
+
+**2. 后端 API（新增）**
+- ✅ `GET /groups` - 小组列表（分页、分类筛选、搜索）
+- ✅ `GET /groups/hot` - 热门小组
+- ✅ `GET /groups/categories` - 小组分类
+- ✅ `GET /groups/me/list` - 我的小组
+- ✅ `GET /groups/:id` - 小组详情
+- ✅ `POST /groups` - 创建小组
+- ✅ `PUT /groups/:id` - 更新小组
+- ✅ `POST /groups/:id/join` - 加入小组
+- ✅ `POST /groups/:id/leave` - 退出小组
+- ✅ `GET /groups/:id/members` - 成员列表
+- ✅ `GET /groups/:id/topics` - 话题列表
+- ✅ `POST /groups/:id/topics` - 发布话题
+- ✅ `POST /groups/:id/requests/:requestId/handle` - 处理加入申请
+
+**3. 网页端（新增）**
+- ✅ `Groups.jsx` - 小组列表页（发现/我的Tab、分类筛选、搜索）
+- ✅ `GroupDetail.jsx` - 小组详情页（信息、话题、成员）
+- ✅ 创建小组弹窗
+- ✅ 发布话题弹窗
+
+**4. 小程序端（新增）**
+- ✅ `pages/groups/` - 小组列表页
+- ✅ `pages/group-detail/` - 小组详情页
+
+**5. 小组分类**
+- 📚 学习交流、💻 技术开发、💼 职业发展
+- 🎨 兴趣爱好、🏠 校园生活、⚽ 运动健身
+- 🎮 游戏娱乐、💬 综合讨论
+
+---
+
+## 🎉 之前完成 (2025-01-28 19:00)
 
 ### ✅ V3.6 审计日志完善
 
