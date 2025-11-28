@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { request } from '../utils/request';
+import request from '../utils/request';
 import { showToast } from '../utils/toast';
 
 // 分类配置
