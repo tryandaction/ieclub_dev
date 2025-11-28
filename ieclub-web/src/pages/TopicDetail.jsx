@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getTopicDetail, toggleLike, toggleBookmark } from '../api/topic'
+import { getTopicDetail, toggleLike, toggleBookmark, deleteTopic } from '../api/topic'
 import { getComments, createComment, deleteComment, toggleCommentLike } from '../api/comment'
 import { showToast } from '../components/Toast'
 import { TopicDetailSkeleton, CommentListSkeleton } from '../components/Skeleton'
@@ -83,6 +83,12 @@ export default function TopicDetail() {
   const [commentContent, setCommentContent] = useState('')
   const [replyTo, setReplyTo] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  // 获取当前登录用户
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+  const isAuthor = currentUser.id && topic.author?.id === currentUser.id
 
   // 加载话题详情
   useEffect(() => {
@@ -322,6 +328,24 @@ export default function TopicDetail() {
     }
   }
 
+  // 删除话题
+  const handleDeleteTopic = async () => {
+    if (deleting) return
+    
+    try {
+      setDeleting(true)
+      await deleteTopic(id)
+      showToast('话题已删除', 'success')
+      navigate('/', { replace: true })
+    } catch (error) {
+      console.error('删除话题失败:', error)
+      showToast(error.response?.data?.message || '删除失败，请稍后重试', 'error')
+    } finally {
+      setDeleting(false)
+      setShowDeleteConfirm(false)
+    }
+  }
+
   if (loading) {
     return <TopicDetailSkeleton />
   }
@@ -384,11 +408,48 @@ export default function TopicDetail() {
                 </p>
               </div>
             </div>
-            <button className="px-6 py-2 bg-gradient-primary text-white rounded-full hover:shadow-lg transition-all">
-              关注
-            </button>
+            <div className="flex items-center space-x-2">
+              {isAuthor ? (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="px-6 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 hover:shadow-lg transition-all"
+                >
+                  🗑️ 删除
+                </button>
+              ) : (
+                <button className="px-6 py-2 bg-gradient-primary text-white rounded-full hover:shadow-lg transition-all">
+                  关注
+                </button>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* 删除确认弹窗 */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-6 max-w-sm mx-4 shadow-2xl">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">确认删除</h3>
+              <p className="text-gray-600 mb-6">删除后将无法恢复，确定要删除这个话题吗？</p>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors"
+                  disabled={deleting}
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleDeleteTopic}
+                  className="flex-1 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors disabled:opacity-50"
+                  disabled={deleting}
+                >
+                  {deleting ? '删除中...' : '确认删除'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 内容 */}
         <div className="p-6 border-b">
