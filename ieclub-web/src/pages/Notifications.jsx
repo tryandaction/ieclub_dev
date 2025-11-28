@@ -92,6 +92,24 @@ export default function Notifications() {
       bgColor: 'bg-gray-50',
       label: '系统',
     },
+    activity_reminder: {
+      icon: '⏰',
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      label: '活动提醒',
+    },
+    activity_started: {
+      icon: '🎬',
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      label: '活动开始',
+    },
+    activity_cancelled: {
+      icon: '❌',
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+      label: '活动取消',
+    },
   }
 
   useEffect(() => {

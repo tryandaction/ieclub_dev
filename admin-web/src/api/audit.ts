@@ -15,8 +15,9 @@ export const auditApi = {
 
   // 导出日志
   exportLogs: (params?: any) => {
-    return http.post('/admin/audit/logs/export', params, {
-      responseType: 'blob',
+    return http.get('/admin/audit/logs/export', { 
+      params,
+      responseType: 'blob' 
     });
   },
 

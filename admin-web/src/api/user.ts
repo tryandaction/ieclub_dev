@@ -19,47 +19,47 @@ export const userApi = {
     minLevel?: number;
     maxLevel?: number;
   }) => {
-    return http.get<PaginationResponse<User>>('/users', { params });
+    return http.get<PaginationResponse<User>>('/admin/users', { params });
   },
 
   // 获取用户详情
   get: (id: string) => {
-    return http.get<UserDetail>(`/users/${id}`);
+    return http.get<UserDetail>(`/admin/users/${id}`);
   },
 
   // 更新用户信息
   update: (id: string, data: Partial<User>) => {
-    return http.put<User>(`/users/${id}`, data);
+    return http.put<User>(`/admin/users/${id}`, data);
   },
 
   // 警告用户
   warn: (id: string, data: WarnUserRequest) => {
-    return http.post(`/users/${id}/warn`, data);
+    return http.post(`/admin/users/${id}/warn`, data);
   },
 
   // 封禁用户
   ban: (id: string, data: BanUserRequest) => {
-    return http.post(`/users/${id}/ban`, data);
+    return http.post(`/admin/users/${id}/ban`, data);
   },
 
   // 解封用户
   unban: (id: string, data: UnbanUserRequest) => {
-    return http.post(`/users/${id}/unban`, data);
+    return http.post(`/admin/users/${id}/unban`, data);
   },
 
   // 删除用户
   delete: (id: string) => {
-    return http.delete(`/users/${id}`);
+    return http.delete(`/admin/users/${id}`);
   },
 
   // 获取用户警告记录
   getWarnings: (userId: string, params?: PaginationParams) => {
-    return http.get(`/users/${userId}/warnings`, { params });
+    return http.get(`/admin/users/${userId}/warnings`, { params });
   },
 
   // 获取用户封禁记录
   getBans: (userId: string, params?: PaginationParams) => {
-    return http.get(`/users/${userId}/bans`, { params });
+    return http.get(`/admin/users/${userId}/bans`, { params });
   },
 };
 

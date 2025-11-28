@@ -31,11 +31,13 @@ import {
   StarOutlined,
   MessageOutlined,
   LikeOutlined,
+  CalendarOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { formatDateTime, formatRelativeTime, formatNumber } from '@/utils/format';
 import { hasPermission } from '@/utils/auth';
 import { useAppSelector } from '@/store/hooks';
+import { contentApi } from '@/api/content';
 import './index.less';
 
 const { TextArea } = Input;
@@ -114,20 +116,17 @@ const Content: React.FC = () => {
     }
   }, [activeTab, postsFilters, topicsFilters]);
 
-  // 获取帖子列表
+  // 获取帖子列表（话题列表，在本系统中帖子=话题）
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      // TODO: 调用API获取帖子列表
-      // const response = await contentApi.getPosts(postsFilters);
-      // setPosts(response.data.list);
-      // setPostsTotal(response.data.total);
-      
-      // 模拟数据
-      setPosts([]);
-      setPostsTotal(0);
+      const response = await contentApi.getTopics(postsFilters);
+      const data = response.data?.data || response.data;
+      setPosts(data?.list || []);
+      setPostsTotal(data?.total || 0);
     } catch (error) {
-      message.error('获取帖子列表失败');
+      console.error('获取内容列表失败:', error);
+      message.error('获取内容列表失败');
     } finally {
       setLoading(false);
     }
@@ -137,15 +136,12 @@ const Content: React.FC = () => {
   const fetchTopics = async () => {
     try {
       setLoading(true);
-      // TODO: 调用API获取话题列表
-      // const response = await contentApi.getTopics(topicsFilters);
-      // setTopics(response.data.list);
-      // setTopicsTotal(response.data.total);
-      
-      // 模拟数据
-      setTopics([]);
-      setTopicsTotal(0);
+      const response = await contentApi.getTopics(topicsFilters);
+      const data = response.data?.data || response.data;
+      setTopics(data?.list || []);
+      setTopicsTotal(data?.total || 0);
     } catch (error) {
+      console.error('获取话题列表失败:', error);
       message.error('获取话题列表失败');
     } finally {
       setLoading(false);
@@ -159,7 +155,7 @@ const Content: React.FC = () => {
   };
 
   // 删除内容
-  const handleDelete = (id: number, type: 'post' | 'topic') => {
+  const handleDelete = (id: number | string, type: 'post' | 'topic') => {
     Modal.confirm({
       title: `确认删除此${type === 'post' ? '帖子' : '话题'}？`,
       content: '删除后无法恢复',
@@ -168,7 +164,7 @@ const Content: React.FC = () => {
       okType: 'danger',
       onOk: async () => {
         try {
-          // TODO: 调用删除API
+          await contentApi.deleteTopic(id as number);
           message.success('删除成功');
           if (type === 'post') {
             fetchPosts();
@@ -176,6 +172,7 @@ const Content: React.FC = () => {
             fetchTopics();
           }
         } catch (error) {
+          console.error('删除失败:', error);
           message.error('删除失败');
         }
       },
@@ -183,9 +180,9 @@ const Content: React.FC = () => {
   };
 
   // 锁定/解锁内容
-  const handleToggleLock = async (id: number, type: 'post' | 'topic', isLocked: boolean) => {
+  const handleToggleLock = async (id: number | string, type: 'post' | 'topic', isLocked: boolean) => {
     try {
-      // TODO: 调用API
+      await contentApi.toggleTopicLock(id as number, !isLocked);
       message.success(isLocked ? '已解锁' : '已锁定');
       if (type === 'post') {
         fetchPosts();
@@ -193,6 +190,7 @@ const Content: React.FC = () => {
         fetchTopics();
       }
     } catch (error) {
+      console.error('操作失败:', error);
       message.error('操作失败');
     }
   };

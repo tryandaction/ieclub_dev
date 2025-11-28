@@ -18,6 +18,7 @@ import Community from './pages/Community'
 import Activities from './pages/Activities'
 import ActivityDetail from './pages/ActivityDetail'
 import Publish from './pages/Publish'
+import PublishActivity from './pages/PublishActivity'
 import Profile from './pages/Profile'
 import Notifications from './pages/Notifications'
 import Feedback from './pages/Feedback'
@@ -63,6 +64,7 @@ function App() {
             
             {/* 需要登录的页面 */}
             <Route path="publish" element={<ProtectedRoute><Publish /></ProtectedRoute>} />
+            <Route path="publish-activity" element={<ProtectedRoute><PublishActivity /></ProtectedRoute>} />
             <Route path="profile/:userId" element={<Profile />} />
             <Route path="my-topics" element={<ProtectedRoute><MyTopics /></ProtectedRoute>} />
             <Route path="my-favorites" element={<ProtectedRoute><MyFavorites /></ProtectedRoute>} />

@@ -277,6 +277,18 @@ class TopicController {
         topicType = 'discussion',
         images,
         tags,
+        // 我来讲/我想听 专属字段
+        duration,
+        targetAudience,
+        threshold,
+        // 项目专属字段
+        projectStage,
+        teamSize,
+        lookingForRoles,
+        skillsNeeded,
+        website,
+        github,
+        contactInfo,
       } = req.body;
 
       // 验证必填字段
@@ -295,6 +307,11 @@ class TopicController {
 
       if (content.length < config.business.topic.contentMinLength) {
         throw new AppError('VALIDATION_INVALID_FORMAT', `内容至少 ${config.business.topic.contentMinLength} 个字符`);
+      }
+
+      // 项目类型必须选择项目阶段
+      if (topicType === 'project' && !projectStage) {
+        throw new AppError('VALIDATION_REQUIRED_FIELD', '项目类型必须选择项目阶段');
       }
 
       // 内容安全检测（包装错误处理）
@@ -325,19 +342,55 @@ class TopicController {
         tagsJson = typeof tags === 'string' ? tags : JSON.stringify(tags);
       }
 
-      // 创建话题（只使用数据库中存在的字段）
+      // 处理数组字段（转为JSON）
+      let lookingForRolesJson = null;
+      let skillsNeededJson = null;
+
+      if (lookingForRoles && Array.isArray(lookingForRoles) && lookingForRoles.length > 0) {
+        lookingForRolesJson = lookingForRoles;
+      }
+
+      if (skillsNeeded && Array.isArray(skillsNeeded) && skillsNeeded.length > 0) {
+        skillsNeededJson = JSON.stringify(skillsNeeded);
+      }
+
+      // 构建话题数据
+      const topicData = {
+        authorId: req.userId,
+        title,
+        content,
+        contentType,
+        category,
+        topicType,
+        images: imagesJson,
+        tags: tagsJson,
+        publishedAt: new Date(),
+      };
+
+      // 根据类型添加专属字段
+      // 我来讲(offer) / 我想听(demand) 专属字段
+      if (topicType === 'offer' || topicType === 'demand') {
+        if (duration) topicData.duration = duration;
+        if (targetAudience) topicData.targetAudience = targetAudience;
+        if (topicType === 'offer' && threshold) {
+          topicData.threshold = parseInt(threshold) || 15;
+        }
+      }
+
+      // 项目(project) 专属字段
+      if (topicType === 'project') {
+        if (projectStage) topicData.projectStage = projectStage;
+        if (teamSize) topicData.teamSize = parseInt(teamSize) || null;
+        if (lookingForRolesJson) topicData.lookingForRoles = lookingForRolesJson;
+        if (skillsNeededJson) topicData.skillsNeeded = skillsNeededJson;
+        if (website) topicData.website = website;
+        if (github) topicData.github = github;
+        if (contactInfo) topicData.contactInfo = contactInfo;
+      }
+
+      // 创建话题
       const topic = await prisma.topic.create({
-        data: {
-          authorId: req.userId,
-          title,
-          content,
-          contentType,
-          category,
-          topicType,
-          images: imagesJson,
-          tags: tagsJson,
-          publishedAt: new Date(), // 设置发布时间表示已发布
-        },
+        data: topicData,
         include: {
           author: {
             select: {

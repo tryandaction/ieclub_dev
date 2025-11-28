@@ -95,6 +95,21 @@ mixinPage({
   },
 
   /**
+   * 跳转发布活动页面
+   */
+  goPublishActivity() {
+    const token = wx.getStorageSync('token')
+    if (!token) {
+      wx.showToast({ title: '请先登录', icon: 'none' })
+      setTimeout(() => {
+        wx.navigateTo({ url: '/pages/login/index' })
+      }, 1500)
+      return
+    }
+    wx.navigateTo({ url: '/pages/publish-activity/index' })
+  },
+
+  /**
    * 点击活动卡片
    */
   onActivityTap(e) {

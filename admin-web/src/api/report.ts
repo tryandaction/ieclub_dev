@@ -24,7 +24,7 @@ export const reportApi = {
   },
 
   // 处理举报
-  handleReport: (id: number, data: { action: 'approve' | 'reject'; note: string }) => {
+  handleReport: (id: number | string, data: { action: 'approve' | 'reject'; note: string }) => {
     return http.post<Report>(`/admin/reports/${id}/handle`, data);
   },
 

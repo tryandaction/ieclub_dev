@@ -60,9 +60,9 @@ export const fetchUserDetail = createAsyncThunk(
 // 用户操作相关的异步thunks
 export const banUser = createAsyncThunk(
   'user/ban',
-  async (id: number | string, { rejectWithValue }) => {
+  async ({ id, data }: { id: number | string; data: { duration: number; reason: string } }, { rejectWithValue }) => {
     try {
-      await userApi.ban(String(id), { reason: '违规', duration: 7, notifyUser: true });
+      await userApi.ban(String(id), { ...data, notifyUser: true });
       return id;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || '封禁用户失败');
@@ -84,9 +84,19 @@ export const unbanUser = createAsyncThunk(
 
 export const warnUser = createAsyncThunk(
   'user/warn',
-  async (id: number | string, { rejectWithValue }) => {
+  async ({ id, data }: { id: number | string; data: { level: number; reason: string } }, { rejectWithValue }) => {
     try {
-      await userApi.warn(String(id), { reason: '违规警告', content: '请注意言行', level: 'minor' });
+      // 转换数字级别为字符串
+      const levelMap: Record<number, 'minor' | 'serious' | 'final'> = {
+        1: 'minor',
+        2: 'serious', 
+        3: 'final'
+      };
+      await userApi.warn(String(id), { 
+        reason: data.reason,
+        content: data.reason,
+        level: levelMap[data.level] || 'minor'
+      });
       return id;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || '警告用户失败');

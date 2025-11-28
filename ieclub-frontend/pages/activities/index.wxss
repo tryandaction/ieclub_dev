@@ -38,9 +38,33 @@
   line-height: 1.4;
 }
 
-.header-icon {
-  font-size: 80rpx;
-  line-height: 1;
+.header-actions {
+  display: flex;
+  align-items: center;
+}
+
+.publish-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 16rpx 24rpx;
+  border-radius: 40rpx;
+}
+
+.publish-btn-hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.publish-icon {
+  font-size: 28rpx;
+  color: #ffffff;
+}
+
+.publish-text {
+  font-size: 26rpx;
+  color: #ffffff;
+  font-weight: 500;
 }
 
 /* ========== 标签栏 ========== */

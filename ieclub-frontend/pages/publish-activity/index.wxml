@@ -1,0 +1,150 @@
+<!--pages/publish-activity/index.wxml-->
+<view class="publish-activity-page">
+  <!-- 标题 -->
+  <view class="header">
+    <text class="header-icon">🎉</text>
+    <view class="header-text">
+      <text class="header-title">发布新活动</text>
+      <text class="header-desc">创建精彩活动，邀请小伙伴参与</text>
+    </view>
+  </view>
+
+  <!-- 表单 -->
+  <view class="form">
+    <!-- 活动标题 -->
+    <view class="form-section">
+      <view class="form-item">
+        <text class="form-label">活动标题 <text class="required">*</text></text>
+        <input 
+          class="form-input" 
+          placeholder="请输入活动标题（5-50字）"
+          value="{{title}}"
+          bindinput="onTitleInput"
+          maxlength="50"
+        />
+        <text class="form-count">{{title.length}}/50</text>
+      </view>
+    </view>
+
+    <!-- 活动描述 -->
+    <view class="form-section">
+      <view class="form-item">
+        <text class="form-label">活动描述 <text class="required">*</text></text>
+        <textarea 
+          class="form-textarea" 
+          placeholder="详细介绍活动内容、流程、注意事项..."
+          value="{{description}}"
+          bindinput="onDescriptionInput"
+          maxlength="2000"
+        />
+        <text class="form-count">{{description.length}}/2000</text>
+      </view>
+    </view>
+
+    <!-- 活动分类 -->
+    <view class="form-section">
+      <text class="section-title">📂 活动分类 <text class="required">*</text></text>
+      <view class="category-grid">
+        <view 
+          wx:for="{{categoryOptions}}" 
+          wx:key="value"
+          class="category-item {{category === item.value ? 'active' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="selectCategory"
+        >
+          <text class="category-icon">{{item.icon}}</text>
+          <text class="category-label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 活动地点 -->
+    <view class="form-section">
+      <view class="form-item">
+        <text class="form-label">活动地点 <text class="required">*</text></text>
+        <input 
+          class="form-input" 
+          placeholder="例如：图书馆301室、操场、线上会议"
+          value="{{location}}"
+          bindinput="onLocationInput"
+        />
+      </view>
+    </view>
+
+    <!-- 活动时间 -->
+    <view class="form-section">
+      <text class="section-title">📅 活动时间 <text class="required">*</text></text>
+      
+      <view class="time-row">
+        <view class="time-item">
+          <text class="time-label">开始时间</text>
+          <picker mode="date" value="{{startDate}}" start="{{today}}" bindchange="onStartDateChange">
+            <view class="picker-value">{{startDate || '选择日期'}}</view>
+          </picker>
+          <picker mode="time" value="{{startTime}}" bindchange="onStartTimeChange">
+            <view class="picker-value">{{startTime || '选择时间'}}</view>
+          </picker>
+        </view>
+      </view>
+      
+      <view class="time-row">
+        <view class="time-item">
+          <text class="time-label">结束时间</text>
+          <picker mode="date" value="{{endDate}}" start="{{startDate || today}}" bindchange="onEndDateChange">
+            <view class="picker-value">{{endDate || '选择日期'}}</view>
+          </picker>
+          <picker mode="time" value="{{endTime}}" bindchange="onEndTimeChange">
+            <view class="picker-value">{{endTime || '选择时间'}}</view>
+          </picker>
+        </view>
+      </view>
+    </view>
+
+    <!-- 人数限制 -->
+    <view class="form-section">
+      <view class="form-item">
+        <text class="form-label">人数限制</text>
+        <input 
+          class="form-input" 
+          type="number"
+          placeholder="不填则不限制人数"
+          value="{{maxParticipants}}"
+          bindinput="onMaxParticipantsInput"
+        />
+        <text class="form-hint">设置为0或留空表示不限制</text>
+      </view>
+    </view>
+
+    <!-- 活动标签 -->
+    <view class="form-section">
+      <text class="section-title">🏷️ 活动标签</text>
+      <view class="tag-input-group">
+        <input 
+          class="tag-input" 
+          placeholder="输入标签后点击添加"
+          value="{{tagInput}}"
+          bindinput="onTagInput"
+          bindconfirm="addTag"
+        />
+        <button class="tag-add-btn" bindtap="addTag">添加</button>
+      </view>
+      <view class="tags-list" wx:if="{{tags.length > 0}}">
+        <view class="tag-item" wx:for="{{tags}}" wx:key="*this">
+          <text>{{item}}</text>
+          <text class="tag-remove" data-index="{{index}}" bindtap="removeTag">×</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 发布按钮 -->
+    <view class="submit-section">
+      <button 
+        class="submit-btn {{submitting ? 'disabled' : ''}}"
+        bindtap="handleSubmit"
+        disabled="{{submitting}}"
+      >
+        {{submitting ? '发布中...' : '发布活动 🎉'}}
+      </button>
+    </view>
+  </view>
+</view>

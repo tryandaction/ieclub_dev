@@ -114,3 +114,15 @@ exports.successResponse = (data = null, message = '操作成功') => {
     timestamp: Date.now(),
   };
 };
+
+/**
+ * 错误响应（返回数据对象）
+ */
+exports.errorResponse = (message = '操作失败', code = 400) => {
+  return {
+    success: false,
+    code,
+    message,
+    timestamp: Date.now(),
+  };
+};

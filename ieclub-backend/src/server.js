@@ -6,6 +6,7 @@ const config = require('./config');
 const logger = require('./utils/logger');
 const { getRedis } = require('./utils/redis');
 const { fullStartupCheck } = require('./utils/startupCheck');
+const { initActivityReminderJob } = require('./jobs/activityReminderJob');
 
 // 启动服务器
 async function startServer() {
@@ -32,6 +33,9 @@ async function startServer() {
       logger.info(`🔗 API 地址: http://localhost:${config.port}/api`);
       logger.info(`💊 健康检查: http://localhost:${config.port}/api/health`);
       console.log(`✅ Server is running on port ${config.port}`);
+      
+      // 初始化活动提醒定时任务
+      initActivityReminderJob();
     });
 
     // 设置服务器超时

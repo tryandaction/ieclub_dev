@@ -26,7 +26,11 @@
     "pages/settings/account-binding/index",
     "pages/notifications/index",
     "pages/messages/index",
-    "pages/chat/index"
+    "pages/chat/index",
+    "pages/publish-activity/index",
+    "pages/activity-detail/activity-detail",
+    "pages/qrcode-display/qrcode-display",
+    "pages/checkin-stats/checkin-stats"
   ],
   "window": {
     "backgroundTextStyle": "light",

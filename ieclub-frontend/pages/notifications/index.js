@@ -11,7 +11,10 @@ const typeConfig = {
   topic_threshold_reached: { icon: '🎉', color: '#10b981', label: '成团' },
   project_interest: { icon: '🚀', color: '#10b981', label: '感兴趣' },
   match: { icon: '✨', color: '#f59e0b', label: '匹配' },
-  system: { icon: '🔔', color: '#6b7280', label: '系统' }
+  system: { icon: '🔔', color: '#6b7280', label: '系统' },
+  activity_reminder: { icon: '⏰', color: '#f97316', label: '活动提醒' },
+  activity_started: { icon: '🎬', color: '#22c55e', label: '活动开始' },
+  activity_cancelled: { icon: '❌', color: '#ef4444', label: '活动取消' }
 }
 
 Page({

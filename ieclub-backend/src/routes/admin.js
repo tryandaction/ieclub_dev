@@ -21,6 +21,9 @@ const announcementController = require('../controllers/admin/announcementControl
 const userManagementController = require('../controllers/admin/userManagementController');
 const statsController = require('../controllers/admin/statsController');
 const emailWhitelistController = require('../controllers/admin/emailWhitelistController');
+const contentController = require('../controllers/admin/contentController');
+const reportController = require('../controllers/admin/reportController');
+const auditController = require('../controllers/admin/auditController');
 
 // ==================== 认证路由 ====================
 // 登录
@@ -194,118 +197,58 @@ router.get(
   '/reports',
   authenticateAdmin,
   requirePermission(ADMIN_PERMISSIONS.REPORT_READ),
-  async (req, res) => {
-    try {
-      const { page = 1, pageSize = 10, status, type } = req.query;
-      
-      // 这里返回空列表，实际实现需要查询数据库
-      res.json({
-        code: 0,
-        message: '获取成功',
-        data: {
-          reports: [],
-          total: 0,
-          page: parseInt(page),
-          pageSize: parseInt(pageSize),
-        },
-      });
-    } catch (error) {
-      res.status(500).json({
-        code: 500,
-        message: error.message,
-      });
-    }
-  }
+  reportController.getReports
+);
+
+router.get(
+  '/reports/stats',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.REPORT_READ),
+  reportController.getReportStats
 );
 
 router.get(
   '/reports/:id',
   authenticateAdmin,
   requirePermission(ADMIN_PERMISSIONS.REPORT_READ),
-  async (req, res) => {
-    try {
-      res.json({
-        code: 0,
-        message: '获取成功',
-        data: null,
-      });
-    } catch (error) {
-      res.status(500).json({
-        code: 500,
-        message: error.message,
-      });
-    }
-  }
+  reportController.getReportDetail
 );
 
-router.put(
+router.post(
   '/reports/:id/handle',
   authenticateAdmin,
   requirePermission(ADMIN_PERMISSIONS.REPORT_HANDLE),
   logAdminAction('handle', 'report'),
-  async (req, res) => {
-    try {
-      res.json({
-        code: 0,
-        message: '处理成功',
-        data: null,
-      });
-    } catch (error) {
-      res.status(500).json({
-        code: 500,
-        message: error.message,
-      });
-    }
-  }
+  reportController.handleReport
 );
 
 // ==================== 审计日志路由 ====================
 router.get(
   '/audit/logs',
   authenticateAdmin,
-  requirePermission(ADMIN_PERMISSIONS.AUDIT_READ),
-  async (req, res) => {
-    try {
-      const { page = 1, pageSize = 10 } = req.query;
-      
-      // 这里返回空列表，实际实现需要查询数据库
-      res.json({
-        code: 0,
-        message: '获取成功',
-        data: {
-          logs: [],
-          total: 0,
-          page: parseInt(page),
-          pageSize: parseInt(pageSize),
-        },
-      });
-    } catch (error) {
-      res.status(500).json({
-        code: 500,
-        message: error.message,
-      });
-    }
-  }
+  requirePermission(ADMIN_PERMISSIONS.AUDIT_LOG_VIEW),
+  auditController.getLogs
+);
+
+router.get(
+  '/audit/stats',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.AUDIT_LOG_VIEW),
+  auditController.getStats
+);
+
+router.get(
+  '/audit/logs/export',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.AUDIT_LOG_VIEW),
+  auditController.exportLogs
 );
 
 router.get(
   '/audit/logs/:id',
   authenticateAdmin,
-  requirePermission(ADMIN_PERMISSIONS.AUDIT_READ),
-  async (req, res) => {
-    try {
-      res.json({
-        code: 0,
-        message: '获取成功',
-        data: null,
-      });
-    } catch (error) {
-      res.status(500).json({
-        code: 500,
-        message: error.message,
-      });
-    }
-  }
+  requirePermission(ADMIN_PERMISSIONS.AUDIT_LOG_VIEW),
+  auditController.getLogDetail
 );
 
 // ==================== 邮箱白名单管理路由（测试环境） ====================
@@ -361,6 +304,66 @@ router.post(
   requirePermission(ADMIN_PERMISSIONS.USER_UPDATE),
   logAdminAction('batch_approve', 'email_whitelist'),
   emailWhitelistController.batchApprove
+);
+
+// ==================== 内容管理路由 ====================
+// 话题列表
+router.get(
+  '/content/topics',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.TOPIC_READ),
+  contentController.getTopics
+);
+
+// 话题详情
+router.get(
+  '/content/topics/:id',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.TOPIC_READ),
+  contentController.getTopicDetail
+);
+
+// 删除话题
+router.delete(
+  '/content/topics/:id',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.TOPIC_DELETE),
+  logAdminAction('delete', 'topic'),
+  contentController.deleteTopic
+);
+
+// 锁定/解锁话题
+router.put(
+  '/content/topics/:id/lock',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.TOPIC_UPDATE),
+  logAdminAction('lock', 'topic'),
+  contentController.toggleTopicLock
+);
+
+// 活动列表
+router.get(
+  '/content/activities',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.TOPIC_READ),
+  contentController.getActivities
+);
+
+// 删除活动
+router.delete(
+  '/content/activities/:id',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.TOPIC_DELETE),
+  logAdminAction('delete', 'activity'),
+  contentController.deleteActivity
+);
+
+// 内容统计
+router.get(
+  '/content/stats',
+  authenticateAdmin,
+  requirePermission(ADMIN_PERMISSIONS.STATS_VIEW),
+  contentController.getContentStats
 );
 
 module.exports = router;

@@ -6,7 +6,12 @@
       <text class="header-title">精彩活动</text>
       <text class="header-subtitle">参与活动，收获成长</text>
     </view>
-    <view class="header-icon">🎉</view>
+    <view class="header-actions">
+      <view class="publish-btn" bindtap="goPublishActivity" hover-class="publish-btn-hover">
+        <text class="publish-icon">➕</text>
+        <text class="publish-text">发布</text>
+      </view>
+    </view>
   </view>
 
   <!-- 状态标签 -->
