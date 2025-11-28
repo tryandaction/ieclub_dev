@@ -174,7 +174,7 @@ export default function TopicDetail() {
     }
 
     try {
-      const res = await fetch(`https://ieclub.online/api/v1/topics/${id}/quick-action`, {
+      const res = await fetch(`https://ieclub.online/api/topics/${id}/quick-action`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

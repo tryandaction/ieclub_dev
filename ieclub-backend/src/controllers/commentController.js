@@ -52,7 +52,7 @@ class CommentController {
       const prisma = require('../config/database');
       
       const userCommentsCount = await prisma.comment.count({
-        where: { userId },
+        where: { authorId: userId },
       });
       
       if (userCommentsCount === 1) {

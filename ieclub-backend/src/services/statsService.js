@@ -46,7 +46,7 @@ class StatsService {
         where: { authorId: userId, publishedAt: { not: null } }
       }),
       prisma.comment.count({
-        where: { userId }
+        where: { authorId: userId }
       }),
       prisma.like.count({
         where: { userId }
@@ -366,7 +366,7 @@ class StatsService {
       }),
       prisma.comment.count({
         where: {
-          userId,
+          authorId: userId,
           createdAt: { gte: sevenDaysAgo }
         }
       }),
@@ -384,7 +384,7 @@ class StatsService {
           }),
       prisma.comment.count({
             where: {
-          userId,
+          authorId: userId,
           createdAt: { gte: thirtyDaysAgo }
         }
       }),

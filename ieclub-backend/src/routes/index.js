@@ -56,6 +56,7 @@ router.put('/topics/:id', authenticate, topicController.updateTopic);
 router.delete('/topics/:id', authenticate, topicController.deleteTopic);
 router.post('/topics/:id/like', authenticate, topicController.toggleLike);
 router.post('/topics/:id/bookmark', authenticate, topicController.toggleBookmark);
+router.post('/topics/:id/quick-action', authenticate, topicController.quickAction);
 
 // ==================== Comments Routes ====================
 // 通用评论路由（支持query参数传topicId）

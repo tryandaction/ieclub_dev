@@ -3,31 +3,8 @@ import { getUsers, followUser, unfollowUser } from '../api/community'
 import { showToast } from '../components/Toast'
 import Avatar from '../components/Avatar'
 
-const mockUsers = [
-  {
-    id: 1,
-    name: '张三',
-    avatar: '👨‍💻',
-    major: '计算机科学',
-    grade: '大三',
-    level: 12,
-    score: 1420,
-    isFollowing: false,
-  },
-  {
-    id: 2,
-    name: '李四',
-    avatar: '👩‍🎓',
-    major: '数学系',
-    grade: '大二',
-    level: 9,
-    score: 820,
-    isFollowing: true,
-  },
-]
-
 export default function Community() {
-  const [users, setUsers] = useState(mockUsers)
+  const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(false)
 
   // 加载用户列表
@@ -48,8 +25,7 @@ export default function Community() {
       }
     } catch (error) {
       console.error('❌ 加载用户列表失败:', error)
-      // 发生错误时继续使用mock数据，不打扰用户
-      showToast('加载失败，显示示例数据', 'warning')
+      showToast('加载用户列表失败', 'error')
     } finally {
       setLoading(false)
     }
