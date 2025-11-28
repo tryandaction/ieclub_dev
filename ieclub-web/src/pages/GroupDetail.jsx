@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { request } from '../utils/request';
-import { showToast } from '../utils/toast';
+import request from '../utils/request';
+import { showToast } from '../components/Toast';
 
 const categoryConfig = {
   study: { label: '学习交流', icon: '📚' },

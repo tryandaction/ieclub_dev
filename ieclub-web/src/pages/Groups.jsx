@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import request from '../utils/request';
-import { showToast } from '../utils/toast';
+import { showToast } from '../components/Toast';
 
 // 分类配置
 const categories = [
