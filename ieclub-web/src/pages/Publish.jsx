@@ -70,6 +70,24 @@ const projectStages = ['创意阶段', '开发中', '已上线', '招募中']
 // 时长选项  
 const durationOptions = ['30分钟', '1小时', '2小时', '半天', '一天', '多天']
 
+// 紧急程度选项
+const urgencyOptions = [
+  { value: 'low', label: '不急，随时都行', color: 'text-green-600' },
+  { value: 'medium', label: '一般，一周内', color: 'text-yellow-600' },
+  { value: 'high', label: '较急，尽快', color: 'text-orange-600' },
+  { value: 'urgent', label: '非常紧急', color: 'text-red-600' }
+]
+
+// 资源类型选项
+const resourceTypes = [
+  { value: 'document', label: '📄 文档资料', desc: 'PDF、Word、PPT等' },
+  { value: 'video', label: '🎬 视频教程', desc: '录播课程、教学视频' },
+  { value: 'code', label: '💻 代码项目', desc: 'GitHub、源码包' },
+  { value: 'tool', label: '🔧 工具软件', desc: '实用工具、插件' },
+  { value: 'experience', label: '💡 经验分享', desc: '心得、攻略、总结' },
+  { value: 'other', label: '📦 其他资源', desc: '其他类型资源' }
+]
+
 export default function Publish() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -98,6 +116,14 @@ export default function Publish() {
   const [website, setWebsite] = useState('')
   const [github, setGithub] = useState('')
   const [contactInfo, setContactInfo] = useState('')
+  
+  // 我想听特有
+  const [urgency, setUrgency] = useState('medium')
+  
+  // 分享特有
+  const [resourceType, setResourceType] = useState('')
+  const [downloadLink, setDownloadLink] = useState('')
+  const [extractCode, setExtractCode] = useState('')
 
   // 初始化类型
   useEffect(() => {
@@ -206,6 +232,16 @@ export default function Publish() {
         if (website) postData.website = website
         if (github) postData.github = github
         if (contactInfo) postData.contactInfo = contactInfo
+      }
+      
+      if (publishType === 'demand') {
+        postData.urgency = urgency
+      }
+      
+      if (publishType === 'share') {
+        if (resourceType) postData.resourceType = resourceType
+        if (downloadLink) postData.downloadLink = downloadLink
+        if (extractCode) postData.extractCode = extractCode
       }
 
       await createTopic(postData)
@@ -342,6 +378,84 @@ export default function Publish() {
                 </div>
               </div>
             )}
+            
+            {publishType === 'demand' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">紧急程度</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {urgencyOptions.map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setUrgency(opt.value)}
+                      className={`p-3 rounded-xl border-2 transition-all text-left ${
+                        urgency === opt.value
+                          ? 'border-cyan-500 bg-cyan-50'
+                          : 'border-gray-200 hover:border-cyan-300'
+                      }`}
+                    >
+                      <span className={`font-medium ${urgency === opt.value ? opt.color : 'text-gray-700'}`}>
+                        {opt.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 分享专属字段 */}
+        {publishType === 'share' && (
+          <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+            <h3 className="font-bold text-gray-900 flex items-center gap-2">
+              💡 资源信息
+            </h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">资源类型</label>
+              <div className="grid grid-cols-3 gap-3">
+                {resourceTypes.map(type => (
+                  <button
+                    key={type.value}
+                    type="button"
+                    onClick={() => setResourceType(type.value)}
+                    className={`p-3 rounded-xl border-2 transition-all text-left ${
+                      resourceType === type.value
+                        ? 'border-amber-500 bg-amber-50'
+                        : 'border-gray-200 hover:border-amber-300'
+                    }`}
+                  >
+                    <div className="font-medium text-gray-800">{type.label}</div>
+                    <div className="text-xs text-gray-500 mt-1">{type.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">下载/访问链接</label>
+                <input
+                  type="url"
+                  value={downloadLink}
+                  onChange={(e) => setDownloadLink(e.target.value)}
+                  placeholder="百度网盘/GitHub/其他链接"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">提取码（如有）</label>
+                <input
+                  type="text"
+                  value={extractCode}
+                  onChange={(e) => setExtractCode(e.target.value)}
+                  placeholder="网盘提取码"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+            </div>
           </div>
         )}
 

@@ -165,6 +165,12 @@ model Topic {
   deadline       DateTime?
   budget         String?   @db.VarChar(100)
   contactInfo    String?   @db.Text
+  urgency        String?   @db.VarChar(20) // 紧急程度：low, medium, high, urgent
+  
+  // 分享资源字段
+  resourceType   String?   @db.VarChar(30) // 资源类型：document, video, code, tool, experience, other
+  downloadLink   String?   @db.Text        // 下载/访问链接
+  extractCode    String?   @db.VarChar(50) // 提取码
 
   // 媒体文件
   images    String? @db.Text // 图片数组 (JSON字符串)

@@ -281,6 +281,7 @@ class TopicController {
         duration,
         targetAudience,
         threshold,
+        urgency,
         // 项目专属字段
         projectStage,
         teamSize,
@@ -289,6 +290,10 @@ class TopicController {
         website,
         github,
         contactInfo,
+        // 分享专属字段
+        resourceType,
+        downloadLink,
+        extractCode,
       } = req.body;
 
       // 验证必填字段
@@ -375,6 +380,9 @@ class TopicController {
         if (topicType === 'offer' && threshold) {
           topicData.threshold = parseInt(threshold) || 15;
         }
+        if (topicType === 'demand' && urgency) {
+          topicData.urgency = urgency;
+        }
       }
 
       // 项目(project) 专属字段
@@ -386,6 +394,13 @@ class TopicController {
         if (website) topicData.website = website;
         if (github) topicData.github = github;
         if (contactInfo) topicData.contactInfo = contactInfo;
+      }
+
+      // 分享(share) 专属字段
+      if (topicType === 'share') {
+        if (resourceType) topicData.resourceType = resourceType;
+        if (downloadLink) topicData.downloadLink = downloadLink;
+        if (extractCode) topicData.extractCode = extractCode;
       }
 
       // 创建话题
