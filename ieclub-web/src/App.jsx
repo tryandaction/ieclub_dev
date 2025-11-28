@@ -5,6 +5,7 @@ import Loading from './components/Loading'
 import Layout from './components/Layout'
 import { AuthProvider } from './contexts/AuthContext'
 import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute'
+import PWAPrompt from './components/PWAPrompt'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
@@ -45,6 +46,7 @@ function App() {
     <AuthProvider>
       <ErrorBoundary>
         <ToastContainer />
+        <PWAPrompt />
         <Loading show={isLoading} text={loadingText} fullscreen />
         <Routes>
           {/* 认证页面（无布局，已登录用户不能访问） */}
