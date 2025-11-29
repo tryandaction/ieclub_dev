@@ -46,6 +46,11 @@ router.put('/auth/profile', authenticate, AuthController.updateProfile);
 router.post('/auth/logout', authenticate, AuthController.logout);
 // 微信登录
 router.post('/auth/wechat-login', rateLimiters.auth, AuthController.wechatLogin);
+// 密码相关
+router.post('/auth/forgot-password', rateLimiters.auth, AuthController.forgotPassword);
+router.post('/auth/reset-password', rateLimiters.auth, AuthController.resetPassword);
+router.post('/auth/set-password', authenticate, AuthController.setPassword);
+router.put('/auth/change-password', authenticate, AuthController.changePassword);
 // refreshToken方法不存在，已注释
 
 // ==================== Topics Routes ====================

@@ -160,7 +160,7 @@ export default function Settings() {
     setChangingPassword(true)
     
     try {
-      await changePassword(oldPassword, newPassword)
+      await changePassword(oldPassword, newPassword, confirmPassword)
       showToast('密码修改成功，请重新登录', 'success')
       
       // 清空表单
