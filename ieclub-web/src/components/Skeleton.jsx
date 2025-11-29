@@ -190,3 +190,152 @@ export const CommentListSkeleton = ({ count = 3 }) => (
   </div>
 )
 
+// 用户卡片骨架屏
+export const UserCardSkeleton = () => (
+  <div className="bg-white rounded-2xl p-6 shadow-sm text-center space-y-4">
+    {/* 头像 */}
+    <div className="flex justify-center">
+      <SkeletonBase className="h-20 w-20 rounded-full" />
+    </div>
+    
+    {/* 昵称 */}
+    <SkeletonBase className="h-6 w-24 mx-auto" />
+    
+    {/* 简介 */}
+    <SkeletonBase className="h-4 w-3/4 mx-auto" />
+    
+    {/* 统计 */}
+    <div className="flex items-center justify-center space-x-4">
+      <SkeletonBase className="h-5 w-16" />
+      <SkeletonBase className="h-5 w-16" />
+    </div>
+    
+    {/* 关注按钮 */}
+    <SkeletonBase className="h-10 w-full rounded-xl" />
+  </div>
+)
+
+// 小组卡片骨架屏
+export const GroupCardSkeleton = () => (
+  <div className="bg-white rounded-2xl p-6 shadow-sm space-y-4">
+    <div className="flex items-center space-x-4">
+      {/* 图标 */}
+      <SkeletonBase className="h-16 w-16 rounded-2xl" />
+      
+      <div className="flex-1 space-y-2">
+        {/* 名称 */}
+        <SkeletonBase className="h-6 w-32" />
+        {/* 分类 */}
+        <SkeletonBase className="h-4 w-20" />
+      </div>
+    </div>
+    
+    {/* 描述 */}
+    <SkeletonBase className="h-4 w-full" />
+    <SkeletonBase className="h-4 w-4/5" />
+    
+    {/* 底部信息 */}
+    <div className="flex items-center justify-between pt-2">
+      <SkeletonBase className="h-5 w-20" />
+      <SkeletonBase className="h-9 w-20 rounded-lg" />
+    </div>
+  </div>
+)
+
+// 个人中心骨架屏
+export const ProfileSkeleton = () => (
+  <div className="max-w-2xl mx-auto space-y-6">
+    {/* 头部信息 */}
+    <div className="bg-white rounded-2xl p-8 shadow-sm">
+      <div className="flex items-center space-x-6">
+        <SkeletonBase className="h-24 w-24 rounded-full" />
+        <div className="flex-1 space-y-3">
+          <SkeletonBase className="h-8 w-32" />
+          <SkeletonBase className="h-4 w-48" />
+          <div className="flex space-x-4">
+            <SkeletonBase className="h-5 w-20" />
+            <SkeletonBase className="h-5 w-20" />
+            <SkeletonBase className="h-5 w-20" />
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    {/* 统计卡片 */}
+    <div className="grid grid-cols-4 gap-4">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="bg-white rounded-xl p-4 shadow-sm text-center">
+          <SkeletonBase className="h-8 w-12 mx-auto mb-2" />
+          <SkeletonBase className="h-4 w-16 mx-auto" />
+        </div>
+      ))}
+    </div>
+    
+    {/* 内容区 */}
+    <div className="bg-white rounded-2xl p-6 shadow-sm">
+      <SkeletonBase className="h-6 w-24 mb-4" />
+      <TopicListSkeleton count={2} />
+    </div>
+  </div>
+)
+
+// 消息列表骨架屏
+export const MessageListSkeleton = ({ count = 5 }) => (
+  <div className="space-y-2">
+    {Array.from({ length: count }).map((_, index) => (
+      <div key={index} className="bg-white rounded-xl p-4 flex items-center space-x-4">
+        <SkeletonBase className="h-12 w-12 rounded-full flex-shrink-0" />
+        <div className="flex-1 space-y-2">
+          <div className="flex items-center justify-between">
+            <SkeletonBase className="h-5 w-24" />
+            <SkeletonBase className="h-4 w-16" />
+          </div>
+          <SkeletonBase className="h-4 w-3/4" />
+        </div>
+      </div>
+    ))}
+  </div>
+)
+
+// 通知列表骨架屏
+export const NotificationSkeleton = ({ count = 5 }) => (
+  <div className="space-y-3">
+    {Array.from({ length: count }).map((_, index) => (
+      <div key={index} className="bg-white rounded-xl p-4 flex items-start space-x-3">
+        <SkeletonBase className="h-10 w-10 rounded-full flex-shrink-0" />
+        <div className="flex-1 space-y-2">
+          <SkeletonBase className="h-4 w-full" />
+          <SkeletonBase className="h-4 w-2/3" />
+          <SkeletonBase className="h-3 w-24" />
+        </div>
+      </div>
+    ))}
+  </div>
+)
+
+// 用户列表骨架屏
+export const UserListSkeleton = ({ count = 8 }) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    {Array.from({ length: count }).map((_, index) => (
+      <UserCardSkeleton key={index} />
+    ))}
+  </div>
+)
+
+// 小组列表骨架屏
+export const GroupListSkeleton = ({ count = 6 }) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {Array.from({ length: count }).map((_, index) => (
+      <GroupCardSkeleton key={index} />
+    ))}
+  </div>
+)
+
+// 页面级骨架屏包装器
+export const PageSkeleton = ({ children, loading, skeleton }) => {
+  if (loading) {
+    return skeleton
+  }
+  return children
+}
+
