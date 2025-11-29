@@ -2026,10 +2026,27 @@ class AuthController {
    */
   static async changePassword(req, res, next) {
     try {
+      // 调试日志：查看收到的请求体
+      logger.info('🔐 [ChangePassword] 收到请求:', {
+        body: req.body ? { 
+          hasOldPassword: !!req.body.oldPassword, 
+          hasNewPassword: !!req.body.newPassword, 
+          hasConfirmPassword: !!req.body.confirmPassword,
+          bodyKeys: Object.keys(req.body || {})
+        } : 'body为空',
+        contentType: req.headers['content-type'],
+        userId: req.user?.id
+      });
+
       const { oldPassword, newPassword, confirmPassword } = req.body || {};
       const userId = req.user?.id;
 
       if (!oldPassword || !newPassword || !confirmPassword) {
+        logger.warn('🔐 [ChangePassword] 参数缺失:', {
+          hasOldPassword: !!oldPassword,
+          hasNewPassword: !!newPassword,
+          hasConfirmPassword: !!confirmPassword
+        });
         return res.status(400).json({
           success: false,
           message: '旧密码、新密码和确认密码不能为空'
