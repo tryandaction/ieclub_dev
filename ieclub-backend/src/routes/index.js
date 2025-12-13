@@ -38,7 +38,7 @@ router.post('/auth/send-verify-code', rateLimiters.auth, AuthController.sendVeri
 // 登录相关
 router.post('/auth/login', rateLimiters.auth, AuthController.login);
 router.post('/auth/login-with-code', rateLimiters.auth, AuthController.loginWithCode);
-router.post('/auth/verify-code', rateLimiters.auth, AuthController.loginWithCode); // 别名
+router.post('/auth/verify-code', rateLimiters.auth, AuthController.verifyCode); // 验证验证码（仅校验，不登录）
 // 注册和资料
 router.post('/auth/register', rateLimiters.auth, AuthController.register);
 router.get('/auth/profile', authenticate, AuthController.getProfile);
