@@ -317,7 +317,7 @@ request.interceptors.response.use(
     // 429错误绝对不应该重试，应该直接返回错误（避免连续触发限流）
     if (status === 429) {
       // 429错误直接返回，不重试
-      const errorMessage = data?.message || '请求过于频繁，请稍后重试'
+      const errorMessage = data?.message || data?.error?.message || '请求过于频繁，请稍后重试'
       console.warn(`⚠️ [429] ${config?.url || 'unknown'}: 请求限流 - 不重试`)
       const err = new Error(errorMessage)
       err.code = 429
@@ -328,7 +328,7 @@ request.interceptors.response.use(
     
     // 503错误不应该重试（服务不可用，通常是配置问题）
     if (status === 503) {
-      const errorMessage = data?.message || '服务暂时不可用，请稍后重试'
+      const errorMessage = data?.message || data?.error?.message || '服务暂时不可用，请稍后重试'
       console.warn(`⚠️ [503] ${config?.url || 'unknown'}: 服务不可用 - 不重试`)
       const err = new Error(errorMessage)
       err.code = 503
@@ -347,7 +347,7 @@ request.interceptors.response.use(
     // 确保不应该重试的状态码不会重试
     if (shouldRetry && status && noRetryStatuses.includes(status)) {
       // 不应该重试的状态码，直接返回错误
-      const err = new Error(data?.message || `请求失败 (${status})`)
+      const err = new Error(data?.message || data?.error?.message || `请求失败 (${status})`)
       err.code = status
       err.response = error.response
       err.originalError = error
@@ -408,13 +408,13 @@ request.interceptors.response.use(
     // 特殊状态码处理
     switch (status) {
       case 400:
-        errorMessage = data?.message || '请求参数错误'
+        errorMessage = data?.message || data?.error?.message || '请求参数错误'
         console.error(`❌ [400] ${error.config.url}:`, errorMessage)
         break
       case 401:
         // 如果是认证接口（登录/注册），使用后端返回的错误消息，不跳转
         if (isAuthEndpoint) {
-          errorMessage = data?.message || '邮箱或密码错误'
+          errorMessage = data?.message || data?.error?.message || '邮箱或密码错误'
           console.warn(`🔒 [401] ${error.config.url}:`, errorMessage)
         } 
         // 如果是/auth/profile（检查认证状态），快速失败不刷新token
@@ -496,19 +496,19 @@ request.interceptors.response.use(
         }
         break
       case 403:
-        errorMessage = data?.message || '没有权限访问该资源'
+        errorMessage = data?.message || data?.error?.message || '没有权限访问该资源'
         console.error(`🚫 [403] ${error.config.url}:`, errorMessage)
         break
       case 404:
-        errorMessage = data?.message || `接口不存在: ${error.config?.method?.toUpperCase()} ${error.config?.url}`
+        errorMessage = data?.message || data?.error?.message || `接口不存在: ${error.config?.method?.toUpperCase()} ${error.config?.url}`
         console.error(`❌ [404] ${error.config?.baseURL}${error.config?.url}`)
         break
       case 429:
-        errorMessage = data?.message || '请求过于频繁，请稍后重试'
+        errorMessage = data?.message || data?.error?.message || '请求过于频繁，请稍后重试'
         console.warn(`⚠️ [429] ${error.config.url}: 请求限流`)
         break
       case 500:
-        errorMessage = data?.message || '服务器内部错误，请稍后重试'
+        errorMessage = data?.message || data?.error?.message || '服务器内部错误，请稍后重试'
         console.error(`💥 [500] ${error.config.url}:`, {
           duration: `${duration}ms`,
           data: data

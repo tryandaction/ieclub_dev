@@ -213,6 +213,6 @@ try {
 app.use(notFoundHandler);
 
 // 统一错误处理
-app.use(errorMiddleware);
+app.use(errorMiddleware());
 
 module.exports = app;

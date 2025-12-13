@@ -5,6 +5,17 @@ const { Prisma } = require('@prisma/client');
 const { monitor } = require('../utils/performanceMonitor');
 
 const errorHandler = (err, req, res, _next) => {
+  // 详细记录错误日志（用于诊断400错误）
+  console.log(' [errorHandler] 捕获错误:', {
+    name: err.name,
+    message: err.message,
+    statusCode: err.statusCode,
+    code: err.code,
+    url: req.originalUrl,
+    method: req.method,
+    isAppError: err instanceof AppError
+  });
+
   // 记录错误日志
   logger.error('Error occurred:', {
     message: err.message,
