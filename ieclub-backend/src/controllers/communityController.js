@@ -176,12 +176,18 @@ exports.getUserProfile = asyncHandler(async (req, res) => {
  * 关注用户
  */
 exports.followUser = asyncHandler(async (req, res) => {
+  console.log('🔍 [followUser] 开始处理关注请求');
+  console.log('🔍 [followUser] req.params:', req.params);
+  console.log('🔍 [followUser] req.user:', req.user?.id);
+  
   const { userId } = req.params;
   const followerId = req.user.id;
   const followingId = userId;
+  
+  console.log('🔍 [followUser] followerId:', followerId, 'followingId:', followingId);
 
   if (followerId === followingId) {
-    throw new AppError('VALIDATION_INVALID_FORMAT', '不能关注自己');
+    throw new AppError('不能关注自己', 400, 'VALIDATION_INVALID_FORMAT');
   }
 
   // 检查用户是否存在
@@ -190,7 +196,7 @@ exports.followUser = asyncHandler(async (req, res) => {
   });
 
   if (!targetUser) {
-    throw new AppError('RESOURCE_NOT_FOUND', '用户不存在');
+    throw new AppError('用户不存在', 404, 'RESOURCE_NOT_FOUND');
   }
 
   // 检查是否已关注

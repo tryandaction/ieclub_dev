@@ -1,11 +1,18 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getUsers, followUser, unfollowUser } from '../api/community'
 import { showToast } from '../components/Toast'
 import Avatar from '../components/Avatar'
 
 export default function Community() {
+  const navigate = useNavigate()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(false)
+
+  // 跳转到用户个人主页
+  const goToUserProfile = (userId) => {
+    navigate(`/profile/${userId}`)
+  }
 
   // 加载用户列表
   useEffect(() => {
@@ -83,8 +90,11 @@ export default function Community() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {users.map((user) => (
           <div key={user.id} className="card text-center space-y-4">
-            {/* 头像 */}
-            <div className="flex justify-center">
+            {/* 头像 - 点击跳转到用户主页 */}
+            <div 
+              className="flex justify-center cursor-pointer"
+              onClick={() => goToUserProfile(user.id)}
+            >
               <Avatar 
                 src={user.avatar} 
                 name={user.nickname || user.name || '用户'} 
@@ -92,9 +102,12 @@ export default function Community() {
               />
             </div>
 
-            {/* 用户信息 */}
-            <div>
-              <h3 className="text-xl font-bold text-gray-900">{user.nickname || user.name || '用户'}</h3>
+            {/* 用户信息 - 点击跳转到用户主页 */}
+            <div 
+              className="cursor-pointer"
+              onClick={() => goToUserProfile(user.id)}
+            >
+              <h3 className="text-xl font-bold text-gray-900 hover:text-purple-600 transition-colors">{user.nickname || user.name || '用户'}</h3>
               {user.bio && (
                 <p className="text-sm text-gray-500 mt-1 line-clamp-2">{user.bio}</p>
               )}
