@@ -64,12 +64,6 @@ class ActivityService {
             nickname: true,
             avatar: true
           }
-        },
-        category: {
-          select: {
-            id: true,
-            name: true
-          }
         }
       }
     });
@@ -249,7 +243,7 @@ class ActivityService {
       if (participation) {
         formattedActivity.isParticipating = true;
         formattedActivity.participationStatus = participation.status;
-        formattedActivity.joinedAt = participation.joinedAt.toISOString();
+        formattedActivity.joinedAt = participation.joinedAt?.toISOString() || null;
       } else {
         formattedActivity.isParticipating = false;
       }
@@ -323,12 +317,6 @@ class ActivityService {
             id: true,
             nickname: true,
             avatar: true
-          }
-        },
-        category: {
-          select: {
-            id: true,
-            name: true
           }
         }
       }
@@ -455,7 +443,7 @@ class ActivityService {
       participation: {
         id: participation.id,
         status: participation.status,
-        joinedAt: participation.joinedAt.toISOString()
+        joinedAt: participation.joinedAt?.toISOString() || null
       }
     };
   }
@@ -547,7 +535,7 @@ class ActivityService {
         user: p.user,
         status: p.status,
         note: p.note,
-        joinedAt: p.joinedAt.toISOString()
+        joinedAt: p.joinedAt?.toISOString() || null
       })),
       total,
       hasMore: skip + take < total,
@@ -766,8 +754,8 @@ class ActivityService {
 
     return {
       activityTitle: activity.title,
-      startTime: activity.startTime.toISOString(),
-      endTime: activity.endTime.toISOString(),
+      startTime: activity.startTime?.toISOString() || null,
+      endTime: activity.endTime?.toISOString() || null,
       totalParticipants,
       checkedInCount,
       notCheckedInCount: totalParticipants - checkedInCount,
@@ -777,7 +765,7 @@ class ActivityService {
         nickname: p.user.nickname,
         avatar: p.user.avatar,
         email: p.user.email,
-        joinedAt: p.joinedAt.toISOString(),
+        joinedAt: p.joinedAt?.toISOString() || null,
         checkedIn: p.checkedIn,
         checkedInAt: p.checkedInAt ? p.checkedInAt.toISOString() : null,
         status: p.status
@@ -794,8 +782,8 @@ class ActivityService {
       title: activity.title,
       description: activity.description,
       location: activity.location,
-      startTime: activity.startTime.toISOString(),
-      endTime: activity.endTime.toISOString(),
+      startTime: activity.startTime?.toISOString() || null,
+      endTime: activity.endTime?.toISOString() || null,
       maxParticipants: activity.maxParticipants,
       participantsCount: activity.participantsCount || (activity._count ? activity._count.participants : 0),
       tags: activity.tags ? JSON.parse(activity.tags) : [],
@@ -808,8 +796,8 @@ class ActivityService {
       } : null,
       category: activity.category,
       status: activity.status,
-      createdAt: activity.createdAt.toISOString(),
-      updatedAt: activity.updatedAt.toISOString()
+      createdAt: activity.createdAt?.toISOString() || null,
+      updatedAt: activity.updatedAt?.toISOString() || null
     };
   }
 

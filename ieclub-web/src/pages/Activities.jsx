@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, memo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getActivities, toggleParticipation } from '../api/activities'
+import { getActivities, joinActivity, leaveActivity } from '../api/activities'
 import { showToast } from '../components/Toast'
 import { ActivityListSkeleton } from '../components/Skeleton'
 
@@ -153,7 +153,12 @@ export default function Activities() {
     if (!activity) return
 
     try {
-      await toggleParticipation(activityId)
+      // 根据当前状态调用不同的 API
+      if (activity.isParticipating) {
+        await leaveActivity(activityId)
+      } else {
+        await joinActivity(activityId)
+      }
       
       // 更新本地状态
       setActivities(prev => prev.map(a =>
@@ -171,7 +176,7 @@ export default function Activities() {
       showToast(activity.isParticipating ? '已取消报名' : '报名成功 🎉', 'success')
     } catch (error) {
       console.error('操作失败:', error)
-      showToast(error.response?.data?.message || '操作失败，请稍后重试', 'error')
+      showToast(error.message || '操作失败，请稍后重试', 'error')
     }
   }, [activities, navigate])
 

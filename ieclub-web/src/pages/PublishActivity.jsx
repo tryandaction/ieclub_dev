@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createActivity } from '../api/activities'
 import { showToast } from '../components/Toast'
@@ -33,6 +33,9 @@ export default function PublishActivity() {
   
   const [tagInput, setTagInput] = useState('')
   const [images, setImages] = useState([])
+  
+  // 防重复提交锁
+  const isSubmitting = useRef(false)
 
   // 更新表单字段
   const updateField = (field, value) => {
@@ -142,6 +145,12 @@ export default function PublishActivity() {
 
   // 提交表单
   const handleSubmit = async () => {
+    // 防止重复提交
+    if (isSubmitting.current || loading) {
+      console.log('⚠️ 防止重复提交')
+      return
+    }
+    
     // 检查登录状态
     const token = localStorage.getItem('token')
     if (!token) {
@@ -152,6 +161,9 @@ export default function PublishActivity() {
 
     if (!validateForm()) return
 
+    // 立即设置提交锁
+    isSubmitting.current = true
+    
     try {
       setLoading(true)
       
@@ -180,6 +192,7 @@ export default function PublishActivity() {
       showToast(error.response?.data?.message || '发布失败，请稍后重试', 'error')
     } finally {
       setLoading(false)
+      isSubmitting.current = false
     }
   }
 

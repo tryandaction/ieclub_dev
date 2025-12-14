@@ -40,12 +40,12 @@ exports.getActivities = asyncHandler(async (req, res) => {
  * 获取活动详情
  */
 exports.getActivityById = asyncHandler(async (req, res) => {
-  const { activityId } = req.params;
+  const { id } = req.params;
   const userId = req.user ? req.user.id : null;
 
-  const activity = await activityService.getActivityById(activityId, userId);
+  const activity = await activityService.getActivityById(id, userId);
 
-  res.json(success(activity));
+  res.json(successResponse(activity));
 });
 
 /**
@@ -58,7 +58,7 @@ exports.updateActivity = asyncHandler(async (req, res) => {
 
   const activity = await activityService.updateActivity(activityId, userId, data);
 
-  res.json(success(activity, '更新成功'));
+  res.json(successResponse(activity, '更新成功'));
 });
 
 /**
@@ -71,7 +71,7 @@ exports.deleteActivity = asyncHandler(async (req, res) => {
 
   await activityService.deleteActivity(activityId, userId, isAdmin);
 
-  res.json(success(null, '删除成功'));
+  res.json(successResponse(null, '删除成功'));
 });
 
 /**
@@ -84,7 +84,7 @@ exports.joinActivity = asyncHandler(async (req, res) => {
 
   const result = await activityService.joinActivity(activityId, userId, { note });
 
-  res.json(success(result, result.message));
+  res.json(successResponse(result, result.message));
 });
 
 /**
@@ -96,7 +96,7 @@ exports.leaveActivity = asyncHandler(async (req, res) => {
 
   const result = await activityService.leaveActivity(activityId, userId);
 
-  res.json(success(result, result.message));
+  res.json(successResponse(result, result.message));
 });
 
 /**
@@ -125,7 +125,7 @@ exports.checkIn = asyncHandler(async (req, res) => {
 
   const result = await activityService.checkIn(activityId, userId, token);
 
-  res.json(success(result, result.message));
+  res.json(successResponse(result, result.message));
 });
 
 /**
@@ -137,7 +137,7 @@ exports.generateCheckInQRCode = asyncHandler(async (req, res) => {
 
   const result = await activityService.generateCheckInQRCode(activityId, userId);
 
-  res.json(success(result, '生成签到二维码成功'));
+  res.json(successResponse(result, '生成签到二维码成功'));
 });
 
 /**
@@ -149,7 +149,7 @@ exports.verifyCheckInToken = asyncHandler(async (req, res) => {
 
   const result = await activityService.verifyCheckInToken(activityId, token);
 
-  res.json(success(result, '验证成功'));
+  res.json(successResponse(result, '验证成功'));
 });
 
 /**
@@ -161,7 +161,7 @@ exports.getCheckInStats = asyncHandler(async (req, res) => {
 
   const stats = await activityService.getCheckInStats(activityId, userId);
 
-  res.json(success(stats, '获取签到统计成功'));
+  res.json(successResponse(stats, '获取签到统计成功'));
 });
 
 /**
@@ -186,12 +186,6 @@ exports.getMyActivities = asyncHandler(async (req, res) => {
         take,
         orderBy: [{ createdAt: 'desc' }],
         include: {
-          category: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
           _count: {
             select: {
               participants: true
@@ -202,7 +196,7 @@ exports.getMyActivities = asyncHandler(async (req, res) => {
       prisma.activity.count({ where: { organizerId: userId } })
     ]);
 
-    res.json(success({
+    res.json(successResponse({
       activities: activities.map(a => activityService.formatActivity(a)),
       total,
       hasMore: skip + take < total,
@@ -225,12 +219,6 @@ exports.getMyActivities = asyncHandler(async (req, res) => {
                   nickname: true,
                   avatar: true
                 }
-              },
-              category: {
-                select: {
-                  id: true,
-                  name: true
-                }
               }
             }
           }
@@ -239,7 +227,7 @@ exports.getMyActivities = asyncHandler(async (req, res) => {
       prisma.activityParticipant.count({ where: { userId } })
     ]);
 
-    res.json(success({
+    res.json(successResponse({
       activities: participations.map(p => ({
         ...activityService.formatActivity(p.activity),
         participationStatus: p.status,

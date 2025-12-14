@@ -337,8 +337,11 @@ request.interceptors.response.use(
       throw err
     }
     
-    // 只有网络错误和部分服务器错误才重试（排除 503）
-    const shouldRetry = config && config.retry && 
+    // 只有 GET 请求才允许重试（POST/PUT/DELETE 等变更操作不重试，防止重复创建）
+    const isIdempotent = config && config.method && config.method.toLowerCase() === 'get'
+    
+    // 只有网络错误和部分服务器错误才重试（排除 503，且只对 GET 请求重试）
+    const shouldRetry = config && config.retry && isIdempotent &&
                        (!error.response || // 网络错误
                        (status >= 500 && status < 600 && status !== 503) || // 服务器错误（5xx，但排除503）
                        error.code === 'ECONNABORTED' || // 超时

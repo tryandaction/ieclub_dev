@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getActivityDetail, toggleParticipation, checkIn, generateCheckInQRCode, getCheckInStats } from '../api/activities'
+import { getActivityDetail, joinActivity, leaveActivity, checkIn, generateCheckInQRCode, getCheckInStats } from '../api/activities'
 import toast from '../utils/toast'
 import Loading from '../components/Loading'
 import logger from '../utils/logger'
@@ -60,13 +60,18 @@ export default function ActivityDetail() {
     }
 
     try {
-      await toggleParticipation(id)
+      // 根据当前状态调用不同的 API
+      if (isParticipating) {
+        await leaveActivity(id)
+      } else {
+        await joinActivity(id)
+      }
       setIsParticipating(!isParticipating)
       toast.success(isParticipating ? '已取消报名' : '报名成功 🎉')
       loadActivityDetail() // 重新加载以更新参与人数
     } catch (error) {
       logger.error('报名操作失败', error)
-      toast.error(error.response?.data?.message || '操作失败')
+      toast.error(error.message || '操作失败')
     }
   }
 

@@ -36,10 +36,17 @@ export const deleteActivity = (id) => {
 }
 
 /**
- * 参与/取消参与活动
+ * 报名参加活动
  */
-export const toggleParticipation = (id) => {
-  return request.post(`/activities/${id}/participate`)
+export const joinActivity = (id) => {
+  return request.post(`/activities/${id}/join`)
+}
+
+/**
+ * 取消报名
+ */
+export const leaveActivity = (id) => {
+  return request.post(`/activities/${id}/leave`)
 }
 
 /**
