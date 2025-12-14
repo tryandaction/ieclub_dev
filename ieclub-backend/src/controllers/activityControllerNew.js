@@ -79,8 +79,6 @@ exports.getActivityById = async (req, res) => {
     const { id } = req.params;
     const userId = req.user ? req.user.id : null;
 
-    logger.info('getActivityById:', { id, userId });
-
     const activity = await prisma.activity.findUnique({
       where: { id },
       select: {
@@ -195,9 +193,10 @@ exports.createActivity = async (req, res) => {
 exports.joinActivity = async (req, res) => {
   try {
     const { activityId } = req.params;
+    if (!req.user || !req.user.id) {
+      return res.status(401).json(errorResponse('请先登录'));
+    }
     const userId = req.user.id;
-
-    logger.info('joinActivity:', { activityId, userId });
 
     // 检查活动是否存在
     const activity = await prisma.activity.findUnique({
