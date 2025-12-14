@@ -121,10 +121,11 @@ export default function Activities() {
       const res = await getActivities()
       const data = res?.data?.data || res?.data || res
       
-      if (data && Array.isArray(data)) {
+      // API 返回格式: {list: [...], total: N, ...}
+      if (data && data.list && Array.isArray(data.list)) {
+        setActivities(data.list)
+      } else if (data && Array.isArray(data)) {
         setActivities(data)
-      } else if (data && data.activities && Array.isArray(data.activities)) {
-        setActivities(data.activities)
       } else {
         setActivities([])
       }

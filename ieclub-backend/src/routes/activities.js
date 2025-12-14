@@ -1,10 +1,9 @@
 // ieclub-backend/src/routes/activities.js
-// 活动模块路由
+// 活动模块路由 - 使用重写的控制器
 
 const express = require('express');
 const router = express.Router();
-const activityController = require('../controllers/activityController');
-const activityControllerV2 = require('../controllers/activityControllerV2');
+const activityController = require('../controllers/activityControllerNew');
 const { authenticate, optionalAuth } = require('../middleware/auth');
 
 /**
@@ -36,61 +35,47 @@ router.post('/', authenticate, activityController.createActivity);
 
 /**
  * 更新活动
- * PUT /api/activities/:id
- * Body: title, description, location, startTime, endTime, maxParticipants, category, tags, images
  */
 router.put('/:id', authenticate, activityController.updateActivity);
 
 /**
  * 删除活动
- * DELETE /api/activities/:id
  */
 router.delete('/:id', authenticate, activityController.deleteActivity);
 
 /**
- * 点赞/取消点赞活动
- * POST /api/activities/:id/like
- * TODO: 实现activityController.toggleLike方法
+ * 报名参加活动
  */
-// router.post('/:id/like', authenticate, activityController.toggleLike);
-
-/**
- * 参与/取消参与活动
- * POST /api/activities/:id/participate
- * TODO: 实现activityController.toggleParticipation方法
- */
-// router.post('/:id/participate', authenticate, activityController.toggleParticipation);
-
-/**
- * V2 路由 - 新增功能
- * TODO: 实现activityControllerV2或使用现有controller方法
- */
-// 报名参加活动 - 使用现有joinActivity
 router.post('/:activityId/join', authenticate, activityController.joinActivity);
 
-// 取消报名 - 使用现有leaveActivity
+/**
+ * 取消报名
+ */
 router.post('/:activityId/leave', authenticate, activityController.leaveActivity);
 
-// 签到
+/**
+ * 签到
+ */
 router.post('/:activityId/checkin', authenticate, activityController.checkIn);
 
-// 生成签到二维码
+/**
+ * 生成签到二维码
+ */
 router.get('/:activityId/qrcode', authenticate, activityController.generateCheckInQRCode);
 
-// 验证签到token
+/**
+ * 验证签到token
+ */
 router.post('/:activityId/verify-token', authenticate, activityController.verifyCheckInToken);
 
-// 获取参与者列表
+/**
+ * 获取参与者列表
+ */
 router.get('/:activityId/participants', authenticate, activityController.getParticipants);
 
-// 获取签到统计
-router.get('/:activityId/checkin-stats', authenticate, activityController.getCheckInStats);
-
 /**
- * 获取活动分类列表
- * GET /api/activities/categories
- * TODO: 实现activityController.getCategories方法
+ * 获取签到统计
  */
-// router.get('/categories', activityController.getCategories);
+router.get('/:activityId/checkin-stats', authenticate, activityController.getCheckInStats);
 
 module.exports = router;

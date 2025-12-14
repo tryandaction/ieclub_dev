@@ -179,82 +179,89 @@ class ActivityService {
    * 获取活动详情（优化版 - 添加缓存）
    */
   async getActivityById(activityId, userId) {
-    // 生成缓存键（包含用户ID以区分不同用户的数据）
-    const cacheKey = `activity:detail:${activityId}:${userId || 'anonymous'}`;
+    try {
+      logger.info('getActivityById called', { activityId, userId });
+      
+      // 生成缓存键（包含用户ID以区分不同用户的数据）
+      const cacheKey = `activity:detail:${activityId}:${userId || 'anonymous'}`;
 
-    // 尝试从缓存获取
-    const cached = await cacheGet(cacheKey);
-    if (cached) {
-      logger.debug('活动详情命中缓存', { activityId, userId });
-      return cached;
-    }
-
-    // 优化：使用 select 代替 include
-    const activity = await prisma.activity.findUnique({
-      where: { id: activityId },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        location: true,
-        startTime: true,
-        endTime: true,
-        maxParticipants: true,
-        participantsCount: true,
-        category: true,
-        tags: true,
-        images: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-        organizer: {
-          select: {
-            id: true,
-            nickname: true,
-            avatar: true,
-            bio: true
-          }
-        }
+      // 尝试从缓存获取
+      const cached = await cacheGet(cacheKey);
+      if (cached) {
+        logger.debug('活动详情命中缓存', { activityId, userId });
+        return cached;
       }
-    });
 
-    if (!activity) {
-      throw new AppError('活动不存在', 404);
-    }
-
-    const formattedActivity = this.formatActivity(activity);
-
-    // 查询用户参与状态（如果已登录）
-    if (userId) {
-      const participation = await prisma.activityParticipant.findUnique({
-        where: {
-          activityId_userId: {
-            activityId,
-            userId
-          }
-        },
+      // 优化：使用 select 代替 include
+      const activity = await prisma.activity.findUnique({
+        where: { id: activityId },
         select: {
           id: true,
+          title: true,
+          description: true,
+          location: true,
+          startTime: true,
+          endTime: true,
+          maxParticipants: true,
+          participantsCount: true,
+          category: true,
+          tags: true,
+          images: true,
           status: true,
-          joinedAt: true
+          createdAt: true,
+          updatedAt: true,
+          organizer: {
+            select: {
+              id: true,
+              nickname: true,
+              avatar: true,
+              bio: true
+            }
+          }
         }
       });
 
-      if (participation) {
-        formattedActivity.isParticipating = true;
-        formattedActivity.participationStatus = participation.status;
-        formattedActivity.joinedAt = participation.joinedAt?.toISOString() || null;
+      if (!activity) {
+        throw new AppError('活动不存在', 404);
+      }
+
+      const formattedActivity = this.formatActivity(activity);
+
+      // 查询用户参与状态（如果已登录）
+      if (userId) {
+        const participation = await prisma.activityParticipant.findUnique({
+          where: {
+            activityId_userId: {
+              activityId,
+              userId
+            }
+          },
+          select: {
+            id: true,
+            status: true,
+            joinedAt: true
+          }
+        });
+
+        if (participation) {
+          formattedActivity.isParticipating = true;
+          formattedActivity.participationStatus = participation.status;
+          formattedActivity.joinedAt = participation.joinedAt?.toISOString() || null;
+        } else {
+          formattedActivity.isParticipating = false;
+        }
       } else {
         formattedActivity.isParticipating = false;
       }
-    } else {
-      formattedActivity.isParticipating = false;
+
+      // 缓存结果
+      await cacheSet(cacheKey, formattedActivity, CACHE_TTL.DETAIL);
+
+      return formattedActivity;
+    } catch (error) {
+      logger.error('getActivityById error', { activityId, userId, error: error.message, stack: error.stack });
+      throw error;
     }
-
-    // 缓存结果
-    await cacheSet(cacheKey, formattedActivity, CACHE_TTL.DETAIL);
-
-    return formattedActivity;
   }
 
   /**

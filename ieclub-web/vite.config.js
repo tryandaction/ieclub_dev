@@ -10,9 +10,9 @@ export default defineConfig({
       registerType: 'prompt', // 提示用户更新
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'robots.txt'],
       manifest: {
-        name: 'IEClub - 校园创新创业社区',
+        name: 'IEClub',
         short_name: 'IEClub',
-        description: '连接校园创新者，分享知识，组队合作',
+        description: 'IEClub',
         theme_color: '#7c3aed',
         background_color: '#ffffff',
         display: 'standalone',
