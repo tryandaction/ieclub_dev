@@ -83,7 +83,6 @@ exports.authenticate = async (req, res, next) => {
     console.log(' [authenticate] Authentication successful');
     next();
   } catch (error) {
-    console.log(' [authenticate] Error:', error.message);
     next(error);
   }
 };
@@ -96,7 +95,7 @@ exports.optionalAuth = async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return next(); // 没有 token，继续执行
+      return next();
     }
 
     const token = authHeader.substring(7);
@@ -120,7 +119,6 @@ exports.optionalAuth = async (req, res, next) => {
         req.userId = user.id;
       }
     } catch (error) {
-      // Token 无效，继续执行但不设置用户信息
       logger.warn('可选认证Token无效:', error.message);
     }
 
