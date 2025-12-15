@@ -111,32 +111,35 @@ export default function PersonalCenter() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* 用户信息卡片 */}
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-8 mb-6">
+      {/* 用户信息卡片 - 移动端优化 */}
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 sm:p-8 mb-4 sm:mb-6">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-6">
+          {/* 移动端：居中垂直布局 */}
+          <div className="flex flex-col items-center text-center sm:flex-row sm:items-center sm:text-left gap-4 sm:gap-6">
             <img
               src={user.avatar || '/default-avatar.png'}
               alt={user.nickname}
-              className="w-24 h-24 rounded-full border-4 border-white shadow-lg"
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white shadow-lg"
             />
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold mb-2">{user.nickname || '用户'}</h1>
-              <p className="text-white/90 mb-3">{user.bio || '这个人很懒，什么都没写'}</p>
-              <div className="flex gap-4 text-sm">
-                <div>
-                  <span className="font-semibold">等级:</span> Lv.{user.level || 1}
-                </div>
-                {user.email && (
-                  <div>
-                    <span className="font-semibold">邮箱:</span> {user.email}
-                  </div>
-                )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-center sm:justify-start gap-2 mb-1 sm:mb-2">
+                <h1 className="text-xl sm:text-3xl font-bold truncate">{user.nickname || '用户'}</h1>
+                <span className="px-2 py-0.5 bg-white/20 rounded-full text-xs whitespace-nowrap">
+                  Lv.{user.level || 1}
+                </span>
               </div>
+              <p className="text-white/90 text-sm sm:text-base line-clamp-2 mb-2 sm:mb-3">
+                {user.bio || '这个人很懒，什么都没写'}
+              </p>
+              {user.email && (
+                <p className="text-white/70 text-xs sm:text-sm truncate hidden sm:block">
+                  📧 {user.email}
+                </p>
+              )}
             </div>
             <button
               onClick={logout}
-              className="px-6 py-2 bg-white/20 backdrop-blur rounded-lg hover:bg-white/30 transition"
+              className="px-4 py-1.5 sm:px-6 sm:py-2 bg-white/20 backdrop-blur rounded-lg hover:bg-white/30 transition text-sm sm:text-base whitespace-nowrap"
             >
               退出登录
             </button>
@@ -144,20 +147,24 @@ export default function PersonalCenter() {
         </div>
       </div>
 
-      {/* 功能菜单 */}
-      <div className="max-w-6xl mx-auto px-4">
-        <h2 className="text-2xl font-bold mb-6">个人中心</h2>
+      {/* 功能菜单 - 移动端方块布局 */}
+      <div className="max-w-6xl mx-auto px-3 sm:px-4">
+        <h2 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-6">个人中心</h2>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {/* 移动端3列方块，平板2列，桌面4列 */}
+        <div className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
           {menuItems.map((item) => {
             const Icon = item.icon
             return (
               <div
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`bg-gradient-to-br ${colorClasses[item.color]} p-6 rounded-2xl cursor-pointer transform hover:scale-105 transition-all shadow-lg hover:shadow-xl text-white`}
+                className={`bg-gradient-to-br ${colorClasses[item.color]} p-3 sm:p-6 rounded-xl sm:rounded-2xl cursor-pointer transform hover:scale-105 transition-all shadow-md hover:shadow-xl text-white aspect-square sm:aspect-auto flex flex-col items-center justify-center sm:items-start sm:justify-start`}
               >
-                <div className="flex items-start justify-between mb-4">
+                {/* 移动端：居中图标+标签 */}
+                <Icon size={24} className="opacity-90 sm:hidden mb-2" />
+                {/* 桌面端：左上角图标 */}
+                <div className="hidden sm:flex items-start justify-between mb-4 w-full">
                   <Icon size={32} className="opacity-90" />
                   {item.badge && (
                     <span className="px-2 py-1 bg-white/30 rounded-full text-xs">
@@ -165,34 +172,37 @@ export default function PersonalCenter() {
                     </span>
                   )}
                 </div>
-                <h3 className="text-lg font-bold mb-1">{item.label}</h3>
-                <p className="text-sm text-white/80">{item.desc}</p>
+                <h3 className="text-xs sm:text-lg font-bold sm:mb-1 text-center sm:text-left">{item.label}</h3>
+                <p className="text-xs text-white/80 hidden sm:block">{item.desc}</p>
               </div>
             )
           })}
         </div>
 
-        {/* 快捷操作 */}
-        <div className="mt-8 bg-white rounded-2xl p-6 shadow-lg">
-          <h3 className="text-xl font-bold mb-4">快捷操作</h3>
-          <div className="flex flex-wrap gap-3">
+        {/* 快捷操作 - 移动端优化 */}
+        <div className="mt-4 sm:mt-8 bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
+          <h3 className="text-base sm:text-xl font-bold mb-3 sm:mb-4">快捷操作</h3>
+          <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2 sm:gap-3">
             <button
               onClick={() => navigate('/publish')}
-              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:shadow-lg transition"
+              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:px-6 sm:py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:shadow-lg transition text-xs sm:text-base"
             >
-              ✨ 发布话题
+              <span>✨</span>
+              <span>发布话题</span>
             </button>
             <button
               onClick={() => navigate('/activities')}
-              className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium hover:shadow-lg transition"
+              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:px-6 sm:py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium hover:shadow-lg transition text-xs sm:text-base"
             >
-              🎉 浏览活动
+              <span>🎉</span>
+              <span>浏览活动</span>
             </button>
             <button
               onClick={() => navigate('/community')}
-              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:shadow-lg transition"
+              className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:px-6 sm:py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:shadow-lg transition text-xs sm:text-base"
             >
-              👥 发现社区
+              <span>👥</span>
+              <span>发现社区</span>
             </button>
           </div>
         </div>

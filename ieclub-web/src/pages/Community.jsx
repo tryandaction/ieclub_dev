@@ -46,26 +46,42 @@ export default function Community() {
     const token = localStorage.getItem('token')
     if (!token) {
       showToast('请先登录', 'warning')
+      navigate('/login')
       return
     }
 
     try {
-      // 调用API
       if (user.isFollowing) {
         await unfollowUser(userId)
+        setUsers(users.map(u =>
+          u.id === userId ? { ...u, isFollowing: false } : u
+        ))
+        showToast('已取消关注', 'success')
       } else {
         await followUser(userId)
+        setUsers(users.map(u =>
+          u.id === userId ? { ...u, isFollowing: true } : u
+        ))
+        showToast('关注成功 ✨', 'success')
       }
-
-      // 更新本地状态
-      setUsers(users.map(u =>
-        u.id === userId ? { ...u, isFollowing: !u.isFollowing } : u
-      ))
-      
-      showToast(user.isFollowing ? '已取消关注' : '关注成功 ✨', 'success')
     } catch (error) {
       console.error('操作失败:', error)
-      showToast(error.response?.data?.message || '操作失败，请稍后重试', 'error')
+      const errorMsg = error.response?.data?.message || error.message || ''
+      
+      // 处理状态不同步：后端返回已关注/未关注时同步本地状态
+      if (errorMsg.includes('已经关注')) {
+        setUsers(users.map(u =>
+          u.id === userId ? { ...u, isFollowing: true } : u
+        ))
+        showToast('已关注该用户', 'info')
+      } else if (errorMsg.includes('未关注')) {
+        setUsers(users.map(u =>
+          u.id === userId ? { ...u, isFollowing: false } : u
+        ))
+        showToast('未关注该用户', 'info')
+      } else {
+        showToast(errorMsg || '操作失败', 'error')
+      }
     }
   }
 

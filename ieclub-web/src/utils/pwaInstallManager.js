@@ -19,9 +19,10 @@ if (typeof window !== 'undefined') {
   checkInstalled()
   
   window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault()
+    // 不调用 preventDefault，让浏览器原生安装流程正常工作
+    // e.preventDefault() // 移除这行，避免阻止浏览器原生安装
     deferredPrompt = e
-    console.log('[PWA] beforeinstallprompt captured')
+    console.log('[PWA] beforeinstallprompt captured, prompt available')
     notifyListeners()
   })
   

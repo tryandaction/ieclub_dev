@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, MapPin, Users, CheckCircle, Clock, RefreshCw } from 'lucide-react';
 import { getUserActivities } from '../api/profile';
+import { getMyActivities } from '../api/activities';
 import { useAuth } from '../contexts/AuthContext';
+import { showToast } from '../components/Toast';
 
 export default function MyActivities() {
   const navigate = useNavigate();
@@ -32,22 +34,29 @@ export default function MyActivities() {
     try {
       const currentPage = isRefresh ? 1 : page;
       
-      const res = await getUserActivities(user.id, {
-        page: currentPage, 
-        pageSize
-      });
+      // 根据Tab选择不同的API
+      const res = currentTab === 0 
+        ? await getMyActivities({ page: currentPage, pageSize, type: 'joined' })
+        : await getMyActivities({ page: currentPage, pageSize, type: 'organized' });
 
-      const { activities: newActivities = [], total: newTotal = 0 } = res.data || res;
+      const data = res?.data?.data || res?.data || res;
+      const newActivities = data?.list || data?.activities || data || [];
+      const newTotal = data?.total || newActivities.length;
 
-      // 格式化活动数据
-      const formattedActivities = newActivities.map(formatActivity);
+      // 格式化活动数据（过滤掉null值）
+      const formattedActivities = Array.isArray(newActivities) 
+        ? newActivities.map(formatActivity).filter(Boolean) 
+        : [];
+      
+      console.log('[MyActivities] 原始数据:', newActivities.length, '格式化后:', formattedActivities.length);
 
       setActivities(isRefresh ? formattedActivities : [...activities, ...formattedActivities]);
       setTotal(newTotal);
       setPage(currentPage + 1);
-      setHasMore(newActivities.length >= pageSize);
+      setHasMore(formattedActivities.length >= pageSize);
     } catch (error) {
       console.error('加载活动失败:', error);
+      showToast('加载活动失败', 'error');
     } finally {
       setLoading(false);
     }
@@ -55,22 +64,30 @@ export default function MyActivities() {
 
   // 格式化活动数据
   const formatActivity = (activity) => {
+    if (!activity) return null;
+    
     const now = new Date();
-    const startTime = new Date(activity.startTime);
-    const endTime = new Date(activity.endTime);
+    const startTime = activity.startTime ? new Date(activity.startTime) : null;
+    const endTime = activity.endTime ? new Date(activity.endTime) : null;
 
     let status = 'upcoming';
     let statusText = '即将开始';
     let statusColor = 'bg-blue-500';
 
-    if (now > endTime) {
+    if (endTime && now > endTime) {
       status = 'ended';
       statusText = '已结束';
       statusColor = 'bg-gray-500';
-    } else if (now >= startTime && now <= endTime) {
+    } else if (startTime && endTime && now >= startTime && now <= endTime) {
       status = 'ongoing';
       statusText = '进行中';
       statusColor = 'bg-green-500';
+    }
+
+    // 处理图片
+    let images = activity.images || [];
+    if (typeof images === 'string') {
+      try { images = JSON.parse(images); } catch { images = []; }
     }
 
     return {
@@ -78,9 +95,13 @@ export default function MyActivities() {
       status,
       statusText,
       statusColor,
+      images,
+      cover: images && images.length > 0 ? images[0] : null,
       timeText: formatTime(activity.startTime, activity.endTime),
-      participantText: `${activity._count?.participants || 0}/${activity.maxParticipants || 0}`,
-      categoryName: activity.category?.name || '其他'
+      participantText: `${activity.participantsCount || 0}/${activity.maxParticipants || '不限'}`,
+      categoryName: activity.category || '活动',
+      // 兼容参与状态字段
+      participationStatus: activity.isParticipating ? 'confirmed' : null
     };
   };
 

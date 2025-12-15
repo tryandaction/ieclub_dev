@@ -98,80 +98,68 @@ class SearchService {
   }
 
   /**
-   * 搜索帖子（优化版）
+   * 搜索帖子（简化版）
    */
   async searchPosts(keyword, page = 1, pageSize = SEARCH_CONFIG.defaultPageSize) {
     const skip = (page - 1) * pageSize;
 
-    // 优化：使用全文搜索（如果数据库支持）
-    const where = {
-      publishedAt: { not: null },
-      status: { not: 'deleted' },
-      OR: [
-        { title: { contains: keyword, mode: 'insensitive' } },
-        { content: { contains: keyword, mode: 'insensitive' } }
-      ]
-    };
-
     try {
-      const [posts, total] = await Promise.all([
-        prisma.topic.findMany({
-          where,
-          skip,
-          take: pageSize,
-          orderBy: [
-            { likesCount: 'desc' },
-            { createdAt: 'desc' }
-          ],
-          select: {
-            id: true,
-            title: true,
-            content: true,
-            tags: true,
-            likesCount: true,
-            commentsCount: true,
-            viewsCount: true,
-            createdAt: true,
-            author: {
-              select: {
-                id: true,
-                nickname: true,
-                avatar: true,
-                level: true
-              }
-            },
-            category: {
-              select: {
-                id: true,
-                name: true
-              }
+      // 简化查询，避免复杂条件
+      const posts = await prisma.topic.findMany({
+        where: {
+          publishedAt: { not: null },
+          OR: [
+            { title: { contains: keyword } },
+            { content: { contains: keyword } }
+          ]
+        },
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          author: {
+            select: {
+              id: true,
+              nickname: true,
+              avatar: true,
+              level: true
             }
           }
-        }),
-        prisma.topic.count({ where })
-      ]);
+        }
+      });
+
+      const total = await prisma.topic.count({
+        where: {
+          publishedAt: { not: null },
+          OR: [
+            { title: { contains: keyword } },
+            { content: { contains: keyword } }
+          ]
+        }
+      });
 
       return {
         posts: posts.map(post => ({
           id: post.id,
           title: post.title,
-          excerpt: this.getExcerpt(post.content, keyword, SEARCH_CONFIG.excerptLength),
+          excerpt: post.content ? post.content.substring(0, 150) : '',
           tags: this._parseTags(post.tags),
           author: post.author,
-          category: post.category,
+          category: post.category || 'general',
+          topicType: post.topicType || 'discussion',
           stats: {
-            likes: post.likesCount,
-            comments: post.commentsCount,
-            views: post.viewsCount
+            likes: post.likesCount || 0,
+            comments: post.commentsCount || 0,
+            views: post.viewsCount || 0
           },
-          createdAt: post.createdAt.toISOString()
+          createdAt: post.createdAt ? post.createdAt.toISOString() : null
         })),
         total,
         hasMore: skip + pageSize < total
       };
     } catch (error) {
       logger.error('搜索帖子失败:', error);
-      throw error;
+      return { posts: [], total: 0, hasMore: false };
     }
   }
 
@@ -184,9 +172,8 @@ class SearchService {
     const where = {
       status: 'active',
       OR: [
-        { nickname: { contains: keyword, mode: 'insensitive' } },
-        { bio: { contains: keyword, mode: 'insensitive' } }
-        // 注意：不搜索邮箱（隐私保护）
+        { nickname: { contains: keyword } },
+        { bio: { contains: keyword } }
       ]
     };
 
@@ -249,9 +236,9 @@ class SearchService {
     const where = {
       status: 'published',
       OR: [
-        { title: { contains: keyword, mode: 'insensitive' } },
-        { description: { contains: keyword, mode: 'insensitive' } },
-        { location: { contains: keyword, mode: 'insensitive' } }
+        { title: { contains: keyword } },
+        { description: { contains: keyword } },
+        { location: { contains: keyword } }
       ]
     };
 

@@ -40,7 +40,10 @@ export default function MyFollowers() {
         pageSize: limit 
       });
 
-      const { users: followers = [], total: totalCount = 0 } = res.data || res;
+      // 后端返回格式: {success, data: {users, total, ...}}
+      const data = res?.data?.data || res?.data || res;
+      const followers = data?.users || [];
+      const totalCount = data?.total || 0;
 
       // 如果是查看自己的粉丝，需要检查是否已回关
       if (isMyProfile && user?.id) {
@@ -55,6 +58,7 @@ export default function MyFollowers() {
       setHasMore(followers.length >= limit);
     } catch (error) {
       console.error('加载粉丝列表失败:', error);
+      showToast('加载粉丝列表失败', 'error');
     } finally {
       setLoading(false);
     }
@@ -69,7 +73,9 @@ export default function MyFollowers() {
         pageSize: 1000 
       });
 
-      const followingIds = (res.data?.users || []).map(u => u.id);
+      // 后端返回格式: {success, data: {users, ...}}
+      const data = res?.data?.data || res?.data || res;
+      const followingIds = (data?.users || []).map(u => u.id);
 
       return followers.map(follower => ({
         ...follower,
@@ -98,7 +104,7 @@ export default function MyFollowers() {
 
   // 跳转到用户详情
   const goToUserDetail = (userId) => {
-    navigate(`/user/${userId}`);
+    navigate(`/profile/${userId}`);
   };
 
   return (
@@ -150,17 +156,32 @@ export default function MyFollowers() {
                 onClick={() => goToUserDetail(follower.id)}
               >
                 <div className="flex items-center gap-4">
-                  {/* 用户头像 */}
-                  <img
-                    src={follower.avatar || '/default-avatar.png'}
-                    alt={follower.nickname}
-                    className="w-20 h-20 rounded-full object-cover ring-4 ring-pink-500/20 group-hover:ring-pink-500/40 transition-all"
-                  />
+                  {/* 用户头像 - 点击跳转个人主页 */}
+                  <div 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToUserDetail(follower.id);
+                    }}
+                    className="relative cursor-pointer shrink-0"
+                  >
+                    <img
+                      src={follower.avatar || '/default-avatar.png'}
+                      alt={follower.nickname}
+                      className="w-20 h-20 rounded-full object-cover ring-4 ring-pink-500/20 hover:ring-pink-500/50 hover:scale-105 transition-all duration-200"
+                    />
+                    <div className="absolute inset-0 rounded-full bg-black/0 hover:bg-black/10 transition-all" />
+                  </div>
                   
-                  {/* 用户信息 */}
-                  <div className="flex-1 min-w-0">
+                  {/* 用户信息 - 点击跳转个人主页 */}
+                  <div 
+                    className="flex-1 min-w-0 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToUserDetail(follower.id);
+                    }}
+                  >
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-xl font-bold text-gray-800 truncate">
+                      <h3 className="text-xl font-bold text-gray-800 truncate hover:text-pink-600 transition-colors">
                         {follower.nickname || '未设置昵称'}
                       </h3>
                       {follower.verified && (

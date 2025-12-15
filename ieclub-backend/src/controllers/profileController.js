@@ -643,8 +643,8 @@ exports.getUserFavorites = async (req, res, next) => {
     const skip = (page - 1) * pageSize
     const take = parseInt(pageSize)
 
-    const [favorites, total] = await Promise.all([
-      prisma.favorite.findMany({
+    const [bookmarks, total] = await Promise.all([
+      prisma.bookmark.findMany({
         where: { userId },
         skip,
         take,
@@ -658,16 +658,26 @@ exports.getUserFavorites = async (req, res, next) => {
                   avatar: true,
                   level: true
                 }
+              },
+              _count: {
+                select: {
+                  likes: true,
+                  comments: true,
+                  bookmarks: true
+                }
               }
             }
           }
         },
         orderBy: { createdAt: 'desc' }
       }),
-      prisma.favorite.count({ where: { userId } })
+      prisma.bookmark.count({ where: { userId } })
     ])
 
-    const topics = favorites.map(f => f.topic)
+    const topics = bookmarks.map(b => ({
+      ...b.topic,
+      bookmarkedAt: b.createdAt
+    }))
 
     res.json({
       success: true,

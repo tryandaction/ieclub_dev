@@ -163,30 +163,41 @@ export default function Activities() {
     if (!activity) return
 
     try {
-      // 根据当前状态调用不同的 API
       if (activity.isParticipating) {
         await leaveActivity(activityId)
+        setActivities(prev => prev.map(a =>
+          a.id === activityId 
+            ? { ...a, isParticipating: false, participantsCount: Math.max(0, (a.participantsCount || 1) - 1) } 
+            : a
+        ))
+        showToast('已取消报名', 'success')
       } else {
         await joinActivity(activityId)
+        setActivities(prev => prev.map(a =>
+          a.id === activityId 
+            ? { ...a, isParticipating: true, participantsCount: (a.participantsCount || 0) + 1 } 
+            : a
+        ))
+        showToast('报名成功 🎉', 'success')
       }
-      
-      // 更新本地状态
-      setActivities(prev => prev.map(a =>
-        a.id === activityId 
-          ? { 
-              ...a, 
-              isParticipating: !a.isParticipating,
-              participantsCount: a.isParticipating 
-                ? (a.participantsCount || 1) - 1 
-                : (a.participantsCount || 0) + 1
-            } 
-          : a
-      ))
-      
-      showToast(activity.isParticipating ? '已取消报名' : '报名成功 🎉', 'success')
     } catch (error) {
       console.error('操作失败:', error)
-      showToast(error.message || '操作失败，请稍后重试', 'error')
+      const errorMsg = error.response?.data?.message || error.message || ''
+      
+      // 处理状态不同步
+      if (errorMsg.includes('已报名') || errorMsg.includes('已经报名')) {
+        setActivities(prev => prev.map(a =>
+          a.id === activityId ? { ...a, isParticipating: true } : a
+        ))
+        showToast('已报名该活动', 'info')
+      } else if (errorMsg.includes('未报名') || errorMsg.includes('没有报名')) {
+        setActivities(prev => prev.map(a =>
+          a.id === activityId ? { ...a, isParticipating: false } : a
+        ))
+        showToast('未报名该活动', 'info')
+      } else {
+        showToast(errorMsg || '操作失败', 'error')
+      }
     }
   }, [activities, navigate])
 

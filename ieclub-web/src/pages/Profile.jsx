@@ -101,7 +101,18 @@ export default function Profile() {
       }
     } catch (error) {
       console.error('关注操作失败:', error)
-      showToast(error.response?.data?.message || '操作失败', 'error')
+      const errorMsg = error.response?.data?.message || error.message || ''
+      
+      // 处理状态不同步
+      if (errorMsg.includes('已经关注')) {
+        setIsFollowing(true)
+        showToast('已关注该用户', 'info')
+      } else if (errorMsg.includes('未关注')) {
+        setIsFollowing(false)
+        showToast('未关注该用户', 'info')
+      } else {
+        showToast(errorMsg || '操作失败', 'error')
+      }
     } finally {
       setFollowLoading(false)
     }

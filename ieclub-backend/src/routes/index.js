@@ -76,6 +76,9 @@ router.post('/topics/:topicId/comments', authenticate, commentController.createC
 router.delete('/topics/:topicId/comments/:id', authenticate, commentController.deleteComment);
 router.post('/topics/:topicId/comments/:id/like', authenticate, commentController.likeComment);
 
+// ==================== Users Routes ====================
+router.get('/users/:id/topics', optionalAuth, userController.getUserTopics);
+
 // ==================== Users/Profile Routes ====================
 // ⚠️ 重要：直接注册profile路由，避免子路由匹配问题
 const profileController = require('../controllers/profileController');
@@ -142,5 +145,6 @@ router.use('/activities', require('./activities'));
 router.use('/notifications', require('./notificationRoutes'));
 router.use('/messages', require('./message'));
 router.use('/groups', require('./groups'));
+router.use('/search', require('./search'));
 
 module.exports = router;

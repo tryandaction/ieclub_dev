@@ -141,10 +141,14 @@ export default function Layout() {
               }
             >
               {item.isPublish ? (
-                // 发布按钮特殊样式 - 大加号
+                // 发布按钮特殊样式 - 优化设计
                 <>
-                  <span className="text-3xl font-light leading-none">+</span>
-                  <span className="font-medium">{item.label}</span>
+                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </div>
+                  <span className="font-semibold">{item.label}</span>
                 </>
               ) : (
                 <>
@@ -205,11 +209,14 @@ export default function Layout() {
               }
             >
               {item.isPublish ? (
-                // 移动端发布按钮 - 突出的加号
-                <div className="relative -top-3">
-                  <div className="w-11 h-11 sm:w-12 sm:h-12 bg-gradient-primary rounded-full flex items-center justify-center text-white shadow-lg">
-                    <span className="text-2xl sm:text-3xl font-light leading-none">+</span>
+                // 移动端发布按钮 - 优化设计
+                <div className="relative -top-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 via-purple-600 to-pink-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-purple-300/50 rotate-0 hover:rotate-90 transition-transform duration-300">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                    </svg>
                   </div>
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-1 bg-purple-200 rounded-full"></div>
                 </div>
               ) : (
                 <>

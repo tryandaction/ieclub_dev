@@ -13,6 +13,7 @@ exports.getActivities = async (req, res) => {
     const { page = 1, pageSize = 20, category, status = 'published' } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(pageSize);
     const take = parseInt(pageSize);
+    const userId = req.user?.id;
 
     const where = { status };
     if (category) where.category = category;
@@ -43,7 +44,11 @@ exports.getActivities = async (req, res) => {
               nickname: true,
               avatar: true
             }
-          }
+          },
+          participants: userId ? {
+            where: { userId },
+            select: { id: true, status: true }
+          } : false
         }
       }),
       prisma.activity.count({ where })
@@ -55,7 +60,9 @@ exports.getActivities = async (req, res) => {
       endTime: a.endTime ? a.endTime.toISOString() : null,
       createdAt: a.createdAt ? a.createdAt.toISOString() : null,
       tags: a.tags ? JSON.parse(a.tags) : [],
-      images: a.images ? JSON.parse(a.images) : []
+      images: a.images ? JSON.parse(a.images) : [],
+      isParticipating: userId ? (a.participants?.length > 0) : false,
+      participants: undefined
     }));
 
     res.json(successResponse({
@@ -382,6 +389,24 @@ exports.getMyActivities = async (req, res) => {
 
     let activities, total;
 
+    const activitySelect = {
+      id: true,
+      title: true,
+      description: true,
+      location: true,
+      startTime: true,
+      endTime: true,
+      maxParticipants: true,
+      participantsCount: true,
+      category: true,
+      images: true,
+      status: true,
+      createdAt: true,
+      organizer: {
+        select: { id: true, nickname: true, avatar: true }
+      }
+    };
+
     if (type === 'organized') {
       [activities, total] = await Promise.all([
         prisma.activity.findMany({
@@ -389,13 +414,7 @@ exports.getMyActivities = async (req, res) => {
           skip,
           take,
           orderBy: { createdAt: 'desc' },
-          select: {
-            id: true,
-            title: true,
-            startTime: true,
-            participantsCount: true,
-            status: true
-          }
+          select: activitySelect
         }),
         prisma.activity.count({ where: { organizerId: userId, status: { not: 'deleted' } } })
       ]);
@@ -407,30 +426,33 @@ exports.getMyActivities = async (req, res) => {
         orderBy: { joinedAt: 'desc' },
         include: {
           activity: {
-            select: {
-              id: true,
-              title: true,
-              startTime: true,
-              participantsCount: true,
-              status: true
-            }
+            select: activitySelect
           }
         }
       });
-      activities = participations.map(p => p.activity);
+      activities = participations.map(p => ({
+        ...p.activity,
+        joinedAt: p.joinedAt,
+        checkedIn: p.checkedIn || false
+      }));
       total = await prisma.activityParticipant.count({ where: { userId } });
     }
 
     const formattedActivities = activities.map(a => ({
       ...a,
-      startTime: a.startTime ? a.startTime.toISOString() : null
+      startTime: a.startTime ? a.startTime.toISOString() : null,
+      endTime: a.endTime ? a.endTime.toISOString() : null,
+      createdAt: a.createdAt ? a.createdAt.toISOString() : null,
+      images: a.images ? (typeof a.images === 'string' ? JSON.parse(a.images) : a.images) : [],
+      isParticipating: type === 'joined'
     }));
 
     res.json(successResponse({
       list: formattedActivities,
       total,
       page: parseInt(page),
-      pageSize: parseInt(pageSize)
+      pageSize: parseInt(pageSize),
+      hasMore: skip + take < total
     }));
   } catch (error) {
     logger.error('getMyActivities error:', error);

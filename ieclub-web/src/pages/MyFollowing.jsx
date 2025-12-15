@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Users, UserCheck, RefreshCw, Search } from 'lucide-react';
 import { getUserFollowing } from '../api/profile';
+import { unfollowUser } from '../api/user';
 import { useAuth } from '../contexts/AuthContext';
 import { showToast } from '../components/Toast';
 
@@ -40,7 +41,10 @@ export default function MyFollowing() {
         pageSize: limit 
       });
 
-      const { users: following = [], total: totalCount = 0 } = res.data || res;
+      // 后端返回格式: {success, data: {users, total, ...}}
+      const data = res?.data?.data || res?.data || res;
+      const following = data?.users || [];
+      const totalCount = data?.total || 0;
 
       setUsers(isRefresh ? following : [...users, ...following]);
       setTotal(totalCount);
@@ -48,6 +52,7 @@ export default function MyFollowing() {
       setHasMore(following.length >= limit);
     } catch (error) {
       console.error('加载关注列表失败:', error);
+      showToast('加载关注列表失败', 'error');
     } finally {
       setLoading(false);
     }
@@ -56,20 +61,27 @@ export default function MyFollowing() {
   // 取消关注
   const handleUnfollow = async (userId) => {
     try {
-      await request.post(`/users/${userId}/follow`);
-      
+      await unfollowUser(userId);
       // 从列表中移除
       setUsers(users.filter(u => u.id !== userId));
-      setTotal(total - 1);
+      setTotal(prev => Math.max(0, prev - 1));
+      showToast('已取消关注', 'success');
     } catch (error) {
       console.error('取消关注失败:', error);
-      showToast(error.message || '操作失败', 'error');
+      const errorMsg = error.response?.data?.message || error.message || '';
+      if (errorMsg.includes('未关注')) {
+        // 状态不同步，从列表移除
+        setUsers(users.filter(u => u.id !== userId));
+        setTotal(prev => Math.max(0, prev - 1));
+      } else {
+        showToast(errorMsg || '操作失败', 'error');
+      }
     }
   };
 
   // 跳转到用户详情
   const goToUserDetail = (userId) => {
-    navigate(`/user/${userId}`);
+    navigate(`/profile/${userId}`);
   };
 
   return (
@@ -121,17 +133,32 @@ export default function MyFollowing() {
                 onClick={() => goToUserDetail(followingUser.id)}
               >
                 <div className="flex items-center gap-4">
-                  {/* 用户头像 */}
-                  <img
-                    src={followingUser.avatar || '/default-avatar.png'}
-                    alt={followingUser.nickname}
-                    className="w-20 h-20 rounded-full object-cover ring-4 ring-cyan-500/20 group-hover:ring-cyan-500/40 transition-all"
-                  />
+                  {/* 用户头像 - 点击跳转个人主页 */}
+                  <div 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToUserDetail(followingUser.id);
+                    }}
+                    className="relative cursor-pointer shrink-0"
+                  >
+                    <img
+                      src={followingUser.avatar || '/default-avatar.png'}
+                      alt={followingUser.nickname}
+                      className="w-20 h-20 rounded-full object-cover ring-4 ring-cyan-500/20 hover:ring-cyan-500/50 hover:scale-105 transition-all duration-200"
+                    />
+                    <div className="absolute inset-0 rounded-full bg-black/0 hover:bg-black/10 transition-all" />
+                  </div>
                   
-                  {/* 用户信息 */}
-                  <div className="flex-1 min-w-0">
+                  {/* 用户信息 - 点击跳转个人主页 */}
+                  <div 
+                    className="flex-1 min-w-0 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToUserDetail(followingUser.id);
+                    }}
+                  >
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-xl font-bold text-gray-800 truncate">
+                      <h3 className="text-xl font-bold text-gray-800 truncate hover:text-cyan-600 transition-colors">
                         {followingUser.nickname || '未设置昵称'}
                       </h3>
                       {followingUser.verified && (

@@ -10,19 +10,39 @@ export default defineConfig({
       registerType: 'autoUpdate', // 自动更新，不提示
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'robots.txt'],
       manifest: {
+        id: 'ieclub-pwa',
         name: 'IEClub',
         short_name: 'IEClub',
-        description: 'IEClub',
+        description: '校园创新创业社区',
         theme_color: '#7c3aed',
         background_color: '#ffffff',
         display: 'standalone',
-        orientation: 'portrait',
+        orientation: 'any',
         scope: '/',
-        start_url: '/',
+        start_url: '.',
+        lang: 'zh-CN',
         icons: [
+          {
+            src: '/icon-144.png',
+            sizes: '144x144',
+            type: 'image/png',
+            purpose: 'any'
+          },
           {
             src: '/icon-192.png',
             sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/icon-256.png',
+            sizes: '256x256',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/icon-384.png',
+            sizes: '384x384',
             type: 'image/png',
             purpose: 'any'
           },

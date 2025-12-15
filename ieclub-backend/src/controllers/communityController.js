@@ -45,6 +45,9 @@ exports.getUserList = asyncHandler(async (req, res) => {
     ];
   }
 
+  // 获取当前登录用户ID
+  const currentUserId = req.user?.id;
+
   // 查询用户
   const [users, total] = await Promise.all([
     prisma.user.findMany({
@@ -61,7 +64,11 @@ exports.getUserList = asyncHandler(async (req, res) => {
         likesCount: true,
         fansCount: true,
         topicsCount: true,
-        commentsCount: true
+        commentsCount: true,
+        followers: currentUserId ? {
+          where: { followerId: currentUserId },
+          select: { id: true }
+        } : false
       }
     }),
     prisma.user.count({ where })
@@ -75,10 +82,11 @@ exports.getUserList = asyncHandler(async (req, res) => {
     bio: user.bio || '',
     registerTime: user.createdAt.toISOString(),
     likesCount: user.likesCount,
-    favoritesCount: 0, // 暂时设为0，需要根据实际需求调整
+    favoritesCount: 0,
     interactionCount: user.likesCount + user.fansCount,
     topicsCount: user.topicsCount,
-    commentsCount: user.commentsCount
+    commentsCount: user.commentsCount,
+    isFollowing: currentUserId ? (user.followers?.length > 0) : false
   }));
 
   res.json(successResponse({

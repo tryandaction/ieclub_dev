@@ -35,20 +35,27 @@ export default function ActivityDetail() {
       // 安全解析响应数据
       const data = res?.data?.data || res?.data || res
       
+      console.log('[ActivityDetail] API响应:', { 
+        isParticipating: data?.isParticipating,
+        hasCheckedIn: data?.hasCheckedIn,
+        organizerId: data?.organizer?.id
+      })
+      
       if (!data || !data.id) {
         throw new Error('活动数据无效')
       }
       
       setActivity(data)
-      setIsParticipating(data.isParticipating || false)
-      setHasCheckedIn(data.hasCheckedIn || false)
+      // 确保布尔值正确设置
+      setIsParticipating(data.isParticipating === true)
+      setHasCheckedIn(data.hasCheckedIn === true)
       
       // 检查是否是组织者
       const userStr = localStorage.getItem('user')
       const currentUserId = userStr ? JSON.parse(userStr)?.id : null
       setIsOrganizer(data.organizer?.id === currentUserId)
       
-      logger.info('加载活动详情成功', { activityId: id })
+      logger.info('加载活动详情成功', { activityId: id, isParticipating: data.isParticipating })
     } catch (error) {
       logger.error('加载活动详情失败', error)
       toast.error(error.message || '加载失败')
@@ -70,15 +77,30 @@ export default function ActivityDetail() {
       // 根据当前状态调用不同的 API
       if (isParticipating) {
         await leaveActivity(id)
+        setIsParticipating(false)
+        toast.success('已取消报名')
       } else {
         await joinActivity(id)
+        setIsParticipating(true)
+        toast.success('报名成功 🎉')
       }
-      setIsParticipating(!isParticipating)
-      toast.success(isParticipating ? '已取消报名' : '报名成功 🎉')
       loadActivityDetail() // 重新加载以更新参与人数
     } catch (error) {
       logger.error('报名操作失败', error)
-      toast.error(error.message || '操作失败')
+      const errorMsg = error.response?.data?.message || error.message || ''
+      
+      // 处理状态不同步的情况
+      if (errorMsg.includes('已报名') || errorMsg.includes('already')) {
+        setIsParticipating(true)
+        toast.info('您已报名此活动')
+      } else if (errorMsg.includes('未报名') || errorMsg.includes('not registered')) {
+        setIsParticipating(false)
+        toast.info('您尚未报名此活动')
+      } else {
+        toast.error(errorMsg || '操作失败')
+      }
+      // 重新加载以同步状态
+      loadActivityDetail()
     }
   }
 

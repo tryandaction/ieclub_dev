@@ -125,11 +125,17 @@ export default function Notifications() {
         unreadOnly: filter === 'unread',
       })
 
-      setNotifications(res.data.data)
-      setTotal(res.data.pagination.total)
+      // 兼容多种响应格式
+      const data = res?.data?.data || res?.data || res
+      const notificationList = data?.notifications || data?.list || data || []
+      const totalCount = data?.pagination?.total || data?.total || notificationList.length
+
+      setNotifications(Array.isArray(notificationList) ? notificationList : [])
+      setTotal(totalCount)
     } catch (error) {
       console.error('获取通知失败:', error)
       toast.error(error.response?.data?.message || '获取通知失败')
+      setNotifications([])
     } finally {
       setLoading(false)
     }

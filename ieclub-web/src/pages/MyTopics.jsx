@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Heart, MessageCircle, Bookmark, Plus, RefreshCw } from 'lucide-react';
+import { FileText, Heart, MessageCircle, Bookmark, Plus, RefreshCw, MoreVertical, Pin, Eye, EyeOff, Trash2, Edit, ArrowUp } from 'lucide-react';
 import request from '../utils/request';
 import { useAuth } from '../contexts/AuthContext';
+import { showToast } from '../components/Toast';
 
 export default function MyTopics() {
   const navigate = useNavigate();
@@ -11,6 +12,8 @@ export default function MyTopics() {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
+  const [activeMenu, setActiveMenu] = useState(null);
+  const menuRef = useRef(null);
   const limit = 10;
 
   // 统计数据
@@ -20,6 +23,17 @@ export default function MyTopics() {
     totalComments: 0,
     totalBookmarks: 0
   });
+
+  // 点击外部关闭菜单
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setActiveMenu(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (user?.id) {
@@ -40,17 +54,28 @@ export default function MyTopics() {
         params: { page: currentPage, limit }
       });
 
-      const { topics: newTopics = [], pagination = {} } = res.data || res;
+      // 后端返回格式: {success, data: {topics, pagination}}
+      const data = res?.data?.data || res?.data || res;
+      const rawTopics = data?.topics || [];
+      const pagination = data?.pagination || {};
+      
+      // 解析tags（后端返回的是JSON字符串）
+      const newTopics = rawTopics.map(topic => ({
+        ...topic,
+        tags: typeof topic.tags === 'string' ? JSON.parse(topic.tags || '[]') : (topic.tags || [])
+      }));
 
       // 计算统计数据
-      const newStats = calculateStats(isRefresh ? newTopics : [...topics, ...newTopics]);
+      const allTopics = isRefresh ? newTopics : [...topics, ...newTopics];
+      const newStats = calculateStats(allTopics);
 
-      setTopics(isRefresh ? newTopics : [...topics, ...newTopics]);
-      setStats(newStats);
+      setTopics(allTopics);
+      setStats({ ...newStats, total: pagination.total || allTopics.length });
       setPage(currentPage + 1);
       setHasMore(newTopics.length >= limit);
     } catch (error) {
       console.error('加载话题失败:', error);
+      showToast('加载话题失败', 'error');
     } finally {
       setLoading(false);
     }
@@ -104,7 +129,79 @@ export default function MyTopics() {
 
   // 跳转到话题详情
   const goToDetail = (id) => {
-    navigate(`/topics/${id}`);
+    navigate(`/topic/${id}`);
+  };
+
+  // 编辑话题
+  const handleEdit = (e, topicId) => {
+    e.stopPropagation();
+    setActiveMenu(null);
+    navigate(`/publish?edit=${topicId}`);
+  };
+
+  // 置顶话题（本地状态，仅用于排序展示）
+  const handlePin = (e, topicId) => {
+    e.stopPropagation();
+    setActiveMenu(null);
+    
+    const topic = topics.find(t => t.id === topicId);
+    const newPinned = !topic?.isPinned;
+    
+    // 更新本地状态
+    setTopics(prev => {
+      const updated = prev.map(t => 
+        t.id === topicId ? { ...t, isPinned: newPinned } : t
+      );
+      // 置顶的排在前面
+      return updated.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+    });
+    
+    showToast(newPinned ? '已置顶' : '已取消置顶', 'success');
+  };
+
+  // 撤回/发布话题
+  const handleToggleStatus = async (e, topicId, currentStatus) => {
+    e.stopPropagation();
+    setActiveMenu(null);
+    const newStatus = currentStatus === 'published' ? 'draft' : 'published';
+    const action = newStatus === 'draft' ? '撤回' : '发布';
+    
+    if (!window.confirm(`确定要${action}这个话题吗？`)) return;
+    
+    try {
+      await request.put(`/topics/${topicId}`, { status: newStatus });
+      setTopics(topics.map(t => 
+        t.id === topicId ? { ...t, status: newStatus } : t
+      ));
+      showToast(`${action}成功`, 'success');
+    } catch (error) {
+      console.error(`${action}失败:`, error);
+      showToast(`${action}失败`, 'error');
+    }
+  };
+
+  // 删除话题
+  const handleDelete = async (e, topicId) => {
+    e.stopPropagation();
+    setActiveMenu(null);
+    
+    if (!window.confirm('确定要删除这个话题吗？删除后无法恢复。')) return;
+    
+    try {
+      await request.delete(`/topics/${topicId}`);
+      setTopics(topics.filter(t => t.id !== topicId));
+      setStats(prev => ({ ...prev, total: Math.max(0, prev.total - 1) }));
+      showToast('删除成功', 'success');
+    } catch (error) {
+      console.error('删除失败:', error);
+      showToast('删除失败', 'error');
+    }
+  };
+
+  // 切换菜单
+  const toggleMenu = (e, topicId) => {
+    e.stopPropagation();
+    setActiveMenu(activeMenu === topicId ? null : topicId);
   };
 
   // 骨架屏
@@ -188,10 +285,72 @@ export default function MyTopics() {
                 <div
                   key={topic.id}
                   onClick={() => goToDetail(topic.id)}
-                  className="bg-white rounded-2xl p-6 shadow-sm mb-4 hover:shadow-md transition cursor-pointer border-l-4 border-transparent hover:border-blue-500"
+                  className={`bg-white rounded-2xl p-6 shadow-sm mb-4 hover:shadow-md transition cursor-pointer border-l-4 ${topic.isPinned ? 'border-amber-500 bg-amber-50/30' : 'border-transparent'} hover:border-blue-500 relative`}
                 >
+                  {/* 置顶标记 */}
+                  {topic.isPinned && (
+                    <div className="absolute top-3 right-14 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full flex items-center gap-1">
+                      <Pin className="w-3 h-3" />
+                      置顶
+                    </div>
+                  )}
+
+                  {/* 管理菜单按钮 */}
+                  <div className="absolute top-4 right-4" ref={activeMenu === topic.id ? menuRef : null}>
+                    <button
+                      onClick={(e) => toggleMenu(e, topic.id)}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition"
+                    >
+                      <MoreVertical className="w-5 h-5 text-gray-400" />
+                    </button>
+                    
+                    {/* 下拉菜单 */}
+                    {activeMenu === topic.id && (
+                      <div className="absolute right-0 top-10 w-36 bg-white rounded-xl shadow-lg border py-2 z-10">
+                        <button
+                          onClick={(e) => handleEdit(e, topic.id)}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <Edit className="w-4 h-4" />
+                          编辑
+                        </button>
+                        <button
+                          onClick={(e) => handlePin(e, topic.id)}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <Pin className="w-4 h-4" />
+                          {topic.isPinned ? '取消置顶' : '置顶'}
+                        </button>
+                        <button
+                          onClick={(e) => handleToggleStatus(e, topic.id, topic.status)}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          {topic.status === 'published' ? (
+                            <>
+                              <EyeOff className="w-4 h-4" />
+                              撤回
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="w-4 h-4" />
+                              发布
+                            </>
+                          )}
+                        </button>
+                        <div className="border-t my-1"></div>
+                        <button
+                          onClick={(e) => handleDelete(e, topic.id)}
+                          className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          删除
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
                   {/* 话题头部 */}
-                  <div className="flex justify-between items-start mb-4">
+                  <div className="flex justify-between items-start mb-4 pr-12">
                     <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-medium bg-${category.color}-100 text-${category.color}-700`}>
                       <span>{category.icon}</span>
                       {category.label}

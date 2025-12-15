@@ -168,3 +168,18 @@ exports.clearSearchHistory = asyncHandler(async (req, res) => {
   res.json(success(result, result.message));
 });
 
+/**
+ * 搜索话题（别名，兼容前端API调用）
+ */
+exports.searchTopics = exports.searchPosts;
+
+/**
+ * 获取搜索建议（别名）
+ */
+exports.getSearchSuggestions = exports.getSuggestions;
+
+/**
+ * 获取自动补全
+ */
+exports.getAutoComplete = exports.getSuggestions;
+

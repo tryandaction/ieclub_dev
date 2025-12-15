@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, Heart, MessageCircle, Eye, RefreshCw, X } from 'lucide-react';
 import { getUserFavorites } from '../api/profile';
+import request from '../utils/request';
 import { useAuth } from '../contexts/AuthContext';
+import { showToast } from '../components/Toast';
 
 export default function MyFavorites() {
   const navigate = useNavigate();
@@ -32,13 +34,22 @@ export default function MyFavorites() {
         pageSize: limit
       });
 
-      const { topics: newTopics = [] } = res.data || res;
+      // 后端返回格式: {success, data: {topics, total, ...}}
+      const data = res?.data?.data || res?.data || res;
+      const rawTopics = data?.topics || [];
+      
+      // 解析tags字段（后端返回JSON字符串）
+      const newTopics = rawTopics.map(topic => ({
+        ...topic,
+        tags: typeof topic.tags === 'string' ? JSON.parse(topic.tags || '[]') : (topic.tags || [])
+      }));
 
       setTopics(isRefresh ? newTopics : [...topics, ...newTopics]);
       setPage(currentPage + 1);
       setHasMore(newTopics.length >= limit);
     } catch (error) {
       console.error('加载收藏失败:', error);
+      showToast('加载收藏失败', 'error');
     } finally {
       setLoading(false);
     }
@@ -54,8 +65,10 @@ export default function MyFavorites() {
       const newTopics = [...topics];
       newTopics.splice(index, 1);
       setTopics(newTopics);
+      showToast('已取消收藏', 'success');
     } catch (error) {
       console.error('取消收藏失败:', error);
+      showToast('取消收藏失败', 'error');
     }
   };
 
@@ -97,7 +110,7 @@ export default function MyFavorites() {
 
   // 跳转到话题详情
   const goToDetail = (id) => {
-    navigate(`/topics/${id}`);
+    navigate(`/topic/${id}`);
   };
 
   // 骨架屏
