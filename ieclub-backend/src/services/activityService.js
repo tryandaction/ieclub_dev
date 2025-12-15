@@ -231,7 +231,7 @@ class ActivityService {
       if (userId) {
         const participation = await prisma.activityParticipant.findUnique({
           where: {
-            activityId_userId: {
+            userId_activityId: {
               activityId,
               userId
             }
@@ -410,7 +410,7 @@ class ActivityService {
     // 检查是否已报名
     const existingParticipation = await prisma.activityParticipant.findUnique({
       where: {
-        activityId_userId: {
+        userId_activityId: {
           activityId,
           userId
         }
@@ -461,7 +461,7 @@ class ActivityService {
   async leaveActivity(activityId, userId) {
     const participation = await prisma.activityParticipant.findUnique({
       where: {
-        activityId_userId: {
+        userId_activityId: {
           activityId,
           userId
         }
@@ -564,7 +564,7 @@ class ActivityService {
 
     const participation = await prisma.activityParticipant.findUnique({
       where: {
-        activityId_userId: {
+        userId_activityId: {
           activityId,
           userId
         }

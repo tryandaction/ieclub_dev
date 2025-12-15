@@ -2,11 +2,11 @@
 import { useState, useEffect } from 'react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { Download } from 'lucide-react'
+import { subscribe, getState, install } from '../utils/pwaInstallManager'
 
 export default function PWAPrompt() {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false)
-  const [deferredPrompt, setDeferredPrompt] = useState(null)
-  const [isInstalled, setIsInstalled] = useState(false)
+  const [pwaState, setPwaState] = useState(getState())
 
   // Service Worker 更新处理
   const {
@@ -21,80 +21,42 @@ export default function PWAPrompt() {
     }
   })
 
-  // 检查是否已安装（standalone 模式）
+  // 订阅 PWA 状态变化
   useEffect(() => {
-    const checkInstalled = () => {
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-        || window.navigator.standalone === true
-        || document.referrer.includes('android-app://')
+    const unsubscribe = subscribe(() => {
+      const state = getState()
+      setPwaState(state)
       
-      if (isStandalone) {
-        setIsInstalled(true)
+      // 如果可安装且未被关闭过，显示提示
+      if (state.isInstallable && !state.isInstalled) {
+        const dismissed = localStorage.getItem('pwa-install-dismissed')
+        if (!dismissed || (Date.now() - parseInt(dismissed)) / (1000 * 60 * 60 * 24) >= 7) {
+          setShowInstallPrompt(true)
+        }
+      } else {
         setShowInstallPrompt(false)
       }
-    }
+    })
     
-    checkInstalled()
-    
-    // 监听 display-mode 变化
-    const mediaQuery = window.matchMedia('(display-mode: standalone)')
-    mediaQuery.addEventListener('change', checkInstalled)
-    
-    return () => {
-      mediaQuery.removeEventListener('change', checkInstalled)
-    }
-  }, [])
-
-  // 监听安装提示事件
-  useEffect(() => {
-    if (isInstalled) return
-    
-    const handler = (e) => {
-      e.preventDefault()
-      setDeferredPrompt(e)
-      
-      // 检查是否被用户关闭过
+    // 初始检查
+    const state = getState()
+    setPwaState(state)
+    if (state.isInstallable && !state.isInstalled) {
       const dismissed = localStorage.getItem('pwa-install-dismissed')
-      if (dismissed) {
-        const daysSince = (Date.now() - parseInt(dismissed)) / (1000 * 60 * 60 * 24)
-        if (daysSince < 7) {
-          return // 7天内不再提示
-        }
+      if (!dismissed || (Date.now() - parseInt(dismissed)) / (1000 * 60 * 60 * 24) >= 7) {
+        setShowInstallPrompt(true)
       }
-      
-      setShowInstallPrompt(true)
     }
-
-    // 监听安装成功事件
-    const handleAppInstalled = () => {
-      setIsInstalled(true)
-      setShowInstallPrompt(false)
-      setDeferredPrompt(null)
-    }
-
-    window.addEventListener('beforeinstallprompt', handler)
-    window.addEventListener('appinstalled', handleAppInstalled)
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handler)
-      window.removeEventListener('appinstalled', handleAppInstalled)
-    }
-  }, [isInstalled])
+    
+    return unsubscribe
+  }, [])
 
   // 处理安装
   const handleInstall = async () => {
-    if (!deferredPrompt) return
-
-    deferredPrompt.prompt()
-    const { outcome } = await deferredPrompt.userChoice
-
-    if (outcome === 'accepted') {
-      console.log('用户接受安装')
-      setIsInstalled(true)
+    const success = await install()
+    if (success) {
+      setShowInstallPrompt(false)
     }
-
-    setDeferredPrompt(null)
-    setShowInstallPrompt(false)
   }
 
   // 处理更新
@@ -145,7 +107,7 @@ export default function PWAPrompt() {
       )}
 
       {/* 安装提示 - 紫色渐变底 + 白色IE图标 */}
-      {showInstallPrompt && deferredPrompt && !isInstalled && (
+      {showInstallPrompt && pwaState.isInstallable && !pwaState.isInstalled && (
         <div className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50">
           <div className="bg-gradient-to-r from-purple-600 to-pink-500 rounded-2xl shadow-2xl p-4 text-white animate-slide-up">
             <div className="flex items-center gap-4">

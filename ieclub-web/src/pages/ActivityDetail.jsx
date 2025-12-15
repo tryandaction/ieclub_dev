@@ -31,20 +31,27 @@ export default function ActivityDetail() {
     try {
       setLoading(true)
       const res = await getActivityDetail(id)
-      const data = res.data.data || res.data
+      
+      // 安全解析响应数据
+      const data = res?.data?.data || res?.data || res
+      
+      if (!data || !data.id) {
+        throw new Error('活动数据无效')
+      }
       
       setActivity(data)
       setIsParticipating(data.isParticipating || false)
       setHasCheckedIn(data.hasCheckedIn || false)
       
       // 检查是否是组织者
-      const currentUserId = JSON.parse(localStorage.getItem('user'))?.id
+      const userStr = localStorage.getItem('user')
+      const currentUserId = userStr ? JSON.parse(userStr)?.id : null
       setIsOrganizer(data.organizer?.id === currentUserId)
       
       logger.info('加载活动详情成功', { activityId: id })
     } catch (error) {
       logger.error('加载活动详情失败', error)
-      toast.error(error.response?.data?.message || '加载失败')
+      toast.error(error.message || '加载失败')
       navigate('/activities')
     } finally {
       setLoading(false)

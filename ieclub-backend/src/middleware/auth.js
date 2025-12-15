@@ -91,17 +91,21 @@ exports.authenticate = async (req, res, next) => {
  * 可选认证（如果有 token 则验证，没有则跳过）
  */
 exports.optionalAuth = async (req, res, next) => {
+  console.log('[optionalAuth] path:', req.path);
   try {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('[optionalAuth] no token');
       return next();
     }
 
     const token = authHeader.substring(7);
+    console.log('[optionalAuth] token length:', token.length);
 
     try {
       const decoded = jwt.verify(token, config.jwt.secret);
+      console.log('[optionalAuth] decoded userId:', decoded.userId);
 
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },
@@ -113,18 +117,20 @@ exports.optionalAuth = async (req, res, next) => {
           status: true,
         },
       });
+      console.log('[optionalAuth] user found:', !!user);
 
       if (user && user.status === 'active') {
         req.user = user;
         req.userId = user.id;
+        console.log('[optionalAuth] user set:', user.id);
       }
     } catch (error) {
-      logger.warn('可选认证Token无效:', error.message);
+      console.log('[optionalAuth] token error:', error.message);
     }
 
     next();
   } catch (error) {
-    logger.error('可选认证中间件错误:', error);
+    console.log('[optionalAuth] middleware error:', error.message);
     next();
   }
 };

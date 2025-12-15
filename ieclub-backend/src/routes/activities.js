@@ -1,9 +1,9 @@
 // ieclub-backend/src/routes/activities.js
-// 活动模块路由 - 使用重写的控制器
+// 活动模块路由
 
 const express = require('express');
 const router = express.Router();
-const activityController = require('../controllers/activityControllerNew');
+const activityController = require('../controllers/activityController');
 const { authenticate, optionalAuth } = require('../middleware/auth');
 
 /**
