@@ -70,11 +70,11 @@ export default function Community() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* 页面标题 */}
-      <div className="bg-gradient-primary text-white rounded-2xl p-8 shadow-lg">
-        <h1 className="text-3xl font-bold mb-2">发现伙伴</h1>
-        <p className="text-white/90">找到志同道合的学习伙伴</p>
+    <div className="space-y-4 sm:space-y-6">
+      {/* 页面标题 - 响应式 */}
+      <div className="page-header">
+        <h1>发现伙伴</h1>
+        <p>找到志同道合的学习伙伴</p>
       </div>
 
       {/* 加载状态 */}
@@ -85,11 +85,11 @@ export default function Community() {
         </div>
       )}
 
-      {/* 用户网格 */}
+      {/* 用户网格 - 小红书风格双列 */}
       {!loading && users.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="card-grid">
           {users.map((user) => (
-          <div key={user.id} className="card text-center space-y-4">
+          <div key={user.id} className="card text-center space-y-2 sm:space-y-3">
             {/* 头像 - 点击跳转到用户主页 */}
             <div 
               className="flex justify-center cursor-pointer"
@@ -98,7 +98,8 @@ export default function Community() {
               <Avatar 
                 src={user.avatar} 
                 name={user.nickname || user.name || '用户'} 
-                size={80}
+                size={56}
+                className="w-14 h-14 sm:w-16 sm:h-16"
               />
             </div>
 
@@ -107,29 +108,23 @@ export default function Community() {
               className="cursor-pointer"
               onClick={() => goToUserProfile(user.id)}
             >
-              <h3 className="text-xl font-bold text-gray-900 hover:text-purple-600 transition-colors">{user.nickname || user.name || '用户'}</h3>
+              <h3 className="title-sm text-gray-900 hover:text-purple-600 transition-colors truncate">{user.nickname || user.name || '用户'}</h3>
               {user.bio && (
-                <p className="text-sm text-gray-500 mt-1 line-clamp-2">{user.bio}</p>
+                <p className="text-caption text-gray-500 mt-0.5 line-clamp-2">{user.bio}</p>
               )}
             </div>
 
             {/* 统计数据 */}
-            <div className="flex items-center justify-center space-x-3 text-sm">
-              <span className="text-gray-600">
-                📝 {user.topicsCount || 0} 话题
-              </span>
-              <span className="text-gray-600">
-                ❤️ {user.likesCount || 0} 获赞
-              </span>
+            <div className="stats-row justify-center">
+              <span>📝 {user.topicsCount || 0}</span>
+              <span>❤️ {user.likesCount || 0}</span>
             </div>
 
             {/* 关注按钮 */}
             <button
               onClick={() => toggleFollow(user.id)}
-              className={`w-full py-3 rounded-xl font-medium transition-all ${
-                user.isFollowing
-                  ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  : 'bg-gradient-primary text-white hover:shadow-lg hover:scale-105'
+              className={`w-full btn ${
+                user.isFollowing ? 'btn-secondary' : 'btn-primary'
               }`}
             >
               {user.isFollowing ? '已关注' : '+ 关注'}
@@ -139,12 +134,12 @@ export default function Community() {
         </div>
       )}
 
-      {/* 空状态 */}
+      {/* 空状态 - 响应式 */}
       {!loading && users.length === 0 && (
-        <div className="text-center py-20">
-          <div className="text-6xl mb-4">👥</div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">暂无用户</h3>
-          <p className="text-gray-500">社区正在成长中...</p>
+        <div className="text-center py-12 sm:py-20">
+          <div className="icon-lg mb-3 sm:mb-4">👥</div>
+          <h3 className="title-md text-gray-900 mb-1 sm:mb-2">暂无用户</h3>
+          <p className="text-body text-gray-500">社区正在成长中...</p>
         </div>
       )}
     </div>

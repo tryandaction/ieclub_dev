@@ -353,38 +353,38 @@ export default function TopicDetail() {
   const config = getTypeConfig(topic.topicType || topic.type)
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-3 sm:space-y-6">
       {/* 返回按钮 */}
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors"
+        className="flex items-center gap-1 text-body text-gray-600 hover:text-purple-600 transition-colors"
       >
         <span>←</span>
         <span>返回</span>
       </button>
 
       {/* 话题主体 */}
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-        {/* 头部 */}
-        <div className={`${config.bg} p-6 text-white`}>
-          <div className="flex items-center space-x-3 mb-4">
-            <span className="text-3xl">{config.icon}</span>
-            <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">
+      <div className="bg-white rounded-resp-lg shadow-lg overflow-hidden">
+        {/* 头部 - 响应式 */}
+        <div className={`${config.bg} p-3 sm:p-6 text-white`}>
+          <div className="flex items-center gap-2 mb-2 sm:mb-4">
+            <span className="icon-md">{config.icon}</span>
+            <span className="tag bg-white/20 text-white">
               {config.label}
             </span>
           </div>
-          <h1 className="text-2xl font-bold mb-2">{topic.title}</h1>
-          <div className="flex items-center space-x-4 text-sm text-white/80">
-            <span>👀 {topic.viewsCount || topic.stats?.views || 0} 浏览</span>
-            <span>•</span>
-            <span>{topic.createdAt ? new Date(topic.createdAt).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}</span>
+          <h1 className="title-lg mb-1 sm:mb-2">{topic.title}</h1>
+          <div className="flex items-center gap-2 sm:gap-4 text-caption text-white/80 flex-wrap">
+            <span>👀 {topic.viewsCount || topic.stats?.views || 0}</span>
+            <span className="hidden sm:inline">•</span>
+            <span>{topic.createdAt ? new Date(topic.createdAt).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}</span>
           </div>
         </div>
 
-        {/* 作者信息 */}
-        <div className="p-6 border-b">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+        {/* 作者信息 - 响应式 */}
+        <div className="p-3 sm:p-6 border-b">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               {topic.author?.avatar ? (
                 <img 
                   src={topic.author.avatar.startsWith('http') ? topic.author.avatar : `https://ieclub.online${topic.author.avatar}`}
@@ -393,31 +393,31 @@ export default function TopicDetail() {
                   onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                 />
               ) : null}
-              <div className={`w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center text-white text-xl ${topic.author?.avatar ? 'hidden' : ''}`}>
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-primary flex items-center justify-center text-white text-lg sm:text-xl flex-shrink-0 ${topic.author?.avatar ? 'hidden' : ''}`}>
                 {(topic.author?.nickname || '用')[0]}
               </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <span className="font-bold text-gray-900">{topic.author?.nickname || topic.author?.name || '用户'}</span>
-                  <span className="text-xs bg-gradient-primary text-white px-2 py-1 rounded-full">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                  <span className="title-sm text-gray-900 truncate">{topic.author?.nickname || topic.author?.name || '用户'}</span>
+                  <span className="tag bg-gradient-primary text-white">
                     LV{topic.author?.level || 1}
                   </span>
                 </div>
-                <p className="text-sm text-gray-500">
+                <p className="text-caption text-gray-500 truncate">
                   {topic.author?.major || ''} {topic.author?.grade ? `· ${topic.author.grade}` : ''}
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               {isAuthor ? (
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="px-6 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 hover:shadow-lg transition-all"
+                  className="btn bg-red-500 text-white hover:bg-red-600"
                 >
-                  🗑️ 删除
+                  <span className="hidden sm:inline">🗑️</span> 删除
                 </button>
               ) : (
-                <button className="px-6 py-2 bg-gradient-primary text-white rounded-full hover:shadow-lg transition-all">
+                <button className="btn btn-primary">
                   关注
                 </button>
               )}
@@ -451,19 +451,19 @@ export default function TopicDetail() {
           </div>
         )}
 
-        {/* 内容 */}
-        <div className="p-6 border-b">
-          <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+        {/* 内容 - 响应式 */}
+        <div className="p-3 sm:p-6 border-b">
+          <p className="text-body text-gray-700 leading-relaxed whitespace-pre-wrap">
             {topic.description || topic.content}
           </p>
 
           {/* 标签 */}
           {topic.tags && topic.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-6">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-4 sm:mt-6">
               {(Array.isArray(topic.tags) ? topic.tags : JSON.parse(topic.tags || '[]')).map((tag) => (
                 <span
                   key={tag}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition-colors cursor-pointer"
+                  className="tag bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer"
                 >
                   #{tag}
                 </span>

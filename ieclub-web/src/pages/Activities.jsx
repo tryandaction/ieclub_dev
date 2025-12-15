@@ -49,40 +49,49 @@ const ActivityCard = memo(({ activity, onParticipate, onNavigate }) => {
   
   return (
     <div 
-      className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer"
+      className="bg-white rounded-resp-lg overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer active:scale-[0.98] sm:hover:scale-[1.02]"
       onClick={() => onNavigate(`/activities/${activity.id}`)}
     >
-      {/* 封面 */}
+      {/* 封面 - 响应式高度 */}
       {images.length > 0 ? (
         <img 
           src={images[0]} 
           alt={activity.title}
-          className="w-full h-48 object-cover"
+          className="w-full aspect-[4/3] object-cover"
         />
       ) : (
-        <div className="bg-gradient-to-br from-blue-400 to-purple-500 h-48 flex items-center justify-center">
-          <span className="text-8xl">🎉</span>
+        <div className="bg-gradient-to-br from-blue-400 to-purple-500 card-cover">
+          <span className="card-cover-icon">🎉</span>
         </div>
       )}
 
-      {/* 内容 */}
-      <div className="p-6 space-y-4">
+      {/* 内容 - 响应式内边距 */}
+      <div className="p-2 sm:p-4 space-y-1.5 sm:space-y-3">
         {/* 状态标签 */}
         <div className="flex items-center justify-between">
-          <span className={`px-2 py-1 rounded text-xs font-medium ${status.color}`}>
+          <span className={`tag ${status.color}`}>
             {status.label}
           </span>
           {activity.category && (
-            <span className="text-xs text-gray-500">{activity.category}</span>
+            <span className="text-caption text-gray-500">{activity.category}</span>
           )}
         </div>
         
-        <h3 className="text-xl font-bold text-gray-900 line-clamp-2">{activity.title}</h3>
+        <h3 className="title-sm text-gray-900 line-clamp-2">{activity.title}</h3>
 
-        <div className="space-y-2 text-sm text-gray-600">
-          <p>🕐 {formatTime(activity.startTime)}</p>
-          <p>📍 {activity.location}</p>
-          <p>👥 {activity.participantsCount || 0}/{activity.maxParticipants || '不限'} 人</p>
+        <div className="space-y-1 text-body text-gray-600">
+          <p className="flex items-center gap-1">
+            <span className="icon-sm">🕐</span>
+            <span className="truncate">{formatTime(activity.startTime)}</span>
+          </p>
+          <p className="flex items-center gap-1">
+            <span className="icon-sm">📍</span>
+            <span className="truncate">{activity.location}</span>
+          </p>
+          <p className="flex items-center gap-1">
+            <span className="icon-sm">👥</span>
+            <span>{activity.participantsCount || 0}/{activity.maxParticipants || '不限'}</span>
+          </p>
         </div>
 
         <button 
@@ -91,12 +100,12 @@ const ActivityCard = memo(({ activity, onParticipate, onNavigate }) => {
             if (!isPast) onParticipate(activity.id)
           }}
           disabled={isPast}
-          className={`w-full py-3 rounded-xl font-medium transition-all ${
+          className={`w-full btn ${
             isPast
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
               : activity.isParticipating
-                ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                : 'bg-gradient-primary text-white hover:shadow-lg hover:scale-105'
+                ? 'btn-secondary'
+                : 'btn-primary'
           }`}
         >
           {isPast ? '已结束' : activity.isParticipating ? '已报名' : '立即报名'}
@@ -182,18 +191,18 @@ export default function Activities() {
   }, [activities, navigate])
 
   return (
-    <div className="space-y-6">
-      {/* 页面标题 */}
-      <div className="bg-gradient-primary text-white rounded-2xl p-8 shadow-lg flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6">
+      {/* 页面标题 - 响应式 */}
+      <div className="page-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-bold mb-2">精彩活动</h1>
-          <p className="text-white/90">参与活动，收获成长</p>
+          <h1>精彩活动</h1>
+          <p>参与活动，收获成长</p>
         </div>
         <button
           onClick={() => navigate('/publish-activity')}
-          className="px-6 py-3 bg-white/20 hover:bg-white/30 rounded-xl font-medium transition-all flex items-center gap-2"
+          className="btn bg-white/20 hover:bg-white/30 text-white flex items-center gap-1 w-full sm:w-auto justify-center"
         >
-          <span className="text-xl">➕</span>
+          <span className="icon-sm">➕</span>
           发布活动
         </button>
       </div>
@@ -201,9 +210,9 @@ export default function Activities() {
       {/* 加载状态 - 骨架屏 */}
       {loading && <ActivityListSkeleton count={6} />}
 
-      {/* 活动网格 */}
+      {/* 活动网格 - 小红书风格双列 */}
       {!loading && activities.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="card-grid">
           {activities.map((activity) => (
             <ActivityCard
               key={activity.id}
@@ -215,15 +224,15 @@ export default function Activities() {
         </div>
       )}
 
-      {/* 空状态 */}
+      {/* 空状态 - 响应式 */}
       {!loading && activities.length === 0 && (
-        <div className="text-center py-20">
-          <div className="text-6xl mb-4">🎉</div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">暂无活动</h3>
-          <p className="text-gray-500 mb-6">快来发布第一个活动吧！</p>
+        <div className="text-center py-12 sm:py-20">
+          <div className="icon-lg mb-3 sm:mb-4">🎉</div>
+          <h3 className="title-md text-gray-900 mb-1 sm:mb-2">暂无活动</h3>
+          <p className="text-body text-gray-500 mb-4 sm:mb-6">快来发布第一个活动吧！</p>
           <button
             onClick={() => navigate('/publish-activity')}
-            className="px-8 py-3 bg-gradient-primary text-white rounded-xl font-medium hover:shadow-lg transition-all"
+            className="btn btn-primary"
           >
             发布活动
           </button>

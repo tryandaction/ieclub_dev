@@ -119,78 +119,78 @@ export default function Groups() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 头部 */}
+      {/* 头部 - 响应式 */}
       <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex justify-between items-center mb-6">
+        <div className="max-w-6xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">小组圈子</h1>
-              <p className="text-indigo-100">发现志同道合的伙伴，加入感兴趣的圈子</p>
+              <h1 className="title-lg mb-1">小组圈子</h1>
+              <p className="text-caption sm:text-body text-indigo-100">发现志同道合的伙伴</p>
             </div>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-6 py-3 bg-white text-indigo-600 rounded-xl font-medium hover:bg-indigo-50 transition-colors flex items-center gap-2"
+              className="btn bg-white text-indigo-600 hover:bg-indigo-50 flex items-center gap-1 w-full sm:w-auto justify-center"
             >
-              <span>➕</span> 创建小组
+              <span className="icon-sm">➕</span> 创建小组
             </button>
           </div>
 
-          {/* Tab切换 */}
-          <div className="flex gap-4">
+          {/* Tab切换 - 响应式 */}
+          <div className="flex gap-2 sm:gap-4">
             <button
               onClick={() => setActiveTab('discover')}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              className={`flex-1 sm:flex-none px-3 sm:px-6 py-2 rounded-resp text-caption sm:text-body font-medium transition-colors ${
                 activeTab === 'discover'
                   ? 'bg-white text-indigo-600'
                   : 'bg-white/20 text-white hover:bg-white/30'
               }`}
             >
-              🔍 发现小组
+              🔍 发现
             </button>
             <button
               onClick={() => setActiveTab('my')}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              className={`flex-1 sm:flex-none px-3 sm:px-6 py-2 rounded-resp text-caption sm:text-body font-medium transition-colors ${
                 activeTab === 'my'
                   ? 'bg-white text-indigo-600'
                   : 'bg-white/20 text-white hover:bg-white/30'
               }`}
             >
-              👥 我的小组
+              👥 我的
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="max-w-6xl mx-auto px-2 sm:px-4 py-3 sm:py-6">
         {activeTab === 'discover' ? (
-          <div className="flex gap-6">
+          <div className="flex gap-4 sm:gap-6">
             {/* 主内容区 */}
-            <div className="flex-1">
-              {/* 搜索和筛选 */}
-              <div className="bg-white rounded-xl p-4 mb-6 shadow-sm">
-                <form onSubmit={handleSearch} className="flex gap-4 mb-4">
+            <div className="flex-1 min-w-0">
+              {/* 搜索和筛选 - 响应式 */}
+              <div className="bg-white rounded-resp-lg p-2 sm:p-4 mb-4 sm:mb-6 shadow-sm">
+                <form onSubmit={handleSearch} className="flex gap-2 sm:gap-4 mb-3 sm:mb-4">
                   <input
                     type="text"
-                    placeholder="搜索小组名称..."
+                    placeholder="搜索小组..."
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
-                    className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="flex-1 px-3 sm:px-4 py-2 border border-gray-200 rounded-resp text-body focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                    className="btn bg-indigo-600 text-white hover:bg-indigo-700"
                   >
                     搜索
                   </button>
                 </form>
                 
-                {/* 分类筛选 */}
-                <div className="flex flex-wrap gap-2">
+                {/* 分类筛选 - 响应式横向滚动 */}
+                <div className="flex flex-nowrap sm:flex-wrap gap-1.5 sm:gap-2 overflow-x-auto pb-1 -mx-2 px-2 sm:mx-0 sm:px-0">
                   {categories.map(cat => (
                     <button
                       key={cat.value}
                       onClick={() => setCategory(cat.value)}
-                      className={`px-4 py-1.5 rounded-full text-sm transition-colors ${
+                      className={`tag whitespace-nowrap transition-colors ${
                         category === cat.value
                           ? 'bg-indigo-600 text-white'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -202,37 +202,37 @@ export default function Groups() {
                 </div>
               </div>
 
-              {/* 小组列表 */}
+              {/* 小组列表 - 响应式 */}
               {loading && groups.length === 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="card-grid">
                   {[1,2,3,4].map(i => (
-                    <div key={i} className="bg-white rounded-xl p-4 animate-pulse">
-                      <div className="flex gap-4">
-                        <div className="w-16 h-16 bg-gray-200 rounded-xl"></div>
+                    <div key={i} className="bg-white rounded-resp-lg p-2 sm:p-4 animate-pulse">
+                      <div className="flex gap-2 sm:gap-4">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-200 rounded-resp"></div>
                         <div className="flex-1">
-                          <div className="h-5 bg-gray-200 rounded w-1/2 mb-2"></div>
-                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                          <div className="h-4 sm:h-5 bg-gray-200 rounded w-1/2 mb-2"></div>
+                          <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4"></div>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : groups.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <p className="text-5xl mb-4">🔍</p>
-                  <p>暂无小组，快来创建第一个吧！</p>
+                <div className="text-center py-8 sm:py-12 text-gray-500">
+                  <p className="icon-lg mb-3">🔍</p>
+                  <p className="text-body">暂无小组，快来创建第一个吧！</p>
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="card-grid">
                     {groups.map(group => (
                       <div
                         key={group.id}
-                        className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                        className="bg-white rounded-resp-lg p-2 sm:p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                         onClick={() => navigate(`/groups/${group.id}`)}
                       >
-                        <div className="flex gap-4">
-                          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-2xl overflow-hidden">
+                        <div className="flex gap-2 sm:gap-4">
+                          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-resp bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-lg sm:text-2xl overflow-hidden flex-shrink-0">
                             {group.avatar ? (
                               <img src={group.avatar} alt="" className="w-full h-full object-cover" />
                             ) : (
@@ -240,30 +240,32 @@ export default function Groups() {
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-800 truncate">{group.name}</h3>
-                            <p className="text-sm text-gray-500 line-clamp-2 mt-1">
+                            <h3 className="title-sm text-gray-800 truncate">{group.name}</h3>
+                            <p className="text-caption text-gray-500 line-clamp-2 mt-0.5 sm:mt-1">
                               {group.description || '暂无简介'}
                             </p>
-                            <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
-                              <span>👥 {group.membersCount} 成员</span>
-                              <span>📝 {group.topicsCount} 话题</span>
+                            <div className="stats-row mt-1 sm:mt-2">
+                              <span>👥 {group.membersCount}</span>
+                              <span>📝 {group.topicsCount}</span>
                             </div>
                           </div>
-                          {group.isJoined ? (
-                            <span className="self-center px-3 py-1 text-sm text-green-600 bg-green-50 rounded-full">
-                              已加入
-                            </span>
-                          ) : (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleJoinGroup(group.id, group.needApproval);
-                              }}
-                              className="self-center px-4 py-1.5 text-sm text-indigo-600 border border-indigo-600 rounded-full hover:bg-indigo-50 transition-colors"
-                            >
-                              {group.needApproval ? '申请加入' : '加入'}
-                            </button>
-                          )}
+                          <div className="flex-shrink-0 self-center">
+                            {group.isJoined ? (
+                              <span className="tag bg-green-50 text-green-600">
+                                已加入
+                              </span>
+                            ) : (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleJoinGroup(group.id, group.needApproval);
+                                }}
+                                className="tag text-indigo-600 border border-indigo-600 hover:bg-indigo-50 transition-colors"
+                              >
+                                {group.needApproval ? '申请' : '加入'}
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}

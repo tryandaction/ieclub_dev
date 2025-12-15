@@ -183,38 +183,38 @@ export default function Layout() {
       </aside>
 
       {/* 主内容区 - 桌面端需要左侧留出空间 */}
-      <main className="min-h-screen md:ml-64 pb-16 md:pb-0">
-        <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
+      <main className="min-h-screen md:ml-64 pb-20 md:pb-0">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 py-3 sm:py-6 md:py-8">
           <Outlet />
         </div>
       </main>
 
-      {/* 移动端底部导航 */}
+      {/* 移动端底部导航 - 响应式 */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-bottom">
-        <div className="flex items-center justify-around">
+        <div className="flex items-center justify-around h-14">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={getNavPath(item)}
               className={({ isActive }) =>
                 item.isPublish
-                  ? 'flex flex-col items-center py-2 px-3'
-                  : `flex flex-col items-center py-2 px-3 ${
+                  ? 'flex flex-col items-center justify-center'
+                  : `flex flex-col items-center justify-center py-1.5 px-2 ${
                       isActive ? 'text-purple-600' : 'text-gray-500'
                     }`
               }
             >
               {item.isPublish ? (
                 // 移动端发布按钮 - 突出的加号
-                <div className="relative -top-4">
-                  <div className="w-14 h-14 bg-gradient-primary rounded-full flex items-center justify-center text-white shadow-lg">
-                    <span className="text-3xl font-light leading-none">+</span>
+                <div className="relative -top-3">
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 bg-gradient-primary rounded-full flex items-center justify-center text-white shadow-lg">
+                    <span className="text-2xl sm:text-3xl font-light leading-none">+</span>
                   </div>
                 </div>
               ) : (
                 <>
-                  <span className="text-2xl">{item.icon}</span>
-                  <span className="text-xs mt-1">{item.label}</span>
+                  <span className="icon-sm">{item.icon}</span>
+                  <span className="text-caption mt-0.5">{item.label}</span>
                 </>
               )}
             </NavLink>

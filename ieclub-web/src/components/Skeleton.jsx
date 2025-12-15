@@ -10,40 +10,39 @@ export const SkeletonBase = ({ className = '', animate = true }) => (
   />
 )
 
-// 话题卡片骨架屏
+// 话题卡片骨架屏 - 响应式
 export const TopicCardSkeleton = () => (
-  <div className="bg-white rounded-2xl p-6 shadow-sm">
-    {/* 类型标签 */}
-    <div className="flex items-center justify-between mb-4">
-      <SkeletonBase className="h-8 w-24 rounded-full" />
-      <SkeletonBase className="h-5 w-16" />
-    </div>
+  <div className="bg-white rounded-resp-lg overflow-hidden shadow-sm">
+    {/* 封面 */}
+    <SkeletonBase className="aspect-[4/3] w-full rounded-none" />
+    
+    {/* 内容 */}
+    <div className="p-2 sm:p-3 space-y-1.5 sm:space-y-2">
+      {/* 标题 */}
+      <SkeletonBase className="h-4 sm:h-5 w-3/4" />
+      <SkeletonBase className="h-4 sm:h-5 w-1/2" />
 
-    {/* 标题 */}
-    <SkeletonBase className="h-7 w-3/4 mb-3" />
-
-    {/* 作者信息 */}
-    <div className="flex items-center space-x-3 mb-4">
-      <SkeletonBase className="h-10 w-10 rounded-full" />
-      <div className="flex-1 space-y-2">
-        <SkeletonBase className="h-4 w-24" />
-        <SkeletonBase className="h-3 w-32" />
+      {/* 作者信息 */}
+      <div className="flex items-center gap-1.5">
+        <SkeletonBase className="h-5 w-5 sm:h-6 sm:w-6 rounded-full" />
+        <SkeletonBase className="h-3 w-16" />
+        <SkeletonBase className="h-4 w-8 rounded-full" />
       </div>
-    </div>
 
-    {/* 标签 */}
-    <div className="flex space-x-2 mb-4">
-      <SkeletonBase className="h-6 w-16 rounded-full" />
-      <SkeletonBase className="h-6 w-20 rounded-full" />
-    </div>
-
-    {/* 统计信息 */}
-    <div className="flex items-center justify-between">
-      <div className="flex space-x-4">
-        <SkeletonBase className="h-5 w-12" />
-        <SkeletonBase className="h-5 w-12" />
+      {/* 标签 */}
+      <div className="flex gap-1">
+        <SkeletonBase className="h-4 w-10 rounded-full" />
+        <SkeletonBase className="h-4 w-12 rounded-full" />
       </div>
-      <SkeletonBase className="h-9 w-20 rounded-full" />
+
+      {/* 统计信息 */}
+      <div className="flex items-center justify-between">
+        <div className="flex gap-2">
+          <SkeletonBase className="h-3 w-8" />
+          <SkeletonBase className="h-3 w-8" />
+        </div>
+        <SkeletonBase className="h-6 w-12 rounded-full" />
+      </div>
     </div>
   </div>
 )
@@ -76,36 +75,28 @@ export const CommentSkeleton = () => (
   </div>
 )
 
-// 活动卡片骨架屏
+// 活动卡片骨架屏 - 响应式
 export const ActivityCardSkeleton = () => (
-  <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+  <div className="bg-white rounded-resp-lg shadow-sm overflow-hidden">
     {/* 封面图 */}
-    <SkeletonBase className="h-48 w-full rounded-none" />
+    <SkeletonBase className="aspect-[4/3] w-full rounded-none" />
     
-    <div className="p-6 space-y-4">
+    <div className="p-2 sm:p-4 space-y-1.5 sm:space-y-3">
+      {/* 状态标签 */}
+      <SkeletonBase className="h-4 w-14 rounded-full" />
+      
       {/* 标题 */}
-      <SkeletonBase className="h-6 w-3/4" />
+      <SkeletonBase className="h-4 sm:h-5 w-3/4" />
       
       {/* 时间和地点 */}
-      <div className="space-y-2">
-        <SkeletonBase className="h-4 w-1/2" />
-        <SkeletonBase className="h-4 w-2/3" />
+      <div className="space-y-1">
+        <SkeletonBase className="h-3 w-2/3" />
+        <SkeletonBase className="h-3 w-1/2" />
+        <SkeletonBase className="h-3 w-1/3" />
       </div>
       
-      {/* 标签和状态 */}
-      <div className="flex items-center justify-between">
-        <div className="flex space-x-2">
-          <SkeletonBase className="h-6 w-16 rounded-full" />
-          <SkeletonBase className="h-6 w-16 rounded-full" />
-        </div>
-        <SkeletonBase className="h-6 w-20 rounded-full" />
-      </div>
-      
-      {/* 参与信息 */}
-      <div className="flex items-center justify-between">
-        <SkeletonBase className="h-4 w-32" />
-        <SkeletonBase className="h-9 w-24 rounded-lg" />
-      </div>
+      {/* 报名按钮 */}
+      <SkeletonBase className="h-8 sm:h-10 w-full rounded-resp" />
     </div>
   </div>
 )
@@ -165,17 +156,17 @@ export const TopicDetailSkeleton = () => (
   </div>
 )
 
-// 列表骨架屏 - 用于多个卡片的加载
-export const TopicListSkeleton = ({ count = 3 }) => (
-  <div className="space-y-4">
+// 列表骨架屏 - 小红书风格双列布局
+export const TopicListSkeleton = ({ count = 6 }) => (
+  <div className="card-grid">
     {Array.from({ length: count }).map((_, index) => (
       <TopicCardSkeleton key={index} />
     ))}
   </div>
 )
 
-export const ActivityListSkeleton = ({ count = 3 }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+export const ActivityListSkeleton = ({ count = 6 }) => (
+  <div className="card-grid">
     {Array.from({ length: count }).map((_, index) => (
       <ActivityCardSkeleton key={index} />
     ))}
@@ -190,28 +181,28 @@ export const CommentListSkeleton = ({ count = 3 }) => (
   </div>
 )
 
-// 用户卡片骨架屏
+// 用户卡片骨架屏 - 响应式
 export const UserCardSkeleton = () => (
-  <div className="bg-white rounded-2xl p-6 shadow-sm text-center space-y-4">
+  <div className="card text-center space-y-2 sm:space-y-3">
     {/* 头像 */}
     <div className="flex justify-center">
-      <SkeletonBase className="h-20 w-20 rounded-full" />
+      <SkeletonBase className="h-14 w-14 sm:h-16 sm:w-16 rounded-full" />
     </div>
     
     {/* 昵称 */}
-    <SkeletonBase className="h-6 w-24 mx-auto" />
+    <SkeletonBase className="h-4 w-20 mx-auto" />
     
     {/* 简介 */}
-    <SkeletonBase className="h-4 w-3/4 mx-auto" />
+    <SkeletonBase className="h-3 w-3/4 mx-auto" />
     
     {/* 统计 */}
-    <div className="flex items-center justify-center space-x-4">
-      <SkeletonBase className="h-5 w-16" />
-      <SkeletonBase className="h-5 w-16" />
+    <div className="flex items-center justify-center gap-2">
+      <SkeletonBase className="h-3 w-10" />
+      <SkeletonBase className="h-3 w-10" />
     </div>
     
     {/* 关注按钮 */}
-    <SkeletonBase className="h-10 w-full rounded-xl" />
+    <SkeletonBase className="h-8 sm:h-10 w-full rounded-resp" />
   </div>
 )
 
@@ -313,18 +304,18 @@ export const NotificationSkeleton = ({ count = 5 }) => (
   </div>
 )
 
-// 用户列表骨架屏
+// 用户列表骨架屏 - 小红书风格双列
 export const UserListSkeleton = ({ count = 8 }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+  <div className="card-grid">
     {Array.from({ length: count }).map((_, index) => (
       <UserCardSkeleton key={index} />
     ))}
   </div>
 )
 
-// 小组列表骨架屏
+// 小组列表骨架屏 - 小红书风格双列
 export const GroupListSkeleton = ({ count = 6 }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div className="card-grid">
     {Array.from({ length: count }).map((_, index) => (
       <GroupCardSkeleton key={index} />
     ))}

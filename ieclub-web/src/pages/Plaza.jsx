@@ -130,27 +130,27 @@ export default function Plaza() {
 
   return (
     <div className="space-y-6">
-      {/* 未登录提示 */}
+      {/* 未登录提示 - 响应式 */}
       {!isAuthenticated && (
-        <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <span className="text-5xl">👋</span>
+        <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-resp-lg p-resp-4 sm:p-resp-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <span className="icon-lg">👋</span>
               <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">欢迎来到 IEClub</h3>
-                <p className="text-sm text-gray-600">登录后可以发布话题、参与讨论、结识伙伴</p>
+                <h3 className="title-sm text-gray-900 mb-0.5">欢迎来到 IEClub</h3>
+                <p className="text-caption text-gray-600">登录后可以发布话题、参与讨论</p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <button
                 onClick={() => navigate('/login')}
-                className="px-6 py-2.5 bg-white text-purple-600 font-medium rounded-xl hover:shadow-lg transition-all"
+                className="flex-1 sm:flex-none btn btn-secondary"
               >
                 登录
               </button>
               <button
                 onClick={() => navigate('/register')}
-                className="px-6 py-2.5 bg-gradient-primary text-white font-medium rounded-xl hover:shadow-lg transition-all"
+                className="flex-1 sm:flex-none btn btn-primary"
               >
                 注册
               </button>
@@ -159,21 +159,21 @@ export default function Plaza() {
         </div>
       )}
       
-      {/* Tab 切换栏 */}
-      <div className="bg-white rounded-2xl p-2 shadow-sm">
-        <div className="flex items-center space-x-2">
+      {/* Tab 切换栏 - 响应式 */}
+      <div className="bg-white rounded-resp-lg p-1 sm:p-2 shadow-sm overflow-x-auto">
+        <div className="flex items-center gap-1 min-w-max">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center space-x-2 py-3 rounded-xl transition-all ${
+              className={`flex-1 flex items-center justify-center gap-1 py-2 sm:py-3 px-2 sm:px-4 rounded-resp transition-all whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'bg-gradient-primary text-white shadow-lg scale-105'
+                  ? 'bg-gradient-primary text-white shadow-md sm:shadow-lg'
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              <span>{tab.icon}</span>
-              <span className="font-medium">{tab.label}</span>
+              <span className="icon-sm">{tab.icon}</span>
+              <span className="text-caption sm:text-body font-medium">{tab.label}</span>
             </button>
           ))}
         </div>
@@ -182,93 +182,59 @@ export default function Plaza() {
       {/* 加载状态 - 骨架屏 */}
       {loading && <TopicListSkeleton count={6} />}
 
-      {/* 话题列表 - 瀑布流布局 */}
+      {/* 话题列表 - 小红书风格双列卡片流 */}
       {!loading && displayTopics.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="card-grid">
           {displayTopics.map((topic) => (
           <div
             key={topic.id}
             onClick={() => navigate(`/topic/${topic.id}`)}
-            className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer hover:scale-105"
+            className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer min-w-0"
           >
-            {/* 封面 */}
-            <div className={`${getTypeConfig(topic.topicType || topic.type).bg} h-40 flex items-center justify-center relative`}>
-              <span className="text-6xl">{topic.cover || '📝'}</span>
+            {/* 封面 - 紧凑正方形 */}
+            <div className={`${getTypeConfig(topic.topicType || topic.type).bg} card-cover relative`}>
+              <span className="card-cover-icon">{topic.cover || '📝'}</span>
               {/* 类型标识 */}
-              <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center space-x-1">
-                <span>{getTypeConfig(topic.topicType || topic.type).icon}</span>
-                <span className="text-sm font-medium">{getTypeConfig(topic.topicType || topic.type).label}</span>
+              <div className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                <span className="text-[10px] sm:text-xs">{getTypeConfig(topic.topicType || topic.type).icon}</span>
+                <span className="text-[10px] sm:text-xs font-medium hidden xs:inline">{getTypeConfig(topic.topicType || topic.type).label}</span>
               </div>
             </div>
 
-            {/* 内容 */}
-            <div className="p-4 space-y-3">
-              <h3 className="text-lg font-bold text-gray-900 line-clamp-2">{topic.title}</h3>
+            {/* 内容 - 紧凑内边距 */}
+            <div className="p-1.5 sm:p-3 space-y-1 sm:space-y-2">
+              <h3 className="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2 leading-tight">{topic.title}</h3>
 
               {/* 作者信息 */}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-1">
                 <Avatar 
                   src={topic.author?.avatar} 
                   name={topic.author?.nickname || topic.author?.name || '用户'} 
-                  size={32}
+                  size={16}
+                  className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0"
                 />
-                <span className="text-sm text-gray-600 flex-1">{topic.author?.nickname || topic.author?.name || '用户'}</span>
-                <span className="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded-lg font-bold">
-                  LV{topic.author?.level || 1}
-                </span>
-              </div>
-
-              {/* 标签 */}
-              <div className="flex flex-wrap gap-2">
-                {(Array.isArray(topic.tags) ? topic.tags : (topic.tags ? JSON.parse(topic.tags) : [])).slice(0, 3).map((tag, idx) => (
-                  <span
-                    key={idx}
-                    className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
+                <span className="text-[10px] sm:text-xs text-gray-500 truncate">{topic.author?.nickname || topic.author?.name || '用户'}</span>
               </div>
 
               {/* 统计信息 */}
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center space-x-4 text-gray-500">
-                  <span>💬 {topic.commentsCount || topic.stats?.comments || 0}</span>
-                  <span>👀 {topic.viewsCount || topic.stats?.views || 0}</span>
+              <div className="flex items-center justify-between text-[10px] sm:text-xs text-gray-400">
+                <div className="flex items-center gap-1.5">
+                  <span>💬{topic.commentsCount || topic.stats?.comments || 0}</span>
+                  <span>❤️{topic.likesCount || topic.stats?.likes || 0}</span>
                 </div>
-                <button
-                  onClick={(e) => handleLike(e, topic.id)}
-                  className={`flex items-center space-x-1 px-3 py-1.5 rounded-full transition-all duration-300 ${
-                    topic.isLiked
-                      ? 'bg-red-100 text-red-500 scale-110'
-                      : 'text-gray-500 hover:bg-red-50 hover:text-red-500 hover:scale-105'
-                  }`}
-                >
-                  <span className="text-base">{topic.isLiked ? '❤️' : '🤍'}</span>
-                  <span className="font-medium">{topic.likesCount || topic.stats?.likes || 0}</span>
-                </button>
               </div>
-
-              {/* 想听进度条 */}
-              {(topic.wantCount || topic.stats?.wantCount) && (
-                <div className="bg-gradient-to-r from-pink-100 to-purple-100 p-3 rounded-xl">
-                  <p className="text-sm text-pink-600 font-bold text-center">
-                    {topic.wantCount || topic.stats?.wantCount}/15人想听
-                  </p>
-                </div>
-              )}
             </div>
           </div>
           ))}
         </div>
       )}
 
-      {/* 空状态 */}
+      {/* 空状态 - 响应式 */}
       {!loading && displayTopics.length === 0 && (
-        <div className="text-center py-20">
-          <div className="text-6xl mb-4">📭</div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">暂无内容</h3>
-          <p className="text-gray-500">快来发布第一个话题吧！</p>
+        <div className="text-center py-12 sm:py-20">
+          <div className="icon-lg mb-3 sm:mb-4">📭</div>
+          <h3 className="title-md text-gray-900 mb-1 sm:mb-2">暂无内容</h3>
+          <p className="text-body text-gray-500">快来发布第一个话题吧！</p>
         </div>
       )}
     </div>
